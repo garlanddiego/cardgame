@@ -66,11 +66,11 @@ func _populate_grid() -> void:
 		var entry = _create_card_entry(card)
 		grid.add_child(entry)
 
-func _create_card_entry(card: Dictionary) -> PanelContainer:
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(340, 320)
+func _create_card_entry(card: Dictionary) -> Control:
+	var card_root = Control.new()
+	card_root.custom_minimum_size = Vector2(200, 280)
 
-	# Use generated card frame texture as background
+	# Determine frame texture path by card type
 	var frame_path: String
 	match card["type"]:
 		0: frame_path = "res://assets/img/card_frame_attack_clean.png"
@@ -78,47 +78,38 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 		2: frame_path = "res://assets/img/card_frame_power_clean.png"
 		_: frame_path = "res://assets/img/card_frame_attack_clean.png"
 
-	# Dark background with frame texture overlay
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.06, 0.04, 0.95)
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
-	style.corner_radius_bottom_left = 12
-	style.corner_radius_bottom_right = 12
-	style.content_margin_left = 20
-	style.content_margin_right = 20
-	style.content_margin_top = 12
-	style.content_margin_bottom = 10
-	panel.add_theme_stylebox_override("panel", style)
-
-	# Card frame texture overlay (on top of dark bg, behind text via z_index)
+	# Card frame texture — fills entire card as background
 	var frame_tex = TextureRect.new()
 	frame_tex.name = "FrameTexture"
 	if ResourceLoader.exists(frame_path):
 		frame_tex.texture = load(frame_path)
 	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
-	frame_tex.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame_tex.position = Vector2(0, 0)
+	frame_tex.size = Vector2(200, 280)
 	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame_tex.modulate = Color(1, 1, 1, 0.7)  # Slightly transparent so text shows through
-	panel.add_child(frame_tex)
+	card_root.add_child(frame_tex)
 
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	panel.add_child(vbox)
+	# Card art — top 45% area, edge-to-edge within 15px margin
+	var art_rect = TextureRect.new()
+	art_rect.position = Vector2(15, 15)
+	art_rect.size = Vector2(170, 120)
+	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	if card.has("art") and ResourceLoader.exists(card["art"]):
+		art_rect.texture = load(card["art"])
+	art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(art_rect)
 
-	# TOP: Cost + Card name (STS puts name at top with cost)
-	var top_hbox = HBoxContainer.new()
-	top_hbox.add_theme_constant_override("separation", 8)
-	vbox.add_child(top_hbox)
-
-	# Cost circle
+	# Cost circle — top-left overlay on art
 	var cost_label = Label.new()
 	var cost_val = card.get("cost", 0)
 	cost_label.text = "X" if cost_val == -1 else str(cost_val)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_label.custom_minimum_size = Vector2(28, 28)
-	cost_label.add_theme_font_size_override("font_size", 16)
+	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_label.position = Vector2(10, 5)
+	cost_label.size = Vector2(28, 28)
+	cost_label.add_theme_font_size_override("font_size", 14)
 	cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 	var cost_style = StyleBoxFlat.new()
 	cost_style.bg_color = Color(0.6, 0.4, 0.1, 0.9)
@@ -126,66 +117,71 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	cost_style.corner_radius_top_right = 14
 	cost_style.corner_radius_bottom_left = 14
 	cost_style.corner_radius_bottom_right = 14
-	cost_style.content_margin_left = 4
-	cost_style.content_margin_right = 4
-	cost_style.content_margin_top = 2
-	cost_style.content_margin_bottom = 2
+	cost_style.content_margin_left = 2
+	cost_style.content_margin_right = 2
+	cost_style.content_margin_top = 1
+	cost_style.content_margin_bottom = 1
 	cost_label.add_theme_stylebox_override("normal", cost_style)
-	top_hbox.add_child(cost_label)
+	card_root.add_child(cost_label)
 
-	# Card name
+	# Card name banner — centered at ~45% height with dark background
 	var name_label = Label.new()
 	var loc = _get_loc()
 	if loc:
 		name_label.text = loc.card_name(card)
 	else:
 		name_label.text = card["name"]
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_font_size_override("font_size", 17)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.position = Vector2(0, 140)
+	name_label.size = Vector2(200, 25)
+	name_label.add_theme_font_size_override("font_size", 13)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
-	top_hbox.add_child(name_label)
+	name_label.clip_text = true
+	var name_style = StyleBoxFlat.new()
+	name_style.bg_color = Color(0.05, 0.04, 0.03, 0.85)
+	name_label.add_theme_stylebox_override("normal", name_style)
+	card_root.add_child(name_label)
 
-	# Card art (large, centered)
-	var art_rect = TextureRect.new()
-	art_rect.custom_minimum_size = Vector2(140, 110)
-	art_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	if card.has("art") and ResourceLoader.exists(card["art"]):
-		art_rect.texture = load(card["art"])
-	vbox.add_child(art_rect)
-
-	# Type label — small subtle text (STS style: just two small chars)
+	# Type text — tiny text below name
 	var type_badge = Label.new()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.add_theme_font_size_override("font_size", 11)
-	type_badge.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6, 0.8))
+	type_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	type_badge.position = Vector2(0, 165)
+	type_badge.size = Vector2(200, 15)
+	type_badge.add_theme_font_size_override("font_size", 10)
+	type_badge.add_theme_color_override("font_color", Color(0.65, 0.6, 0.5, 0.8))
 	var loc_badge = _get_loc()
 	if loc_badge:
 		type_badge.text = loc_badge.type_name(card["type"])
 	else:
 		var badge_type_names = ["Attack", "Skill", "Power", "Status"]
 		type_badge.text = badge_type_names[card["type"]]
-	vbox.add_child(type_badge)
+	card_root.add_child(type_badge)
 
-	# Description — centered, larger text
+	# Description — bottom 35%, white on dark
 	var desc_label = RichTextLabel.new()
 	var loc3 = _get_loc()
 	if loc3:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.custom_minimum_size = Vector2(0, 50)
-	desc_label.fit_content = true
+	desc_label.position = Vector2(8, 180)
+	desc_label.size = Vector2(184, 60)
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = false
-	desc_label.add_theme_font_size_override("normal_font_size", 14)
-	desc_label.add_theme_color_override("default_color", Color(0.7, 0.7, 0.7))
-	vbox.add_child(desc_label)
+	desc_label.fit_content = false
+	desc_label.add_theme_font_size_override("normal_font_size", 11)
+	desc_label.add_theme_color_override("default_color", Color(0.85, 0.85, 0.85))
+	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(desc_label)
 
-	# Upgrade toggle + count controls
+	# Controls VBox at very bottom
 	var controls_vbox = VBoxContainer.new()
-	controls_vbox.add_theme_constant_override("separation", 4)
-	vbox.add_child(controls_vbox)
+	controls_vbox.position = Vector2(4, 245)
+	controls_vbox.size = Vector2(192, 35)
+	controls_vbox.add_theme_constant_override("separation", 1)
+	card_root.add_child(controls_vbox)
 
 	# Upgrade toggle button
 	var upgrade_btn = Button.new()
@@ -195,34 +191,37 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	else:
 		upgrade_btn.text = "Upgrade"
 	upgrade_btn.toggle_mode = true
-	upgrade_btn.custom_minimum_size = Vector2(0, 28)
+	upgrade_btn.custom_minimum_size = Vector2(0, 16)
 	_style_small_button(upgrade_btn, Color(0.2, 0.6, 0.9))
+	upgrade_btn.add_theme_font_size_override("font_size", 10)
 	controls_vbox.add_child(upgrade_btn)
 
 	# +/- controls
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 6)
 	controls_vbox.add_child(hbox)
 
 	var minus_btn = Button.new()
 	minus_btn.text = "-"
-	minus_btn.custom_minimum_size = Vector2(36, 36)
+	minus_btn.custom_minimum_size = Vector2(24, 16)
 	_style_small_button(minus_btn, Color(0.7, 0.3, 0.3))
+	minus_btn.add_theme_font_size_override("font_size", 12)
 	hbox.add_child(minus_btn)
 
 	var count_lbl = Label.new()
 	count_lbl.text = "0"
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	count_lbl.custom_minimum_size = Vector2(30, 0)
-	count_lbl.add_theme_font_size_override("font_size", 20)
+	count_lbl.custom_minimum_size = Vector2(20, 0)
+	count_lbl.add_theme_font_size_override("font_size", 13)
 	count_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	hbox.add_child(count_lbl)
 
 	var plus_btn = Button.new()
 	plus_btn.text = "+"
-	plus_btn.custom_minimum_size = Vector2(36, 36)
+	plus_btn.custom_minimum_size = Vector2(24, 16)
 	_style_small_button(plus_btn, Color(0.3, 0.7, 0.3))
+	plus_btn.add_theme_font_size_override("font_size", 12)
 	hbox.add_child(plus_btn)
 
 	# Store refs and connect
@@ -238,7 +237,7 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	plus_btn.pressed.connect(_on_plus.bind(card_id))
 	upgrade_btn.toggled.connect(_on_upgrade_toggled.bind(card_id))
 
-	return panel
+	return card_root
 
 func _style_small_button(btn: Button, color: Color) -> void:
 	var style = StyleBoxFlat.new()
