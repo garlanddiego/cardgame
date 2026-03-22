@@ -108,7 +108,18 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_root.custom_minimum_size = Vector2(370, 460)
 	card_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
+	var type_color: Color
+	match card["type"]:
+		0: type_color = Color(0.5, 0.15, 0.1)   # Attack red
+		1: type_color = Color(0.1, 0.3, 0.5)    # Skill blue
+		2: type_color = Color(0.45, 0.35, 0.08)  # Power gold
+		_: type_color = Color(0.3, 0.3, 0.3)
+	panel_style.bg_color = Color(type_color.r * 0.4, type_color.g * 0.4, type_color.b * 0.4, 0.95)
+	panel_style.border_color = Color(type_color.r * 1.5, type_color.g * 1.5, type_color.b * 1.5, 0.8)
+	panel_style.border_width_left = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_bottom = 3
 	panel_style.corner_radius_top_left = 10
 	panel_style.corner_radius_top_right = 10
 	panel_style.corner_radius_bottom_left = 10
@@ -142,7 +153,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
 	frame_tex.position = Vector2(0, 0)
 	frame_tex.size = Vector2(370, 460)
-	frame_tex.modulate = Color(1, 1, 1, 0.6)
+	frame_tex.modulate = Color(1, 1, 1, 0.3)  # Subtle overlay — panel bg is the main visual
 	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(frame_tex)
 
@@ -200,8 +211,8 @@ func _create_card_entry(card: Dictionary) -> Control:
 		name_label.text = card["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(0, 222)
-	name_label.size = Vector2(370, 30)
+	name_label.position = Vector2(20, 222)
+	name_label.size = Vector2(330, 30)
 	name_label.add_theme_font_size_override("font_size", 18)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
 	name_label.clip_text = true
@@ -215,8 +226,8 @@ func _create_card_entry(card: Dictionary) -> Control:
 	# Type text — small centered at y=208, font 12
 	var type_badge = Label.new()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.position = Vector2(0, 254)
-	type_badge.size = Vector2(370, 18)
+	type_badge.position = Vector2(20, 252)
+	type_badge.size = Vector2(330, 18)
 	type_badge.add_theme_font_size_override("font_size", 12)
 	type_badge.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55, 0.9))
 	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -236,8 +247,8 @@ func _create_card_entry(card: Dictionary) -> Control:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.position = Vector2(12, 276)
-	desc_label.size = Vector2(346, 170)
+	desc_label.position = Vector2(30, 268)
+	desc_label.size = Vector2(310, 180)
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = true
 	desc_label.fit_content = false
