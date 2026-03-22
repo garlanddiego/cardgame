@@ -15,7 +15,9 @@
 8. **素材**：用 Google Imagen 4 API 生成，STS简约风格+透明背景
 
 ## 1. Core Battle System
+- **Status:** pending
 - **Depends on:** (none)
+- **Targets:** scenes/battle.tscn, scenes/main.tscn, scenes/card_ui.tscn, scenes/character_select.tscn, scripts/game_manager.gd, scripts/battle_manager.gd, scripts/card_hand.gd, scripts/card_ui.gd, scripts/entity.gd, scripts/enemy_ai.gd, scripts/character_select.gd
 - **Goal:** Build the complete card battle game — all combat mechanics, UI, cards, enemies, and status effects in a single playable scene.
 - **Requirements:**
   - Turn-based combat loop: player turn (draw 5 cards, 3 energy) → play cards → end turn → enemy turn → repeat
@@ -31,13 +33,16 @@
   - Character selection screen before battle (choose Ironclad or Silent)
   - Dark dungeon background environment
   - Semi-transparent UI panels that blend with the background
-- **Assets needed:**
-  - Player character sprites: Ironclad (armored warrior, red theme) and Silent (hooded hunter, green theme), ~200px tall
-  - Enemy sprites: Slime (green blob), Cultist (robed figure), Jaw Worm (insect creature), Guardian (stone golem), ~150-200px tall
-  - Card frame templates: red (attack), green (skill), grey (power), ~120x180px
-  - Card art icons: 28 unique small illustrations for each card, ~80x80px
-  - Dungeon background: dark stone dungeon scene, 1920x1080
-  - UI elements: energy orb, HP bar segments, intent icons (attack/defend/buff/debuff), status effect icons
+- **Assets:**
+  - `dungeon_bg` background (`assets/img/dungeon_bg.png`) — fullscreen 1920x1080
+  - `ironclad` sprite (`assets/img/ironclad.png`) — scale to ~200px tall
+  - `silent` sprite (`assets/img/silent.png`) — scale to ~200px tall
+  - `slime` sprite (`assets/img/slime.png`) — scale to ~150px tall
+  - `cultist` sprite (`assets/img/cultist.png`) — scale to ~180px tall
+  - `jaw_worm` sprite (`assets/img/jaw_worm.png`) — scale to ~150px tall
+  - `guardian` sprite (`assets/img/guardian.png`) — scale to ~200px tall
+  - Card art icons in `assets/img/card_art_ironclad/` (16 icons) and `assets/img/card_art_silent/` (16 icons) — 80x80px each
+  - UI icons in `assets/img/ui_icons/` — intent, status effect, energy icons
 - **Verify:** Screenshot shows a battle in progress: player character on left with HP bar, 3 enemies on right with HP bars and intent icons, a hand of 5 cards fanned at the bottom, energy counter showing "3/3", draw and discard pile visible. Hovering a card makes it larger. Status effect icons visible on affected entities.
 
 ## 2. Presentation Video
