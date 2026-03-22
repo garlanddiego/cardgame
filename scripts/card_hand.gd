@@ -10,14 +10,14 @@ var targeting_mode: bool = false
 
 var card_scene: PackedScene = null
 
-# Layout constants
+# STS-style layout constants
 const CARD_WIDTH: float = 120.0
 const CARD_HEIGHT: float = 180.0
-const CARD_OVERLAP: float = 70.0  # Cards overlap by this many pixels
-const HOVER_LIFT: float = -60.0  # How far up the card moves on hover
-const HOVER_SPREAD: float = 40.0  # How far neighbors spread on hover
-const MAX_ROTATION: float = 12.0
-const ARC_HEIGHT: float = 20.0
+const CARD_OVERLAP: float = 80.0  # Heavy overlap — only ~40px of each card visible
+const HOVER_LIFT: float = -100.0  # Big lift — card pops well above the hand
+const HOVER_SPREAD: float = 55.0  # Neighbors spread to reveal full hovered card
+const MAX_ROTATION: float = 8.0  # Subtle fan arc like STS
+const ARC_HEIGHT: float = 15.0  # Gentle curve
 
 func _ready() -> void:
 	card_scene = load("res://scenes/card_ui.tscn")
@@ -59,7 +59,7 @@ func update_layout() -> void:
 	var step: float = CARD_WIDTH - CARD_OVERLAP
 	var total_width: float = step * (card_count - 1) + CARD_WIDTH
 	var start_x: float = (1920.0 - total_width) / 2.0
-	var base_y: float = 50.0
+	var base_y: float = 80.0  # Cards peek from bottom — top ~40% of card visible
 
 	var hovered_index: int = -1
 	if hovered_card != null and hovered_card in cards:
