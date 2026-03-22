@@ -118,9 +118,9 @@ func _create_card_entry(card: Dictionary) -> Control:
 	var card_id: String = card["id"]
 	all_card_data[card_id] = card
 
-	# 6 columns: (1900 - 5*4) / 6 = 313px wide, ~1.35 ratio = 423px tall
-	var CARD_W: float = 313.0
-	var CARD_H: float = 423.0
+	# 6 columns with 32px spacing: (1900 - 5*32) / 6 = ~290px wide
+	var CARD_W: float = 290.0
+	var CARD_H: float = 390.0
 
 	var card_root = Panel.new()
 	card_root.custom_minimum_size = Vector2(CARD_W, CARD_H)
@@ -144,6 +144,25 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_root.add_theme_stylebox_override("panel", panel_style)
 
 	select_highlights[card_id] = card_root
+
+	# Frame texture overlay for quality/texture feel
+	var frame_path: String
+	match card["type"]:
+		0: frame_path = "res://assets/img/card_frame_attack_clean.png"
+		1: frame_path = "res://assets/img/card_frame_skill.png"
+		2: frame_path = "res://assets/img/card_frame_power_clean.png"
+		_: frame_path = "res://assets/img/card_frame_attack_clean.png"
+	var frame_tex = TextureRect.new()
+	frame_tex.name = "FrameOverlay"
+	if ResourceLoader.exists(frame_path):
+		frame_tex.texture = load(frame_path)
+	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
+	frame_tex.position = Vector2(0, 0)
+	frame_tex.size = Vector2(CARD_W, CARD_H)
+	frame_tex.modulate = Color(1, 1, 1, 0.25)  # Subtle texture overlay
+	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(frame_tex)
 
 	# --- Card art area: top ~50% of card, inset 4px from edges ---
 	var art_x: float = 4.0
