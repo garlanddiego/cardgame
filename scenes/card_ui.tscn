@@ -1,12 +1,12 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/card_ui.gd" id="1_i2hvf"]
+[ext_resource type="Script" path="res://scripts/card_ui.gd" id="1_rh40l"]
 
 [node name="CardUI" type="Control"]
-custom_minimum_size = Vector2(120, 180)
+custom_minimum_size = Vector2(180, 260)
 layout_mode = 3
 anchors_preset = 0
-script = ExtResource("1_i2hvf")
+script = ExtResource("1_rh40l")
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 0
@@ -21,7 +21,7 @@ layout_mode = 2
 text = "1"
 
 [node name="CardArt" type="TextureRect" parent="Panel/VBox"]
-custom_minimum_size = Vector2(100, 80)
+custom_minimum_size = Vector2(150, 120)
 layout_mode = 2
 size_flags_vertical = 3
 expand_mode = 2
@@ -33,7 +33,7 @@ text = "Card Name"
 horizontal_alignment = 1
 
 [node name="DescLabel" type="RichTextLabel" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true

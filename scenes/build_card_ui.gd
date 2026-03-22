@@ -4,7 +4,7 @@ extends SceneTree
 func _initialize() -> void:
 	var root = Control.new()
 	root.name = "CardUI"
-	root.custom_minimum_size = Vector2(120, 180)
+	root.custom_minimum_size = Vector2(180, 260)
 	root.set_script(load("res://scripts/card_ui.gd"))
 
 	# Card background panel
@@ -27,7 +27,7 @@ func _initialize() -> void:
 	# Card art placeholder
 	var art = TextureRect.new()
 	art.name = "CardArt"
-	art.custom_minimum_size = Vector2(100, 80)
+	art.custom_minimum_size = Vector2(150, 120)
 	art.expand_mode = TextureRect.EXPAND_FIT_WIDTH
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	art.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -43,7 +43,7 @@ func _initialize() -> void:
 	# Description
 	var desc_label = RichTextLabel.new()
 	desc_label.name = "DescLabel"
-	desc_label.custom_minimum_size = Vector2(0, 50)
+	desc_label.custom_minimum_size = Vector2(0, 60)
 	desc_label.bbcode_enabled = true
 	desc_label.fit_content = true
 	desc_label.scroll_active = false
