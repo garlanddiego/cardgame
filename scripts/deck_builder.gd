@@ -190,33 +190,30 @@ func _create_card_entry(card: Dictionary) -> Control:
 	art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(art_rect)
 
-	# --- Cost orb: top-left corner, orange/gold circle with white number ---
-	var cost_size: float = 40.0
+	# --- Cost orb: AI-generated 3D golden orb with number overlay ---
+	var cost_size: float = 44.0
+	# Orb image background
+	var cost_orb = TextureRect.new()
+	cost_orb.name = "CostOrb"
+	var orb_tex = load("res://assets/img/cost_orb_clean.png")
+	if orb_tex:
+		cost_orb.texture = orb_tex
+	cost_orb.position = Vector2(4, 2)
+	cost_orb.size = Vector2(cost_size, cost_size)
+	cost_orb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cost_orb.stretch_mode = TextureRect.STRETCH_SCALE
+	cost_orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(cost_orb)
+	# Cost number on top of orb
 	var cost_label = Label.new()
 	var cost_val = card.get("cost", 0)
 	cost_label.text = "X" if cost_val == -1 else str(cost_val)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.position = Vector2(6, 4)
+	cost_label.position = Vector2(4, 2)
 	cost_label.size = Vector2(cost_size, cost_size)
 	cost_label.add_theme_font_size_override("font_size", 22)
 	cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	var cost_style = StyleBoxFlat.new()
-	cost_style.bg_color = Color(0.75, 0.55, 0.1, 1.0)  # Gold/orange
-	cost_style.border_color = Color(0.9, 0.7, 0.2, 1.0)
-	cost_style.border_width_left = 2
-	cost_style.border_width_right = 2
-	cost_style.border_width_top = 2
-	cost_style.border_width_bottom = 2
-	cost_style.corner_radius_top_left = 20
-	cost_style.corner_radius_top_right = 20
-	cost_style.corner_radius_bottom_left = 20
-	cost_style.corner_radius_bottom_right = 20
-	cost_style.content_margin_left = 2
-	cost_style.content_margin_right = 2
-	cost_style.content_margin_top = 1
-	cost_style.content_margin_bottom = 1
-	cost_label.add_theme_stylebox_override("normal", cost_style)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(cost_label)
 	card_cost_labels[card_id] = cost_label
