@@ -1,9 +1,9 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=14 format=3]
 
-[ext_resource type="Script" path="res://scripts/deck_builder.gd" id="1_2703x"]
-[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_5bdge"]
+[ext_resource type="Script" path="res://scripts/deck_builder.gd" id="1_e6ic6"]
+[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_vls5h"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wkuxl"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uyqak"]
 bg_color = Color(0.3, 0.3, 0.4, 0.8)
 border_width_left = 1
 border_width_top = 1
@@ -15,7 +15,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_105f1"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_85log"]
 bg_color = Color(0.4, 0.4, 0.55, 0.9)
 border_width_left = 1
 border_width_top = 1
@@ -27,7 +27,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p8g2k"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pf83t"]
 bg_color = Color(0.3, 0.3, 0.4, 0.8)
 border_width_left = 1
 border_width_top = 1
@@ -39,7 +39,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cnuwf"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_12ojx"]
 bg_color = Color(0.4, 0.4, 0.55, 0.9)
 border_width_left = 1
 border_width_top = 1
@@ -51,7 +51,55 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1xft"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trn2l"]
+bg_color = Color(0.4, 0.35, 0.3, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.6, 0.5, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sqdyt"]
+bg_color = Color(0.5, 0.45, 0.4, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.6, 0.5, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_am4jj"]
+bg_color = Color(0.15, 0.45, 0.6, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.7, 0.9, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yr26b"]
+bg_color = Color(0.2, 0.55, 0.7, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.7, 0.9, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sq53a"]
 bg_color = Color(0.15, 0.5, 0.15, 0.8)
 border_width_left = 2
 border_width_top = 2
@@ -63,7 +111,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tfobp"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5x2ho"]
 bg_color = Color(0.2, 0.6, 0.2, 0.9)
 border_width_left = 2
 border_width_top = 2
@@ -75,7 +123,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qyyd3"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ichi"]
 bg_color = Color(0.2, 0.2, 0.2, 0.6)
 border_width_left = 2
 border_width_top = 2
@@ -92,13 +140,13 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
-script = ExtResource("1_2703x")
+script = ExtResource("1_e6ic6")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
-texture = ExtResource("2_5bdge")
+texture = ExtResource("2_vls5h")
 expand_mode = 1
 
 [node name="DarkOverlay" type="ColorRect" parent="."]
@@ -131,8 +179,8 @@ custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_wkuxl")
-theme_override_styles/hover = SubResource("StyleBoxFlat_105f1")
+theme_override_styles/normal = SubResource("StyleBoxFlat_uyqak")
+theme_override_styles/hover = SubResource("StyleBoxFlat_85log")
 text = "中文"
 
 [node name="LangEnButton" type="Button" parent="TitleBar/LangSelector"]
@@ -140,8 +188,8 @@ custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_p8g2k")
-theme_override_styles/hover = SubResource("StyleBoxFlat_cnuwf")
+theme_override_styles/normal = SubResource("StyleBoxFlat_pf83t")
+theme_override_styles/hover = SubResource("StyleBoxFlat_12ojx")
 text = "English"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
@@ -167,6 +215,16 @@ offset_bottom = 1065.0
 theme_override_constants/separation = 40
 alignment = 1
 
+[node name="BackButton" type="Button" parent="BottomBar"]
+visible = false
+custom_minimum_size = Vector2(160, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_trn2l")
+theme_override_styles/hover = SubResource("StyleBoxFlat_sqdyt")
+text = "Back"
+
 [node name="TotalLabel" type="Label" parent="BottomBar"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -174,12 +232,22 @@ theme_override_font_sizes/font_size = 32
 text = "Selected: 0 / 10"
 horizontal_alignment = 1
 
+[node name="NextButton" type="Button" parent="BottomBar"]
+visible = false
+custom_minimum_size = Vector2(200, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_am4jj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_yr26b")
+text = "Next"
+
 [node name="ConfirmButton" type="Button" parent="BottomBar"]
+visible = false
 custom_minimum_size = Vector2(220, 55)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_e1xft")
-theme_override_styles/hover = SubResource("StyleBoxFlat_tfobp")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_qyyd3")
-disabled = true
+theme_override_styles/normal = SubResource("StyleBoxFlat_sq53a")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5x2ho")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_8ichi")
 text = "Confirm Deck"

@@ -23,6 +23,10 @@ var _ui_strings: Dictionary = {
 	"status": {"en": "Status", "zh": "状态"},
 	"cost_type": {"en": "Cost: %d | %s", "zh": "费用: %d | %s"},
 	"cost_x_type": {"en": "Cost: X | %s", "zh": "费用: X | %s"},
+	"next_step": {"en": "Next", "zh": "下一步"},
+	"back": {"en": "Back", "zh": "返回"},
+	"confirm_deck_title": {"en": "Confirm Deck", "zh": "确认牌组"},
+	"remove": {"en": "X", "zh": "X"},
 }
 
 # Card name translations: card_id -> zh name
