@@ -283,7 +283,7 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	name_lbl.add_theme_font_size_override("font_size", 15)
 	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
 	var name_bg = StyleBoxFlat.new()
-	name_bg.bg_color = Color(0.0, 0.0, 0.0, 0.5)
+	name_bg.bg_color = Color(0.1, 0.07, 0.03, 0.8)
 	name_bg.corner_radius_top_left = 4
 	name_bg.corner_radius_top_right = 4
 	name_bg.corner_radius_bottom_left = 4
@@ -339,7 +339,7 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 		# Intent icon above enemy
 		var intent_icon = TextureRect.new()
 		intent_icon.name = "IntentIcon"
-		intent_icon.custom_minimum_size = Vector2(32, 32)
+		intent_icon.custom_minimum_size = Vector2(40, 40)
 		intent_icon.position = Vector2(-16, -170)
 		intent_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		intent_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -414,7 +414,7 @@ func start_player_turn() -> void:
 			turn_label.text = loc.t("your_turn")
 		else:
 			turn_label.text = "Your Turn"
-		turn_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
+		turn_label.add_theme_color_override("font_color", Color(0.27, 0.8, 0.4))
 	if end_turn_btn:
 		end_turn_btn.disabled = false
 	turn_started.emit(true)

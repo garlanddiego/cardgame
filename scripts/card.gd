@@ -98,6 +98,18 @@ func _build_card_nodes() -> void:
 	card_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(card_art)
 
+	# Cost shadow label (offset 1,1, dark color for better readability)
+	var cost_shadow = Label.new()
+	cost_shadow.name = "CostShadow"
+	cost_shadow.position = Vector2(8, 6)
+	cost_shadow.size = Vector2(36, 36)
+	cost_shadow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_shadow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_shadow.add_theme_font_size_override("font_size", 24)
+	cost_shadow.add_theme_color_override("font_color", Color(0.0, 0.0, 0.0, 0.85))
+	cost_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.add_child(cost_shadow)
+
 	# Cost label (top-left gem area per spec: rect 7,5 36x36)
 	cost_label = Label.new()
 	cost_label.name = "CostLabel"
@@ -202,6 +214,11 @@ func _apply_card_data() -> void:
 		else:
 			cost_label.text = str(cost_val)
 			cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))  # white
+		# Sync shadow label text
+		if card_visual:
+			var cost_shadow = card_visual.get_node_or_null("CostShadow") as Label
+			if cost_shadow:
+				cost_shadow.text = cost_label.text
 
 	# Name
 	if name_label:

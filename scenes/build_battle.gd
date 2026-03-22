@@ -101,7 +101,7 @@ func _initialize() -> void:
 	var energy_label = Label.new()
 	energy_label.name = "EnergyLabel"
 	energy_label.text = "3/3"
-	energy_label.add_theme_font_size_override("font_size", 28)
+	energy_label.add_theme_font_size_override("font_size", 36)
 	energy_label.add_theme_color_override("font_color", Color(0.200, 0.600, 1.0, 1.0))  # energy_blue
 	energy_container.add_child(energy_label)
 
@@ -159,7 +159,7 @@ func _initialize() -> void:
 	turn_label.text = "Your Turn"
 	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	turn_label.add_theme_font_size_override("font_size", 28)
-	turn_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
+	turn_label.add_theme_color_override("font_color", Color(0.27, 0.8, 0.4))
 	turn_panel.add_child(turn_label)
 
 	_set_owners(root, root)
