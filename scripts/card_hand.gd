@@ -1,14 +1,15 @@
-extends Control
-## res://scripts/card_hand.gd — Fan layout of cards, hover zoom, two-step targeting
+extends Node2D
+## res://scripts/card_hand.gd — Fan layout of Area2D cards, hover zoom, two-step targeting
+## Refactored to use Area2D-based Card class instead of Control nodes
 
 signal card_played(card_data: Dictionary, target: Node2D)
 
 var cards: Array = []
-var selected_card: Control = null
-var hovered_card: Control = null
+var selected_card: Area2D = null
+var hovered_card: Area2D = null
 var targeting_mode: bool = false
 
-var card_scene: PackedScene = null
+var card_script: GDScript = null
 
 # STS-style layout — cards readable with slight edge overlap
 const CARD_WIDTH: float = 180.0
@@ -18,23 +19,25 @@ const HOVER_LIFT: float = -80.0  # Card lifts above hand
 const HOVER_SPREAD: float = 30.0  # Slight neighbor spread
 const MAX_ROTATION: float = 5.0  # Subtle fan arc
 const ARC_HEIGHT: float = 12.0  # Nearly flat
+const HAND_Y: float = 0.0  # Base Y position within this node
 
 func _ready() -> void:
-	card_scene = load("res://scenes/card_ui.tscn")
+	card_script = load("res://scripts/card.gd")
 
 func add_card(card_data: Dictionary) -> void:
-	if card_scene == null:
+	if card_script == null:
 		return
-	var card = card_scene.instantiate()
+	var card = Area2D.new()
+	card.set_script(card_script)
 	card.card_data = card_data
 	add_child(card)
 	cards.append(card)
 	card.card_clicked.connect(_on_card_clicked)
-	card.card_hovered.connect(_on_card_hovered)
-	card.card_unhovered.connect(_on_card_unhovered)
+	card.card_focused.connect(_on_card_hovered)
+	card.card_unfocused.connect(_on_card_unhovered)
 	update_layout()
 
-func remove_card(card_node: Control) -> void:
+func remove_card(card_node: Area2D) -> void:
 	if card_node in cards:
 		cards.erase(card_node)
 		card_node.queue_free()
@@ -59,7 +62,7 @@ func update_layout() -> void:
 	var step: float = CARD_WIDTH - CARD_OVERLAP
 	var total_width: float = step * (card_count - 1) + CARD_WIDTH
 	var start_x: float = (1920.0 - total_width) / 2.0
-	var base_y: float = 20.0  # Cards mostly visible, bottom edge slightly below screen
+	var base_y: float = HAND_Y  # Cards positioned relative to this Node2D
 
 	var hovered_index: int = -1
 	if hovered_card != null and hovered_card in cards:
@@ -94,21 +97,16 @@ func update_layout() -> void:
 			target_rot = 0.0
 			target_scale = Vector2(1.3, 1.3)
 
-		# Animate smoothly
-		var tween = card.create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(card, "position", target_pos, 0.12)
-		tween.tween_property(card, "rotation_degrees", target_rot, 0.12)
-		tween.tween_property(card, "scale", target_scale, 0.12)
+		# Use the card's move_to method for smooth animation
+		card.move_to(target_pos, target_rot, target_scale, 0.12)
 
 		card.z_index = i
 		card.base_z_index = i
-		card.pivot_offset = Vector2(CARD_WIDTH / 2.0, CARD_HEIGHT)
 
 		if card == hovered_card:
 			card.z_index = 100
 
-func _on_card_clicked(card_node: Control) -> void:
+func _on_card_clicked(card_node: Area2D) -> void:
 	if targeting_mode and selected_card == card_node:
 		# Deselect
 		card_node.set_selected(false)
@@ -121,11 +119,11 @@ func _on_card_clicked(card_node: Control) -> void:
 	card_node.set_selected(true)
 	targeting_mode = true
 
-func _on_card_hovered(card_node: Control) -> void:
+func _on_card_hovered(card_node: Area2D) -> void:
 	hovered_card = card_node
 	update_layout()
 
-func _on_card_unhovered(card_node: Control) -> void:
+func _on_card_unhovered(card_node: Area2D) -> void:
 	if hovered_card == card_node:
 		hovered_card = null
 	update_layout()

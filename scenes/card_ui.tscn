@@ -1,45 +1,77 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/card_ui.gd" id="1_rh40l"]
+[ext_resource type="Script" path="res://scripts/card.gd" id="1_3gpgs"]
 
-[node name="CardUI" type="Control"]
-custom_minimum_size = Vector2(180, 260)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_m4uoe"]
+size = Vector2(180, 260)
+
+[node name="Card" type="Area2D"]
+script = ExtResource("1_3gpgs")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(90, 130)
+shape = SubResource("RectangleShape2D_m4uoe")
+
+[node name="CardVisual" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-script = ExtResource("1_rh40l")
+offset_right = 180.0
+offset_bottom = 260.0
+mouse_filter = 2
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="FrameTexture" type="TextureRect" parent="CardVisual"]
 layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
+offset_right = 180.0
+offset_bottom = 260.0
+mouse_filter = 2
+expand_mode = 1
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
-layout_mode = 2
+[node name="CardArt" type="TextureRect" parent="CardVisual"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 34.0
+offset_right = 162.0
+offset_bottom = 134.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
 
-[node name="CostLabel" type="Label" parent="Panel/VBox"]
-layout_mode = 2
+[node name="CostLabel" type="Label" parent="CardVisual"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 4.0
+offset_right = 36.0
+offset_bottom = 34.0
 text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="CardArt" type="TextureRect" parent="Panel/VBox"]
-custom_minimum_size = Vector2(150, 120)
-layout_mode = 2
-size_flags_vertical = 3
-expand_mode = 2
-stretch_mode = 5
-
-[node name="NameLabel" type="Label" parent="Panel/VBox"]
-layout_mode = 2
+[node name="NameLabel" type="Label" parent="CardVisual"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 138.0
+offset_right = 170.0
+offset_bottom = 161.0
 text = "Card Name"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="DescLabel" type="RichTextLabel" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 60)
-layout_mode = 2
-bbcode_enabled = true
-fit_content = true
-scroll_active = false
-
-[node name="TypeLabel" type="Label" parent="Panel/VBox"]
-layout_mode = 2
+[node name="TypeLabel" type="Label" parent="CardVisual"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 160.0
+offset_right = 170.0
+offset_bottom = 183.0
 text = "Attack"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DescLabel" type="RichTextLabel" parent="CardVisual"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 178.0
+offset_right = 166.0
+offset_bottom = 250.0
+mouse_filter = 2
+bbcode_enabled = true
+scroll_active = false

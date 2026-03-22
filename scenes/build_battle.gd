@@ -20,9 +20,6 @@ func _initialize() -> void:
 	bg.z_index = -10
 	root.add_child(bg)
 
-	# Dark overlay for better UI contrast (also Sprite2D / ColorRect won't work, use CanvasLayer)
-	# We'll handle overlay via a CanvasLayer with a ColorRect
-
 	# Player area (far left, like STS)
 	var player_area = Node2D.new()
 	player_area.name = "PlayerArea"
@@ -35,13 +32,11 @@ func _initialize() -> void:
 	enemy_area.position = Vector2(850, 540)
 	root.add_child(enemy_area)
 
-	# Card hand (bottom center) - Control node
-	var card_hand = Control.new()
+	# Card hand (bottom center) - Node2D for Area2D-based cards
+	var card_hand = Node2D.new()
 	card_hand.name = "CardHand"
 	card_hand.set_script(load("res://scripts/card_hand.gd"))
 	card_hand.position = Vector2(0, 780)
-	card_hand.size = Vector2(1920, 300)
-	card_hand.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(card_hand)
 
 	# HUD layer

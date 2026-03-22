@@ -46,7 +46,7 @@ var metallicize_block: int = 3
 var flex_strength_to_remove: int = 0
 
 # Node refs
-var card_hand: Control = null
+var card_hand: Node2D = null
 var energy_label: Label = null
 var draw_pile_label: Label = null
 var discard_label: Label = null
@@ -57,11 +57,11 @@ var enemy_area: Node2D = null
 
 func _ready() -> void:
 	card_hand = get_node_or_null("CardHand")
-	energy_label = get_node_or_null("HUDLayer/HUD/EnergyContainer/EnergyLabel")
+	energy_label = get_node_or_null("HUDLayer/HUD/EnergyPanel/EnergyContainer/EnergyLabel")
 	draw_pile_label = get_node_or_null("HUDLayer/HUD/DrawPileLabel")
 	discard_label = get_node_or_null("HUDLayer/HUD/DiscardPileLabel")
 	end_turn_btn = get_node_or_null("HUDLayer/HUD/EndTurnButton")
-	turn_label = get_node_or_null("HUDLayer/HUD/TurnLabel")
+	turn_label = get_node_or_null("HUDLayer/HUD/TurnPanel/TurnLabel")
 	player_area = get_node_or_null("PlayerArea")
 	enemy_area = get_node_or_null("EnemyArea")
 	if end_turn_btn:
