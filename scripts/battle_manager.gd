@@ -297,7 +297,7 @@ func _build_deck(character_id: String, gm: Node) -> void:
 	draw_pile.clear()
 	discard_pile.clear()
 	exhaust_pile.clear()
-	var deck_ids: Array = gm.get_starting_deck(character_id)
+	var deck_ids: Array = gm.player_deck if gm.player_deck.size() > 0 else gm.get_starting_deck(character_id)
 	for card_id in deck_ids:
 		var data: Dictionary = gm.get_card_data(card_id)
 		if not data.is_empty():
