@@ -68,7 +68,8 @@ func _populate_grid() -> void:
 
 func _create_card_entry(card: Dictionary) -> Control:
 	var card_root = Control.new()
-	card_root.custom_minimum_size = Vector2(200, 280)
+	card_root.custom_minimum_size = Vector2(200, 300)
+	card_root.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow touch through to children
 
 	# Determine frame texture path by card type
 	var frame_path: String
@@ -176,12 +177,40 @@ func _create_card_entry(card: Dictionary) -> Control:
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(desc_label)
 
-	# Controls VBox at very bottom
+	# Controls — mobile-friendly touch targets (min 44px height)
 	var controls_vbox = VBoxContainer.new()
-	controls_vbox.position = Vector2(4, 245)
-	controls_vbox.size = Vector2(192, 35)
-	controls_vbox.add_theme_constant_override("separation", 1)
+	controls_vbox.position = Vector2(4, 230)
+	controls_vbox.size = Vector2(192, 50)
+	controls_vbox.add_theme_constant_override("separation", 2)
 	card_root.add_child(controls_vbox)
+
+	# +/- and upgrade in one row for compactness
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 4)
+	controls_vbox.add_child(hbox)
+
+	var minus_btn = Button.new()
+	minus_btn.text = "-"
+	minus_btn.custom_minimum_size = Vector2(40, 36)
+	_style_small_button(minus_btn, Color(0.7, 0.3, 0.3))
+	minus_btn.add_theme_font_size_override("font_size", 18)
+	hbox.add_child(minus_btn)
+
+	var count_lbl = Label.new()
+	count_lbl.text = "0"
+	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	count_lbl.custom_minimum_size = Vector2(24, 0)
+	count_lbl.add_theme_font_size_override("font_size", 16)
+	count_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	hbox.add_child(count_lbl)
+
+	var plus_btn = Button.new()
+	plus_btn.text = "+"
+	plus_btn.custom_minimum_size = Vector2(40, 36)
+	_style_small_button(plus_btn, Color(0.3, 0.7, 0.3))
+	plus_btn.add_theme_font_size_override("font_size", 18)
+	hbox.add_child(plus_btn)
 
 	# Upgrade toggle button
 	var upgrade_btn = Button.new()
@@ -191,38 +220,10 @@ func _create_card_entry(card: Dictionary) -> Control:
 	else:
 		upgrade_btn.text = "Upgrade"
 	upgrade_btn.toggle_mode = true
-	upgrade_btn.custom_minimum_size = Vector2(0, 16)
+	upgrade_btn.custom_minimum_size = Vector2(0, 28)
 	_style_small_button(upgrade_btn, Color(0.2, 0.6, 0.9))
-	upgrade_btn.add_theme_font_size_override("font_size", 10)
+	upgrade_btn.add_theme_font_size_override("font_size", 11)
 	controls_vbox.add_child(upgrade_btn)
-
-	# +/- controls
-	var hbox = HBoxContainer.new()
-	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	hbox.add_theme_constant_override("separation", 6)
-	controls_vbox.add_child(hbox)
-
-	var minus_btn = Button.new()
-	minus_btn.text = "-"
-	minus_btn.custom_minimum_size = Vector2(24, 16)
-	_style_small_button(minus_btn, Color(0.7, 0.3, 0.3))
-	minus_btn.add_theme_font_size_override("font_size", 12)
-	hbox.add_child(minus_btn)
-
-	var count_lbl = Label.new()
-	count_lbl.text = "0"
-	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	count_lbl.custom_minimum_size = Vector2(20, 0)
-	count_lbl.add_theme_font_size_override("font_size", 13)
-	count_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	hbox.add_child(count_lbl)
-
-	var plus_btn = Button.new()
-	plus_btn.text = "+"
-	plus_btn.custom_minimum_size = Vector2(24, 16)
-	_style_small_button(plus_btn, Color(0.3, 0.7, 0.3))
-	plus_btn.add_theme_font_size_override("font_size", 12)
-	hbox.add_child(plus_btn)
 
 	# Store refs and connect
 	var card_id = card["id"]
