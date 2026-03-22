@@ -1,5 +1,6 @@
 extends Control
 ## res://scripts/deck_builder.gd — STS-style single-page deck builder with tap-to-select
+## Uses extracted STS card images as complete card visuals.
 
 signal deck_confirmed(deck: Array)
 
@@ -16,23 +17,60 @@ var scroll_container: ScrollContainer = null
 var title_label: Label = null
 var bottom_bar: HBoxContainer = null
 
-# Tracking dictionaries for localization refresh
-var card_name_labels: Dictionary = {}
-var card_desc_labels: Dictionary = {}
-var card_cost_labels: Dictionary = {}
-var card_type_badges: Dictionary = {}
+# Tracking dictionaries
 var all_card_data: Dictionary = {}
 var select_highlights: Dictionary = {}  # card_id -> Control (card root for highlight)
 
-# Frame textures per card type (0=Attack, 1=Skill, 2=Power)
-var _frame_textures: Array = []
+# STS card image mapping: card_id -> res:// path
+# Images are ordered to match the grid sort order (type ascending, then name ascending)
+var _sts_card_map: Dictionary = {}
 
-func _load_frame_textures() -> void:
-	if _frame_textures.size() == 0:
-		_frame_textures.resize(3)
-		_frame_textures[0] = load("res://assets/img/frame_attack_v2_card.png")
-		_frame_textures[1] = load("res://assets/img/frame_skill_v2_card.png")
-		_frame_textures[2] = load("res://assets/img/frame_power_v2_card.png")
+func _build_sts_card_map() -> void:
+	if _sts_card_map.size() > 0:
+		return
+	# Images are at assets/img/sts_cards/page{N}_card{MM}.png
+	# 82 images total across 5 pages, mapped in grid sort order (type then name)
+	var ordered_ids: Array = [
+		# ATTACKS (type 0) — sorted by name
+		"ic_anger", "ic_bash", "ic_blood_for_blood", "ic_bludgeon", "ic_body_slam",
+		"ic_carnage", "ic_clash", "ic_cleave", "ic_clothesline", "ic_dropkick",
+		"ic_feed", "ic_fiend_fire", "ic_headbutt", "ic_heavy_blade", "ic_hemokinesis",
+		"ic_immolate", "ic_iron_wave", "ic_perfected_strike",
+		"ic_pommel_strike", "ic_pummel", "ic_rampage", "ic_reaper", "ic_reckless_charge",
+		"ic_searing_blow", "ic_sever_soul", "ic_strike", "ic_sword_boomerang",
+		"ic_thunderclap", "ic_twin_strike", "ic_uppercut", "ic_whirlwind", "ic_wild_strike",
+		# SKILLS (type 1) — sorted by name
+		"ic_armaments", "ic_battle_trance", "ic_bloodletting", "ic_burning_pact",
+		"ic_defend", "ic_disarm", "ic_double_tap", "ic_dual_wield", "ic_entrench",
+		"ic_exhume", "ic_flame_barrier", "ic_flex", "ic_ghostly_armor", "ic_havoc",
+		"ic_impervious", "ic_infernal_blade", "ic_intimidate", "ic_limit_break",
+		"ic_offering", "ic_power_through", "ic_second_wind", "ic_seeing_red",
+		"ic_sentinel", "ic_shockwave", "ic_shrug_it_off", "ic_spot_weakness",
+		"ic_true_grit", "ic_war_cry",
+		# POWERS (type 2) — sorted by name
+		"ic_barricade", "ic_berserk", "ic_brutality", "ic_combust", "ic_corruption",
+		"ic_dark_embrace", "ic_demon_form", "ic_evolve", "ic_feel_no_pain",
+		"ic_fire_breathing", "ic_inflame", "ic_juggernaut", "ic_metallicize",
+		"ic_rage", "ic_rupture",
+	]
+
+	# Generate sequential page/card filenames
+	var page := 1
+	var card_on_page := 1
+	var cards_per_page := 18
+	for card_id in ordered_ids:
+		var img_path := "res://assets/img/sts_cards/page%d_card%02d.png" % [page, card_on_page]
+		_sts_card_map[card_id] = img_path
+		card_on_page += 1
+		if card_on_page > cards_per_page:
+			card_on_page = 1
+			page += 1
+
+func _get_sts_card_path(card_id: String) -> String:
+	_build_sts_card_map()
+	if _sts_card_map.has(card_id):
+		return _sts_card_map[card_id]
+	return ""
 
 func _ready() -> void:
 	_find_nodes()
@@ -79,10 +117,6 @@ func _clear_grid() -> void:
 		child.queue_free()
 
 func _clear_tracking() -> void:
-	card_name_labels.clear()
-	card_desc_labels.clear()
-	card_cost_labels.clear()
-	card_type_badges.clear()
 	select_highlights.clear()
 
 func _populate_grid() -> void:
@@ -108,121 +142,35 @@ func _populate_grid() -> void:
 		var entry = _create_card_entry(card)
 		grid.add_child(entry)
 
-# ─── STS-STYLE CARD ENTRY with NinePatchRect frames ─────────────────────────
-
-func _get_frame_texture(card_type: int) -> Texture2D:
-	_load_frame_textures()
-	if card_type >= 0 and card_type < _frame_textures.size():
-		return _frame_textures[card_type]
-	return _frame_textures[0]
+# ─── STS CARD IMAGE ENTRY ────────────────────────────────────────────────────
 
 func _create_card_entry(card: Dictionary) -> Control:
 	var card_id: String = card["id"]
 	all_card_data[card_id] = card
 
-	# 6 columns with 32px spacing: (1900 - 5*32) / 6 = ~290px wide
 	var CARD_W: float = 290.0
 	var CARD_H: float = 390.0
 
 	var card_root = Control.new()
 	card_root.custom_minimum_size = Vector2(CARD_W, CARD_H)
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
-
 	select_highlights[card_id] = card_root
 
-	# --- Frame texture IS the card visual (pre-sized to 290x390) ---
-	var frame = TextureRect.new()
-	frame.name = "CardFrame"
-	frame.texture = _get_frame_texture(card["type"])
-	frame.position = Vector2.ZERO
-	frame.size = Vector2(CARD_W, CARD_H)
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_SCALE
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(frame)
+	# Use complete STS card image as the entire card visual
+	var card_img = TextureRect.new()
+	card_img.name = "CardImage"
+	card_img.position = Vector2.ZERO
+	card_img.size = Vector2(CARD_W, CARD_H)
+	card_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	card_img.stretch_mode = TextureRect.STRETCH_SCALE
+	card_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# --- Card art area: in the frame's center window (~top 45%) ---
-	var art_x: float = 26.0
-	var art_y: float = 32.0
-	var art_w: float = 238.0
-	var art_h: float = 160.0
+	# Load the STS card image
+	var sts_path = _get_sts_card_path(card_id)
+	if sts_path != "" and ResourceLoader.exists(sts_path):
+		card_img.texture = load(sts_path)
 
-	var art_rect = TextureRect.new()
-	art_rect.position = Vector2(art_x, art_y)
-	art_rect.size = Vector2(art_w, art_h)
-	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	if card.has("art") and ResourceLoader.exists(card["art"]):
-		art_rect.texture = load(card["art"])
-	art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(art_rect)
-
-	# --- Cost number overlaying the frame's built-in gem ---
-	var cost_label = Label.new()
-	var cost_val = card.get("cost", 0)
-	cost_label.text = "X" if cost_val == -1 else str(cost_val)
-	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.position = Vector2(8, 5)
-	cost_label.size = Vector2(32, 32)
-	cost_label.add_theme_font_size_override("font_size", 22)
-	cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(cost_label)
-	card_cost_labels[card_id] = cost_label
-
-	# --- Card name: positioned in the lower text area ---
-	var name_label = Label.new()
-	var loc = _get_loc()
-	if loc:
-		name_label.text = loc.card_name(card)
-	else:
-		name_label.text = card["name"]
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(20, 200)
-	name_label.size = Vector2(250, 24)
-	name_label.add_theme_font_size_override("font_size", 14)
-	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
-	name_label.clip_text = true
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(name_label)
-	card_name_labels[card_id] = name_label
-
-	# --- Type text: small, centered, muted ---
-	var type_badge = Label.new()
-	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.position = Vector2(20, 226)
-	type_badge.size = Vector2(250, 16)
-	type_badge.add_theme_font_size_override("font_size", 10)
-	type_badge.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6, 0.8))
-	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var loc_badge = _get_loc()
-	if loc_badge:
-		type_badge.text = loc_badge.type_name(card["type"])
-	else:
-		var badge_type_names = ["Attack", "Skill", "Power", "Status"]
-		type_badge.text = badge_type_names[card["type"]]
-	card_root.add_child(type_badge)
-	card_type_badges[card_id] = type_badge
-
-	# --- Description: in the lower text panel ---
-	var desc_label = RichTextLabel.new()
-	var loc3 = _get_loc()
-	if loc3:
-		desc_label.text = loc3.card_desc(card)
-	else:
-		desc_label.text = card["description"]
-	desc_label.position = Vector2(20, 248)
-	desc_label.size = Vector2(250, 130)
-	desc_label.scroll_active = false
-	desc_label.bbcode_enabled = true
-	desc_label.fit_content = false
-	desc_label.add_theme_font_size_override("normal_font_size", 14)
-	desc_label.add_theme_color_override("default_color", Color(0.95, 0.95, 0.95))
-	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(desc_label)
-	card_desc_labels[card_id] = desc_label
+	card_root.add_child(card_img)
 
 	# Connect tap on entire card
 	card_root.gui_input.connect(_on_card_tap.bind(card_id, card_root))
@@ -358,36 +306,5 @@ func _switch_language(lang: String) -> void:
 
 func _refresh_all_localized_text() -> void:
 	_apply_localized_ui()
-	var loc = _get_loc()
-	var gm = _get_game_manager()
-	for card_id in all_card_data:
-		var card: Dictionary
-		if gm:
-			card = gm.get_card_data(card_id)
-		else:
-			card = all_card_data[card_id]
-		if card_name_labels.has(card_id):
-			if loc:
-				card_name_labels[card_id].text = loc.card_name(card)
-			else:
-				card_name_labels[card_id].text = card.get("name", "")
-		if card_desc_labels.has(card_id):
-			if loc:
-				card_desc_labels[card_id].text = loc.card_desc(card)
-			else:
-				card_desc_labels[card_id].text = card.get("description", "")
-		if card_type_badges.has(card_id):
-			if loc:
-				card_type_badges[card_id].text = loc.type_name(card["type"])
-			else:
-				card_type_badges[card_id].text = _get_type_name(card["type"])
+	# Card images already contain baked-in text, no per-card text refresh needed
 	_update_ui()
-
-func _get_type_name(type_index: int) -> String:
-	var loc = _get_loc()
-	if loc:
-		return loc.type_name(type_index)
-	var type_names = ["Attack", "Skill", "Power", "Status"]
-	if type_index >= 0 and type_index < type_names.size():
-		return type_names[type_index]
-	return ""
