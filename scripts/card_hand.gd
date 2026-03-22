@@ -11,15 +11,15 @@ var targeting_mode: bool = false
 
 var card_script: GDScript = null
 
-# STS-style layout — cards readable with slight edge overlap
-const CARD_WIDTH: float = 180.0
-const CARD_HEIGHT: float = 260.0
-const CARD_OVERLAP: float = 40.0  # Light overlap — most of each card visible
-const HOVER_LIFT: float = -80.0  # Card lifts above hand
-const HOVER_SPREAD: float = 30.0  # Slight neighbor spread
-const MAX_ROTATION: float = 5.0  # Subtle fan arc
-const ARC_HEIGHT: float = 12.0  # Nearly flat
-const HAND_Y: float = 0.0  # Base Y position within this node
+# STS-style layout — matching card.gd CARD_SIZE (220x310)
+const CARD_WIDTH: float = 220.0
+const CARD_HEIGHT: float = 310.0
+const CARD_OVERLAP: float = 80.0  # STS-like overlap
+const HOVER_LIFT: float = -100.0  # Card lifts well above hand
+const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
+const MAX_ROTATION: float = 8.0  # Fan arc
+const ARC_HEIGHT: float = 20.0  # Gentle curve
+const HAND_Y: float = 0.0
 
 func _ready() -> void:
 	card_script = load("res://scripts/card.gd")
