@@ -136,10 +136,12 @@ func _create_card_entry(card: Dictionary) -> Control:
 	frame.texture = _get_frame_texture(card["type"])
 	frame.position = Vector2.ZERO
 	frame.size = Vector2(CARD_W, CARD_H)
-	frame.patch_margin_left = 80
-	frame.patch_margin_top = 100
-	frame.patch_margin_right = 80
-	frame.patch_margin_bottom = 120
+	# Patch margins in source image pixels (896x1200):
+	# Decorative borders are ~120px thick on each side
+	frame.patch_margin_left = 120
+	frame.patch_margin_top = 140
+	frame.patch_margin_right = 120
+	frame.patch_margin_bottom = 200
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(frame)
 
