@@ -51,7 +51,7 @@ func _build_card_grid() -> void:
 	_clear_grid()
 	_clear_tracking()
 	if grid:
-		grid.columns = 5
+		grid.columns = 4
 	if title_label:
 		var loc = _get_loc()
 		if loc:
@@ -105,7 +105,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	all_card_data[card_id] = card
 
 	var card_root = Panel.new()
-	card_root.custom_minimum_size = Vector2(280, 380)
+	card_root.custom_minimum_size = Vector2(450, 520)
 	card_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
@@ -119,7 +119,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	var highlight = ColorRect.new()
 	highlight.name = "Highlight"
 	highlight.position = Vector2(-4, -4)
-	highlight.size = Vector2(288, 388)
+	highlight.size = Vector2(458, 528)
 	highlight.color = Color(0.2, 0.9, 0.2, 0.0)  # invisible initially
 	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	highlight.z_index = -1
@@ -141,15 +141,24 @@ func _create_card_entry(card: Dictionary) -> Control:
 	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
 	frame_tex.position = Vector2(0, 0)
-	frame_tex.size = Vector2(280, 380)
+	frame_tex.size = Vector2(450, 520)
 	frame_tex.modulate = Color(1, 1, 1, 0.6)
 	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(frame_tex)
 
-	# Card art — top area, 250x160 starting at (15, 15)
+	# Dark background behind card art
+	var art_bg = ColorRect.new()
+	art_bg.name = "ArtBackground"
+	art_bg.position = Vector2(20, 20)
+	art_bg.size = Vector2(410, 240)
+	art_bg.color = Color(0.05, 0.04, 0.04, 1.0)
+	art_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(art_bg)
+
+	# Card art — top area, 410x240 starting at (20, 20)
 	var art_rect = TextureRect.new()
-	art_rect.position = Vector2(15, 15)
-	art_rect.size = Vector2(250, 160)
+	art_rect.position = Vector2(20, 20)
+	art_rect.size = Vector2(410, 240)
 	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	if card.has("art") and ResourceLoader.exists(card["art"]):
@@ -163,16 +172,16 @@ func _create_card_entry(card: Dictionary) -> Control:
 	cost_label.text = "X" if cost_val == -1 else str(cost_val)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.position = Vector2(12, 8)
-	cost_label.size = Vector2(34, 34)
-	cost_label.add_theme_font_size_override("font_size", 18)
+	cost_label.position = Vector2(16, 10)
+	cost_label.size = Vector2(44, 44)
+	cost_label.add_theme_font_size_override("font_size", 24)
 	cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 	var cost_style = StyleBoxFlat.new()
 	cost_style.bg_color = Color(0.6, 0.4, 0.1, 0.9)
-	cost_style.corner_radius_top_left = 17
-	cost_style.corner_radius_top_right = 17
-	cost_style.corner_radius_bottom_left = 17
-	cost_style.corner_radius_bottom_right = 17
+	cost_style.corner_radius_top_left = 22
+	cost_style.corner_radius_top_right = 22
+	cost_style.corner_radius_bottom_left = 22
+	cost_style.corner_radius_bottom_right = 22
 	cost_style.content_margin_left = 2
 	cost_style.content_margin_right = 2
 	cost_style.content_margin_top = 1
@@ -191,9 +200,9 @@ func _create_card_entry(card: Dictionary) -> Control:
 		name_label.text = card["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(0, 180)
-	name_label.size = Vector2(280, 28)
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.position = Vector2(0, 268)
+	name_label.size = Vector2(450, 36)
+	name_label.add_theme_font_size_override("font_size", 22)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
 	name_label.clip_text = true
 	var name_style = StyleBoxFlat.new()
@@ -206,9 +215,9 @@ func _create_card_entry(card: Dictionary) -> Control:
 	# Type text — small centered at y=208, font 12
 	var type_badge = Label.new()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.position = Vector2(0, 208)
-	type_badge.size = Vector2(280, 16)
-	type_badge.add_theme_font_size_override("font_size", 12)
+	type_badge.position = Vector2(0, 306)
+	type_badge.size = Vector2(450, 20)
+	type_badge.add_theme_font_size_override("font_size", 14)
 	type_badge.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55, 0.9))
 	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var loc_badge = _get_loc()
@@ -227,12 +236,12 @@ func _create_card_entry(card: Dictionary) -> Control:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.position = Vector2(10, 224)
-	desc_label.size = Vector2(260, 140)
+	desc_label.position = Vector2(16, 330)
+	desc_label.size = Vector2(418, 170)
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = false
 	desc_label.fit_content = false
-	desc_label.add_theme_font_size_override("normal_font_size", 14)
+	desc_label.add_theme_font_size_override("normal_font_size", 17)
 	desc_label.add_theme_color_override("default_color", Color(0.9, 0.9, 0.9))
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(desc_label)
