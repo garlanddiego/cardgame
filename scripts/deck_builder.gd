@@ -51,7 +51,7 @@ func _build_card_grid() -> void:
 	_clear_grid()
 	_clear_tracking()
 	if grid:
-		grid.columns = 5
+		grid.columns = 6
 	if title_label:
 		var loc = _get_loc()
 		if loc:
@@ -118,8 +118,9 @@ func _create_card_entry(card: Dictionary) -> Control:
 	var card_id: String = card["id"]
 	all_card_data[card_id] = card
 
-	var CARD_W: float = 372.0
-	var CARD_H: float = 495.0
+	# 6 columns: (1900 - 5*4) / 6 = 313px wide, ~1.35 ratio = 423px tall
+	var CARD_W: float = 313.0
+	var CARD_H: float = 423.0
 
 	var card_root = Panel.new()
 	card_root.custom_minimum_size = Vector2(CARD_W, CARD_H)
@@ -132,23 +133,23 @@ func _create_card_entry(card: Dictionary) -> Control:
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = bg_color
 	panel_style.border_color = border_color
-	panel_style.border_width_left = 4
-	panel_style.border_width_right = 4
-	panel_style.border_width_top = 4
-	panel_style.border_width_bottom = 4
-	panel_style.corner_radius_top_left = 8
-	panel_style.corner_radius_top_right = 8
-	panel_style.corner_radius_bottom_left = 8
-	panel_style.corner_radius_bottom_right = 8
+	panel_style.border_width_left = 2
+	panel_style.border_width_right = 2
+	panel_style.border_width_top = 2
+	panel_style.border_width_bottom = 2
+	panel_style.corner_radius_top_left = 6
+	panel_style.corner_radius_top_right = 6
+	panel_style.corner_radius_bottom_left = 6
+	panel_style.corner_radius_bottom_right = 6
 	card_root.add_theme_stylebox_override("panel", panel_style)
 
 	select_highlights[card_id] = card_root
 
-	# --- Card art area: top ~45% of card, inset 10px from edges ---
-	var art_x: float = 10.0
-	var art_y: float = 10.0
-	var art_w: float = CARD_W - 20.0  # 352
-	var art_h: float = CARD_H * 0.45  # ~223
+	# --- Card art area: top ~50% of card, inset 4px from edges ---
+	var art_x: float = 4.0
+	var art_y: float = 4.0
+	var art_w: float = CARD_W - 8.0
+	var art_h: float = CARD_H * 0.50
 
 	# Art background — slightly darker than card bg
 	var art_bg = ColorRect.new()
@@ -202,7 +203,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_cost_labels[card_id] = cost_label
 
 	# --- Card name banner: centered, slightly darker bg ---
-	var name_y: float = art_y + art_h + 4.0  # Just below art
+	var name_y: float = art_y + art_h + 2.0
 	var name_label = Label.new()
 	var loc = _get_loc()
 	if loc:
@@ -211,9 +212,9 @@ func _create_card_entry(card: Dictionary) -> Control:
 		name_label.text = card["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(10, name_y)
-	name_label.size = Vector2(CARD_W - 20, 32)
-	name_label.add_theme_font_size_override("font_size", 17)
+	name_label.position = Vector2(4, name_y)
+	name_label.size = Vector2(CARD_W - 8, 26)
+	name_label.add_theme_font_size_override("font_size", 14)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
 	name_label.clip_text = true
 	var name_style = StyleBoxFlat.new()
@@ -230,12 +231,12 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_name_labels[card_id] = name_label
 
 	# --- Type text: very small, centered, muted ---
-	var type_y: float = name_y + 34.0
+	var type_y: float = name_y + 28.0
 	var type_badge = Label.new()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.position = Vector2(10, type_y)
-	type_badge.size = Vector2(CARD_W - 20, 16)
-	type_badge.add_theme_font_size_override("font_size", 11)
+	type_badge.position = Vector2(4, type_y)
+	type_badge.size = Vector2(CARD_W - 8, 14)
+	type_badge.add_theme_font_size_override("font_size", 10)
 	type_badge.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6, 0.8))
 	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var loc_badge = _get_loc()
@@ -248,16 +249,16 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_type_badges[card_id] = type_badge
 
 	# --- Description: centered, white, bottom ~30% of card ---
-	var desc_y: float = type_y + 20.0
-	var desc_h: float = CARD_H - desc_y - 10.0  # Fill to near bottom
+	var desc_y: float = type_y + 16.0
+	var desc_h: float = CARD_H - desc_y - 6.0
 	var desc_label = RichTextLabel.new()
 	var loc3 = _get_loc()
 	if loc3:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.position = Vector2(16, desc_y)
-	desc_label.size = Vector2(CARD_W - 32, desc_h)
+	desc_label.position = Vector2(8, desc_y)
+	desc_label.size = Vector2(CARD_W - 16, desc_h)
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = true
 	desc_label.fit_content = false
@@ -296,15 +297,15 @@ func _set_card_border(card_panel: Panel, selected: bool) -> void:
 	var style = card_panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	if selected:
 		style.border_color = Color(0.2, 1.0, 0.2, 1.0)  # Bright green
-		style.border_width_left = 5
-		style.border_width_right = 5
-		style.border_width_top = 5
-		style.border_width_bottom = 5
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
 	else:
-		style.border_width_left = 4
-		style.border_width_right = 4
-		style.border_width_top = 4
-		style.border_width_bottom = 4
+		style.border_width_left = 2
+		style.border_width_right = 2
+		style.border_width_top = 2
+		style.border_width_bottom = 2
 		# Restore original type-colored border
 		for cid in all_card_data:
 			if select_highlights.get(cid) == card_panel:
