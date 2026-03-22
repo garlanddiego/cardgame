@@ -23,16 +23,16 @@ func _initialize() -> void:
 	# Dark overlay for better UI contrast (also Sprite2D / ColorRect won't work, use CanvasLayer)
 	# We'll handle overlay via a CanvasLayer with a ColorRect
 
-	# Player area (left side)
+	# Player area (far left, like STS)
 	var player_area = Node2D.new()
 	player_area.name = "PlayerArea"
-	player_area.position = Vector2(300, 450)
+	player_area.position = Vector2(200, 520)
 	root.add_child(player_area)
 
-	# Enemy area (right side) with 3 slots
+	# Enemy area (spread across right half, horizontal layout)
 	var enemy_area = Node2D.new()
 	enemy_area.name = "EnemyArea"
-	enemy_area.position = Vector2(1250, 350)
+	enemy_area.position = Vector2(900, 480)
 	root.add_child(enemy_area)
 
 	# Card hand (bottom center) - Control node

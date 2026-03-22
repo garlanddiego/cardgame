@@ -143,7 +143,8 @@ func _setup_enemies() -> void:
 		var config = enemy_configs[etype]
 		var enemy = _create_entity_node(true)
 		enemy.init_entity(config["hp"], true, etype)
-		enemy.position = Vector2(i * 180, i * 120 - 120)
+		# Horizontal spread across right side, slight vertical offset for depth
+		enemy.position = Vector2(i * 220, (i % 2) * 40 - 20)
 		# Set sprite
 		var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
 		if sprite:

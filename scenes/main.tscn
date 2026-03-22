@@ -1,15 +1,15 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_ocfhe"]
-[ext_resource type="PackedScene" path="res://scenes/character_select.tscn" id="2_d2htf"]
-[ext_resource type="Script" path="res://scripts/character_select.gd" id="3_nvl0s"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_4i338"]
+[ext_resource type="PackedScene" path="res://scenes/character_select.tscn" id="2_sf827"]
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="3_c2qb6"]
 
 [node name="Main" type="Node2D"]
-script = ExtResource("1_ocfhe")
+script = ExtResource("1_4i338")
 
-[node name="CharacterSelect" type="Control" parent="." instance=ExtResource("2_d2htf")]
+[node name="CharacterSelect" type="Control" parent="." instance=ExtResource("2_sf827")]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
-script = ExtResource("3_nvl0s")
+script = ExtResource("3_c2qb6")
