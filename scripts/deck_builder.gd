@@ -8,6 +8,7 @@ const MAX_COPIES: int = 4
 
 var character_id: String = ""
 var selected_cards: Dictionary = {}  # card_id -> count
+var upgraded_cards: Dictionary = {}  # card_id -> bool (whether to use upgraded version)
 var total_selected: int = 0
 
 # Node refs populated in _ready
@@ -15,6 +16,9 @@ var grid: GridContainer = null
 var total_label: Label = null
 var confirm_btn: Button = null
 var count_labels: Dictionary = {}  # card_id -> Label node
+var upgrade_btns: Dictionary = {}  # card_id -> Button node
+var card_name_labels: Dictionary = {}  # card_id -> Label node
+var card_desc_labels: Dictionary = {}  # card_id -> RichTextLabel node
 
 func _ready() -> void:
 	_find_nodes()
@@ -137,11 +141,24 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	desc_label.add_theme_color_override("default_color", Color(0.7, 0.7, 0.7))
 	vbox.add_child(desc_label)
 
+	# Upgrade toggle + count controls
+	var controls_vbox = VBoxContainer.new()
+	controls_vbox.add_theme_constant_override("separation", 4)
+	vbox.add_child(controls_vbox)
+
+	# Upgrade toggle button
+	var upgrade_btn = Button.new()
+	upgrade_btn.text = "Upgrade"
+	upgrade_btn.toggle_mode = true
+	upgrade_btn.custom_minimum_size = Vector2(0, 28)
+	_style_small_button(upgrade_btn, Color(0.2, 0.6, 0.9))
+	controls_vbox.add_child(upgrade_btn)
+
 	# +/- controls
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.add_theme_constant_override("separation", 12)
-	vbox.add_child(hbox)
+	controls_vbox.add_child(hbox)
 
 	var minus_btn = Button.new()
 	minus_btn.text = "-"
@@ -163,11 +180,15 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	_style_small_button(plus_btn, Color(0.3, 0.7, 0.3))
 	hbox.add_child(plus_btn)
 
-	# Store ref and connect
+	# Store refs and connect
 	var card_id = card["id"]
 	count_labels[card_id] = count_lbl
+	upgrade_btns[card_id] = upgrade_btn
+	card_name_labels[card_id] = name_label
+	card_desc_labels[card_id] = desc_label
 	minus_btn.pressed.connect(_on_minus.bind(card_id))
 	plus_btn.pressed.connect(_on_plus.bind(card_id))
+	upgrade_btn.toggled.connect(_on_upgrade_toggled.bind(card_id))
 
 	return panel
 
@@ -221,16 +242,42 @@ func _update_total() -> void:
 	if confirm_btn:
 		confirm_btn.disabled = (total_selected != MAX_DECK_SIZE)
 
+func _on_upgrade_toggled(toggled: bool, card_id: String) -> void:
+	upgraded_cards[card_id] = toggled
+	# Update display to show upgraded stats
+	var gm = _get_game_manager()
+	if gm == null:
+		return
+	var card: Dictionary
+	if toggled:
+		card = gm.get_upgraded_card(card_id)
+		if upgrade_btns.has(card_id):
+			upgrade_btns[card_id].text = "Upgraded ✓"
+	else:
+		card = gm.get_card_data(card_id)
+		if upgrade_btns.has(card_id):
+			upgrade_btns[card_id].text = "Upgrade"
+	# Update name and description
+	if card_name_labels.has(card_id):
+		card_name_labels[card_id].text = card.get("name", "")
+	if card_desc_labels.has(card_id):
+		card_desc_labels[card_id].text = card.get("description", "")
+
 func _on_confirm() -> void:
 	if total_selected != MAX_DECK_SIZE:
 		return
-	# Build deck array
+	# Build deck array with upgrade info
 	var deck: Array = []
-	for card_id in selected_cards:
-		for i in range(selected_cards[card_id]):
-			deck.append(card_id)
-	# Update GameManager
 	var gm = _get_game_manager()
+	for card_id in selected_cards:
+		var use_upgraded: bool = upgraded_cards.get(card_id, false)
+		for i in range(selected_cards[card_id]):
+			if use_upgraded and gm:
+				# Store as upgraded card data directly
+				deck.append(card_id + "+")
+			else:
+				deck.append(card_id)
+	# Update GameManager
 	if gm:
 		gm.player_deck = deck
 	deck_confirmed.emit(deck)

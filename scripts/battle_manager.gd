@@ -299,7 +299,13 @@ func _build_deck(character_id: String, gm: Node) -> void:
 	exhaust_pile.clear()
 	var deck_ids: Array = gm.player_deck if gm.player_deck.size() > 0 else gm.get_starting_deck(character_id)
 	for card_id in deck_ids:
-		var data: Dictionary = gm.get_card_data(card_id)
+		var data: Dictionary
+		if card_id.ends_with("+"):
+			# Upgraded card
+			var base_id = card_id.trim_suffix("+")
+			data = gm.get_upgraded_card(base_id)
+		else:
+			data = gm.get_card_data(card_id)
 		if not data.is_empty():
 			draw_pile.append(data)
 	# Shuffle
