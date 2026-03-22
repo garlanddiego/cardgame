@@ -19,12 +19,16 @@ var count_labels: Dictionary = {}  # card_id -> Label node
 var upgrade_btns: Dictionary = {}  # card_id -> Button node
 var card_name_labels: Dictionary = {}  # card_id -> Label node
 var card_desc_labels: Dictionary = {}  # card_id -> RichTextLabel node
+var card_cost_labels: Dictionary = {}  # card_id -> Label node
+var card_type_badges: Dictionary = {}  # card_id -> Label node
+var all_card_data: Dictionary = {}  # card_id -> card dict (for refresh)
 
 func _ready() -> void:
 	_find_nodes()
 	if confirm_btn:
 		confirm_btn.pressed.connect(_on_confirm)
 		confirm_btn.disabled = true
+	_connect_language_buttons()
 	_apply_localized_ui()
 
 func _find_nodes() -> void:
@@ -64,7 +68,7 @@ func _populate_grid() -> void:
 
 func _create_card_entry(card: Dictionary) -> PanelContainer:
 	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(340, 260)
+	panel.custom_minimum_size = Vector2(340, 300)
 
 	# Style by card type
 	var style = StyleBoxFlat.new()
@@ -100,12 +104,42 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 
 	# Card art
 	var art_rect = TextureRect.new()
-	art_rect.custom_minimum_size = Vector2(80, 80)
+	art_rect.custom_minimum_size = Vector2(140, 120)
 	art_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	if card.has("art") and ResourceLoader.exists(card["art"]):
 		art_rect.texture = load(card["art"])
 	vbox.add_child(art_rect)
+
+	# Card type badge
+	var type_badge = Label.new()
+	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_badge.add_theme_font_size_override("font_size", 12)
+	var badge_color: Color
+	match card["type"]:
+		0: badge_color = Color(0.8, 0.25, 0.2)
+		1: badge_color = Color(0.2, 0.5, 0.8)
+		2: badge_color = Color(0.7, 0.55, 0.1)
+		_: badge_color = Color(0.5, 0.5, 0.5)
+	type_badge.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.95))
+	var badge_style = StyleBoxFlat.new()
+	badge_style.bg_color = Color(badge_color.r, badge_color.g, badge_color.b, 0.7)
+	badge_style.corner_radius_top_left = 4
+	badge_style.corner_radius_top_right = 4
+	badge_style.corner_radius_bottom_left = 4
+	badge_style.corner_radius_bottom_right = 4
+	badge_style.content_margin_left = 8
+	badge_style.content_margin_right = 8
+	badge_style.content_margin_top = 2
+	badge_style.content_margin_bottom = 2
+	type_badge.add_theme_stylebox_override("normal", badge_style)
+	var loc_badge = _get_loc()
+	if loc_badge:
+		type_badge.text = " %s " % loc_badge.type_name(card["type"])
+	else:
+		var badge_type_names = ["Attack", "Skill", "Power", "Status"]
+		type_badge.text = " %s " % badge_type_names[card["type"]]
+	vbox.add_child(type_badge)
 
 	# Card name
 	var name_label = Label.new()
@@ -115,33 +149,13 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	else:
 		name_label.text = card["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
 	vbox.add_child(name_label)
 
 	# Cost + type line
-	var loc2 = _get_loc()
-	var type_name_str: String
-	if loc2:
-		type_name_str = loc2.type_name(card["type"])
-	else:
-		var type_names = ["Attack", "Skill", "Power", "Status"]
-		type_name_str = type_names[card["type"]]
-	var cost_text = ""
-	if card["cost"] >= 0:
-		if loc2:
-			cost_text = loc2.tf("cost_type", [card["cost"], type_name_str])
-		else:
-			cost_text = "Cost: %d | %s" % [card["cost"], type_name_str]
-	elif card["cost"] == -1:
-		if loc2:
-			cost_text = loc2.tf("cost_x_type", [type_name_str])
-		else:
-			cost_text = "Cost: X | %s" % type_name_str
-	else:
-		cost_text = "%s" % type_name_str
 	var cost_label = Label.new()
-	cost_label.text = cost_text
+	cost_label.text = _build_cost_text(card)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 14)
 	cost_label.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
@@ -154,11 +168,11 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.custom_minimum_size = Vector2(0, 40)
+	desc_label.custom_minimum_size = Vector2(0, 50)
 	desc_label.fit_content = true
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = false
-	desc_label.add_theme_font_size_override("normal_font_size", 13)
+	desc_label.add_theme_font_size_override("normal_font_size", 14)
 	desc_label.add_theme_color_override("default_color", Color(0.7, 0.7, 0.7))
 	vbox.add_child(desc_label)
 
@@ -211,6 +225,9 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	upgrade_btns[card_id] = upgrade_btn
 	card_name_labels[card_id] = name_label
 	card_desc_labels[card_id] = desc_label
+	card_cost_labels[card_id] = cost_label
+	card_type_badges[card_id] = type_badge
+	all_card_data[card_id] = card
 	minus_btn.pressed.connect(_on_minus.bind(card_id))
 	plus_btn.pressed.connect(_on_plus.bind(card_id))
 	upgrade_btn.toggled.connect(_on_upgrade_toggled.bind(card_id))
@@ -344,6 +361,92 @@ func _apply_localized_ui() -> void:
 	# Total label
 	if total_label:
 		total_label.text = loc.tf("selected_x_of_y", [0, MAX_DECK_SIZE])
+
+func _connect_language_buttons() -> void:
+	var zh_btn = _find_child_by_name(self, "LangZhButton") as Button
+	var en_btn = _find_child_by_name(self, "LangEnButton") as Button
+	if zh_btn:
+		zh_btn.pressed.connect(_switch_language.bind("zh"))
+	if en_btn:
+		en_btn.pressed.connect(_switch_language.bind("en"))
+
+func _switch_language(lang: String) -> void:
+	var loc = _get_loc()
+	if loc:
+		loc.set_language(lang)
+	_refresh_all_localized_text()
+
+func _refresh_all_localized_text() -> void:
+	# Refresh title, bottom bar, confirm button
+	_apply_localized_ui()
+	# Refresh all card names, descriptions, cost lines, type badges, and upgrade buttons
+	var loc = _get_loc()
+	var gm = _get_game_manager()
+	for card_id in all_card_data:
+		var use_upgraded: bool = upgraded_cards.get(card_id, false)
+		var card: Dictionary
+		if use_upgraded and gm:
+			card = gm.get_upgraded_card(card_id)
+		elif gm:
+			card = gm.get_card_data(card_id)
+		else:
+			card = all_card_data[card_id]
+		# Name
+		if card_name_labels.has(card_id):
+			if loc:
+				card_name_labels[card_id].text = loc.card_name(card)
+			else:
+				card_name_labels[card_id].text = card.get("name", "")
+		# Description
+		if card_desc_labels.has(card_id):
+			if loc:
+				card_desc_labels[card_id].text = loc.card_desc(card)
+			else:
+				card_desc_labels[card_id].text = card.get("description", "")
+		# Cost line
+		if card_cost_labels.has(card_id):
+			card_cost_labels[card_id].text = _build_cost_text(card)
+		# Type badge
+		if card_type_badges.has(card_id):
+			card_type_badges[card_id].text = " %s " % _get_type_name(card["type"])
+		# Upgrade button
+		if upgrade_btns.has(card_id):
+			if use_upgraded:
+				if loc:
+					upgrade_btns[card_id].text = loc.t("upgraded_check")
+				else:
+					upgrade_btns[card_id].text = "Upgraded ✓"
+			else:
+				if loc:
+					upgrade_btns[card_id].text = loc.t("upgrade")
+				else:
+					upgrade_btns[card_id].text = "Upgrade"
+	_update_total()
+
+func _get_type_name(type_index: int) -> String:
+	var loc = _get_loc()
+	if loc:
+		return loc.type_name(type_index)
+	var type_names = ["Attack", "Skill", "Power", "Status"]
+	if type_index >= 0 and type_index < type_names.size():
+		return type_names[type_index]
+	return ""
+
+func _build_cost_text(card: Dictionary) -> String:
+	var loc = _get_loc()
+	var type_name_str: String = _get_type_name(card["type"])
+	if card["cost"] >= 0:
+		if loc:
+			return loc.tf("cost_type", [card["cost"], type_name_str])
+		else:
+			return "Cost: %d | %s" % [card["cost"], type_name_str]
+	elif card["cost"] == -1:
+		if loc:
+			return loc.tf("cost_x_type", [type_name_str])
+		else:
+			return "Cost: X | %s" % type_name_str
+	else:
+		return "%s" % type_name_str
 
 func _get_loc() -> Node:
 	for child in get_tree().root.get_children():

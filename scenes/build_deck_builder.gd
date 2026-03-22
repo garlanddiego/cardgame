@@ -42,7 +42,49 @@ func _initialize() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 44)
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.5))
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_bar.add_child(title)
+
+	# Language selector (top-right)
+	var lang_box = HBoxContainer.new()
+	lang_box.name = "LangSelector"
+	lang_box.add_theme_constant_override("separation", 6)
+	title_bar.add_child(lang_box)
+
+	var lang_zh_btn = Button.new()
+	lang_zh_btn.name = "LangZhButton"
+	lang_zh_btn.text = "中文"
+	lang_zh_btn.custom_minimum_size = Vector2(80, 40)
+	var lang_btn_style = StyleBoxFlat.new()
+	lang_btn_style.bg_color = Color(0.3, 0.3, 0.4, 0.8)
+	lang_btn_style.border_color = Color(0.6, 0.6, 0.8, 0.7)
+	lang_btn_style.border_width_left = 1
+	lang_btn_style.border_width_right = 1
+	lang_btn_style.border_width_top = 1
+	lang_btn_style.border_width_bottom = 1
+	lang_btn_style.corner_radius_top_left = 6
+	lang_btn_style.corner_radius_top_right = 6
+	lang_btn_style.corner_radius_bottom_left = 6
+	lang_btn_style.corner_radius_bottom_right = 6
+	lang_zh_btn.add_theme_stylebox_override("normal", lang_btn_style)
+	var lang_btn_hover = lang_btn_style.duplicate() as StyleBoxFlat
+	lang_btn_hover.bg_color = Color(0.4, 0.4, 0.55, 0.9)
+	lang_zh_btn.add_theme_stylebox_override("hover", lang_btn_hover)
+	lang_zh_btn.add_theme_font_size_override("font_size", 18)
+	lang_zh_btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
+	lang_box.add_child(lang_zh_btn)
+
+	var lang_en_btn = Button.new()
+	lang_en_btn.name = "LangEnButton"
+	lang_en_btn.text = "English"
+	lang_en_btn.custom_minimum_size = Vector2(80, 40)
+	var lang_en_style = lang_btn_style.duplicate() as StyleBoxFlat
+	lang_en_btn.add_theme_stylebox_override("normal", lang_en_style)
+	var lang_en_hover = lang_btn_hover.duplicate() as StyleBoxFlat
+	lang_en_btn.add_theme_stylebox_override("hover", lang_en_hover)
+	lang_en_btn.add_theme_font_size_override("font_size", 18)
+	lang_en_btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
+	lang_box.add_child(lang_en_btn)
 
 	# Scrollable card grid area
 	var scroll = ScrollContainer.new()
