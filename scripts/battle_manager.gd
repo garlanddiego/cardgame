@@ -198,10 +198,10 @@ func _setup_enemies() -> void:
 	# Pick 3 random enemy types
 	var enemy_types = ["slime", "cultist", "jaw_worm"]
 	var enemy_configs = {
-		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/slime.png", "scale_h": 200.0},
-		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/cultist.png", "scale_h": 260.0},
-		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/jaw_worm.png", "scale_h": 220.0},
-		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/guardian.png", "scale_h": 280.0}
+		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/sts_sprites/enemy_slime_clean.png", "scale_h": 200.0},
+		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/sts_sprites/enemy_cultist_ref_clean.png", "scale_h": 260.0},
+		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/sts_sprites/enemy_jaw_worm_clean.png", "scale_h": 220.0},
+		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/sts_sprites/enemy_cultist_clean.png", "scale_h": 280.0}
 	}
 	var selected_enemies: Array = ["slime", "cultist", "jaw_worm"]
 	for i in range(3):
