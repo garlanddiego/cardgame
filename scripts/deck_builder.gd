@@ -68,31 +68,40 @@ func _populate_grid() -> void:
 
 func _create_card_entry(card: Dictionary) -> PanelContainer:
 	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(340, 300)
+	panel.custom_minimum_size = Vector2(340, 320)
 
-	# STS-style card frame
-	var style = StyleBoxFlat.new()
-	var type_color: Color
+	# Use generated card frame texture as background
+	var frame_path: String
 	match card["type"]:
-		0: type_color = Color(0.7, 0.2, 0.15)   # Attack - dark red
-		1: type_color = Color(0.15, 0.4, 0.65)  # Skill - dark blue
-		2: type_color = Color(0.6, 0.45, 0.1)   # Power - gold
-		_: type_color = Color(0.4, 0.4, 0.4)
-	style.bg_color = Color(type_color.r * 0.3, type_color.g * 0.3, type_color.b * 0.3, 0.95)
-	style.border_color = Color(type_color.r * 1.2, type_color.g * 1.2, type_color.b * 1.2, 0.9)
-	style.border_width_left = 3
-	style.border_width_right = 3
-	style.border_width_top = 3
-	style.border_width_bottom = 3
+		0: frame_path = "res://assets/img/card_frame_attack_clean.png"
+		1: frame_path = "res://assets/img/card_frame_skill.png"
+		2: frame_path = "res://assets/img/card_frame_power_clean.png"
+		_: frame_path = "res://assets/img/card_frame_attack_clean.png"
+
+	# Dark background with frame texture overlay
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.06, 0.04, 0.95)
 	style.corner_radius_top_left = 12
 	style.corner_radius_top_right = 12
 	style.corner_radius_bottom_left = 12
 	style.corner_radius_bottom_right = 12
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
+	style.content_margin_left = 20
+	style.content_margin_right = 20
+	style.content_margin_top = 12
+	style.content_margin_bottom = 10
 	panel.add_theme_stylebox_override("panel", style)
+
+	# Card frame texture overlay (on top of dark bg, behind text via z_index)
+	var frame_tex = TextureRect.new()
+	frame_tex.name = "FrameTexture"
+	if ResourceLoader.exists(frame_path):
+		frame_tex.texture = load(frame_path)
+	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
+	frame_tex.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame_tex.modulate = Color(1, 1, 1, 0.7)  # Slightly transparent so text shows through
+	panel.add_child(frame_tex)
 
 	var vbox = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
