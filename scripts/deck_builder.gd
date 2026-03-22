@@ -145,24 +145,22 @@ func _create_card_entry(card: Dictionary) -> Control:
 
 	select_highlights[card_id] = card_root
 
-	# Frame texture overlay for quality/texture feel
-	var frame_path: String
-	match card["type"]:
-		0: frame_path = "res://assets/img/card_frame_attack_clean.png"
-		1: frame_path = "res://assets/img/card_frame_skill.png"
-		2: frame_path = "res://assets/img/card_frame_power_clean.png"
-		_: frame_path = "res://assets/img/card_frame_attack_clean.png"
-	var frame_tex = TextureRect.new()
-	frame_tex.name = "FrameOverlay"
-	if ResourceLoader.exists(frame_path):
-		frame_tex.texture = load(frame_path)
-	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
-	frame_tex.position = Vector2(0, 0)
-	frame_tex.size = Vector2(CARD_W, CARD_H)
-	frame_tex.modulate = Color(1, 1, 1, 0.6)  # Visible texture overlay for quality
-	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(frame_tex)
+	# Inner glow/gradient for depth — lighter strip at top edge
+	var inner_glow = ColorRect.new()
+	inner_glow.name = "InnerGlow"
+	inner_glow.position = Vector2(6, 6)
+	inner_glow.size = Vector2(CARD_W - 12, 3)
+	inner_glow.color = Color(1.0, 1.0, 1.0, 0.15)  # Subtle top highlight
+	inner_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(inner_glow)
+	# Bottom shadow
+	var inner_shadow = ColorRect.new()
+	inner_shadow.name = "InnerShadow"
+	inner_shadow.position = Vector2(6, CARD_H - 9)
+	inner_shadow.size = Vector2(CARD_W - 12, 3)
+	inner_shadow.color = Color(0.0, 0.0, 0.0, 0.2)  # Subtle bottom shadow
+	inner_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(inner_shadow)
 
 	# --- Card art area: top ~50% of card, inset 4px from edges ---
 	var art_x: float = 4.0
