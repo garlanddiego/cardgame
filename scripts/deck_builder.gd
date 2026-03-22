@@ -70,76 +70,59 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 	var panel = PanelContainer.new()
 	panel.custom_minimum_size = Vector2(340, 300)
 
-	# Style by card type
+	# STS-style card frame
 	var style = StyleBoxFlat.new()
 	var type_color: Color
 	match card["type"]:
-		0:  # ATTACK
-			type_color = Color(0.8, 0.25, 0.2)
-		1:  # SKILL
-			type_color = Color(0.2, 0.5, 0.8)
-		2:  # POWER
-			type_color = Color(0.7, 0.55, 0.1)
-		_:
-			type_color = Color(0.5, 0.5, 0.5)
-	style.bg_color = Color(type_color.r * 0.2, type_color.g * 0.2, type_color.b * 0.2, 0.9)
-	style.border_color = Color(type_color.r, type_color.g, type_color.b, 0.7)
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
+		0: type_color = Color(0.7, 0.2, 0.15)   # Attack - dark red
+		1: type_color = Color(0.15, 0.4, 0.65)  # Skill - dark blue
+		2: type_color = Color(0.6, 0.45, 0.1)   # Power - gold
+		_: type_color = Color(0.4, 0.4, 0.4)
+	style.bg_color = Color(type_color.r * 0.3, type_color.g * 0.3, type_color.b * 0.3, 0.95)
+	style.border_color = Color(type_color.r * 1.2, type_color.g * 1.2, type_color.b * 1.2, 0.9)
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
 	panel.add_theme_stylebox_override("panel", style)
 
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
+	vbox.add_theme_constant_override("separation", 2)
 	panel.add_child(vbox)
 
-	# Card art
-	var art_rect = TextureRect.new()
-	art_rect.custom_minimum_size = Vector2(140, 120)
-	art_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	if card.has("art") and ResourceLoader.exists(card["art"]):
-		art_rect.texture = load(card["art"])
-	vbox.add_child(art_rect)
+	# TOP: Cost + Card name (STS puts name at top with cost)
+	var top_hbox = HBoxContainer.new()
+	top_hbox.add_theme_constant_override("separation", 8)
+	vbox.add_child(top_hbox)
 
-	# Card type badge
-	var type_badge = Label.new()
-	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.add_theme_font_size_override("font_size", 12)
-	var badge_color: Color
-	match card["type"]:
-		0: badge_color = Color(0.8, 0.25, 0.2)
-		1: badge_color = Color(0.2, 0.5, 0.8)
-		2: badge_color = Color(0.7, 0.55, 0.1)
-		_: badge_color = Color(0.5, 0.5, 0.5)
-	type_badge.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.95))
-	var badge_style = StyleBoxFlat.new()
-	badge_style.bg_color = Color(badge_color.r, badge_color.g, badge_color.b, 0.7)
-	badge_style.corner_radius_top_left = 4
-	badge_style.corner_radius_top_right = 4
-	badge_style.corner_radius_bottom_left = 4
-	badge_style.corner_radius_bottom_right = 4
-	badge_style.content_margin_left = 8
-	badge_style.content_margin_right = 8
-	badge_style.content_margin_top = 2
-	badge_style.content_margin_bottom = 2
-	type_badge.add_theme_stylebox_override("normal", badge_style)
-	var loc_badge = _get_loc()
-	if loc_badge:
-		type_badge.text = " %s " % loc_badge.type_name(card["type"])
-	else:
-		var badge_type_names = ["Attack", "Skill", "Power", "Status"]
-		type_badge.text = " %s " % badge_type_names[card["type"]]
-	vbox.add_child(type_badge)
+	# Cost circle
+	var cost_label = Label.new()
+	var cost_val = card.get("cost", 0)
+	cost_label.text = "X" if cost_val == -1 else str(cost_val)
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.custom_minimum_size = Vector2(28, 28)
+	cost_label.add_theme_font_size_override("font_size", 16)
+	cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	var cost_style = StyleBoxFlat.new()
+	cost_style.bg_color = Color(0.6, 0.4, 0.1, 0.9)
+	cost_style.corner_radius_top_left = 14
+	cost_style.corner_radius_top_right = 14
+	cost_style.corner_radius_bottom_left = 14
+	cost_style.corner_radius_bottom_right = 14
+	cost_style.content_margin_left = 4
+	cost_style.content_margin_right = 4
+	cost_style.content_margin_top = 2
+	cost_style.content_margin_bottom = 2
+	cost_label.add_theme_stylebox_override("normal", cost_style)
+	top_hbox.add_child(cost_label)
 
 	# Card name
 	var name_label = Label.new()
@@ -148,20 +131,34 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 		name_label.text = loc.card_name(card)
 	else:
 		name_label.text = card["name"]
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 20)
-	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
-	vbox.add_child(name_label)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.add_theme_font_size_override("font_size", 17)
+	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
+	top_hbox.add_child(name_label)
 
-	# Cost + type line
-	var cost_label = Label.new()
-	cost_label.text = _build_cost_text(card)
-	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_label.add_theme_font_size_override("font_size", 14)
-	cost_label.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
-	vbox.add_child(cost_label)
+	# Card art (large, centered)
+	var art_rect = TextureRect.new()
+	art_rect.custom_minimum_size = Vector2(140, 110)
+	art_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if card.has("art") and ResourceLoader.exists(card["art"]):
+		art_rect.texture = load(card["art"])
+	vbox.add_child(art_rect)
 
-	# Description
+	# Type label — small subtle text (STS style: just two small chars)
+	var type_badge = Label.new()
+	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_badge.add_theme_font_size_override("font_size", 11)
+	type_badge.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6, 0.8))
+	var loc_badge = _get_loc()
+	if loc_badge:
+		type_badge.text = loc_badge.type_name(card["type"])
+	else:
+		var badge_type_names = ["Attack", "Skill", "Power", "Status"]
+		type_badge.text = badge_type_names[card["type"]]
+	vbox.add_child(type_badge)
+
+	# Description — centered, larger text
 	var desc_label = RichTextLabel.new()
 	var loc3 = _get_loc()
 	if loc3:
