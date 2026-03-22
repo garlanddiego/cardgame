@@ -277,9 +277,7 @@ func _on_card_tap(event: InputEvent, card_id: String, highlight: ColorRect) -> v
 		selected_card_ids.erase(card_id)
 		highlight.color = Color(0.2, 0.9, 0.2, 0.0)
 	else:
-		# Select (only if under max)
-		if selected_card_ids.size() >= MAX_DECK_SIZE:
-			return
+		# Select
 		selected_card_ids[card_id] = true
 		highlight.color = Color(0.2, 0.9, 0.2, 0.35)
 
@@ -296,12 +294,12 @@ func _update_ui() -> void:
 		else:
 			total_label.text = "已选: %d/10" % total
 	if confirm_btn:
-		confirm_btn.disabled = (total != MAX_DECK_SIZE)
+		confirm_btn.disabled = (total == 0)  # Always enabled as long as at least 1 card selected
 
 # ─── CONFIRM ─────────────────────────────────────────────────────────────────
 
 func _on_confirm() -> void:
-	if selected_card_ids.size() != MAX_DECK_SIZE:
+	if selected_card_ids.size() == 0:
 		return
 	var deck: Array = selected_card_ids.keys()
 	var gm = _get_game_manager()
