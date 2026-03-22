@@ -97,7 +97,7 @@ func _initialize() -> void:
 
 	var grid = GridContainer.new()
 	grid.name = "CardGrid"
-	grid.columns = 4
+	grid.columns = 5
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 12)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -112,71 +112,21 @@ func _initialize() -> void:
 	bottom_bar.add_theme_constant_override("separation", 40)
 	root.add_child(bottom_bar)
 
-	# Back button (confirm page only)
-	var back_btn = Button.new()
-	back_btn.name = "BackButton"
-	back_btn.text = "Back"
-	back_btn.custom_minimum_size = Vector2(160, 55)
-	back_btn.visible = false
-	var back_style = StyleBoxFlat.new()
-	back_style.bg_color = Color(0.4, 0.35, 0.3, 0.8)
-	back_style.border_color = Color(0.7, 0.6, 0.5, 0.9)
-	back_style.border_width_left = 2
-	back_style.border_width_right = 2
-	back_style.border_width_top = 2
-	back_style.border_width_bottom = 2
-	back_style.corner_radius_top_left = 8
-	back_style.corner_radius_top_right = 8
-	back_style.corner_radius_bottom_left = 8
-	back_style.corner_radius_bottom_right = 8
-	back_btn.add_theme_stylebox_override("normal", back_style)
-	var back_hover = back_style.duplicate() as StyleBoxFlat
-	back_hover.bg_color = Color(0.5, 0.45, 0.4, 0.9)
-	back_btn.add_theme_stylebox_override("hover", back_hover)
-	back_btn.add_theme_font_size_override("font_size", 24)
-	back_btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
-	bottom_bar.add_child(back_btn)
-
-	# Total label
+	# Total label — "已选: 0/10"
 	var total_label = Label.new()
 	total_label.name = "TotalLabel"
-	total_label.text = "Selected: 0 / 10"
+	total_label.text = "已选: 0/10"
 	total_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	total_label.add_theme_font_size_override("font_size", 32)
 	total_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	bottom_bar.add_child(total_label)
 
-	# Next button (select page, shown when 10 cards selected)
-	var next_btn = Button.new()
-	next_btn.name = "NextButton"
-	next_btn.text = "Next"
-	next_btn.custom_minimum_size = Vector2(200, 55)
-	next_btn.visible = false
-	var next_style = StyleBoxFlat.new()
-	next_style.bg_color = Color(0.15, 0.45, 0.6, 0.8)
-	next_style.border_color = Color(0.3, 0.7, 0.9, 0.9)
-	next_style.border_width_left = 2
-	next_style.border_width_right = 2
-	next_style.border_width_top = 2
-	next_style.border_width_bottom = 2
-	next_style.corner_radius_top_left = 8
-	next_style.corner_radius_top_right = 8
-	next_style.corner_radius_bottom_left = 8
-	next_style.corner_radius_bottom_right = 8
-	next_btn.add_theme_stylebox_override("normal", next_style)
-	var next_hover = next_style.duplicate() as StyleBoxFlat
-	next_hover.bg_color = Color(0.2, 0.55, 0.7, 0.9)
-	next_btn.add_theme_stylebox_override("hover", next_hover)
-	next_btn.add_theme_font_size_override("font_size", 24)
-	next_btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	bottom_bar.add_child(next_btn)
-
-	# Confirm button (confirm page only)
+	# Confirm button — "确认牌组" (disabled until exactly 10 selected)
 	var confirm_btn = Button.new()
 	confirm_btn.name = "ConfirmButton"
-	confirm_btn.text = "Confirm Deck"
+	confirm_btn.text = "确认牌组"
 	confirm_btn.custom_minimum_size = Vector2(220, 55)
-	confirm_btn.visible = false
+	confirm_btn.disabled = true
 	var btn_style = StyleBoxFlat.new()
 	btn_style.bg_color = Color(0.15, 0.5, 0.15, 0.8)
 	btn_style.border_color = Color(0.3, 0.8, 0.3, 0.9)

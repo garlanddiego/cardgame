@@ -1,5 +1,4 @@
 extends SceneTree
-## Full flow test: deck builder (select → confirm) → battle
 
 var _frame: int = 0
 var _main: Node = null
@@ -12,12 +11,8 @@ func _initialize() -> void:
 
 func _process(_delta: float) -> bool:
 	_frame += 1
-
-	# Frame 10: Find deck builder
 	if _frame == 10:
 		_builder = _find_child(_main, "DeckBuilder")
-
-	# Frame 15: Programmatically select 10 cards
 	if _frame == 15:
 		if _builder:
 			var gm = _get_gm()
@@ -26,24 +21,14 @@ func _process(_delta: float) -> bool:
 				for card_id in gm.card_database:
 					var card = gm.card_database[card_id]
 					if card["character"] == "ironclad" and card["type"] != 3 and count < 10:
-						_builder.selected_card_ids.append(card_id)
+						_builder.selected_card_ids[card_id] = true
 						count += 1
-				_builder._update_select_ui()
-
-	# Frame 25: Go to confirm page
-	if _frame == 25:
-		if _builder:
-			_builder._on_next()
-
-	# Frame 40: Confirm the deck
-	if _frame == 40:
+				_builder._update_ui()
+	if _frame == 30:
 		if _builder:
 			_builder._on_confirm()
-
-	# Frame 70: Battle running
-	if _frame == 80:
+	if _frame == 70:
 		quit(0)
-
 	return false
 
 func _get_gm() -> Node:
