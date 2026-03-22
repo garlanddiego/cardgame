@@ -30,9 +30,9 @@ var _frame_textures: Array = []
 func _load_frame_textures() -> void:
 	if _frame_textures.size() == 0:
 		_frame_textures.resize(3)
-		_frame_textures[0] = load("res://assets/img/frame_attack_v2.png")
-		_frame_textures[1] = load("res://assets/img/frame_skill_v2.png")
-		_frame_textures[2] = load("res://assets/img/frame_power_v2.png")
+		_frame_textures[0] = load("res://assets/img/frame_attack_v2_card.png")
+		_frame_textures[1] = load("res://assets/img/frame_skill_v2_card.png")
+		_frame_textures[2] = load("res://assets/img/frame_power_v2_card.png")
 
 func _ready() -> void:
 	_find_nodes()
@@ -130,30 +130,15 @@ func _create_card_entry(card: Dictionary) -> Control:
 
 	select_highlights[card_id] = card_root
 
-	# Solid type-colored background behind the frame
-	var bg_colors = [Color(0.5, 0.12, 0.1), Color(0.12, 0.4, 0.15), Color(0.25, 0.15, 0.45), Color(0.3, 0.3, 0.3)]
-	var card_bg = ColorRect.new()
-	card_bg.name = "CardBG"
-	card_bg.position = Vector2.ZERO
-	card_bg.size = Vector2(CARD_W, CARD_H)
-	card_bg.color = bg_colors[mini(card["type"], 3)]
-	card_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(card_bg)
-
-	# --- NinePatchRect frame overlay (ornate borders on top of colored bg) ---
-	var frame = NinePatchRect.new()
+	# --- Frame texture IS the card visual (pre-sized to 290x390) ---
+	var frame = TextureRect.new()
 	frame.name = "CardFrame"
 	frame.texture = _get_frame_texture(card["type"])
 	frame.position = Vector2.ZERO
 	frame.size = Vector2(CARD_W, CARD_H)
-	# Patch margins in source image pixels (896x1200):
-	# Decorative borders are ~120px thick on each side
-	frame.patch_margin_left = 120
-	frame.patch_margin_top = 140
-	frame.patch_margin_right = 120
-	frame.patch_margin_bottom = 200
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_SCALE
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.modulate = Color(1.0, 1.0, 1.0, 0.8)  # Semi-transparent so colored bg shows through
 	card_root.add_child(frame)
 
 	# --- Card art area: in the frame's center window (~top 45%) ---
