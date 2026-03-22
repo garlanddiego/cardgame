@@ -19,3 +19,14 @@
 - Battle flow: start_battle() -> start_player_turn() -> draw_cards() -> [play cards] -> end_player_turn() -> start_enemy_turn() -> _process_enemy_actions() -> _end_enemy_turn() -> start_player_turn()
 - Card targeting: two-step (click card to select, click target entity). Self/all_enemies targets auto-resolve.
 - Status effects tracked in entity.status_effects Dictionary, decay in tick_status_effects() each turn.
+
+## Task 2: Presentation Video
+
+### Discoveries
+- **AVI capture is fast, PNG capture is very slow** — `--write-movie output.avi` captures 900 frames in ~17s. PNG frame capture is ~10x slower and may timeout.
+- **No ffmpeg on macOS** — used `opencv-python-headless` (cv2.VideoWriter with `mp4v` codec) to convert AVI to MP4. Works well: 1280x720, ~25MB for 30s.
+- **`avconvert` can't read Godot's MJPEG AVI** — macOS built-in `avconvert` refuses to open Godot's AVI output. Use OpenCV instead.
+- **Camera2D in SceneTree scripts** — `make_current()` errors if called before the camera is in the scene tree. Camera2D added to root doesn't affect CanvasLayer children (HUD stays fixed, which is actually desired). Camera zoom/pan effects are subtle in 2D.
+- **Tween "Target object freed" warnings** — when cards are removed from CardHand after playing, any active scale tweens on them warn about freed targets. Harmless but noisy.
+- **Simulating card play in SceneTree scripts** — call `card_hand._on_card_clicked(card)` to select, then `card_hand.play_selected_on(target)` to play. Must check `battle_active`, `is_player_turn`, and energy before playing.
+- **No `timeout` on macOS** — use background process + sleep + kill pattern instead.

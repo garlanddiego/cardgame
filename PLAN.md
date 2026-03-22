@@ -46,6 +46,7 @@
 - **Verify:** Screenshot shows a battle in progress: player character on left with HP bar, 3 enemies on right with HP bars and intent icons, a hand of 5 cards fanned at the bottom, energy counter showing "3/3", draw and discard pile visible. Hovering a card makes it larger. Status effect icons visible on affected entities.
 
 ## 2. Presentation Video
+- **Status:** done
 - **Depends on:** 1
 - **Goal:** Create a ~30-second cinematic video showcasing the completed game.
 - **Requirements:**
