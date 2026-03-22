@@ -143,8 +143,23 @@ func _init_card_database() -> void:
 	# 26. Dropkick
 	card_database["ic_dropkick"] = {"id": "ic_dropkick", "name": "Dropkick", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1.", "art": _ic_art(5), "target": "enemy", "special": "dropkick"}
 
+	# 27a. Carnage
+	card_database["ic_carnage"] = {"id": "ic_carnage", "name": "Carnage", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 20, "block": 0, "description": "Ethereal.\nDeal 20 damage.", "art": _ic_art(6), "target": "enemy", "ethereal": true}
+
+	# 27b. Clothesline
+	card_database["ic_clothesline"] = {"id": "ic_clothesline", "name": "Clothesline", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 12, "block": 0, "description": "Deal 12 damage.\nApply 2 Weak.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "weak", "stacks": 2}}
+
+	# 27c. Feed
+	card_database["ic_feed"] = {"id": "ic_feed", "name": "Feed", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 10, "block": 0, "description": "Deal 10 damage.\nIf this kills, gain\n3 Max HP. Exhaust.", "art": _ic_art(6), "target": "enemy", "special": "feed", "exhaust": true}
+
+	# 27d. Rampage
+	card_database["ic_rampage"] = {"id": "ic_rampage", "name": "Rampage", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage.\nIncreases by 5\neach time played.", "art": _ic_art(0), "target": "enemy", "special": "rampage"}
+
+	# 27e. Sever Soul
+	card_database["ic_sever_soul"] = {"id": "ic_sever_soul", "name": "Sever Soul", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 16, "block": 0, "description": "Exhaust all non-Attack\ncards in hand.\nDeal 16 damage.", "art": _ic_art(0), "target": "enemy", "special": "sever_soul"}
+
 	# =========================================================================
-	# IRONCLAD SKILLS (19 cards)
+	# IRONCLAD SKILLS (27 cards)
 	# =========================================================================
 
 	# 27. Defend
@@ -204,8 +219,32 @@ func _init_card_database() -> void:
 	# 45. Dual Wield
 	card_database["ic_dual_wield"] = {"id": "ic_dual_wield", "name": "Dual Wield", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Copy an Attack or\nPower card in hand.", "art": _ic_art(0), "target": "self", "special": "dual_wield"}
 
+	# 45a. Ghostly Armor
+	card_database["ic_ghostly_armor"] = {"id": "ic_ghostly_armor", "name": "Ghostly Armor", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 10, "description": "Ethereal.\nGain 10 Block.", "art": _ic_art(8), "target": "self", "ethereal": true}
+
+	# 45b. Havoc
+	card_database["ic_havoc"] = {"id": "ic_havoc", "name": "Havoc", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it.", "art": _ic_art(6), "target": "self", "special": "havoc", "exhaust": true}
+
+	# 45c. Impervious
+	card_database["ic_impervious"] = {"id": "ic_impervious", "name": "Impervious", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 30, "description": "Gain 30 Block.\nExhaust.", "art": _ic_art(8), "target": "self", "exhaust": true}
+
+	# 45d. Exhume
+	card_database["ic_exhume"] = {"id": "ic_exhume", "name": "Exhume", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust.", "art": _ic_art(11), "target": "self", "special": "exhume", "exhaust": true}
+
+	# 45e. Sentinel
+	card_database["ic_sentinel"] = {"id": "ic_sentinel", "name": "Sentinel", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.\nIf this card is\nExhausted, gain\n2 Energy.", "art": _ic_art(8), "target": "self", "special": "sentinel"}
+
+	# 45f. Spot Weakness
+	card_database["ic_spot_weakness"] = {"id": "ic_spot_weakness", "name": "Spot Weakness", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "If the enemy intends\nto attack, gain\n3 Strength.", "art": _ic_art(1), "target": "enemy", "special": "spot_weakness"}
+
+	# 45g. True Grit
+	card_database["ic_true_grit"] = {"id": "ic_true_grit", "name": "True Grit", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 7, "description": "Gain 7 Block.\nExhaust a random\ncard in your hand.", "art": _ic_art(8), "target": "self", "special": "true_grit"}
+
+	# 45h. Disarm
+	card_database["ic_disarm"] = {"id": "ic_disarm", "name": "Disarm", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Enemy loses 2\nStrength. Exhaust.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "strength", "stacks": -2}, "exhaust": true}
+
 	# =========================================================================
-	# IRONCLAD POWERS (10 cards)
+	# IRONCLAD POWERS (14 cards)
 	# =========================================================================
 
 	# 46. Demon Form
@@ -237,6 +276,25 @@ func _init_card_database() -> void:
 
 	# 55. Metallicize
 	card_database["ic_metallicize"] = {"id": "ic_metallicize", "name": "Metallicize", "cost": 1, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "At the end of your\nturn, gain 3 Block.", "art": _ic_art(12), "target": "self", "power_effect": "metallicize"}
+
+	# 56. Brutality
+	card_database["ic_brutality"] = {"id": "ic_brutality", "name": "Brutality", "cost": 0, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.", "art": _ic_art(11), "target": "self", "power_effect": "brutality"}
+
+	# 57. Combust
+	card_database["ic_combust"] = {"id": "ic_combust", "name": "Combust", "cost": 1, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "At the end of your\nturn, lose 1 HP and\ndeal 5 damage to ALL\nenemies.", "art": _ic_art(9), "target": "self", "power_effect": "combust"}
+
+	# 58. Dark Embrace
+	card_database["ic_dark_embrace"] = {"id": "ic_dark_embrace", "name": "Dark Embrace", "cost": 2, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "Whenever a card is\nExhausted, draw 1.", "art": _ic_art(11), "target": "self", "power_effect": "dark_embrace"}
+
+	# 59. Rupture
+	card_database["ic_rupture"] = {"id": "ic_rupture", "name": "Rupture", "cost": 1, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "Whenever you lose HP\nfrom a card, gain\n1 Strength.", "art": _ic_art(11), "target": "self", "power_effect": "rupture"}
+
+	# 60. Blood for Blood
+	card_database["ic_blood_for_blood"] = {"id": "ic_blood_for_blood", "name": "Blood for Blood", "cost": 4, "type": CardType.ATTACK, "character": "ironclad", "damage": 18, "block": 0, "description": "Costs 1 less for each\ntime you lose HP this\ncombat. Deal 18 dmg.", "art": _ic_art(5), "target": "enemy", "special": "blood_for_blood"}
+	# 61. Double Tap
+	card_database["ic_double_tap"] = {"id": "ic_double_tap", "name": "Double Tap", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "This turn, your next\nAttack is played twice.", "art": _ic_art(13), "target": "self", "power_effect": "double_tap"}
+	# 62. Fire Breathing
+	card_database["ic_fire_breathing"] = {"id": "ic_fire_breathing", "name": "Fire Breathing", "cost": 1, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "Whenever you draw a\nStatus or Curse, deal\n6 damage to ALL.", "art": _ic_art(9), "target": "self", "power_effect": "fire_breathing"}
 
 	# =========================================================================
 	# STATUS CARDS (used by various effects)
@@ -303,3 +361,112 @@ func get_card_data(card_id: String) -> Dictionary:
 	if card_database.has(card_id):
 		return card_database[card_id].duplicate()
 	return {}
+
+# =============================================================================
+# UPGRADE SYSTEM
+# =============================================================================
+
+func get_upgraded_card(card_id: String) -> Dictionary:
+	var base := get_card_data(card_id)
+	if base.is_empty():
+		return {}
+	var overrides := _get_upgrade_overrides()
+	if overrides.has(card_id):
+		for key in overrides[card_id]:
+			if key == "apply_status" or key == "apply_status_2" or key == "apply_self_status":
+				base[key] = overrides[card_id][key]
+			else:
+				base[key] = overrides[card_id][key]
+	base["name"] = base["name"] + "+"
+	base["upgraded"] = true
+	return base
+
+func _get_upgrade_overrides() -> Dictionary:
+	return {
+		# =====================================================================
+		# IRONCLAD ATTACKS
+		# =====================================================================
+		"ic_strike": {"damage": 9, "description": "Deal 9 damage."},
+		"ic_bash": {"damage": 10, "apply_status": {"type": "vulnerable", "stacks": 3}, "description": "Deal 10 damage.\nApply 3 Vulnerable."},
+		"ic_iron_wave": {"damage": 7, "block": 7, "description": "Deal 7 damage.\nGain 7 Block."},
+		"ic_body_slam": {"cost": 0, "description": "Deal damage equal\nto your Block."},
+		"ic_anger": {"damage": 8, "description": "Deal 8 damage.\nAdd a copy to\nyour discard pile."},
+		"ic_cleave": {"damage": 11, "description": "Deal 11 damage to\nALL enemies."},
+		"ic_twin_strike": {"damage": 7, "description": "Deal 7 damage twice."},
+		"ic_wild_strike": {"damage": 17, "description": "Deal 17 damage.\nShuffle a Wound into\nyour draw pile."},
+		"ic_pommel_strike": {"damage": 10, "draw": 2, "description": "Deal 10 damage.\nDraw 2 cards."},
+		"ic_headbutt": {"damage": 12, "description": "Deal 12 damage."},
+		"ic_pummel": {"damage": 2, "times": 5, "description": "Deal 2 damage x5."},
+		"ic_uppercut": {"damage": 16, "apply_status": {"type": "vulnerable", "stacks": 2}, "apply_status_2": {"type": "weak", "stacks": 2}, "description": "Deal 16 damage.\nApply 2 Weak.\nApply 2 Vulnerable."},
+		"ic_immolate": {"damage": 28, "description": "Deal 28 damage to\nALL enemies.\nAdd a Burn to discard."},
+		"ic_fiend_fire": {"damage": 10, "description": "Exhaust your hand.\nDeal 10 damage for\neach card exhausted."},
+		"ic_reaper": {"damage": 5, "description": "Deal 5 damage to\nALL enemies.\nHeal for unblocked damage."},
+		"ic_heavy_blade": {"damage": 18, "description": "Deal 18 damage.\nStrength applies x5.", "special": "heavy_blade_plus"},
+		"ic_thunderclap": {"damage": 7, "description": "Deal 7 damage to\nALL enemies.\nApply 1 Vulnerable."},
+		"ic_hemokinesis": {"damage": 20, "description": "Lose 2 HP.\nDeal 20 damage."},
+		"ic_reckless_charge": {"damage": 10, "description": "Deal 10 damage.\nShuffle a Dazed into\nyour draw pile."},
+		"ic_clash": {"damage": 18, "description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 18 damage."},
+		"ic_perfected_strike": {"damage": 6, "description": "Deal 6 damage. Deals\n3 additional damage\nfor each \"Strike\" card\nin your deck.", "special": "perfected_strike_plus"},
+		"ic_bludgeon": {"damage": 42, "description": "Deal 42 damage."},
+		"ic_sword_boomerang": {"times": 4, "description": "Deal 3 damage to a\nrandom enemy 4 times."},
+		"ic_searing_blow": {"damage": 16, "description": "Deal 16 damage."},
+		"ic_whirlwind": {"damage": 8, "description": "Deal 8 damage to ALL\nenemies X times.\n(X = current Energy)"},
+		"ic_dropkick": {"damage": 8, "description": "Deal 8 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1."},
+		"ic_carnage": {"damage": 28, "description": "Ethereal.\nDeal 28 damage."},
+		"ic_clothesline": {"damage": 14, "apply_status": {"type": "weak", "stacks": 3}, "description": "Deal 14 damage.\nApply 3 Weak."},
+		"ic_feed": {"damage": 12, "description": "Deal 12 damage.\nIf this kills, gain\n4 Max HP. Exhaust.", "special": "feed_plus"},
+		"ic_rampage": {"damage": 8, "description": "Deal 8 damage.\nIncreases by 8\neach time played.", "special": "rampage_plus"},
+		"ic_sever_soul": {"damage": 22, "description": "Exhaust all non-Attack\ncards in hand.\nDeal 22 damage."},
+
+		# =====================================================================
+		# IRONCLAD SKILLS
+		# =====================================================================
+		"ic_defend": {"block": 8, "description": "Gain 8 Block."},
+		"ic_shrug_it_off": {"block": 11, "description": "Gain 11 Block.\nDraw 1 card."},
+		"ic_flame_barrier": {"block": 16, "description": "Gain 16 Block.\nWhen attacked this turn,\ndeal 6 damage back."},
+		"ic_battle_trance": {"draw": 4, "description": "Draw 4 cards."},
+		"ic_bloodletting": {"description": "Lose 3 HP.\nGain 3 Energy."},
+		"ic_flex": {"description": "Gain 4 Strength.\nAt end of turn,\nlose 4 Strength."},
+		"ic_limit_break": {"exhaust": false, "description": "Double your Strength."},
+		"ic_entrench": {"cost": 1, "description": "Double your Block."},
+		"ic_shockwave": {"apply_status": {"type": "weak", "stacks": 5}, "apply_status_2": {"type": "vulnerable", "stacks": 5}, "description": "Apply 5 Weak and\n5 Vulnerable to\nALL enemies. Exhaust."},
+		"ic_armaments": {"block": 5, "description": "Gain 5 Block.\nUpgrade ALL cards\nin hand.", "special": "armaments_plus"},
+		"ic_power_through": {"block": 20, "description": "Gain 20 Block.\nAdd 2 Wounds to\nyour hand."},
+		"ic_offering": {"draw": 5, "description": "Lose 6 HP.\nGain 2 Energy.\nDraw 5 cards.\nExhaust."},
+		"ic_war_cry": {"draw": 2, "description": "Draw 2 cards.\nExhaust."},
+		"ic_burning_pact": {"draw": 3, "description": "Exhaust 1 card.\nDraw 3 cards."},
+		"ic_seeing_red": {"cost": 0, "description": "Gain 2 Energy.\nExhaust."},
+		"ic_second_wind": {"description": "Exhaust all non-Attack\ncards in hand. Gain\n7 Block for each."},
+		"ic_intimidate": {"apply_status": {"type": "weak", "stacks": 2}, "description": "Apply 2 Weak to\nALL enemies. Exhaust."},
+		"ic_infernal_blade": {"cost": 0, "description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust."},
+		"ic_dual_wield": {"description": "Copy an Attack or\nPower card in hand\n2 times.", "special": "dual_wield_plus"},
+		"ic_ghostly_armor": {"block": 13, "description": "Ethereal.\nGain 13 Block."},
+		"ic_havoc": {"cost": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it."},
+		"ic_impervious": {"block": 40, "description": "Gain 40 Block.\nExhaust."},
+		"ic_exhume": {"cost": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust."},
+		"ic_sentinel": {"block": 8, "description": "Gain 8 Block.\nIf this card is\nExhausted, gain\n3 Energy."},
+		"ic_spot_weakness": {"description": "If the enemy intends\nto attack, gain\n4 Strength."},
+		"ic_true_grit": {"block": 9, "description": "Gain 9 Block.\nExhaust a card in\nyour hand.", "special": "true_grit_plus"},
+		"ic_disarm": {"apply_status": {"type": "strength", "stacks": -3}, "description": "Enemy loses 3\nStrength. Exhaust."},
+
+		# =====================================================================
+		# IRONCLAD POWERS
+		# =====================================================================
+		"ic_demon_form": {"description": "At the start of\neach turn, gain 3\nStrength.", "power_effect": "demon_form_plus"},
+		"ic_corruption": {"cost": 2, "description": "Skills cost 0.\nWhenever you play a\nSkill, Exhaust it."},
+		"ic_berserk": {"description": "Gain 1 Vulnerable.\nAt the start of each\nturn, gain 2 Energy.", "power_effect": "berserk_plus"},
+		"ic_feel_no_pain": {"description": "Whenever a card is\nExhausted, gain\n4 Block.", "power_effect": "feel_no_pain_plus"},
+		"ic_juggernaut": {"description": "Whenever you gain\nBlock, deal 7 damage\nto a random enemy.", "power_effect": "juggernaut_plus"},
+		"ic_evolve": {"description": "Whenever you draw a\nStatus card, draw 2.", "power_effect": "evolve_plus"},
+		"ic_rage": {"description": "Whenever you play an\nAttack this turn,\ngain 5 Block.", "power_effect": "rage_plus"},
+		"ic_barricade": {"cost": 2, "description": "Block is not removed\nat the start of\nyour turn."},
+		"ic_inflame": {"apply_self_status": {"type": "strength", "stacks": 3}, "description": "Gain 3 Strength."},
+		"ic_metallicize": {"description": "At the end of your\nturn, gain 4 Block.", "power_effect": "metallicize_plus"},
+		"ic_brutality": {"description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.\nInnate.", "power_effect": "brutality", "innate": true},
+		"ic_combust": {"description": "At the end of your\nturn, lose 1 HP and\ndeal 7 damage to ALL\nenemies.", "power_effect": "combust_plus"},
+		"ic_dark_embrace": {"cost": 1, "description": "Whenever a card is\nExhausted, draw 1."},
+		"ic_rupture": {"description": "Whenever you lose HP\nfrom a card, gain\n2 Strength.", "power_effect": "rupture_plus"},
+		"ic_blood_for_blood": {"damage": 22, "description": "Costs 1 less for each\ntime you lose HP.\nDeal 22 damage."},
+		"ic_double_tap": {"description": "This turn, your next\n2 Attacks are played\ntwice."},
+		"ic_fire_breathing": {"description": "Whenever you draw a\nStatus or Curse, deal\n10 damage to ALL."},
+	}
