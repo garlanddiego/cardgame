@@ -29,10 +29,10 @@ func _initialize() -> void:
 	player_area.position = Vector2(200, 520)
 	root.add_child(player_area)
 
-	# Enemy area (spread across right half, horizontal layout)
+	# Enemy area (spread across right half, at ground level)
 	var enemy_area = Node2D.new()
 	enemy_area.name = "EnemyArea"
-	enemy_area.position = Vector2(900, 480)
+	enemy_area.position = Vector2(850, 540)
 	root.add_child(enemy_area)
 
 	# Card hand (bottom center) - Control node
@@ -53,7 +53,7 @@ func _initialize() -> void:
 	# Dark overlay on HUD layer (behind HUD elements)
 	var dark_overlay = ColorRect.new()
 	dark_overlay.name = "DarkOverlay"
-	dark_overlay.color = Color(0.0, 0.0, 0.05, 0.25)
+	dark_overlay.color = Color(0.0, 0.0, 0.05, 0.1)  # Very light overlay for contrast
 	dark_overlay.position = Vector2(0, 0)
 	dark_overlay.size = Vector2(1920, 1080)
 	dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE

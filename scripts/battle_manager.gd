@@ -114,10 +114,10 @@ func _setup_player(character_id: String, gm: Node) -> void:
 		var tex = load(char_data["sprite"])
 		if tex:
 			sprite.texture = tex
-			# Scale to ~400px tall (STS-like proportions)
+			# Scale to ~320px tall (STS-like proportions)
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
-				var scale_factor: float = 400.0 / tex_height
+				var scale_factor: float = 320.0 / tex_height
 				sprite.scale = Vector2(scale_factor, scale_factor)
 	var nlabel = player.get_node_or_null("NameLabel") as Label
 	if nlabel:
@@ -132,10 +132,10 @@ func _setup_enemies() -> void:
 	# Pick 3 random enemy types
 	var enemy_types = ["slime", "cultist", "jaw_worm"]
 	var enemy_configs = {
-		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/slime.png", "scale_h": 280.0},
-		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/cultist.png", "scale_h": 340.0},
-		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/jaw_worm.png", "scale_h": 280.0},
-		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/guardian.png", "scale_h": 380.0}
+		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/slime.png", "scale_h": 200.0},
+		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/cultist.png", "scale_h": 260.0},
+		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/jaw_worm.png", "scale_h": 220.0},
+		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/guardian.png", "scale_h": 300.0}
 	}
 	var selected_enemies: Array = ["slime", "cultist", "jaw_worm"]
 	for i in range(3):
@@ -143,8 +143,10 @@ func _setup_enemies() -> void:
 		var config = enemy_configs[etype]
 		var enemy = _create_entity_node(true)
 		enemy.init_entity(config["hp"], true, etype)
-		# Horizontal spread across right side, slight vertical offset for depth
-		enemy.position = Vector2(i * 220, (i % 2) * 40 - 20)
+		# Horizontal spread, grounded at same level, slight stagger for depth
+		var x_offsets = [0, 200, 420]
+		var y_offsets = [20, -10, 30]  # Subtle stagger, all near ground level
+		enemy.position = Vector2(x_offsets[i], y_offsets[i])
 		# Set sprite
 		var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
 		if sprite:
