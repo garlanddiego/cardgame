@@ -133,10 +133,10 @@ func _create_card_entry(card: Dictionary) -> Control:
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = bg_color
 	panel_style.border_color = border_color
-	panel_style.border_width_left = 2
-	panel_style.border_width_right = 2
-	panel_style.border_width_top = 2
-	panel_style.border_width_bottom = 2
+	panel_style.border_width_left = 6
+	panel_style.border_width_right = 6
+	panel_style.border_width_top = 6
+	panel_style.border_width_bottom = 6
 	panel_style.corner_radius_top_left = 6
 	panel_style.corner_radius_top_right = 6
 	panel_style.corner_radius_bottom_left = 6
@@ -160,7 +160,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
 	frame_tex.position = Vector2(0, 0)
 	frame_tex.size = Vector2(CARD_W, CARD_H)
-	frame_tex.modulate = Color(1, 1, 1, 0.25)  # Subtle texture overlay
+	frame_tex.modulate = Color(1, 1, 1, 0.6)  # Visible texture overlay for quality
 	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(frame_tex)
 
@@ -313,15 +313,15 @@ func _set_card_border(card_panel: Panel, selected: bool) -> void:
 	var style = card_panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	if selected:
 		style.border_color = Color(0.2, 1.0, 0.2, 1.0)  # Bright green
-		style.border_width_left = 3
-		style.border_width_right = 3
-		style.border_width_top = 3
-		style.border_width_bottom = 3
+		style.border_width_left = 8
+		style.border_width_right = 8
+		style.border_width_top = 8
+		style.border_width_bottom = 8
 	else:
-		style.border_width_left = 2
-		style.border_width_right = 2
-		style.border_width_top = 2
-		style.border_width_bottom = 2
+		style.border_width_left = 6
+		style.border_width_right = 6
+		style.border_width_top = 6
+		style.border_width_bottom = 6
 		# Restore original type-colored border
 		for cid in all_card_data:
 			if select_highlights.get(cid) == card_panel:
