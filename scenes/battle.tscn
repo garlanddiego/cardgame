@@ -1,10 +1,10 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_4cbvg"]
-[ext_resource type="Script" path="res://scripts/card_hand.gd" id="2_kwtcr"]
-[ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="3_hfn45"]
+[ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_gctw7"]
+[ext_resource type="Script" path="res://scripts/card_hand.gd" id="2_7hoxx"]
+[ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="3_ujaeb"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pnxo8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fb6s3"]
 content_margin_left = 8.0
 content_margin_top = 4.0
 content_margin_right = 8.0
@@ -20,7 +20,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s8h84"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0jmkj"]
 content_margin_left = 12.0
 content_margin_top = 4.0
 content_margin_right = 12.0
@@ -37,7 +37,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="Battle" type="Node2D"]
-script = ExtResource("1_4cbvg")
+script = ExtResource("1_gctw7")
 max_energy = 3
 cards_per_draw = 5
 
@@ -53,7 +53,7 @@ position = Vector2(850, 540)
 
 [node name="CardHand" type="Node2D" parent="."]
 position = Vector2(0, 780)
-script = ExtResource("2_kwtcr")
+script = ExtResource("2_7hoxx")
 
 [node name="HUDLayer" type="CanvasLayer" parent="."]
 
@@ -77,7 +77,7 @@ offset_left = 50.0
 offset_top = 820.0
 offset_right = 50.0
 offset_bottom = 820.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_pnxo8")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fb6s3")
 
 [node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel"]
 layout_mode = 2
@@ -86,7 +86,7 @@ alignment = 1
 [node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer"]
 custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
-texture = ExtResource("3_hfn45")
+texture = ExtResource("3_ujaeb")
 expand_mode = 3
 stretch_mode = 5
 
@@ -132,7 +132,7 @@ offset_left = 830.0
 offset_top = 10.0
 offset_right = 830.0
 offset_bottom = 10.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_s8h84")
+theme_override_styles/panel = SubResource("StyleBoxFlat_0jmkj")
 
 [node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel"]
 layout_mode = 2

@@ -70,6 +70,15 @@ func _build_card_nodes() -> void:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(card_visual)
 
+	# Dark card background (visible if frame texture is missing)
+	var card_bg = ColorRect.new()
+	card_bg.name = "CardBackground"
+	card_bg.position = Vector2(0, 0)
+	card_bg.size = CARD_SIZE
+	card_bg.color = Color(0.08, 0.06, 0.04, 0.95)
+	card_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.add_child(card_bg)
+
 	# Frame texture (card background/frame)
 	frame_texture = TextureRect.new()
 	frame_texture.name = "FrameTexture"

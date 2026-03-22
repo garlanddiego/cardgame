@@ -73,6 +73,18 @@ func _ready() -> void:
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
 
+	# STS-style targeting arrow
+	_targeting_arrow = Line2D.new()
+	_targeting_arrow.name = "TargetingArrow"
+	_targeting_arrow.width = 4.0
+	_targeting_arrow.default_color = Color(1.0, 0.4, 0.1, 0.9)
+	var grad = Gradient.new()
+	grad.set_color(0, Color(1.0, 0.5, 0.15, 0.7))
+	grad.set_color(1, Color(1.0, 0.2, 0.05, 1.0))
+	_targeting_arrow.gradient = grad
+	_targeting_arrow.visible = false
+	add_child(_targeting_arrow)
+
 func _style_end_turn_button() -> void:
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.6, 0.3, 0.1, 0.85)
@@ -1009,14 +1021,38 @@ func _update_pile_labels() -> void:
 			discard_label.text = "Discard: " + str(discard_pile.size())
 
 var _hovered_enemy: Node2D = null
+var _targeting_arrow: Line2D = null
 
 func _process(_delta: float) -> void:
 	if not battle_active or not is_player_turn:
+		if _targeting_arrow:
+			_targeting_arrow.visible = false
 		return
-	# Update enemy hover highlight when targeting
+	# Update targeting arrow and enemy hover highlight
 	if card_hand and card_hand.is_targeting():
 		var card_data: Dictionary = card_hand.get_selected_card_data()
 		var target_type: String = card_data.get("target", "enemy")
+		# Draw targeting arrow from selected card to mouse
+		if _targeting_arrow and target_type == "enemy" and card_hand.selected_card:
+			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(90, 0)
+			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
+			_targeting_arrow.clear_points()
+			# Build curved arrow with intermediate points
+			var mid: Vector2 = (card_pos + mouse_pos_arrow) * 0.5 + Vector2(0, -60)
+			var steps: int = 12
+			for i in range(steps + 1):
+				var t: float = float(i) / float(steps)
+				var p: Vector2 = card_pos.lerp(mid, t).lerp(mid.lerp(mouse_pos_arrow, t), t)
+				_targeting_arrow.add_point(p)
+			# Arrowhead
+			var dir: Vector2 = (mouse_pos_arrow - _targeting_arrow.points[steps - 1]).normalized()
+			var perp: Vector2 = Vector2(-dir.y, dir.x)
+			_targeting_arrow.add_point(mouse_pos_arrow - dir * 16 + perp * 10)
+			_targeting_arrow.add_point(mouse_pos_arrow)
+			_targeting_arrow.add_point(mouse_pos_arrow - dir * 16 - perp * 10)
+			_targeting_arrow.visible = true
+		elif _targeting_arrow and target_type != "enemy":
+			_targeting_arrow.visible = false
 		if target_type == "enemy":
 			var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 			var hover_enemy = _get_enemy_at(mouse_pos)
@@ -1037,6 +1073,8 @@ func _process(_delta: float) -> void:
 		if _hovered_enemy != null:
 			_clear_all_enemy_highlights()
 			_hovered_enemy = null
+		if _targeting_arrow:
+			_targeting_arrow.visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:
