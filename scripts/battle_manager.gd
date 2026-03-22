@@ -72,6 +72,8 @@ func _ready() -> void:
 			end_turn_btn.text = loc.t("end_turn")
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
+		card_hand.card_drag_released.connect(_on_card_drag_released)
+		card_hand.card_played_tap.connect(_on_card_tap_play)
 
 	# STS-style chain targeting arrow — circles along bezier curve
 	_targeting_arrow = preload("res://scripts/targeting_arrow.gd").new()
@@ -1042,13 +1044,13 @@ func _process(_delta: float) -> void:
 		if _targeting_arrow:
 			_targeting_arrow.hide_arrow()
 		return
-	# Update targeting arrow and enemy hover highlight
-	if card_hand and card_hand.is_targeting():
+	# Update targeting arrow and enemy hover highlight during drag
+	if card_hand and card_hand.is_targeting() and card_hand.selected_card:
 		var card_data: Dictionary = card_hand.get_selected_card_data()
 		var target_type: String = card_data.get("target", "enemy")
-		# Draw chain-style targeting arrow from selected card to mouse
-		if _targeting_arrow and target_type == "enemy" and card_hand.selected_card:
-			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(110, 0)
+		# Draw chain-style targeting arrow from card origin to mouse during drag
+		if _targeting_arrow and target_type == "enemy":
+			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(130, 175)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
 			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow)
 			_targeting_arrow.visible = true
@@ -1082,37 +1084,54 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if card_hand and card_hand.is_targeting():
-			var card_data: Dictionary = card_hand.get_selected_card_data()
-			var target_type: String = card_data.get("target", "enemy")
-			var mouse_pos: Vector2 = event.position
-			if target_type == "self":
-				# Non-targeted: click anywhere to play
-				if player:
-					_clear_all_enemy_highlights()
-					card_hand.play_selected_on(player)
-			elif target_type == "all_enemies":
-				# Non-targeted: click anywhere to play on all
-				if not enemies.is_empty():
-					_clear_all_enemy_highlights()
-					card_hand.play_selected_on(enemies[0])
-			else:
-				# Targeted: must click on an enemy
-				var clicked_enemy = _get_enemy_at(mouse_pos)
-				if clicked_enemy:
-					_clear_all_enemy_highlights()
-					card_hand.play_selected_on(clicked_enemy)
-	# Right click to deselect card
+	# Right click to cancel any targeting
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if card_hand and card_hand.is_targeting():
-			card_hand.selected_card.set_selected(false)
+			if card_hand.selected_card:
+				card_hand.selected_card.set_selected(false)
 			card_hand.selected_card = null
 			card_hand.targeting_mode = false
 			_clear_all_enemy_highlights()
 			_hovered_enemy = null
 	if event is InputEventKey and event.pressed and event.keycode == KEY_E:
 		_on_end_turn()
+
+func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
+	if not battle_active or not is_player_turn:
+		return
+	var card_data: Dictionary = card_node.card_data
+	var target_type: String = card_data.get("target", "enemy")
+	_clear_all_enemy_highlights()
+	_hovered_enemy = null
+	if _targeting_arrow:
+		_targeting_arrow.hide_arrow()
+		_targeting_arrow.visible = false
+
+	if target_type == "enemy":
+		var enemy_target = _get_enemy_at(release_position)
+		if enemy_target:
+			card_hand.selected_card = card_node
+			card_hand.play_card_on(card_node, enemy_target)
+		# else: dropped on nothing — card snaps back (layout update handles this)
+	elif target_type == "self":
+		if player:
+			card_hand.selected_card = card_node
+			card_hand.play_card_on(card_node, player)
+	elif target_type == "all_enemies":
+		if not enemies.is_empty():
+			card_hand.selected_card = card_node
+			card_hand.play_card_on(card_node, enemies[0])
+
+func _on_card_tap_play(card_node: Area2D) -> void:
+	# Handle quick-tap for non-targeted cards (self/all_enemies)
+	if not battle_active or not is_player_turn:
+		return
+	var card_data: Dictionary = card_node.card_data
+	var target_type: String = card_data.get("target", "enemy")
+	if target_type == "self" and player:
+		card_hand.play_selected_on(player)
+	elif target_type == "all_enemies" and not enemies.is_empty():
+		card_hand.play_selected_on(enemies[0])
 
 func _highlight_enemy(enemy: Node2D) -> void:
 	var sprite = enemy.get_node_or_null("Sprite") as Sprite2D

@@ -1,10 +1,13 @@
 extends Area2D
 ## res://scripts/card.gd — Professional card class inspired by db0/godot-card-game-framework
 ## State-machine driven Area2D card with tween-based animations
+## Now uses STS card images instead of individual frame/art/label components
 
 signal card_clicked(card_node: Area2D)
 signal card_focused(card_node: Area2D)
 signal card_unfocused(card_node: Area2D)
+signal card_drag_started(card_node: Area2D)
+signal card_drag_ended(card_node: Area2D, release_position: Vector2)
 
 enum CardState {
 	IN_HAND,
@@ -16,7 +19,7 @@ enum CardState {
 	MOVING_TO_CONTAINER
 }
 
-const CARD_SIZE := Vector2(220, 310)
+const CARD_SIZE := Vector2(260, 350)
 
 var card_data: Dictionary = {}
 var card_state: int = CardState.IN_HAND
@@ -25,15 +28,64 @@ var is_selected: bool = false
 var base_z_index: int = 0
 var _current_tween: Tween = null
 
+# Drag-to-target state
+var _is_pressed: bool = false
+var _press_time: float = 0.0
+var _drag_active: bool = false
+var _press_start_pos: Vector2 = Vector2.ZERO
+const DRAG_HOLD_TIME: float = 0.2  # 200ms hold to start drag
+const DRAG_DISTANCE_THRESHOLD: float = 15.0  # pixels moved to start drag immediately
+
 # Child node references (populated in _ready or after build)
 var collision_shape: CollisionShape2D = null
 var card_visual: Control = null
-var frame_texture: TextureRect = null
-var card_art: TextureRect = null
-var cost_label: Label = null
-var name_label: Label = null
-var type_label: Label = null
-var desc_label: RichTextLabel = null
+var sts_card_image: TextureRect = null  # Single STS card image
+
+# STS card image mapping (shared from deck_builder approach)
+static var _sts_card_map: Dictionary = {}
+
+static func _build_sts_card_map() -> void:
+	if _sts_card_map.size() > 0:
+		return
+	var ordered_ids: Array = [
+		# ATTACKS (type 0) — sorted by name
+		"ic_anger", "ic_bash", "ic_blood_for_blood", "ic_bludgeon", "ic_body_slam",
+		"ic_carnage", "ic_clash", "ic_cleave", "ic_clothesline", "ic_dropkick",
+		"ic_feed", "ic_fiend_fire", "ic_headbutt", "ic_heavy_blade", "ic_hemokinesis",
+		"ic_immolate", "ic_iron_wave", "ic_perfected_strike",
+		"ic_pommel_strike", "ic_pummel", "ic_rampage", "ic_reaper", "ic_reckless_charge",
+		"ic_searing_blow", "ic_sever_soul", "ic_strike", "ic_sword_boomerang",
+		"ic_thunderclap", "ic_twin_strike", "ic_uppercut", "ic_whirlwind", "ic_wild_strike",
+		# SKILLS (type 1) — sorted by name
+		"ic_armaments", "ic_battle_trance", "ic_bloodletting", "ic_burning_pact",
+		"ic_defend", "ic_disarm", "ic_double_tap", "ic_dual_wield", "ic_entrench",
+		"ic_exhume", "ic_flame_barrier", "ic_flex", "ic_ghostly_armor", "ic_havoc",
+		"ic_impervious", "ic_infernal_blade", "ic_intimidate", "ic_limit_break",
+		"ic_offering", "ic_power_through", "ic_second_wind", "ic_seeing_red",
+		"ic_sentinel", "ic_shockwave", "ic_shrug_it_off", "ic_spot_weakness",
+		"ic_true_grit", "ic_war_cry",
+		# POWERS (type 2) — sorted by name
+		"ic_barricade", "ic_berserk", "ic_brutality", "ic_combust", "ic_corruption",
+		"ic_dark_embrace", "ic_demon_form", "ic_evolve", "ic_feel_no_pain",
+		"ic_fire_breathing", "ic_inflame", "ic_juggernaut", "ic_metallicize",
+		"ic_rage", "ic_rupture",
+	]
+	var page := 1
+	var card_on_page := 1
+	var cards_per_page := 18
+	for card_id in ordered_ids:
+		var img_path := "res://assets/img/sts_cards/page%d_card%02d.png" % [page, card_on_page]
+		_sts_card_map[card_id] = img_path
+		card_on_page += 1
+		if card_on_page > cards_per_page:
+			card_on_page = 1
+			page += 1
+
+static func _get_sts_card_path(card_id: String) -> String:
+	_build_sts_card_map()
+	if _sts_card_map.has(card_id):
+		return _sts_card_map[card_id]
+	return ""
 
 func _ready() -> void:
 	# If no children exist yet, build them (for runtime instantiation)
@@ -70,7 +122,7 @@ func _build_card_nodes() -> void:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(card_visual)
 
-	# Dark card background (visible if frame texture is missing)
+	# Dark card background (visible if STS image is missing)
 	var card_bg = ColorRect.new()
 	card_bg.name = "CardBackground"
 	card_bg.position = Vector2(0, 0)
@@ -79,91 +131,14 @@ func _build_card_nodes() -> void:
 	card_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(card_bg)
 
-	# Frame texture (card background/frame) — uses v2 pre-sized frames
-	frame_texture = TextureRect.new()
-	frame_texture.name = "FrameTexture"
-	frame_texture.size = CARD_SIZE
-	frame_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame_texture.stretch_mode = TextureRect.STRETCH_SCALE
-	frame_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(frame_texture)
-
-	# Card art (positioned in the art window area of the frame per spec)
-	card_art = TextureRect.new()
-	card_art.name = "CardArt"
-	card_art.position = Vector2(22, 42)
-	card_art.size = Vector2(176, 122)
-	card_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	card_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	card_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(card_art)
-
-	# Cost shadow label (offset 1,1, dark color for better readability)
-	var cost_shadow = Label.new()
-	cost_shadow.name = "CostShadow"
-	cost_shadow.position = Vector2(8, 6)
-	cost_shadow.size = Vector2(36, 36)
-	cost_shadow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_shadow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_shadow.add_theme_font_size_override("font_size", 24)
-	cost_shadow.add_theme_color_override("font_color", Color(0.0, 0.0, 0.0, 0.85))
-	cost_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(cost_shadow)
-
-	# Cost label (top-left gem area per spec: rect 7,5 36x36)
-	cost_label = Label.new()
-	cost_label.name = "CostLabel"
-	cost_label.position = Vector2(7, 5)
-	cost_label.size = Vector2(36, 36)
-	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.add_theme_font_size_override("font_size", 24)
-	cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-	# Drop shadow per spec section 2.3
-	cost_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	cost_label.add_theme_constant_override("shadow_offset_x", 1)
-	cost_label.add_theme_constant_override("shadow_offset_y", 2)
-	cost_label.add_theme_constant_override("shadow_outline_size", 2)
-	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(cost_label)
-
-	# Name label (card name banner — spec: rect 12,168 196x26, font 15, LEFT align)
-	name_label = Label.new()
-	name_label.name = "NameLabel"
-	name_label.position = Vector2(12, 168)
-	name_label.size = Vector2(196, 26)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 15)
-	name_label.add_theme_color_override("font_color", Color(1.0, 0.949, 0.847, 1.0))
-	name_label.clip_text = true
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(name_label)
-
-	# Type label (spec: rect 12,194 196x18, font 11, muted)
-	type_label = Label.new()
-	type_label.name = "TypeLabel"
-	type_label.position = Vector2(12, 194)
-	type_label.size = Vector2(196, 18)
-	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_label.add_theme_font_size_override("font_size", 11)
-	type_label.add_theme_color_override("font_color", Color(0.478, 0.447, 0.376, 0.80))
-	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(type_label)
-
-	# Description label (spec: rect 17,216 186x84, font 12, text_secondary)
-	desc_label = RichTextLabel.new()
-	desc_label.name = "DescLabel"
-	desc_label.position = Vector2(17, 216)
-	desc_label.size = Vector2(186, 84)
-	desc_label.bbcode_enabled = true
-	desc_label.fit_content = false
-	desc_label.scroll_active = false
-	desc_label.add_theme_font_size_override("normal_font_size", 12)
-	desc_label.add_theme_color_override("default_color", Color(0.749, 0.722, 0.604, 1.0))
-	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_visual.add_child(desc_label)
+	# STS card image — complete card visual (frame + art + text baked in)
+	sts_card_image = TextureRect.new()
+	sts_card_image.name = "STSCardImage"
+	sts_card_image.size = CARD_SIZE
+	sts_card_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sts_card_image.stretch_mode = TextureRect.STRETCH_SCALE
+	sts_card_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.add_child(sts_card_image)
 
 	# Selection glow overlay (hidden by default, shown when card is selected)
 	var glow_overlay = ColorRect.new()
@@ -179,12 +154,7 @@ func _find_child_refs() -> void:
 	collision_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
 	card_visual = get_node_or_null("CardVisual") as Control
 	if card_visual:
-		frame_texture = card_visual.get_node_or_null("FrameTexture") as TextureRect
-		card_art = card_visual.get_node_or_null("CardArt") as TextureRect
-		cost_label = card_visual.get_node_or_null("CostLabel") as Label
-		name_label = card_visual.get_node_or_null("NameLabel") as Label
-		type_label = card_visual.get_node_or_null("TypeLabel") as Label
-		desc_label = card_visual.get_node_or_null("DescLabel") as RichTextLabel
+		sts_card_image = card_visual.get_node_or_null("STSCardImage") as TextureRect
 
 func setup(data: Dictionary) -> void:
 	card_data = data
@@ -197,69 +167,22 @@ func set_card_data(data: Dictionary) -> void:
 func _apply_card_data() -> void:
 	if card_data.is_empty():
 		return
-	var loc = _get_loc()
 
-	# Cost — with color treatment per VISUAL_DESIGN_SPEC section 3.3
-	if cost_label:
-		var cost_val: int = card_data.get("cost", 0)
-		if cost_val == -1:
-			cost_label.text = "X"
-			cost_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))  # gold
-		elif cost_val < -1:
-			cost_label.text = "\u2014"  # em dash for unplayable
-			cost_label.add_theme_color_override("font_color", Color(0.478, 0.447, 0.376, 0.80))  # muted
-		elif cost_val == 0:
-			cost_label.text = "0"
-			cost_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))  # grey-white
+	# Load the STS card image based on card ID
+	if sts_card_image:
+		var card_id: String = card_data.get("id", "")
+		var sts_path: String = _get_sts_card_path(card_id)
+		if sts_path != "" and ResourceLoader.exists(sts_path):
+			sts_card_image.texture = load(sts_path)
 		else:
-			cost_label.text = str(cost_val)
-			cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))  # white
-		# Sync shadow label text
-		if card_visual:
-			var cost_shadow = card_visual.get_node_or_null("CostShadow") as Label
-			if cost_shadow:
-				cost_shadow.text = cost_label.text
+			# Fallback: try loading frame texture for unknown cards
+			_apply_fallback_texture()
 
-	# Name
-	if name_label:
-		if loc:
-			name_label.text = loc.card_name(card_data)
-		else:
-			name_label.text = card_data.get("name", "Card")
-
-	# Description
-	if desc_label:
-		if loc:
-			desc_label.text = loc.card_desc(card_data)
-		else:
-			desc_label.text = card_data.get("description", "")
-
-	# Type — uppercase per spec
-	if type_label:
-		var type_idx: int = card_data.get("type", 0)
-		if loc:
-			type_label.text = loc.type_name(type_idx).to_upper()
-		else:
-			var gm_types = ["ATTACK", "SKILL", "POWER", "STATUS"]
-			if type_idx >= 0 and type_idx < gm_types.size():
-				type_label.text = gm_types[type_idx]
-
-	# Card art
-	if card_art:
-		var art_path: String = card_data.get("art", "")
-		if art_path != "":
-			var tex = load(art_path)
-			if tex:
-				card_art.texture = tex
-
-	# Card frame based on type
-	_apply_frame_texture()
-
-func _apply_frame_texture() -> void:
-	if frame_texture == null:
+func _apply_fallback_texture() -> void:
+	# If no STS image found, show a colored background based on type
+	if sts_card_image == null:
 		return
 	var card_type: int = card_data.get("type", 0)
-	# Try v2 frames first (pre-sized, higher quality), fall back to originals
 	var frame_path: String
 	var fallback_path: String
 	match card_type:
@@ -279,7 +202,7 @@ func _apply_frame_texture() -> void:
 	if tex == null:
 		tex = load(fallback_path)
 	if tex:
-		frame_texture.texture = tex
+		sts_card_image.texture = tex
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
@@ -311,6 +234,41 @@ func move_to(target_pos: Vector2, target_rot: float, target_scale: Vector2, dura
 func set_state(new_state: int) -> void:
 	card_state = new_state
 
+# ---- Drag-to-target handling ----
+
+func _process(delta: float) -> void:
+	if _is_pressed and not _drag_active:
+		_press_time += delta
+		# Check if held long enough or moved far enough to start drag
+		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+		var dist: float = _press_start_pos.distance_to(mouse_pos)
+		if _press_time >= DRAG_HOLD_TIME or dist >= DRAG_DISTANCE_THRESHOLD:
+			_start_drag()
+	if _drag_active:
+		# Card follows mouse while dragging
+		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+		position = mouse_pos - Vector2(CARD_SIZE.x / 2.0, CARD_SIZE.y / 2.0)
+
+func _start_drag() -> void:
+	_drag_active = true
+	card_state = CardState.DRAGGED
+	z_index = 200
+	# Lift card slightly with scale
+	scale = Vector2(1.15, 1.15)
+	rotation_degrees = 0
+	# Cancel any running move tween
+	if _current_tween and _current_tween.is_valid():
+		_current_tween.kill()
+	card_drag_started.emit(self)
+
+func _end_drag() -> void:
+	var release_pos: Vector2 = get_viewport().get_mouse_position()
+	_drag_active = false
+	_is_pressed = false
+	_press_time = 0.0
+	card_state = CardState.IN_HAND
+	card_drag_ended.emit(self, release_pos)
+
 # ---- Signal handlers ----
 
 func _on_mouse_entered() -> void:
@@ -319,12 +277,30 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
 	is_hovered = false
-	card_unfocused.emit(self)
+	if not _drag_active and not _is_pressed:
+		card_unfocused.emit(self)
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton:
-		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			card_clicked.emit(self)
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_is_pressed = true
+				_press_time = 0.0
+				_press_start_pos = event.global_position
+			elif not event.pressed:
+				if _drag_active:
+					_end_drag()
+				elif _is_pressed:
+					# Quick tap — released before drag threshold
+					_is_pressed = false
+					_press_time = 0.0
+					card_clicked.emit(self)
+
+func _input(event: InputEvent) -> void:
+	# Catch mouse release even if outside card area during drag
+	if _drag_active and event is InputEventMouseButton:
+		if not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			_end_drag()
 
 func _get_loc() -> Node:
 	if not is_inside_tree():
