@@ -73,35 +73,11 @@ func _ready() -> void:
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
 
-	# STS-style targeting arrow — orange-to-red gradient, 6px, bezier curve
-	_targeting_arrow = Line2D.new()
+	# STS-style chain targeting arrow — circles along bezier curve
+	_targeting_arrow = preload("res://scripts/targeting_arrow.gd").new()
 	_targeting_arrow.name = "TargetingArrow"
-	_targeting_arrow.width = 6.0
-	_targeting_arrow.default_color = Color(1.0, 0.4, 0.1, 0.9)
-	_targeting_arrow.joint_mode = Line2D.LINE_JOINT_ROUND
-	_targeting_arrow.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	_targeting_arrow.end_cap_mode = Line2D.LINE_CAP_NONE
-	var grad = Gradient.new()
-	grad.set_color(0, Color(1.0, 0.5, 0.15, 0.55))
-	grad.set_color(1, Color(1.0, 0.15, 0.05, 1.0))
-	_targeting_arrow.gradient = grad
-	_targeting_arrow.visible = false
 	_targeting_arrow.z_index = 200
 	add_child(_targeting_arrow)
-
-	# Arrowhead triangle
-	_arrowhead = Polygon2D.new()
-	_arrowhead.name = "ArrowHead"
-	_arrowhead.polygon = PackedVector2Array([
-		Vector2(0, 0),       # tip
-		Vector2(-18, -10),   # left base
-		Vector2(-12, 0),     # inner notch
-		Vector2(-18, 10),    # right base
-	])
-	_arrowhead.color = Color(1.0, 0.15, 0.05, 1.0)
-	_arrowhead.visible = false
-	_arrowhead.z_index = 200
-	add_child(_arrowhead)
 
 func _style_end_turn_button() -> void:
 	# Per VISUAL_DESIGN_SPEC section 4.6: 220x56, warm orange, gold border
@@ -1059,45 +1035,26 @@ func _update_pile_labels() -> void:
 			discard_label.text = "Discard: " + str(discard_pile.size())
 
 var _hovered_enemy: Node2D = null
-var _targeting_arrow: Line2D = null
-var _arrowhead: Polygon2D = null
+var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)
 
 func _process(_delta: float) -> void:
 	if not battle_active or not is_player_turn:
 		if _targeting_arrow:
-			_targeting_arrow.visible = false
-		if _arrowhead:
-			_arrowhead.visible = false
+			_targeting_arrow.hide_arrow()
 		return
 	# Update targeting arrow and enemy hover highlight
 	if card_hand and card_hand.is_targeting():
 		var card_data: Dictionary = card_hand.get_selected_card_data()
 		var target_type: String = card_data.get("target", "enemy")
-		# Draw targeting arrow from selected card to mouse — bezier curve per spec
+		# Draw chain-style targeting arrow from selected card to mouse
 		if _targeting_arrow and target_type == "enemy" and card_hand.selected_card:
 			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(110, 0)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
-			_targeting_arrow.clear_points()
-			# Quadratic bezier with control point lifted 200px per spec
-			var mid_point: Vector2 = (card_pos + mouse_pos_arrow) * 0.5
-			var control: Vector2 = mid_point + Vector2(0, -200)
-			var segments: int = 24
-			for i in range(segments + 1):
-				var t: float = float(i) / float(segments)
-				var p: Vector2 = (1.0 - t) * (1.0 - t) * card_pos + 2.0 * (1.0 - t) * t * control + t * t * mouse_pos_arrow
-				_targeting_arrow.add_point(p)
+			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow)
 			_targeting_arrow.visible = true
-			# Position arrowhead triangle at terminus, rotated to match direction
-			if _arrowhead:
-				var last_seg_start: Vector2 = _targeting_arrow.points[segments - 1]
-				var arrow_dir: Vector2 = (mouse_pos_arrow - last_seg_start).normalized()
-				_arrowhead.position = mouse_pos_arrow
-				_arrowhead.rotation = arrow_dir.angle()
-				_arrowhead.visible = true
 		elif _targeting_arrow and target_type != "enemy":
+			_targeting_arrow.hide_arrow()
 			_targeting_arrow.visible = false
-			if _arrowhead:
-				_arrowhead.visible = false
 		if target_type == "enemy":
 			var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 			var hover_enemy = _get_enemy_at(mouse_pos)
@@ -1119,9 +1076,8 @@ func _process(_delta: float) -> void:
 			_clear_all_enemy_highlights()
 			_hovered_enemy = null
 		if _targeting_arrow:
+			_targeting_arrow.hide_arrow()
 			_targeting_arrow.visible = false
-		if _arrowhead:
-			_arrowhead.visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:
