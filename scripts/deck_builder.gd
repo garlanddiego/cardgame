@@ -98,72 +98,71 @@ func _populate_grid() -> void:
 		var entry = _create_card_entry(card)
 		grid.add_child(entry)
 
-# ─── CARD ENTRY (280x380 vertical/portrait) ─────────────────────────────────
+# ─── STS-STYLE CARD ENTRY (372x495 portrait, 3:4 ratio) ─────────────────────
+
+func _get_card_bg_color(card_type: int) -> Color:
+	match card_type:
+		0: return Color(0.45, 0.12, 0.1)    # Attack: dark red/maroon
+		1: return Color(0.12, 0.35, 0.15)   # Skill: dark green
+		2: return Color(0.2, 0.15, 0.4)     # Power: dark blue-purple
+		_: return Color(0.25, 0.25, 0.25)
+
+func _get_card_border_color(card_type: int) -> Color:
+	match card_type:
+		0: return Color(0.7, 0.2, 0.15)     # Attack: brighter red
+		1: return Color(0.2, 0.6, 0.25)     # Skill: brighter green
+		2: return Color(0.4, 0.3, 0.7)      # Power: brighter purple
+		_: return Color(0.5, 0.5, 0.5)
 
 func _create_card_entry(card: Dictionary) -> Control:
 	var card_id: String = card["id"]
 	all_card_data[card_id] = card
 
+	var CARD_W: float = 372.0
+	var CARD_H: float = 495.0
+
 	var card_root = Panel.new()
-	card_root.custom_minimum_size = Vector2(370, 460)
-	card_root.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow scroll container to receive drag events
+	card_root.custom_minimum_size = Vector2(CARD_W, CARD_H)
+	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	# Solid colored background + thick type-colored border + rounded corners
+	var bg_color: Color = _get_card_bg_color(card["type"])
+	var border_color: Color = _get_card_border_color(card["type"])
+
 	var panel_style = StyleBoxFlat.new()
-	var type_color: Color
-	match card["type"]:
-		0: type_color = Color(0.5, 0.15, 0.1)   # Attack red
-		1: type_color = Color(0.1, 0.3, 0.5)    # Skill blue
-		2: type_color = Color(0.45, 0.35, 0.08)  # Power gold
-		_: type_color = Color(0.3, 0.3, 0.3)
-	panel_style.bg_color = Color(type_color.r * 0.4, type_color.g * 0.4, type_color.b * 0.4, 0.95)
-	panel_style.border_color = Color(type_color.r * 1.5, type_color.g * 1.5, type_color.b * 1.5, 0.8)
-	panel_style.border_width_left = 3
-	panel_style.border_width_right = 3
-	panel_style.border_width_top = 3
-	panel_style.border_width_bottom = 3
-	panel_style.corner_radius_top_left = 10
-	panel_style.corner_radius_top_right = 10
-	panel_style.corner_radius_bottom_left = 10
-	panel_style.corner_radius_bottom_right = 10
+	panel_style.bg_color = bg_color
+	panel_style.border_color = border_color
+	panel_style.border_width_left = 4
+	panel_style.border_width_right = 4
+	panel_style.border_width_top = 4
+	panel_style.border_width_bottom = 4
+	panel_style.corner_radius_top_left = 8
+	panel_style.corner_radius_top_right = 8
+	panel_style.corner_radius_bottom_left = 8
+	panel_style.corner_radius_bottom_right = 8
 	card_root.add_theme_stylebox_override("panel", panel_style)
 
-	# Selection border — use a stylebox override on card_root itself
-	# (highlight will be applied by modifying the panel border color)
-	var _default_border_color = Color(type_color.r * 1.5, type_color.g * 1.5, type_color.b * 1.5, 0.8)
-	select_highlights[card_id] = card_root  # Store panel itself for border color change
+	select_highlights[card_id] = card_root
 
-	# Card frame texture — scaled to fill 280x380
-	var frame_path: String
-	match card["type"]:
-		0: frame_path = "res://assets/img/card_frame_attack_clean.png"
-		1: frame_path = "res://assets/img/card_frame_skill.png"
-		2: frame_path = "res://assets/img/card_frame_power_clean.png"
-		_: frame_path = "res://assets/img/card_frame_attack_clean.png"
+	# --- Card art area: top ~45% of card, inset 10px from edges ---
+	var art_x: float = 10.0
+	var art_y: float = 10.0
+	var art_w: float = CARD_W - 20.0  # 352
+	var art_h: float = CARD_H * 0.45  # ~223
 
-	var frame_tex = TextureRect.new()
-	frame_tex.name = "FrameTexture"
-	if ResourceLoader.exists(frame_path):
-		frame_tex.texture = load(frame_path)
-	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
-	frame_tex.position = Vector2(0, 0)
-	frame_tex.size = Vector2(370, 460)
-	frame_tex.modulate = Color(1, 1, 1, 0.3)  # Subtle overlay — panel bg is the main visual
-	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_root.add_child(frame_tex)
-
-	# Dark background behind card art
+	# Art background — slightly darker than card bg
 	var art_bg = ColorRect.new()
 	art_bg.name = "ArtBackground"
-	art_bg.position = Vector2(16, 16)
-	art_bg.size = Vector2(338, 200)
-	art_bg.color = Color(0.05, 0.04, 0.04, 1.0)
+	art_bg.position = Vector2(art_x, art_y)
+	art_bg.size = Vector2(art_w, art_h)
+	art_bg.color = Color(bg_color.r * 0.5, bg_color.g * 0.5, bg_color.b * 0.5, 1.0)
 	art_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(art_bg)
 
-	# Card art — top area, 410x240 starting at (20, 20)
+	# Card art texture
 	var art_rect = TextureRect.new()
-	art_rect.position = Vector2(16, 16)
-	art_rect.size = Vector2(338, 200)
+	art_rect.position = Vector2(art_x, art_y)
+	art_rect.size = Vector2(art_w, art_h)
 	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	if card.has("art") and ResourceLoader.exists(card["art"]):
@@ -171,22 +170,28 @@ func _create_card_entry(card: Dictionary) -> Control:
 	art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(art_rect)
 
-	# Cost circle — top-left (12, 8), 34x34
+	# --- Cost orb: top-left corner, orange/gold circle with white number ---
+	var cost_size: float = 40.0
 	var cost_label = Label.new()
 	var cost_val = card.get("cost", 0)
 	cost_label.text = "X" if cost_val == -1 else str(cost_val)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.position = Vector2(12, 8)
-	cost_label.size = Vector2(38, 38)
-	cost_label.add_theme_font_size_override("font_size", 20)
-	cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	cost_label.position = Vector2(6, 4)
+	cost_label.size = Vector2(cost_size, cost_size)
+	cost_label.add_theme_font_size_override("font_size", 22)
+	cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	var cost_style = StyleBoxFlat.new()
-	cost_style.bg_color = Color(0.6, 0.4, 0.1, 0.9)
-	cost_style.corner_radius_top_left = 22
-	cost_style.corner_radius_top_right = 22
-	cost_style.corner_radius_bottom_left = 22
-	cost_style.corner_radius_bottom_right = 22
+	cost_style.bg_color = Color(0.75, 0.55, 0.1, 1.0)  # Gold/orange
+	cost_style.border_color = Color(0.9, 0.7, 0.2, 1.0)
+	cost_style.border_width_left = 2
+	cost_style.border_width_right = 2
+	cost_style.border_width_top = 2
+	cost_style.border_width_bottom = 2
+	cost_style.corner_radius_top_left = 20
+	cost_style.corner_radius_top_right = 20
+	cost_style.corner_radius_bottom_left = 20
+	cost_style.corner_radius_bottom_right = 20
 	cost_style.content_margin_left = 2
 	cost_style.content_margin_right = 2
 	cost_style.content_margin_top = 1
@@ -196,7 +201,8 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_root.add_child(cost_label)
 	card_cost_labels[card_id] = cost_label
 
-	# Card name — centered banner at y=180, full width, font 18, dark bg
+	# --- Card name banner: centered, slightly darker bg ---
+	var name_y: float = art_y + art_h + 4.0  # Just below art
 	var name_label = Label.new()
 	var loc = _get_loc()
 	if loc:
@@ -205,25 +211,32 @@ func _create_card_entry(card: Dictionary) -> Control:
 		name_label.text = card["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(20, 222)
-	name_label.size = Vector2(330, 30)
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.position = Vector2(10, name_y)
+	name_label.size = Vector2(CARD_W - 20, 32)
+	name_label.add_theme_font_size_override("font_size", 17)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
 	name_label.clip_text = true
 	var name_style = StyleBoxFlat.new()
-	name_style.bg_color = Color(0.05, 0.04, 0.03, 0.85)
+	name_style.bg_color = Color(bg_color.r * 0.6, bg_color.g * 0.6, bg_color.b * 0.6, 0.9)
+	name_style.corner_radius_top_left = 3
+	name_style.corner_radius_top_right = 3
+	name_style.corner_radius_bottom_left = 3
+	name_style.corner_radius_bottom_right = 3
+	name_style.content_margin_left = 4
+	name_style.content_margin_right = 4
 	name_label.add_theme_stylebox_override("normal", name_style)
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(name_label)
 	card_name_labels[card_id] = name_label
 
-	# Type text — small centered at y=208, font 12
+	# --- Type text: very small, centered, muted ---
+	var type_y: float = name_y + 34.0
 	var type_badge = Label.new()
 	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.position = Vector2(20, 252)
-	type_badge.size = Vector2(330, 18)
-	type_badge.add_theme_font_size_override("font_size", 12)
-	type_badge.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55, 0.9))
+	type_badge.position = Vector2(10, type_y)
+	type_badge.size = Vector2(CARD_W - 20, 16)
+	type_badge.add_theme_font_size_override("font_size", 11)
+	type_badge.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6, 0.8))
 	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var loc_badge = _get_loc()
 	if loc_badge:
@@ -234,20 +247,22 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_root.add_child(type_badge)
 	card_type_badges[card_id] = type_badge
 
-	# Description — y=224, width 260, font 14
+	# --- Description: centered, white, bottom ~30% of card ---
+	var desc_y: float = type_y + 20.0
+	var desc_h: float = CARD_H - desc_y - 10.0  # Fill to near bottom
 	var desc_label = RichTextLabel.new()
 	var loc3 = _get_loc()
 	if loc3:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.position = Vector2(30, 268)
-	desc_label.size = Vector2(310, 180)
+	desc_label.position = Vector2(16, desc_y)
+	desc_label.size = Vector2(CARD_W - 32, desc_h)
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = true
 	desc_label.fit_content = false
-	desc_label.add_theme_font_size_override("normal_font_size", 15)
-	desc_label.add_theme_color_override("default_color", Color(0.9, 0.9, 0.9))
+	desc_label.add_theme_font_size_override("normal_font_size", 14)
+	desc_label.add_theme_color_override("default_color", Color(0.95, 0.95, 0.95))
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(desc_label)
 	card_desc_labels[card_id] = desc_label
@@ -286,22 +301,14 @@ func _set_card_border(card_panel: Panel, selected: bool) -> void:
 		style.border_width_top = 5
 		style.border_width_bottom = 5
 	else:
-		style.border_width_left = 3
-		style.border_width_right = 3
-		style.border_width_top = 3
-		style.border_width_bottom = 3
-		# Restore original type color
-		var card_id_keys = all_card_data.keys()
-		for cid in card_id_keys:
+		style.border_width_left = 4
+		style.border_width_right = 4
+		style.border_width_top = 4
+		style.border_width_bottom = 4
+		# Restore original type-colored border
+		for cid in all_card_data:
 			if select_highlights.get(cid) == card_panel:
-				var card = all_card_data[cid]
-				var tc: Color
-				match card["type"]:
-					0: tc = Color(0.5, 0.15, 0.1)
-					1: tc = Color(0.1, 0.3, 0.5)
-					2: tc = Color(0.45, 0.35, 0.08)
-					_: tc = Color(0.3, 0.3, 0.3)
-				style.border_color = Color(tc.r * 1.5, tc.g * 1.5, tc.b * 1.5, 0.8)
+				style.border_color = _get_card_border_color(all_card_data[cid]["type"])
 				break
 	card_panel.add_theme_stylebox_override("panel", style)
 
