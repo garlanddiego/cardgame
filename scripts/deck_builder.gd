@@ -142,25 +142,29 @@ func _create_select_card_entry(card: Dictionary) -> Control:
 	all_card_data[card_id] = card
 
 	var card_root = Panel.new()
-	card_root.custom_minimum_size = Vector2(200, 300)
+	card_root.custom_minimum_size = Vector2(420, 340)
 	card_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	# Transparent style so frame texture shows through
 	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0, 0, 0, 0)
+	panel_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
+	panel_style.corner_radius_top_left = 10
+	panel_style.corner_radius_top_right = 10
+	panel_style.corner_radius_bottom_left = 10
+	panel_style.corner_radius_bottom_right = 10
 	card_root.add_theme_stylebox_override("panel", panel_style)
 
-	# Green highlight overlay (initially hidden)
+	# Green highlight border (initially hidden)
 	var highlight = ColorRect.new()
 	highlight.name = "Highlight"
-	highlight.position = Vector2(-3, -3)
-	highlight.size = Vector2(206, 306)
+	highlight.position = Vector2(-4, -4)
+	highlight.size = Vector2(428, 348)
 	highlight.color = Color(0.2, 0.9, 0.2, 0.0)  # invisible initially
 	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	highlight.z_index = -1
 	card_root.add_child(highlight)
 	select_highlights[card_id] = highlight
 
-	# Card frame texture
+	# Card frame texture — scaled to fill
 	var frame_path: String
 	match card["type"]:
 		0: frame_path = "res://assets/img/card_frame_attack_clean.png"
@@ -175,118 +179,112 @@ func _create_select_card_entry(card: Dictionary) -> Control:
 	frame_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	frame_tex.stretch_mode = TextureRect.STRETCH_SCALE
 	frame_tex.position = Vector2(0, 0)
-	frame_tex.size = Vector2(200, 280)
+	frame_tex.size = Vector2(420, 340)
+	frame_tex.modulate = Color(1, 1, 1, 0.6)
 	frame_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(frame_tex)
 
-	# Card art
+	# Card art — large, centered
 	var art_rect = TextureRect.new()
-	art_rect.position = Vector2(15, 15)
-	art_rect.size = Vector2(170, 120)
+	art_rect.position = Vector2(20, 10)
+	art_rect.size = Vector2(160, 130)
 	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	art_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	if card.has("art") and ResourceLoader.exists(card["art"]):
 		art_rect.texture = load(card["art"])
 	art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(art_rect)
 
-	# Cost circle
+	# Cost circle — top-left, larger
 	var cost_label = Label.new()
 	var cost_val = card.get("cost", 0)
 	cost_label.text = "X" if cost_val == -1 else str(cost_val)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.position = Vector2(10, 5)
-	cost_label.size = Vector2(28, 28)
-	cost_label.add_theme_font_size_override("font_size", 14)
+	cost_label.position = Vector2(14, 8)
+	cost_label.size = Vector2(36, 36)
+	cost_label.add_theme_font_size_override("font_size", 20)
 	cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 	var cost_style = StyleBoxFlat.new()
 	cost_style.bg_color = Color(0.6, 0.4, 0.1, 0.9)
-	cost_style.corner_radius_top_left = 14
-	cost_style.corner_radius_top_right = 14
-	cost_style.corner_radius_bottom_left = 14
-	cost_style.corner_radius_bottom_right = 14
-	cost_style.content_margin_left = 2
-	cost_style.content_margin_right = 2
-	cost_style.content_margin_top = 1
-	cost_style.content_margin_bottom = 1
+	cost_style.corner_radius_top_left = 18
+	cost_style.corner_radius_top_right = 18
+	cost_style.corner_radius_bottom_left = 18
+	cost_style.corner_radius_bottom_right = 18
+	cost_style.content_margin_left = 4
+	cost_style.content_margin_right = 4
+	cost_style.content_margin_top = 2
+	cost_style.content_margin_bottom = 2
 	cost_label.add_theme_stylebox_override("normal", cost_style)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(cost_label)
 	card_cost_labels[card_id] = cost_label
 
-	# Card name
+	# Card name — right side of card, large readable text
 	var name_label = Label.new()
 	var loc = _get_loc()
 	if loc:
 		name_label.text = loc.card_name(card)
 	else:
 		name_label.text = card["name"]
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(0, 140)
-	name_label.size = Vector2(200, 25)
-	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.position = Vector2(190, 12)
+	name_label.size = Vector2(220, 30)
+	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
 	name_label.clip_text = true
-	var name_style = StyleBoxFlat.new()
-	name_style.bg_color = Color(0.05, 0.04, 0.03, 0.85)
-	name_label.add_theme_stylebox_override("normal", name_style)
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(name_label)
 	card_name_labels[card_id] = name_label
 
-	# Type badge
+	# Type + cost text
 	var type_badge = Label.new()
-	type_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_badge.position = Vector2(0, 165)
-	type_badge.size = Vector2(200, 15)
-	type_badge.add_theme_font_size_override("font_size", 10)
-	type_badge.add_theme_color_override("font_color", Color(0.65, 0.6, 0.5, 0.8))
+	type_badge.position = Vector2(190, 42)
+	type_badge.size = Vector2(220, 20)
+	type_badge.add_theme_font_size_override("font_size", 14)
+	type_badge.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55, 0.9))
 	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var loc_badge = _get_loc()
 	if loc_badge:
-		type_badge.text = loc_badge.type_name(card["type"])
+		type_badge.text = loc_badge.type_name(card["type"]) + " | " + _build_cost_text(card)
 	else:
 		var badge_type_names = ["Attack", "Skill", "Power", "Status"]
-		type_badge.text = badge_type_names[card["type"]]
+		type_badge.text = badge_type_names[card["type"]] + " | " + _build_cost_text(card)
 	card_root.add_child(type_badge)
 	card_type_badges[card_id] = type_badge
 
-	# Description
+	# Description — right side, readable text
 	var desc_label = RichTextLabel.new()
 	var loc3 = _get_loc()
 	if loc3:
 		desc_label.text = loc3.card_desc(card)
 	else:
 		desc_label.text = card["description"]
-	desc_label.position = Vector2(8, 180)
-	desc_label.size = Vector2(184, 60)
+	desc_label.position = Vector2(190, 66)
+	desc_label.size = Vector2(220, 80)
 	desc_label.scroll_active = false
 	desc_label.bbcode_enabled = false
 	desc_label.fit_content = false
-	desc_label.add_theme_font_size_override("normal_font_size", 11)
-	desc_label.add_theme_color_override("default_color", Color(0.85, 0.85, 0.85))
+	desc_label.add_theme_font_size_override("normal_font_size", 15)
+	desc_label.add_theme_color_override("default_color", Color(0.9, 0.9, 0.9))
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_root.add_child(desc_label)
 	card_desc_labels[card_id] = desc_label
 
-	# Selection count badge (bottom-right, shows count when selected)
+	# Selection count badge (bottom-right)
 	var count_badge = Label.new()
 	count_badge.name = "CountBadge"
 	count_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	count_badge.position = Vector2(160, 250)
-	count_badge.size = Vector2(32, 32)
-	count_badge.add_theme_font_size_override("font_size", 16)
+	count_badge.position = Vector2(370, 290)
+	count_badge.size = Vector2(40, 40)
+	count_badge.add_theme_font_size_override("font_size", 20)
 	count_badge.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	var badge_style = StyleBoxFlat.new()
 	badge_style.bg_color = Color(0.1, 0.7, 0.1, 0.9)
-	badge_style.corner_radius_top_left = 16
-	badge_style.corner_radius_top_right = 16
-	badge_style.corner_radius_bottom_left = 16
-	badge_style.corner_radius_bottom_right = 16
+	badge_style.corner_radius_top_left = 20
+	badge_style.corner_radius_top_right = 20
+	badge_style.corner_radius_bottom_left = 20
+	badge_style.corner_radius_bottom_right = 20
 	count_badge.add_theme_stylebox_override("normal", badge_style)
 	count_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	count_badge.visible = false

@@ -89,17 +89,17 @@ func _initialize() -> void:
 	# Scrollable card grid area
 	var scroll = ScrollContainer.new()
 	scroll.name = "ScrollContainer"
-	scroll.position = Vector2(40, 80)
-	scroll.size = Vector2(1840, 890)
+	scroll.position = Vector2(10, 70)
+	scroll.size = Vector2(1900, 910)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	root.add_child(scroll)
 
 	var grid = GridContainer.new()
 	grid.name = "CardGrid"
-	grid.columns = 6
-	grid.add_theme_constant_override("h_separation", 16)
-	grid.add_theme_constant_override("v_separation", 16)
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(grid)
 
