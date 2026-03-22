@@ -16,7 +16,7 @@ enum CardState {
 	MOVING_TO_CONTAINER
 }
 
-const CARD_SIZE := Vector2(180, 260)
+const CARD_SIZE := Vector2(220, 310)
 
 var card_data: Dictionary = {}
 var card_state: int = CardState.IN_HAND
@@ -91,8 +91,8 @@ func _build_card_nodes() -> void:
 	# Card art (positioned in the art window area of the frame)
 	card_art = TextureRect.new()
 	card_art.name = "CardArt"
-	card_art.position = Vector2(18, 34)
-	card_art.size = Vector2(144, 100)
+	card_art.position = Vector2(22, 42)
+	card_art.size = Vector2(176, 122)
 	card_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	card_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	card_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -101,11 +101,11 @@ func _build_card_nodes() -> void:
 	# Cost label (top-left circle area)
 	cost_label = Label.new()
 	cost_label.name = "CostLabel"
-	cost_label.position = Vector2(6, 4)
-	cost_label.size = Vector2(30, 30)
+	cost_label.position = Vector2(7, 5)
+	cost_label.size = Vector2(36, 36)
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.add_theme_font_size_override("font_size", 20)
+	cost_label.add_theme_font_size_override("font_size", 24)
 	cost_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7))
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(cost_label)
@@ -113,11 +113,11 @@ func _build_card_nodes() -> void:
 	# Name label (card name banner area)
 	name_label = Label.new()
 	name_label.name = "NameLabel"
-	name_label.position = Vector2(10, 138)
-	name_label.size = Vector2(160, 22)
+	name_label.position = Vector2(12, 168)
+	name_label.size = Vector2(196, 26)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_font_size_override("font_size", 15)
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(name_label)
@@ -125,11 +125,11 @@ func _build_card_nodes() -> void:
 	# Type label (small type text below name)
 	type_label = Label.new()
 	type_label.name = "TypeLabel"
-	type_label.position = Vector2(10, 160)
-	type_label.size = Vector2(160, 16)
+	type_label.position = Vector2(12, 194)
+	type_label.size = Vector2(196, 18)
 	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_label.add_theme_font_size_override("font_size", 10)
+	type_label.add_theme_font_size_override("font_size", 12)
 	type_label.add_theme_color_override("font_color", Color(0.75, 0.72, 0.65))
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(type_label)
@@ -137,12 +137,12 @@ func _build_card_nodes() -> void:
 	# Description label (card description area)
 	desc_label = RichTextLabel.new()
 	desc_label.name = "DescLabel"
-	desc_label.position = Vector2(14, 178)
-	desc_label.size = Vector2(152, 72)
+	desc_label.position = Vector2(17, 216)
+	desc_label.size = Vector2(186, 84)
 	desc_label.bbcode_enabled = true
 	desc_label.fit_content = false
 	desc_label.scroll_active = false
-	desc_label.add_theme_font_size_override("normal_font_size", 10)
+	desc_label.add_theme_font_size_override("normal_font_size", 12)
 	desc_label.add_theme_color_override("default_color", Color(0.85, 0.82, 0.75))
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(desc_label)

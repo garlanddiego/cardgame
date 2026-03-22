@@ -10,7 +10,7 @@ func _initialize() -> void:
 	# Background - dungeon image as Sprite2D (TextureRect doesn't work in Node2D)
 	var bg = Sprite2D.new()
 	bg.name = "Background"
-	bg.texture = load("res://assets/img/battle_bg_v2.png")
+	bg.texture = load("res://assets/img/dungeon_bg.png")
 	bg.centered = false
 	# Scale to fill 1920x1080
 	if bg.texture:
@@ -23,20 +23,20 @@ func _initialize() -> void:
 	# Player area (far left, like STS)
 	var player_area = Node2D.new()
 	player_area.name = "PlayerArea"
-	player_area.position = Vector2(200, 520)
+	player_area.position = Vector2(180, 500)
 	root.add_child(player_area)
 
 	# Enemy area (spread across right half, at ground level)
 	var enemy_area = Node2D.new()
 	enemy_area.name = "EnemyArea"
-	enemy_area.position = Vector2(850, 540)
+	enemy_area.position = Vector2(900, 500)
 	root.add_child(enemy_area)
 
 	# Card hand (bottom center) - Node2D for Area2D-based cards
 	var card_hand = Node2D.new()
 	card_hand.name = "CardHand"
 	card_hand.set_script(load("res://scripts/card_hand.gd"))
-	card_hand.position = Vector2(0, 780)
+	card_hand.position = Vector2(0, 750)
 	root.add_child(card_hand)
 
 	# HUD layer
@@ -48,7 +48,7 @@ func _initialize() -> void:
 	# Dark overlay on HUD layer (behind HUD elements)
 	var dark_overlay = ColorRect.new()
 	dark_overlay.name = "DarkOverlay"
-	dark_overlay.color = Color(0.0, 0.0, 0.05, 0.1)  # Very light overlay for contrast
+	dark_overlay.color = Color(0.0, 0.0, 0.05, 0.05)  # Minimal overlay to preserve dungeon atmosphere
 	dark_overlay.position = Vector2(0, 0)
 	dark_overlay.size = Vector2(1920, 1080)
 	dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE

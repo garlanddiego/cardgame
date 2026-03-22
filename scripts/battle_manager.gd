@@ -187,7 +187,7 @@ func _setup_enemies() -> void:
 		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/slime.png", "scale_h": 200.0},
 		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/cultist.png", "scale_h": 260.0},
 		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/jaw_worm.png", "scale_h": 220.0},
-		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/guardian.png", "scale_h": 300.0}
+		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/guardian.png", "scale_h": 280.0}
 	}
 	var selected_enemies: Array = ["slime", "cultist", "jaw_worm"]
 	for i in range(3):
@@ -196,8 +196,8 @@ func _setup_enemies() -> void:
 		var enemy = _create_entity_node(true)
 		enemy.init_entity(config["hp"], true, etype)
 		# Horizontal spread, grounded at same level, slight stagger for depth
-		var x_offsets = [0, 200, 420]
-		var y_offsets = [20, -10, 30]  # Subtle stagger, all near ground level
+		var x_offsets = [0, 220, 440]
+		var y_offsets = [0, -10, 10]  # Subtle stagger for depth
 		enemy.position = Vector2(x_offsets[i], y_offsets[i])
 		# Set sprite
 		var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
