@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character_select.tscn" id="1_ejk61"]
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="2_si7ro"]
+
+[node name="Main" type="Node2D"]
+
+[node name="CharacterSelect" type="Control" parent="." instance=ExtResource("1_ejk61")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("2_si7ro")

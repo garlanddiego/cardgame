@@ -1,0 +1,77 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="1_8uc8i"]
+
+[node name="CharacterSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_8uc8i")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.08, 0.12, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "Choose Your Character"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Center/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="Characters" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 80
+alignment = 1
+
+[node name="IroncladBox" type="VBoxContainer" parent="Center/VBox/Characters"]
+layout_mode = 2
+
+[node name="IroncladArt" type="TextureRect" parent="Center/VBox/Characters/IroncladBox"]
+custom_minimum_size = Vector2(200, 300)
+layout_mode = 2
+expand_mode = 2
+stretch_mode = 5
+
+[node name="IroncladButton" type="Button" parent="Center/VBox/Characters/IroncladBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Ironclad"
+
+[node name="IroncladDesc" type="Label" parent="Center/VBox/Characters/IroncladBox"]
+layout_mode = 2
+text = "HP: 80 | Strength-focused"
+horizontal_alignment = 1
+
+[node name="SilentBox" type="VBoxContainer" parent="Center/VBox/Characters"]
+layout_mode = 2
+
+[node name="SilentArt" type="TextureRect" parent="Center/VBox/Characters/SilentBox"]
+custom_minimum_size = Vector2(200, 300)
+layout_mode = 2
+expand_mode = 2
+stretch_mode = 5
+
+[node name="SilentButton" type="Button" parent="Center/VBox/Characters/SilentBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Silent"
+
+[node name="SilentDesc" type="Label" parent="Center/VBox/Characters/SilentBox"]
+layout_mode = 2
+text = "HP: 70 | Agility-focused"
+horizontal_alignment = 1
