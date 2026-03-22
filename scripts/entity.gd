@@ -86,6 +86,27 @@ func take_damage(amount: int) -> void:
 		_update_hp_bar()
 		_flash_damage()
 
+func take_damage_direct(amount: int) -> void:
+	## Deal damage bypassing block (e.g. self-harm effects like Offering, Hemokinesis)
+	if not alive:
+		return
+	current_hp -= amount
+	if current_hp <= 0:
+		current_hp = 0
+		alive = false
+		hp_changed.emit(current_hp, max_hp)
+		_update_hp_bar()
+		_play_death()
+		died.emit()
+	else:
+		hp_changed.emit(current_hp, max_hp)
+		_update_hp_bar()
+
+func get_status_stacks(status_type: String) -> int:
+	if status_effects.has(status_type):
+		return status_effects[status_type]
+	return 0
+
 func heal(amount: int) -> void:
 	if not alive:
 		return

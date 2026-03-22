@@ -27,6 +27,23 @@ var turn_number: int = 0
 var demon_form_active: bool = false
 var caltrops_active: bool = false
 var envenom_active: bool = false
+var flame_barrier_active: bool = false
+var flame_barrier_damage: int = 4
+var corruption_active: bool = false
+var berserk_active: bool = false
+var feel_no_pain_active: bool = false
+var feel_no_pain_block: int = 3
+var juggernaut_active: bool = false
+var juggernaut_damage: int = 5
+var evolve_active: bool = false
+var rage_active: bool = false
+var rage_block: int = 3
+var barricade_active: bool = false
+var metallicize_active: bool = false
+var metallicize_block: int = 3
+
+# Temp effects (reset at end of turn)
+var flex_strength_to_remove: int = 0
 
 # Node refs
 var card_hand: Control = null
@@ -74,9 +91,7 @@ func _style_end_turn_button() -> void:
 func start_battle(character_id: String) -> void:
 	battle_active = true
 	turn_number = 0
-	demon_form_active = false
-	caltrops_active = false
-	envenom_active = false
+	_reset_all_powers()
 
 	# Get GameManager
 	var gm = _get_game_manager()
@@ -92,6 +107,21 @@ func start_battle(character_id: String) -> void:
 	_build_deck(character_id, gm)
 	# Start first turn
 	start_player_turn()
+
+func _reset_all_powers() -> void:
+	demon_form_active = false
+	caltrops_active = false
+	envenom_active = false
+	flame_barrier_active = false
+	corruption_active = false
+	berserk_active = false
+	feel_no_pain_active = false
+	juggernaut_active = false
+	evolve_active = false
+	rage_active = false
+	barricade_active = false
+	metallicize_active = false
+	flex_strength_to_remove = 0
 
 func _get_game_manager() -> Node:
 	# Autoloads are siblings in the scene tree root
@@ -282,12 +312,25 @@ func start_player_turn() -> void:
 	is_player_turn = true
 	turn_number += 1
 	current_energy = max_energy
+
+	# Berserk: +1 energy per turn
+	if berserk_active:
+		current_energy += 1
+
 	# Power effects at start of turn
 	if demon_form_active and player and player.alive:
 		player.apply_status("strength", 2)
-	# Reset player block
-	if player:
+
+	# Reset player block (unless Barricade is active)
+	if player and not barricade_active:
 		player.reset_block()
+
+	# Reset flame barrier each turn (it's per-turn)
+	flame_barrier_active = false
+
+	# Reset rage each turn
+	rage_active = false
+
 	# Draw cards
 	draw_cards(cards_per_draw)
 	_update_energy_label()
@@ -309,6 +352,9 @@ func draw_cards(count: int) -> void:
 		hand.append(card_data)
 		if card_hand:
 			card_hand.add_card(card_data)
+		# Evolve: draw extra on Status draw
+		if evolve_active and card_data.get("type", 0) == 3:  # STATUS type
+			draw_cards(1)
 	_update_pile_labels()
 
 func _reshuffle_discard() -> void:
@@ -316,10 +362,36 @@ func _reshuffle_discard() -> void:
 	discard_pile.clear()
 	draw_pile.shuffle()
 
+func _can_play_card(card_data: Dictionary) -> bool:
+	# Unplayable cards (status cards)
+	if card_data.get("unplayable", false):
+		return false
+	# Clash: only playable if all cards in hand are attacks
+	if card_data.get("special", "") == "clash":
+		for c in hand:
+			if c.get("type", 0) != 0:  # Not ATTACK
+				return false
+	return true
+
 func play_card(card_data: Dictionary, target: Node2D) -> void:
 	if not battle_active or not is_player_turn:
 		return
+
+	# Check if card can be played
+	if not _can_play_card(card_data):
+		return
+
+	# Handle X-cost cards (Whirlwind)
 	var cost: int = card_data.get("cost", 0)
+	if cost == -1:  # X cost
+		cost = current_energy  # Spend all energy
+	elif cost < 0:
+		return  # Unplayable (status cards use -2)
+
+	# Corruption: Skills cost 0
+	if corruption_active and card_data.get("type", 0) == 1:  # SKILL
+		cost = 0
+
 	if current_energy < cost:
 		return
 	current_energy -= cost
@@ -331,49 +403,278 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			hand.remove_at(i)
 			break
 
-	# Execute card effect
-	_execute_card(card_data, target)
+	# Execute card effect (pass energy spent for X-cost cards)
+	_execute_card(card_data, target, cost)
 
-	# Power cards go to exhaust
+	# Rage: gain block when playing attacks
+	if rage_active and card_data.get("type", 0) == 0 and player:  # ATTACK
+		player.add_block(rage_block)
+		_trigger_juggernaut()
+
+	# Determine where the card goes after play
 	var card_type: int = card_data.get("type", 0)
-	if card_type == 2:  # POWER
+	var should_exhaust: bool = card_data.get("exhaust", false)
+
+	# Corruption: Skills are exhausted
+	if corruption_active and card_type == 1:  # SKILL
+		should_exhaust = true
+
+	if card_type == 2:  # POWER — always exhaust
 		exhaust_pile.append(card_data)
+	elif should_exhaust:
+		_exhaust_card(card_data)
 	else:
 		discard_pile.append(card_data)
+
 	_update_pile_labels()
 	# Check win condition
 	_check_battle_end()
 
-func _execute_card(card_data: Dictionary, target: Node2D) -> void:
+func _exhaust_card(card_data: Dictionary) -> void:
+	exhaust_pile.append(card_data)
+	# Feel No Pain: gain block on exhaust
+	if feel_no_pain_active and player and player.alive:
+		player.add_block(feel_no_pain_block)
+		_trigger_juggernaut()
+
+func _trigger_juggernaut() -> void:
+	if juggernaut_active and player and player.alive:
+		var alive_enemies: Array = []
+		for e in enemies:
+			if e.alive:
+				alive_enemies.append(e)
+		if alive_enemies.size() > 0:
+			var random_enemy = alive_enemies[randi() % alive_enemies.size()]
+			random_enemy.take_damage(juggernaut_damage)
+
+func _get_alive_enemies() -> Array:
+	var alive: Array = []
+	for e in enemies:
+		if e.alive:
+			alive.append(e)
+	return alive
+
+func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0) -> void:
 	var damage: int = card_data.get("damage", 0)
 	var block_val: int = card_data.get("block", 0)
 	var draw_count: int = card_data.get("draw", 0)
 	var target_type: String = card_data.get("target", "enemy")
 	var special: String = card_data.get("special", "")
+	var times: int = card_data.get("times", 1)
 
-	# Handle special cards
-	if special == "body_slam" and player:
-		damage = player.block
+	# ---- Handle specials that modify damage or have unique behavior ----
 
-	# Apply damage
-	if damage > 0:
+	match special:
+		"body_slam":
+			if player:
+				damage = player.block
+		"heavy_blade":
+			# Strength applies x3 instead of x1
+			if player:
+				var str_val: int = player.get_status_stacks("strength")
+				# Base damage + strength * 3 (instead of normal +strength)
+				damage = card_data.get("damage", 14) + str_val * 3
+				# Skip normal strength application below
+				times = 1
+				_deal_damage_to_target(damage, target, target_type, false)
+				# Handle block/draw/status after
+				_apply_block_and_draw(block_val, draw_count, card_data)
+				return
+		"hemokinesis":
+			if player:
+				player.take_damage_direct(2)
+		"whirlwind":
+			# Deal damage X times where X = energy spent
+			times = energy_spent
+		"dropkick":
+			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
+				current_energy += 1
+				_update_energy_label()
+				draw_count += 1
+		"bloodletting":
+			if player:
+				player.take_damage_direct(3)
+				current_energy += 2
+				_update_energy_label()
+		"flex":
+			if player:
+				player.apply_status("strength", 2)
+				flex_strength_to_remove += 2
+		"limit_break":
+			if player:
+				var str_val: int = player.get_status_stacks("strength")
+				if str_val > 0:
+					player.apply_status("strength", str_val)
+		"entrench":
+			if player:
+				var current_block: int = player.block
+				player.add_block(current_block)
+				_trigger_juggernaut()
+		"offering":
+			if player:
+				player.take_damage_direct(6)
+				current_energy += 2
+				_update_energy_label()
+				draw_count = 3
+		"second_wind":
+			if player:
+				var cards_to_exhaust: Array = []
+				for c in hand:
+					if c.get("type", 0) != 0:  # Not ATTACK
+						cards_to_exhaust.append(c)
+				for c in cards_to_exhaust:
+					hand.erase(c)
+					_exhaust_card(c)
+					player.add_block(5)
+					_trigger_juggernaut()
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c)
+		"clash":
+			pass  # Playability check already handled in _can_play_card
+		"perfected_strike":
+			# Count all "Strike" cards in draw + discard + hand + exhaust
+			var strike_count: int = 0
+			for c in draw_pile:
+				if "Strike" in c.get("name", ""):
+					strike_count += 1
+			for c in discard_pile:
+				if "Strike" in c.get("name", ""):
+					strike_count += 1
+			for c in hand:
+				if "Strike" in c.get("name", ""):
+					strike_count += 1
+			for c in exhaust_pile:
+				if "Strike" in c.get("name", ""):
+					strike_count += 1
+			# +1 for the Perfected Strike itself (already counted if name contains Strike)
+			damage = card_data.get("damage", 6) + strike_count * 2
+		"fiend_fire":
+			# Exhaust entire hand, deal 7 per card
+			var cards_in_hand: int = hand.size()
+			var cards_to_exhaust: Array = hand.duplicate()
+			for c in cards_to_exhaust:
+				hand.erase(c)
+				_exhaust_card(c)
+			if card_hand:
+				card_hand.clear_hand()
+			damage = card_data.get("damage", 7) * cards_in_hand
+			times = 1  # All damage in one hit
+		"reaper":
+			# Deal damage to all, heal for unblocked
+			if player:
+				var actual_dmg: int = player.get_attack_damage(damage)
+				var total_healed: int = 0
+				for enemy in enemies:
+					if enemy.alive:
+						var before_hp: int = enemy.current_hp
+						var enemy_block: int = enemy.block
+						enemy.take_damage(actual_dmg)
+						var damage_dealt: int = mini(actual_dmg, before_hp + enemy_block) - enemy_block
+						if damage_dealt > 0:
+							total_healed += damage_dealt
+				if total_healed > 0:
+					player.heal(total_healed)
+			_apply_block_and_draw(block_val, draw_count, card_data)
+			return
+		"anger":
+			# Add a copy of Anger to discard pile
+			var gm = _get_game_manager()
+			if gm:
+				var anger_copy = gm.get_card_data("ic_anger")
+				if not anger_copy.is_empty():
+					discard_pile.append(anger_copy)
+		"wild_strike":
+			# Shuffle a Wound into draw pile
+			_add_status_card_to_draw("status_wound")
+		"reckless_charge":
+			# Shuffle a Dazed into draw pile
+			_add_status_card_to_draw("status_dazed")
+		"immolate":
+			# Add a Burn to discard pile
+			_add_status_card_to_discard("status_burn")
+		"power_through":
+			# Add 2 Wounds to hand
+			_add_status_card_to_hand("status_wound")
+			_add_status_card_to_hand("status_wound")
+		"infernal_blade":
+			# Add a random Attack card to hand, cost 0
+			var gm = _get_game_manager()
+			if gm:
+				var attack_ids: Array = []
+				for key in gm.card_database:
+					var c = gm.card_database[key]
+					if c.get("character", "") == "ironclad" and c.get("type", 0) == 0:  # ATTACK
+						attack_ids.append(key)
+				if attack_ids.size() > 0:
+					var rand_id = attack_ids[randi() % attack_ids.size()]
+					var new_card = gm.get_card_data(rand_id)
+					new_card["cost"] = 0
+					hand.append(new_card)
+					if card_hand:
+						card_hand.add_card(new_card)
+		"dual_wield":
+			# Copy first Attack or Power in hand
+			for c in hand:
+				var ctype = c.get("type", 0)
+				if ctype == 0 or ctype == 2:  # ATTACK or POWER
+					var copy = c.duplicate()
+					hand.append(copy)
+					if card_hand:
+						card_hand.add_card(copy)
+					break
+		"burning_pact":
+			# Exhaust a random non-this card from hand (simplified)
+			if hand.size() > 0:
+				var idx = randi() % hand.size()
+				var exhausted = hand[idx]
+				hand.remove_at(idx)
+				_exhaust_card(exhausted)
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c)
+
+	# Apply damage with multi-hit support
+	if damage > 0 and special != "reaper" and special != "heavy_blade":
 		var actual_dmg: int = damage
-		if player:
+		if player and special != "fiend_fire" and special != "perfected_strike":
 			actual_dmg = player.get_attack_damage(damage)
-		if target_type == "all_enemies":
-			for enemy in enemies:
-				if enemy.alive:
-					enemy.take_damage(actual_dmg)
-		elif target != null and target.alive:
-			target.take_damage(actual_dmg)
+		elif player and (special == "perfected_strike"):
+			# Perfected Strike: add strength once to total
+			var str_val: int = player.get_status_stacks("strength")
+			actual_dmg = damage + str_val
 
-	# Apply block
-	if block_val > 0 and player:
-		player.add_block(block_val)
+		for _hit in range(times):
+			if target_type == "all_enemies":
+				for enemy in enemies:
+					if enemy.alive:
+						enemy.take_damage(actual_dmg)
+			elif target_type == "random_enemy":
+				var alive = _get_alive_enemies()
+				if alive.size() > 0:
+					var rand_target = alive[randi() % alive.size()]
+					rand_target.take_damage(actual_dmg)
+			elif target != null and target.alive:
+				target.take_damage(actual_dmg)
+
+	# Apply block and draw
+	_apply_block_and_draw(block_val, draw_count, card_data)
 
 	# Apply status to target
 	if card_data.has("apply_status"):
 		var status_info = card_data["apply_status"]
+		if target_type == "all_enemies":
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.apply_status(status_info["type"], status_info["stacks"])
+		elif target != null and target.alive:
+			target.apply_status(status_info["type"], status_info["stacks"])
+
+	# Apply second status (e.g., Uppercut applies both Weak + Vulnerable)
+	if card_data.has("apply_status_2"):
+		var status_info = card_data["apply_status_2"]
 		if target_type == "all_enemies":
 			for enemy in enemies:
 				if enemy.alive:
@@ -391,19 +692,80 @@ func _execute_card(card_data: Dictionary, target: Node2D) -> void:
 		current_energy += card_data["energy_gain"]
 		_update_energy_label()
 
-	# Draw cards
+	# Power effects
+	if card_data.has("power_effect"):
+		_activate_power(card_data["power_effect"])
+
+func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionary) -> void:
+	if block_val > 0 and player:
+		player.add_block(block_val)
+		_trigger_juggernaut()
 	if draw_count > 0:
 		draw_cards(draw_count)
 
-	# Power effects
-	if card_data.has("power_effect"):
-		match card_data["power_effect"]:
-			"demon_form":
-				demon_form_active = true
-			"caltrops":
-				caltrops_active = true
-			"envenom":
-				envenom_active = true
+func _activate_power(power_name: String) -> void:
+	match power_name:
+		"demon_form":
+			demon_form_active = true
+		"caltrops":
+			caltrops_active = true
+		"envenom":
+			envenom_active = true
+		"flame_barrier":
+			flame_barrier_active = true
+		"corruption":
+			corruption_active = true
+		"berserk":
+			berserk_active = true
+			# Apply 1 Vulnerable to self
+			if player:
+				player.apply_status("vulnerable", 1)
+		"feel_no_pain":
+			feel_no_pain_active = true
+		"juggernaut":
+			juggernaut_active = true
+		"evolve":
+			evolve_active = true
+		"rage":
+			rage_active = true
+		"barricade":
+			barricade_active = true
+		"metallicize":
+			metallicize_active = true
+
+func _add_status_card_to_draw(card_id: String) -> void:
+	var gm = _get_game_manager()
+	if gm:
+		var card = gm.get_card_data(card_id)
+		if not card.is_empty():
+			draw_pile.insert(randi() % maxi(draw_pile.size(), 1), card)
+
+func _add_status_card_to_discard(card_id: String) -> void:
+	var gm = _get_game_manager()
+	if gm:
+		var card = gm.get_card_data(card_id)
+		if not card.is_empty():
+			discard_pile.append(card)
+
+func _add_status_card_to_hand(card_id: String) -> void:
+	var gm = _get_game_manager()
+	if gm:
+		var card = gm.get_card_data(card_id)
+		if not card.is_empty():
+			hand.append(card)
+			if card_hand:
+				card_hand.add_card(card)
+
+func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, use_strength: bool = true) -> void:
+	if damage <= 0:
+		return
+	var actual_dmg: int = damage
+	if target_type == "all_enemies":
+		for enemy in enemies:
+			if enemy.alive:
+				enemy.take_damage(actual_dmg)
+	elif target != null and target.alive:
+		target.take_damage(actual_dmg)
 
 func end_player_turn() -> void:
 	if not battle_active or not is_player_turn:
@@ -411,6 +773,31 @@ func end_player_turn() -> void:
 	is_player_turn = false
 	if end_turn_btn:
 		end_turn_btn.disabled = true
+
+	# Remove Flex temp strength
+	if flex_strength_to_remove > 0 and player:
+		player.apply_status("strength", -flex_strength_to_remove)
+		flex_strength_to_remove = 0
+
+	# Metallicize: gain block at end of turn
+	if metallicize_active and player and player.alive:
+		player.add_block(metallicize_block)
+		_trigger_juggernaut()
+
+	# Process end-of-turn damage from status cards in hand (Burn)
+	for card_data in hand:
+		if card_data.get("end_turn_damage", 0) > 0 and player:
+			player.take_damage_direct(card_data["end_turn_damage"])
+
+	# Exhaust ethereal cards (Dazed)
+	var ethereal_cards: Array = []
+	for card_data in hand:
+		if card_data.get("ethereal", false):
+			ethereal_cards.append(card_data)
+	for card_data in ethereal_cards:
+		hand.erase(card_data)
+		_exhaust_card(card_data)
+
 	# Discard remaining hand
 	for card_data in hand:
 		discard_pile.append(card_data)
@@ -483,6 +870,9 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			for _i in range(times):
 				if player.alive:
 					player.take_damage(actual_dmg)
+					# Flame Barrier: deal damage back when attacked
+					if flame_barrier_active and enemy.alive:
+						enemy.take_damage(flame_barrier_damage)
 					# Caltrops: deal damage back
 					if caltrops_active and enemy.alive:
 						enemy.take_damage(3)
@@ -499,6 +889,8 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			player.take_damage(actual_dmg)
 			enemy.add_block(blk)
+			if flame_barrier_active and enemy.alive:
+				enemy.take_damage(flame_barrier_damage)
 			if caltrops_active and enemy.alive:
 				enemy.take_damage(3)
 		"mode_shift":
@@ -511,6 +903,8 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			player.take_damage(actual_dmg)
 			player.apply_status(status_name, stacks)
+			if flame_barrier_active and enemy.alive:
+				enemy.take_damage(flame_barrier_damage)
 			if caltrops_active and enemy.alive:
 				enemy.take_damage(3)
 
