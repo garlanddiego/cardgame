@@ -565,29 +565,88 @@ func _update_pile_labels() -> void:
 	if discard_label:
 		discard_label.text = "Discard: " + str(discard_pile.size())
 
+var _hovered_enemy: Node2D = null
+
+func _process(_delta: float) -> void:
+	if not battle_active or not is_player_turn:
+		return
+	# Update enemy hover highlight when targeting
+	if card_hand and card_hand.is_targeting():
+		var card_data: Dictionary = card_hand.get_selected_card_data()
+		var target_type: String = card_data.get("target", "enemy")
+		if target_type == "enemy":
+			var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+			var hover_enemy = _get_enemy_at(mouse_pos)
+			if hover_enemy != _hovered_enemy:
+				_clear_enemy_highlight()
+				_hovered_enemy = hover_enemy
+				if _hovered_enemy:
+					_highlight_enemy(_hovered_enemy)
+		elif target_type == "all_enemies":
+			# Highlight all enemies
+			if _hovered_enemy == null:
+				for enemy in enemies:
+					if enemy.alive:
+						_highlight_enemy(enemy)
+				if not enemies.is_empty():
+					_hovered_enemy = enemies[0]  # marker
+	else:
+		if _hovered_enemy != null:
+			_clear_all_enemy_highlights()
+			_hovered_enemy = null
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Check if clicking on an entity while card is selected
 		if card_hand and card_hand.is_targeting():
 			var card_data: Dictionary = card_hand.get_selected_card_data()
 			var target_type: String = card_data.get("target", "enemy")
 			var mouse_pos: Vector2 = event.position
-			if target_type == "self" or target_type == "all_enemies":
-				# Auto-target
-				if target_type == "self" and player:
+			if target_type == "self":
+				# Non-targeted: click anywhere to play
+				if player:
+					_clear_all_enemy_highlights()
 					card_hand.play_selected_on(player)
-				elif target_type == "all_enemies" and not enemies.is_empty():
+			elif target_type == "all_enemies":
+				# Non-targeted: click anywhere to play on all
+				if not enemies.is_empty():
+					_clear_all_enemy_highlights()
 					card_hand.play_selected_on(enemies[0])
 			else:
-				# Check if clicking on an enemy
+				# Targeted: must click on an enemy
 				var clicked_enemy = _get_enemy_at(mouse_pos)
 				if clicked_enemy:
+					_clear_all_enemy_highlights()
 					card_hand.play_selected_on(clicked_enemy)
-	# End turn shortcut
+	# Right click to deselect card
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if card_hand and card_hand.is_targeting():
+			card_hand.selected_card.set_selected(false)
+			card_hand.selected_card = null
+			card_hand.targeting_mode = false
+			_clear_all_enemy_highlights()
+			_hovered_enemy = null
 	if event is InputEventKey and event.pressed and event.keycode == KEY_E:
 		_on_end_turn()
+
+func _highlight_enemy(enemy: Node2D) -> void:
+	var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
+	if sprite:
+		sprite.modulate = Color(1.3, 1.0, 1.0)  # Slight red tint highlight
+
+func _clear_enemy_highlight() -> void:
+	if _hovered_enemy and is_instance_valid(_hovered_enemy):
+		var sprite = _hovered_enemy.get_node_or_null("Sprite") as Sprite2D
+		if sprite:
+			sprite.modulate = Color.WHITE
+
+func _clear_all_enemy_highlights() -> void:
+	for enemy in enemies:
+		if is_instance_valid(enemy):
+			var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
+			if sprite:
+				sprite.modulate = Color.WHITE
 
 func _get_enemy_at(screen_pos: Vector2) -> Node2D:
 	if enemy_area == null:
@@ -596,7 +655,6 @@ func _get_enemy_at(screen_pos: Vector2) -> Node2D:
 		if not enemy.alive:
 			continue
 		var enemy_global_pos: Vector2 = enemy_area.position + enemy.position
-		# Rough hitbox around enemy sprite
 		var rect = Rect2(enemy_global_pos - Vector2(75, 100), Vector2(150, 200))
 		if rect.has_point(screen_pos):
 			return enemy
