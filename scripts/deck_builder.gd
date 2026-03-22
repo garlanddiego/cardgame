@@ -106,7 +106,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 
 	var card_root = Panel.new()
 	card_root.custom_minimum_size = Vector2(370, 460)
-	card_root.mouse_filter = Control.MOUSE_FILTER_STOP
+	card_root.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow scroll container to receive drag events
 	var panel_style = StyleBoxFlat.new()
 	var type_color: Color
 	match card["type"]:
@@ -279,7 +279,7 @@ func _on_card_tap(event: InputEvent, card_id: String, highlight: ColorRect) -> v
 	else:
 		# Select
 		selected_card_ids[card_id] = true
-		highlight.color = Color(0.2, 0.9, 0.2, 0.35)
+		highlight.color = Color(0.1, 0.9, 0.1, 0.5)  # Bright green highlight
 
 	_update_ui()
 
