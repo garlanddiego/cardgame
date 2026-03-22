@@ -126,16 +126,10 @@ func _create_card_entry(card: Dictionary) -> Control:
 	panel_style.corner_radius_bottom_right = 10
 	card_root.add_theme_stylebox_override("panel", panel_style)
 
-	# Green highlight border (initially hidden)
-	var highlight = ColorRect.new()
-	highlight.name = "Highlight"
-	highlight.position = Vector2(-4, -4)
-	highlight.size = Vector2(378, 468)
-	highlight.color = Color(0.2, 0.9, 0.2, 0.0)  # invisible initially
-	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	highlight.z_index = -1
-	card_root.add_child(highlight)
-	select_highlights[card_id] = highlight
+	# Selection border — use a stylebox override on card_root itself
+	# (highlight will be applied by modifying the panel border color)
+	var _default_border_color = Color(type_color.r * 1.5, type_color.g * 1.5, type_color.b * 1.5, 0.8)
+	select_highlights[card_id] = card_root  # Store panel itself for border color change
 
 	# Card frame texture — scaled to fill 280x380
 	var frame_path: String
@@ -259,13 +253,13 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_desc_labels[card_id] = desc_label
 
 	# Connect tap on entire card
-	card_root.gui_input.connect(_on_card_tap.bind(card_id, highlight))
+	card_root.gui_input.connect(_on_card_tap.bind(card_id, card_root))
 
 	return card_root
 
 # ─── TAP TO SELECT/DESELECT ─────────────────────────────────────────────────
 
-func _on_card_tap(event: InputEvent, card_id: String, highlight: ColorRect) -> void:
+func _on_card_tap(event: InputEvent, card_id: String, card_panel: Panel) -> void:
 	if not (event is InputEventMouseButton):
 		return
 	var mb: InputEventMouseButton = event as InputEventMouseButton
@@ -273,15 +267,43 @@ func _on_card_tap(event: InputEvent, card_id: String, highlight: ColorRect) -> v
 		return
 
 	if selected_card_ids.has(card_id):
-		# Deselect
+		# Deselect — restore original border
 		selected_card_ids.erase(card_id)
-		highlight.color = Color(0.2, 0.9, 0.2, 0.0)
+		_set_card_border(card_panel, false)
 	else:
-		# Select
+		# Select — green bright border
 		selected_card_ids[card_id] = true
-		highlight.color = Color(0.1, 0.9, 0.1, 0.5)  # Bright green highlight
+		_set_card_border(card_panel, true)
 
 	_update_ui()
+
+func _set_card_border(card_panel: Panel, selected: bool) -> void:
+	var style = card_panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+	if selected:
+		style.border_color = Color(0.2, 1.0, 0.2, 1.0)  # Bright green
+		style.border_width_left = 5
+		style.border_width_right = 5
+		style.border_width_top = 5
+		style.border_width_bottom = 5
+	else:
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
+		# Restore original type color
+		var card_id_keys = all_card_data.keys()
+		for cid in card_id_keys:
+			if select_highlights.get(cid) == card_panel:
+				var card = all_card_data[cid]
+				var tc: Color
+				match card["type"]:
+					0: tc = Color(0.5, 0.15, 0.1)
+					1: tc = Color(0.1, 0.3, 0.5)
+					2: tc = Color(0.45, 0.35, 0.08)
+					_: tc = Color(0.3, 0.3, 0.3)
+				style.border_color = Color(tc.r * 1.5, tc.g * 1.5, tc.b * 1.5, 0.8)
+				break
+	card_panel.add_theme_stylebox_override("panel", style)
 
 # ─── UI UPDATE ───────────────────────────────────────────────────────────────
 
