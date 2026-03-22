@@ -10,7 +10,7 @@ func _initialize() -> void:
 	# Background - dungeon image as Sprite2D (TextureRect doesn't work in Node2D)
 	var bg = Sprite2D.new()
 	bg.name = "Background"
-	bg.texture = load("res://assets/img/dungeon_bg.png")
+	bg.texture = load("res://assets/img/battle_bg_light.png")
 	bg.centered = false
 	# Scale to fill 1920x1080
 	if bg.texture:

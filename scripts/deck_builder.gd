@@ -105,7 +105,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	all_card_data[card_id] = card
 
 	var card_root = Panel.new()
-	card_root.custom_minimum_size = Vector2(450, 520)
+	card_root.custom_minimum_size = Vector2(466, 520)
 	card_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)

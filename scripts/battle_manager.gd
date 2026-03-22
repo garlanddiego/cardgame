@@ -225,41 +225,48 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	sprite.name = "Sprite"
 	entity.add_child(sprite)
 
-	# Name label above sprite
+	# Name label BELOW sprite
 	var name_lbl = Label.new()
 	name_lbl.name = "NameLabel"
 	name_lbl.text = ""
-	name_lbl.position = Vector2(-50, -140)
+	name_lbl.position = Vector2(-60, 100)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.custom_minimum_size = Vector2(100, 20)
-	name_lbl.add_theme_font_size_override("font_size", 14)
-	name_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.8))
+	name_lbl.custom_minimum_size = Vector2(120, 22)
+	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
+	var name_bg = StyleBoxFlat.new()
+	name_bg.bg_color = Color(0.0, 0.0, 0.0, 0.5)
+	name_bg.corner_radius_top_left = 4
+	name_bg.corner_radius_top_right = 4
+	name_bg.corner_radius_bottom_left = 4
+	name_bg.corner_radius_bottom_right = 4
+	name_lbl.add_theme_stylebox_override("normal", name_bg)
 	entity.add_child(name_lbl)
 
-	# HP bar background
+	# HP bar BELOW name
 	var hp_bg = ColorRect.new()
 	hp_bg.name = "HPBarBG"
 	hp_bg.color = Color(0.15, 0.15, 0.15, 0.8)
-	hp_bg.size = Vector2(100, 12)
-	hp_bg.position = Vector2(-50, -120)
+	hp_bg.size = Vector2(120, 14)
+	hp_bg.position = Vector2(-60, 124)
 	entity.add_child(hp_bg)
 
 	# HP bar fill
 	var hp_fill = ColorRect.new()
 	hp_fill.name = "HPBarFill"
 	hp_fill.color = Color(0.2, 0.8, 0.2)
-	hp_fill.size = Vector2(100, 12)
+	hp_fill.size = Vector2(120, 14)
 	hp_fill.position = Vector2(0, 0)
 	hp_bg.add_child(hp_fill)
 
-	# HP label
+	# HP label below bar
 	var hp_lbl = Label.new()
 	hp_lbl.name = "HPLabel"
 	hp_lbl.text = "80/80"
-	hp_lbl.position = Vector2(-50, -108)
+	hp_lbl.position = Vector2(-60, 140)
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp_lbl.custom_minimum_size = Vector2(100, 16)
-	hp_lbl.add_theme_font_size_override("font_size", 11)
+	hp_lbl.custom_minimum_size = Vector2(120, 18)
+	hp_lbl.add_theme_font_size_override("font_size", 12)
 	entity.add_child(hp_lbl)
 
 	# Block label (shield icon area)
