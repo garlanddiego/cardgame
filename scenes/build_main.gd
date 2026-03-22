@@ -2,11 +2,14 @@ extends SceneTree
 ## Scene builder — run: timeout 60 godot --headless --script scenes/build_main.gd
 
 func _initialize() -> void:
+	print("Generating: main.tscn")
 	var root = Node2D.new()
 	root.name = "Main"
+	root.set_script(load("res://scripts/main.gd"))
 
 	# Start with character select scene
-	var char_select = load("res://scenes/character_select.tscn").instantiate()
+	var cs_scene: PackedScene = load("res://scenes/character_select.tscn")
+	var char_select = cs_scene.instantiate()
 	char_select.name = "CharacterSelect"
 	root.add_child(char_select)
 

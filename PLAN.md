@@ -15,7 +15,7 @@
 8. **素材**：用 Google Imagen 4 API 生成，STS简约风格+透明背景
 
 ## 1. Core Battle System
-- **Status:** pending
+- **Status:** done
 - **Depends on:** (none)
 - **Targets:** scenes/battle.tscn, scenes/main.tscn, scenes/card_ui.tscn, scenes/character_select.tscn, scripts/game_manager.gd, scripts/battle_manager.gd, scripts/card_hand.gd, scripts/card_ui.gd, scripts/entity.gd, scripts/enemy_ai.gd, scripts/character_select.gd
 - **Goal:** Build the complete card battle game — all combat mechanics, UI, cards, enemies, and status effects in a single playable scene.

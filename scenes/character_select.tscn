@@ -1,77 +1,132 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scripts/character_select.gd" id="1_8uc8i"]
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="1_157v2"]
+[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_07whw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nj4t"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.15, 0.05, 0.05, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.2, 0.2, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_meoqt"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.05, 0.12, 0.05, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.7, 0.3, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="CharacterSelect" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-script = ExtResource("1_8uc8i")
+offset_right = 1920.0
+offset_bottom = 1080.0
+script = ExtResource("1_157v2")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.1, 0.08, 0.12, 1)
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("2_07whw")
+expand_mode = 1
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
+offset_right = 1920.0
+offset_bottom = 1080.0
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
 layout_mode = 2
+alignment = 1
 
 [node name="Title" type="Label" parent="Center/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 52
 text = "Choose Your Character"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center/VBox"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
 [node name="Characters" type="HBoxContainer" parent="Center/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 80
+theme_override_constants/separation = 120
 alignment = 1
 
-[node name="IroncladBox" type="VBoxContainer" parent="Center/VBox/Characters"]
+[node name="IroncladPanel" type="PanelContainer" parent="Center/VBox/Characters"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_7nj4t")
 
-[node name="IroncladArt" type="TextureRect" parent="Center/VBox/Characters/IroncladBox"]
+[node name="IroncladBox" type="VBoxContainer" parent="Center/VBox/Characters/IroncladPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="IroncladArt" type="TextureRect" parent="Center/VBox/Characters/IroncladPanel/IroncladBox"]
 custom_minimum_size = Vector2(200, 300)
 layout_mode = 2
 expand_mode = 2
 stretch_mode = 5
 
-[node name="IroncladButton" type="Button" parent="Center/VBox/Characters/IroncladBox"]
+[node name="IroncladButton" type="Button" parent="Center/VBox/Characters/IroncladPanel/IroncladBox"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Ironclad"
 
-[node name="IroncladDesc" type="Label" parent="Center/VBox/Characters/IroncladBox"]
+[node name="IroncladDesc" type="Label" parent="Center/VBox/Characters/IroncladPanel/IroncladBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.7, 0.7, 1)
 text = "HP: 80 | Strength-focused"
 horizontal_alignment = 1
 
-[node name="SilentBox" type="VBoxContainer" parent="Center/VBox/Characters"]
+[node name="SilentPanel" type="PanelContainer" parent="Center/VBox/Characters"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_meoqt")
 
-[node name="SilentArt" type="TextureRect" parent="Center/VBox/Characters/SilentBox"]
+[node name="SilentBox" type="VBoxContainer" parent="Center/VBox/Characters/SilentPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="SilentArt" type="TextureRect" parent="Center/VBox/Characters/SilentPanel/SilentBox"]
 custom_minimum_size = Vector2(200, 300)
 layout_mode = 2
 expand_mode = 2
 stretch_mode = 5
 
-[node name="SilentButton" type="Button" parent="Center/VBox/Characters/SilentBox"]
+[node name="SilentButton" type="Button" parent="Center/VBox/Characters/SilentPanel/SilentBox"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Silent"
 
-[node name="SilentDesc" type="Label" parent="Center/VBox/Characters/SilentBox"]
+[node name="SilentDesc" type="Label" parent="Center/VBox/Characters/SilentPanel/SilentBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.9, 0.7, 1)
 text = "HP: 70 | Agility-focused"
 horizontal_alignment = 1
