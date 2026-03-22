@@ -130,7 +130,17 @@ func _create_card_entry(card: Dictionary) -> Control:
 
 	select_highlights[card_id] = card_root
 
-	# --- NinePatchRect frame background (fills entire card) ---
+	# Solid type-colored background behind the frame
+	var bg_colors = [Color(0.5, 0.12, 0.1), Color(0.12, 0.4, 0.15), Color(0.25, 0.15, 0.45), Color(0.3, 0.3, 0.3)]
+	var card_bg = ColorRect.new()
+	card_bg.name = "CardBG"
+	card_bg.position = Vector2.ZERO
+	card_bg.size = Vector2(CARD_W, CARD_H)
+	card_bg.color = bg_colors[mini(card["type"], 3)]
+	card_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(card_bg)
+
+	# --- NinePatchRect frame overlay (ornate borders on top of colored bg) ---
 	var frame = NinePatchRect.new()
 	frame.name = "CardFrame"
 	frame.texture = _get_frame_texture(card["type"])
@@ -143,6 +153,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	frame.patch_margin_right = 120
 	frame.patch_margin_bottom = 200
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.modulate = Color(1.0, 1.0, 1.0, 0.8)  # Semi-transparent so colored bg shows through
 	card_root.add_child(frame)
 
 	# --- Card art area: in the frame's center window (~top 45%) ---
