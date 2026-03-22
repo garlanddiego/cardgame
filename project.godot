@@ -20,6 +20,7 @@ textures/canvas_textures/default_texture_filter=1
 [autoload]
 
 GameManager="*res://scripts/game_manager.gd"
+Loc="*res://scripts/localization.gd"
 
 [input]
 

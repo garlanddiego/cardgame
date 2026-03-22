@@ -35,6 +35,7 @@ func setup(data: Dictionary) -> void:
 func _apply_card_data() -> void:
 	if card_data.is_empty():
 		return
+	var loc = _get_loc()
 	# Cost
 	if cost_label:
 		cost_label.text = str(card_data.get("cost", 0))
@@ -42,18 +43,27 @@ func _apply_card_data() -> void:
 		cost_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
 	# Name
 	if name_label:
-		name_label.text = card_data.get("name", "Card")
+		if loc:
+			name_label.text = loc.card_name(card_data)
+		else:
+			name_label.text = card_data.get("name", "Card")
 		name_label.add_theme_font_size_override("font_size", 12)
 	# Description
 	if desc_label:
-		desc_label.text = card_data.get("description", "")
+		if loc:
+			desc_label.text = loc.card_desc(card_data)
+		else:
+			desc_label.text = card_data.get("description", "")
 		desc_label.add_theme_font_size_override("normal_font_size", 10)
 	# Type
 	if type_label:
-		var gm_types = ["Attack", "Skill", "Power"]
 		var type_idx: int = card_data.get("type", 0)
-		if type_idx >= 0 and type_idx < gm_types.size():
-			type_label.text = gm_types[type_idx]
+		if loc:
+			type_label.text = loc.type_name(type_idx)
+		else:
+			var gm_types = ["Attack", "Skill", "Power"]
+			if type_idx >= 0 and type_idx < gm_types.size():
+				type_label.text = gm_types[type_idx]
 		type_label.add_theme_font_size_override("font_size", 10)
 	# Card art
 	if card_art:
@@ -116,6 +126,12 @@ func _on_mouse_entered() -> void:
 func _on_mouse_exited() -> void:
 	is_hovered = false
 	card_unhovered.emit(self)
+
+func _get_loc() -> Node:
+	for child in get_tree().root.get_children():
+		if child.name == "Loc":
+			return child
+	return null
 
 func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:

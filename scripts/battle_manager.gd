@@ -67,6 +67,9 @@ func _ready() -> void:
 	if end_turn_btn:
 		end_turn_btn.pressed.connect(_on_end_turn)
 		_style_end_turn_button()
+		var loc = _get_loc()
+		if loc:
+			end_turn_btn.text = loc.t("end_turn")
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
 
@@ -128,6 +131,13 @@ func _get_game_manager() -> Node:
 	var tree_root = get_tree().root
 	for child in tree_root.get_children():
 		if child.name == "GameManager":
+			return child
+	return null
+
+func _get_loc() -> Node:
+	var tree_root = get_tree().root
+	for child in tree_root.get_children():
+		if child.name == "Loc":
 			return child
 	return null
 
@@ -342,7 +352,11 @@ func start_player_turn() -> void:
 	_update_energy_label()
 	_update_pile_labels()
 	if turn_label:
-		turn_label.text = "Your Turn"
+		var loc = _get_loc()
+		if loc:
+			turn_label.text = loc.t("your_turn")
+		else:
+			turn_label.text = "Your Turn"
 		turn_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
 	if end_turn_btn:
 		end_turn_btn.disabled = false
@@ -823,7 +837,11 @@ func start_enemy_turn() -> void:
 	if not battle_active:
 		return
 	if turn_label:
-		turn_label.text = "Enemy Turn"
+		var loc = _get_loc()
+		if loc:
+			turn_label.text = loc.t("enemy_turn")
+		else:
+			turn_label.text = "Enemy Turn"
 		turn_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	turn_started.emit(false)
 	# Process each enemy action sequentially
@@ -938,7 +956,11 @@ func _on_player_died() -> void:
 	battle_active = false
 	player_died.emit()
 	if turn_label:
-		turn_label.text = "DEFEAT"
+		var loc = _get_loc()
+		if loc:
+			turn_label.text = loc.t("defeat")
+		else:
+			turn_label.text = "DEFEAT"
 		turn_label.add_theme_font_size_override("font_size", 48)
 		turn_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 
@@ -954,7 +976,11 @@ func _check_battle_end() -> void:
 		battle_active = false
 		battle_won.emit()
 		if turn_label:
-			turn_label.text = "VICTORY!"
+			var loc2 = _get_loc()
+			if loc2:
+				turn_label.text = loc2.t("victory")
+			else:
+				turn_label.text = "VICTORY!"
 			turn_label.add_theme_font_size_override("font_size", 48)
 			turn_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 
@@ -963,10 +989,17 @@ func _update_energy_label() -> void:
 		energy_label.text = str(current_energy) + "/" + str(max_energy)
 
 func _update_pile_labels() -> void:
+	var loc = _get_loc()
 	if draw_pile_label:
-		draw_pile_label.text = "Draw: " + str(draw_pile.size())
+		if loc:
+			draw_pile_label.text = loc.tf("draw_pile", [draw_pile.size()])
+		else:
+			draw_pile_label.text = "Draw: " + str(draw_pile.size())
 	if discard_label:
-		discard_label.text = "Discard: " + str(discard_pile.size())
+		if loc:
+			discard_label.text = loc.tf("discard_pile", [discard_pile.size()])
+		else:
+			discard_label.text = "Discard: " + str(discard_pile.size())
 
 var _hovered_enemy: Node2D = null
 

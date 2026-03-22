@@ -25,6 +25,7 @@ func _ready() -> void:
 	if confirm_btn:
 		confirm_btn.pressed.connect(_on_confirm)
 		confirm_btn.disabled = true
+	_apply_localized_ui()
 
 func _find_nodes() -> void:
 	grid = _find_child_by_name(self, "CardGrid") as GridContainer
@@ -108,21 +109,37 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 
 	# Card name
 	var name_label = Label.new()
-	name_label.text = card["name"]
+	var loc = _get_loc()
+	if loc:
+		name_label.text = loc.card_name(card)
+	else:
+		name_label.text = card["name"]
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 18)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
 	vbox.add_child(name_label)
 
 	# Cost + type line
-	var type_names = ["Attack", "Skill", "Power", "Status"]
+	var loc2 = _get_loc()
+	var type_name_str: String
+	if loc2:
+		type_name_str = loc2.type_name(card["type"])
+	else:
+		var type_names = ["Attack", "Skill", "Power", "Status"]
+		type_name_str = type_names[card["type"]]
 	var cost_text = ""
 	if card["cost"] >= 0:
-		cost_text = "Cost: %d | %s" % [card["cost"], type_names[card["type"]]]
+		if loc2:
+			cost_text = loc2.tf("cost_type", [card["cost"], type_name_str])
+		else:
+			cost_text = "Cost: %d | %s" % [card["cost"], type_name_str]
 	elif card["cost"] == -1:
-		cost_text = "Cost: X | %s" % type_names[card["type"]]
+		if loc2:
+			cost_text = loc2.tf("cost_x_type", [type_name_str])
+		else:
+			cost_text = "Cost: X | %s" % type_name_str
 	else:
-		cost_text = "%s" % type_names[card["type"]]
+		cost_text = "%s" % type_name_str
 	var cost_label = Label.new()
 	cost_label.text = cost_text
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -132,7 +149,11 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 
 	# Description
 	var desc_label = RichTextLabel.new()
-	desc_label.text = card["description"]
+	var loc3 = _get_loc()
+	if loc3:
+		desc_label.text = loc3.card_desc(card)
+	else:
+		desc_label.text = card["description"]
 	desc_label.custom_minimum_size = Vector2(0, 40)
 	desc_label.fit_content = true
 	desc_label.scroll_active = false
@@ -148,7 +169,11 @@ func _create_card_entry(card: Dictionary) -> PanelContainer:
 
 	# Upgrade toggle button
 	var upgrade_btn = Button.new()
-	upgrade_btn.text = "Upgrade"
+	var loc4 = _get_loc()
+	if loc4:
+		upgrade_btn.text = loc4.t("upgrade")
+	else:
+		upgrade_btn.text = "Upgrade"
 	upgrade_btn.toggle_mode = true
 	upgrade_btn.custom_minimum_size = Vector2(0, 28)
 	_style_small_button(upgrade_btn, Color(0.2, 0.6, 0.9))
@@ -238,7 +263,11 @@ func _update_count_label(card_id: String) -> void:
 
 func _update_total() -> void:
 	if total_label:
-		total_label.text = "Selected: %d / %d" % [total_selected, MAX_DECK_SIZE]
+		var loc = _get_loc()
+		if loc:
+			total_label.text = loc.tf("selected_x_of_y", [total_selected, MAX_DECK_SIZE])
+		else:
+			total_label.text = "Selected: %d / %d" % [total_selected, MAX_DECK_SIZE]
 	if confirm_btn:
 		confirm_btn.disabled = (total_selected != MAX_DECK_SIZE)
 
@@ -248,20 +277,33 @@ func _on_upgrade_toggled(toggled: bool, card_id: String) -> void:
 	var gm = _get_game_manager()
 	if gm == null:
 		return
+	var loc = _get_loc()
 	var card: Dictionary
 	if toggled:
 		card = gm.get_upgraded_card(card_id)
 		if upgrade_btns.has(card_id):
-			upgrade_btns[card_id].text = "Upgraded ✓"
+			if loc:
+				upgrade_btns[card_id].text = loc.t("upgraded_check")
+			else:
+				upgrade_btns[card_id].text = "Upgraded ✓"
 	else:
 		card = gm.get_card_data(card_id)
 		if upgrade_btns.has(card_id):
-			upgrade_btns[card_id].text = "Upgrade"
+			if loc:
+				upgrade_btns[card_id].text = loc.t("upgrade")
+			else:
+				upgrade_btns[card_id].text = "Upgrade"
 	# Update name and description
 	if card_name_labels.has(card_id):
-		card_name_labels[card_id].text = card.get("name", "")
+		if loc:
+			card_name_labels[card_id].text = loc.card_name(card)
+		else:
+			card_name_labels[card_id].text = card.get("name", "")
 	if card_desc_labels.has(card_id):
-		card_desc_labels[card_id].text = card.get("description", "")
+		if loc:
+			card_desc_labels[card_id].text = loc.card_desc(card)
+		else:
+			card_desc_labels[card_id].text = card.get("description", "")
 
 func _on_confirm() -> void:
 	if total_selected != MAX_DECK_SIZE:
@@ -285,6 +327,27 @@ func _on_confirm() -> void:
 func _get_game_manager() -> Node:
 	for child in get_tree().root.get_children():
 		if child.name == "GameManager":
+			return child
+	return null
+
+func _apply_localized_ui() -> void:
+	var loc = _get_loc()
+	if loc == null:
+		return
+	# Title
+	var title = _find_child_by_name(self, "Title") as Label
+	if title:
+		title.text = loc.t("build_your_deck")
+	# Confirm button
+	if confirm_btn:
+		confirm_btn.text = loc.t("confirm_deck")
+	# Total label
+	if total_label:
+		total_label.text = loc.tf("selected_x_of_y", [0, MAX_DECK_SIZE])
+
+func _get_loc() -> Node:
+	for child in get_tree().root.get_children():
+		if child.name == "Loc":
 			return child
 	return null
 
