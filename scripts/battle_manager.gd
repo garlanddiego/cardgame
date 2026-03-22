@@ -73,22 +73,41 @@ func _ready() -> void:
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
 
-	# STS-style targeting arrow
+	# STS-style targeting arrow — orange-to-red gradient, 6px, bezier curve
 	_targeting_arrow = Line2D.new()
 	_targeting_arrow.name = "TargetingArrow"
-	_targeting_arrow.width = 4.0
+	_targeting_arrow.width = 6.0
 	_targeting_arrow.default_color = Color(1.0, 0.4, 0.1, 0.9)
+	_targeting_arrow.joint_mode = Line2D.LINE_JOINT_ROUND
+	_targeting_arrow.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_targeting_arrow.end_cap_mode = Line2D.LINE_CAP_NONE
 	var grad = Gradient.new()
-	grad.set_color(0, Color(1.0, 0.5, 0.15, 0.7))
-	grad.set_color(1, Color(1.0, 0.2, 0.05, 1.0))
+	grad.set_color(0, Color(1.0, 0.5, 0.15, 0.55))
+	grad.set_color(1, Color(1.0, 0.15, 0.05, 1.0))
 	_targeting_arrow.gradient = grad
 	_targeting_arrow.visible = false
+	_targeting_arrow.z_index = 200
 	add_child(_targeting_arrow)
 
+	# Arrowhead triangle
+	_arrowhead = Polygon2D.new()
+	_arrowhead.name = "ArrowHead"
+	_arrowhead.polygon = PackedVector2Array([
+		Vector2(0, 0),       # tip
+		Vector2(-18, -10),   # left base
+		Vector2(-12, 0),     # inner notch
+		Vector2(-18, 10),    # right base
+	])
+	_arrowhead.color = Color(1.0, 0.15, 0.05, 1.0)
+	_arrowhead.visible = false
+	_arrowhead.z_index = 200
+	add_child(_arrowhead)
+
 func _style_end_turn_button() -> void:
+	# Per VISUAL_DESIGN_SPEC section 4.6: 220x56, warm orange, gold border
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.6, 0.3, 0.1, 0.85)
-	style.border_color = Color(0.9, 0.7, 0.3)
+	style.bg_color = Color(0.600, 0.298, 0.102, 0.851)
+	style.border_color = Color(0.902, 0.722, 0.290, 1.0)  # border_gold
 	style.border_width_left = 2
 	style.border_width_right = 2
 	style.border_width_top = 2
@@ -98,10 +117,27 @@ func _style_end_turn_button() -> void:
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
 	end_turn_btn.add_theme_stylebox_override("normal", style)
+
 	var hover_style = style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = Color(0.7, 0.4, 0.15, 0.9)
+	hover_style.bg_color = Color(0.702, 0.361, 0.133, 0.902)
 	end_turn_btn.add_theme_stylebox_override("hover", hover_style)
+
+	var pressed_style = style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = Color(0.478, 0.239, 0.078, 1.0)
+	end_turn_btn.add_theme_stylebox_override("pressed", pressed_style)
+
+	var disabled_style = style.duplicate() as StyleBoxFlat
+	disabled_style.bg_color = Color(0.200, 0.133, 0.067, 0.60)
+	disabled_style.border_color = Color(0.902, 0.722, 0.290, 0.5)  # border_gold_dim
+	end_turn_btn.add_theme_stylebox_override("disabled", disabled_style)
+
 	end_turn_btn.add_theme_font_size_override("font_size", 20)
+	end_turn_btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+	end_turn_btn.add_theme_color_override("font_disabled_color", Color(0.478, 0.447, 0.376, 0.80))
+	# Drop shadow for button text
+	end_turn_btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	end_turn_btn.add_theme_constant_override("shadow_offset_x", 0)
+	end_turn_btn.add_theme_constant_override("shadow_offset_y", 2)
 
 func start_battle(character_id: String) -> void:
 	battle_active = true
@@ -255,30 +291,32 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	name_lbl.add_theme_stylebox_override("normal", name_bg)
 	entity.add_child(name_lbl)
 
-	# HP bar BELOW name
+	# HP bar BELOW name — wider per spec (120px), dark red bg, rounded feel
+	var hp_bar_width: float = 120.0
 	var hp_bg = ColorRect.new()
 	hp_bg.name = "HPBarBG"
-	hp_bg.color = Color(0.15, 0.15, 0.15, 0.8)
-	hp_bg.size = Vector2(120, 14)
-	hp_bg.position = Vector2(-60, 124)
+	hp_bg.color = Color(0.200, 0.059, 0.059, 1.0)  # hp_bar_bg per spec
+	hp_bg.size = Vector2(hp_bar_width, 12)
+	hp_bg.position = Vector2(-hp_bar_width / 2.0, 124)
 	entity.add_child(hp_bg)
 
-	# HP bar fill
+	# HP bar fill — red per spec, gradient handled in entity.gd
 	var hp_fill = ColorRect.new()
 	hp_fill.name = "HPBarFill"
-	hp_fill.color = Color(0.2, 0.8, 0.2)
-	hp_fill.size = Vector2(120, 14)
+	hp_fill.color = Color(0.800, 0.133, 0.133, 1.0)  # hp_bar_fill per spec
+	hp_fill.size = Vector2(hp_bar_width, 12)
 	hp_fill.position = Vector2(0, 0)
 	hp_bg.add_child(hp_fill)
 
-	# HP label below bar
+	# HP label ABOVE bar per spec — font_size 22 for player, 16 for enemy
 	var hp_lbl = Label.new()
 	hp_lbl.name = "HPLabel"
 	hp_lbl.text = "80/80"
-	hp_lbl.position = Vector2(-60, 140)
+	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 106)
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp_lbl.custom_minimum_size = Vector2(120, 18)
-	hp_lbl.add_theme_font_size_override("font_size", 12)
+	hp_lbl.custom_minimum_size = Vector2(hp_bar_width, 18)
+	hp_lbl.add_theme_font_size_override("font_size", 16)
+	hp_lbl.add_theme_color_override("font_color", Color(0.949, 0.929, 0.847, 1.0))  # text_primary
 	entity.add_child(hp_lbl)
 
 	# Block label (shield icon area)
@@ -1022,37 +1060,44 @@ func _update_pile_labels() -> void:
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Line2D = null
+var _arrowhead: Polygon2D = null
 
 func _process(_delta: float) -> void:
 	if not battle_active or not is_player_turn:
 		if _targeting_arrow:
 			_targeting_arrow.visible = false
+		if _arrowhead:
+			_arrowhead.visible = false
 		return
 	# Update targeting arrow and enemy hover highlight
 	if card_hand and card_hand.is_targeting():
 		var card_data: Dictionary = card_hand.get_selected_card_data()
 		var target_type: String = card_data.get("target", "enemy")
-		# Draw targeting arrow from selected card to mouse
+		# Draw targeting arrow from selected card to mouse — bezier curve per spec
 		if _targeting_arrow and target_type == "enemy" and card_hand.selected_card:
-			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(90, 0)
+			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(110, 0)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
 			_targeting_arrow.clear_points()
-			# Build curved arrow with intermediate points
-			var mid: Vector2 = (card_pos + mouse_pos_arrow) * 0.5 + Vector2(0, -60)
-			var steps: int = 12
-			for i in range(steps + 1):
-				var t: float = float(i) / float(steps)
-				var p: Vector2 = card_pos.lerp(mid, t).lerp(mid.lerp(mouse_pos_arrow, t), t)
+			# Quadratic bezier with control point lifted 200px per spec
+			var mid_point: Vector2 = (card_pos + mouse_pos_arrow) * 0.5
+			var control: Vector2 = mid_point + Vector2(0, -200)
+			var segments: int = 24
+			for i in range(segments + 1):
+				var t: float = float(i) / float(segments)
+				var p: Vector2 = (1.0 - t) * (1.0 - t) * card_pos + 2.0 * (1.0 - t) * t * control + t * t * mouse_pos_arrow
 				_targeting_arrow.add_point(p)
-			# Arrowhead
-			var dir: Vector2 = (mouse_pos_arrow - _targeting_arrow.points[steps - 1]).normalized()
-			var perp: Vector2 = Vector2(-dir.y, dir.x)
-			_targeting_arrow.add_point(mouse_pos_arrow - dir * 16 + perp * 10)
-			_targeting_arrow.add_point(mouse_pos_arrow)
-			_targeting_arrow.add_point(mouse_pos_arrow - dir * 16 - perp * 10)
 			_targeting_arrow.visible = true
+			# Position arrowhead triangle at terminus, rotated to match direction
+			if _arrowhead:
+				var last_seg_start: Vector2 = _targeting_arrow.points[segments - 1]
+				var arrow_dir: Vector2 = (mouse_pos_arrow - last_seg_start).normalized()
+				_arrowhead.position = mouse_pos_arrow
+				_arrowhead.rotation = arrow_dir.angle()
+				_arrowhead.visible = true
 		elif _targeting_arrow and target_type != "enemy":
 			_targeting_arrow.visible = false
+			if _arrowhead:
+				_arrowhead.visible = false
 		if target_type == "enemy":
 			var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 			var hover_enemy = _get_enemy_at(mouse_pos)
@@ -1075,6 +1120,8 @@ func _process(_delta: float) -> void:
 			_hovered_enemy = null
 		if _targeting_arrow:
 			_targeting_arrow.visible = false
+		if _arrowhead:
+			_arrowhead.visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:

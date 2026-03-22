@@ -1,9 +1,9 @@
 [gd_scene load_steps=10 format=3]
 
-[ext_resource type="Script" path="res://scripts/deck_builder.gd" id="1_5qx7a"]
-[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_l765m"]
+[ext_resource type="Script" path="res://scripts/deck_builder.gd" id="1_iutsl"]
+[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_6a24y"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mjtty"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_40wxy"]
 bg_color = Color(0.3, 0.3, 0.4, 0.8)
 border_width_left = 1
 border_width_top = 1
@@ -15,7 +15,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0bydi"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h03gh"]
 bg_color = Color(0.4, 0.4, 0.55, 0.9)
 border_width_left = 1
 border_width_top = 1
@@ -27,7 +27,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qoq1k"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lrklq"]
 bg_color = Color(0.3, 0.3, 0.4, 0.8)
 border_width_left = 1
 border_width_top = 1
@@ -39,7 +39,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rot3n"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cm5or"]
 bg_color = Color(0.4, 0.4, 0.55, 0.9)
 border_width_left = 1
 border_width_top = 1
@@ -51,7 +51,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n5sas"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dvw5l"]
 bg_color = Color(0.15, 0.5, 0.15, 0.8)
 border_width_left = 2
 border_width_top = 2
@@ -63,7 +63,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bkkkj"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_la2cy"]
 bg_color = Color(0.2, 0.6, 0.2, 0.9)
 border_width_left = 2
 border_width_top = 2
@@ -75,7 +75,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_baqwc"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7ehxd"]
 bg_color = Color(0.2, 0.2, 0.2, 0.6)
 border_width_left = 2
 border_width_top = 2
@@ -92,13 +92,13 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
-script = ExtResource("1_5qx7a")
+script = ExtResource("1_iutsl")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
-texture = ExtResource("2_l765m")
+texture = ExtResource("2_6a24y")
 expand_mode = 1
 
 [node name="DarkOverlay" type="ColorRect" parent="."]
@@ -131,8 +131,8 @@ custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_mjtty")
-theme_override_styles/hover = SubResource("StyleBoxFlat_0bydi")
+theme_override_styles/normal = SubResource("StyleBoxFlat_40wxy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_h03gh")
 text = "中文"
 
 [node name="LangEnButton" type="Button" parent="TitleBar/LangSelector"]
@@ -140,8 +140,8 @@ custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_qoq1k")
-theme_override_styles/hover = SubResource("StyleBoxFlat_rot3n")
+theme_override_styles/normal = SubResource("StyleBoxFlat_lrklq")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cm5or")
 text = "English"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
@@ -178,8 +178,8 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(220, 55)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_n5sas")
-theme_override_styles/hover = SubResource("StyleBoxFlat_bkkkj")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_baqwc")
+theme_override_styles/normal = SubResource("StyleBoxFlat_dvw5l")
+theme_override_styles/hover = SubResource("StyleBoxFlat_la2cy")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_7ehxd")
 disabled = true
 text = "确认牌组"

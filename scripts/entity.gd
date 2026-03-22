@@ -169,13 +169,13 @@ func _update_hp_bar() -> void:
 		return
 	var ratio: float = float(current_hp) / float(max_hp) if max_hp > 0 else 0.0
 	hp_bar_fill.size.x = hp_bar_bg.size.x * ratio
-	# Color gradient: green -> yellow -> red
+	# Color gradient per spec: red base, orange-red when critical (<25%)
 	if ratio > 0.5:
-		hp_bar_fill.color = Color(0.2, 0.8, 0.2)
+		hp_bar_fill.color = Color(0.800, 0.133, 0.133, 1.0)  # Standard red
 	elif ratio > 0.25:
-		hp_bar_fill.color = Color(0.9, 0.8, 0.1)
+		hp_bar_fill.color = Color(0.9, 0.5, 0.1, 1.0)  # Yellow-orange warning
 	else:
-		hp_bar_fill.color = Color(0.9, 0.2, 0.1)
+		hp_bar_fill.color = Color(1.0, 0.4, 0.1, 1.0)  # Orange-red critical per spec
 	if hp_label:
 		hp_label.text = str(current_hp) + "/" + str(max_hp)
 

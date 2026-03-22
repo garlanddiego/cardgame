@@ -250,11 +250,37 @@ func _on_card_tap(event: InputEvent, card_id: String, card_root: Control) -> voi
 	_update_ui()
 
 func _set_card_selected(card_root: Control, selected: bool) -> void:
+	# Manage selection glow border overlay
+	var glow = card_root.get_node_or_null("SelectionBorder") as Panel
 	if selected:
-		# Bright green-white tint to indicate selection
+		# Green tint per spec
 		card_root.modulate = Color(0.7, 1.0, 0.7, 1.0)
+		# Show gold border glow overlay
+		if glow == null:
+			glow = Panel.new()
+			glow.name = "SelectionBorder"
+			glow.position = Vector2(-4, -4)
+			glow.size = card_root.custom_minimum_size + Vector2(8, 8)
+			glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var sb = StyleBoxFlat.new()
+			sb.bg_color = Color(0, 0, 0, 0)  # transparent fill
+			sb.border_color = Color(0.902, 0.722, 0.290, 1.0)  # border_gold
+			sb.border_width_left = 4
+			sb.border_width_right = 4
+			sb.border_width_top = 4
+			sb.border_width_bottom = 4
+			sb.corner_radius_top_left = 6
+			sb.corner_radius_top_right = 6
+			sb.corner_radius_bottom_left = 6
+			sb.corner_radius_bottom_right = 6
+			glow.add_theme_stylebox_override("panel", sb)
+			card_root.add_child(glow)
+		else:
+			glow.visible = true
 	else:
 		card_root.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		if glow:
+			glow.visible = false
 
 # ─── UI UPDATE ───────────────────────────────────────────────────────────────
 

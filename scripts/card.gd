@@ -79,7 +79,7 @@ func _build_card_nodes() -> void:
 	card_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(card_bg)
 
-	# Frame texture (card background/frame)
+	# Frame texture (card background/frame) — uses v2 pre-sized frames
 	frame_texture = TextureRect.new()
 	frame_texture.name = "FrameTexture"
 	frame_texture.size = CARD_SIZE
@@ -88,7 +88,7 @@ func _build_card_nodes() -> void:
 	frame_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(frame_texture)
 
-	# Card art (positioned in the art window area of the frame)
+	# Card art (positioned in the art window area of the frame per spec)
 	card_art = TextureRect.new()
 	card_art.name = "CardArt"
 	card_art.position = Vector2(22, 42)
@@ -98,7 +98,7 @@ func _build_card_nodes() -> void:
 	card_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(card_art)
 
-	# Cost label (top-left circle area)
+	# Cost label (top-left gem area per spec: rect 7,5 36x36)
 	cost_label = Label.new()
 	cost_label.name = "CostLabel"
 	cost_label.position = Vector2(7, 5)
@@ -106,35 +106,41 @@ func _build_card_nodes() -> void:
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 24)
-	cost_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7))
+	cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+	# Drop shadow per spec section 2.3
+	cost_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	cost_label.add_theme_constant_override("shadow_offset_x", 1)
+	cost_label.add_theme_constant_override("shadow_offset_y", 2)
+	cost_label.add_theme_constant_override("shadow_outline_size", 2)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(cost_label)
 
-	# Name label (card name banner area)
+	# Name label (card name banner — spec: rect 12,168 196x26, font 15, LEFT align)
 	name_label = Label.new()
 	name_label.name = "NameLabel"
 	name_label.position = Vector2(12, 168)
 	name_label.size = Vector2(196, 26)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 15)
-	name_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
+	name_label.add_theme_color_override("font_color", Color(1.0, 0.949, 0.847, 1.0))
+	name_label.clip_text = true
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(name_label)
 
-	# Type label (small type text below name)
+	# Type label (spec: rect 12,194 196x18, font 11, muted)
 	type_label = Label.new()
 	type_label.name = "TypeLabel"
 	type_label.position = Vector2(12, 194)
 	type_label.size = Vector2(196, 18)
 	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_label.add_theme_font_size_override("font_size", 12)
-	type_label.add_theme_color_override("font_color", Color(0.75, 0.72, 0.65))
+	type_label.add_theme_font_size_override("font_size", 11)
+	type_label.add_theme_color_override("font_color", Color(0.478, 0.447, 0.376, 0.80))
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(type_label)
 
-	# Description label (card description area)
+	# Description label (spec: rect 17,216 186x84, font 12, text_secondary)
 	desc_label = RichTextLabel.new()
 	desc_label.name = "DescLabel"
 	desc_label.position = Vector2(17, 216)
@@ -143,9 +149,19 @@ func _build_card_nodes() -> void:
 	desc_label.fit_content = false
 	desc_label.scroll_active = false
 	desc_label.add_theme_font_size_override("normal_font_size", 12)
-	desc_label.add_theme_color_override("default_color", Color(0.85, 0.82, 0.75))
+	desc_label.add_theme_color_override("default_color", Color(0.749, 0.722, 0.604, 1.0))
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(desc_label)
+
+	# Selection glow overlay (hidden by default, shown when card is selected)
+	var glow_overlay = ColorRect.new()
+	glow_overlay.name = "SelectionGlow"
+	glow_overlay.position = Vector2(-3, -3)
+	glow_overlay.size = CARD_SIZE + Vector2(6, 6)
+	glow_overlay.color = Color(0.267, 0.800, 0.400, 0.0)
+	glow_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glow_overlay.z_index = -1
+	card_visual.add_child(glow_overlay)
 
 func _find_child_refs() -> void:
 	collision_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
@@ -171,15 +187,21 @@ func _apply_card_data() -> void:
 		return
 	var loc = _get_loc()
 
-	# Cost
+	# Cost — with color treatment per VISUAL_DESIGN_SPEC section 3.3
 	if cost_label:
 		var cost_val: int = card_data.get("cost", 0)
 		if cost_val == -1:
 			cost_label.text = "X"
+			cost_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))  # gold
 		elif cost_val < -1:
-			cost_label.text = ""
+			cost_label.text = "\u2014"  # em dash for unplayable
+			cost_label.add_theme_color_override("font_color", Color(0.478, 0.447, 0.376, 0.80))  # muted
+		elif cost_val == 0:
+			cost_label.text = "0"
+			cost_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))  # grey-white
 		else:
 			cost_label.text = str(cost_val)
+			cost_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))  # white
 
 	# Name
 	if name_label:
@@ -195,13 +217,13 @@ func _apply_card_data() -> void:
 		else:
 			desc_label.text = card_data.get("description", "")
 
-	# Type
+	# Type — uppercase per spec
 	if type_label:
 		var type_idx: int = card_data.get("type", 0)
 		if loc:
-			type_label.text = loc.type_name(type_idx)
+			type_label.text = loc.type_name(type_idx).to_upper()
 		else:
-			var gm_types = ["Attack", "Skill", "Power", "Status"]
+			var gm_types = ["ATTACK", "SKILL", "POWER", "STATUS"]
 			if type_idx >= 0 and type_idx < gm_types.size():
 				type_label.text = gm_types[type_idx]
 
@@ -220,27 +242,42 @@ func _apply_frame_texture() -> void:
 	if frame_texture == null:
 		return
 	var card_type: int = card_data.get("type", 0)
+	# Try v2 frames first (pre-sized, higher quality), fall back to originals
 	var frame_path: String
+	var fallback_path: String
 	match card_type:
 		0:  # Attack
-			frame_path = "res://assets/img/card_frame_attack_clean.png"
+			frame_path = "res://assets/img/frame_attack_v2.png"
+			fallback_path = "res://assets/img/card_frame_attack_clean.png"
 		1:  # Skill
-			frame_path = "res://assets/img/card_frame_skill.png"
+			frame_path = "res://assets/img/frame_skill_v2.png"
+			fallback_path = "res://assets/img/card_frame_skill.png"
 		2:  # Power
-			frame_path = "res://assets/img/card_frame_power_clean.png"
+			frame_path = "res://assets/img/frame_power_v2.png"
+			fallback_path = "res://assets/img/card_frame_power_clean.png"
 		_:  # Status / other
-			frame_path = "res://assets/img/card_frame_skill.png"
+			frame_path = "res://assets/img/frame_skill_v2.png"
+			fallback_path = "res://assets/img/card_frame_skill.png"
 	var tex = load(frame_path)
+	if tex == null:
+		tex = load(fallback_path)
 	if tex:
 		frame_texture.texture = tex
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
 	if card_visual:
+		var glow = card_visual.get_node_or_null("SelectionGlow")
 		if selected:
-			card_visual.modulate = Color(1.2, 1.1, 0.8)
+			# Golden modulate per spec: Color(1.1, 1.0, 0.7, 1.0)
+			card_visual.modulate = Color(1.1, 1.0, 0.7, 1.0)
+			# Show green selection glow border
+			if glow:
+				glow.color = Color(0.267, 0.800, 0.400, 0.35)
 		else:
 			card_visual.modulate = Color.WHITE
+			if glow:
+				glow.color = Color(0.267, 0.800, 0.400, 0.0)
 
 func move_to(target_pos: Vector2, target_rot: float, target_scale: Vector2, duration: float = 0.15) -> void:
 	# Cancel any in-progress tween
