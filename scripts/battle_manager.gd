@@ -58,6 +58,9 @@ var enemy_area: Node2D = null
 # Card detail overlay
 var _card_detail_overlay: Control = null
 
+# Pile viewer overlay
+var _pile_viewer: Control = null
+
 # Damage preview labels
 var _damage_preview_labels: Array = []
 
@@ -101,8 +104,15 @@ func _ready() -> void:
 		energy_label.add_theme_font_size_override("font_size", 32)
 	if draw_pile_label:
 		draw_pile_label.add_theme_font_size_override("font_size", 18)
+		draw_pile_label.mouse_filter = Control.MOUSE_FILTER_STOP
+		draw_pile_label.gui_input.connect(_on_draw_pile_clicked)
 	if discard_label:
 		discard_label.add_theme_font_size_override("font_size", 18)
+		discard_label.mouse_filter = Control.MOUSE_FILTER_STOP
+		discard_label.gui_input.connect(_on_discard_pile_clicked)
+
+	# Pile viewer overlay
+	_setup_pile_viewer()
 	if turn_label:
 		turn_label.add_theme_font_size_override("font_size", 24)
 
@@ -1388,3 +1398,164 @@ func _screen_shake(intensity: float = 8.0, duration: float = 0.15) -> void:
 		var offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
 		tween.tween_property(self, "position", original_pos + offset, step_dur)
 	tween.tween_property(self, "position", original_pos, step_dur)
+
+# ---- Pile Viewer ----
+
+func _setup_pile_viewer() -> void:
+	var hud_ctrl = get_node_or_null("HUDLayer/HUD")
+	if hud_ctrl == null:
+		return
+	_pile_viewer = Control.new()
+	_pile_viewer.name = "PileViewer"
+	_pile_viewer.size = Vector2(1920, 1080)
+	_pile_viewer.visible = false
+	_pile_viewer.z_index = 500
+	_pile_viewer.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud_ctrl.add_child(_pile_viewer)
+
+	# Dark background
+	var bg = ColorRect.new()
+	bg.name = "BG"
+	bg.size = Vector2(1920, 1080)
+	bg.color = Color(0, 0, 0, 0.85)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	bg.gui_input.connect(_on_pile_viewer_bg_clicked)
+	_pile_viewer.add_child(bg)
+
+	# Title
+	var title = Label.new()
+	title.name = "Title"
+	title.position = Vector2(0, 20)
+	title.size = Vector2(1920, 50)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(1, 1, 0.8))
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pile_viewer.add_child(title)
+
+	# Scroll container for card list
+	var scroll = ScrollContainer.new()
+	scroll.name = "Scroll"
+	scroll.position = Vector2(100, 80)
+	scroll.size = Vector2(1720, 940)
+	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_pile_viewer.add_child(scroll)
+
+	var vbox = VBoxContainer.new()
+	vbox.name = "CardList"
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
+
+func _on_draw_pile_clicked(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_show_pile_viewer("抽牌堆", draw_pile)
+
+func _on_discard_pile_clicked(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_show_pile_viewer("弃牌堆", discard_pile)
+
+func _on_pile_viewer_bg_clicked(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		_pile_viewer.visible = false
+
+func _show_pile_viewer(title: String, pile: Array) -> void:
+	if _pile_viewer == null:
+		return
+	_pile_viewer.visible = true
+
+	# Set title
+	var title_label_node = _pile_viewer.get_node_or_null("Title") as Label
+	if title_label_node:
+		title_label_node.text = "%s (%d张)" % [title, pile.size()]
+
+	# Clear old cards
+	var vbox = _pile_viewer.get_node_or_null("Scroll/CardList") as VBoxContainer
+	if vbox == null:
+		return
+	for c in vbox.get_children():
+		c.queue_free()
+
+	# Sort cards by type then name
+	var sorted_pile = pile.duplicate()
+	sorted_pile.sort_custom(func(a, b):
+		if a.get("type", 0) != b.get("type", 0):
+			return a.get("type", 0) < b.get("type", 0)
+		return a.get("name", "") < b.get("name", "")
+	)
+
+	var loc = _get_loc()
+
+	# Add each card as a row
+	for card_data in sorted_pile:
+		var row = HBoxContainer.new()
+		row.custom_minimum_size = Vector2(0, 50)
+
+		var card_type: int = card_data.get("type", 0)
+		var type_color: Color
+		var type_name: String
+		match card_type:
+			0:
+				type_color = Color(0.9, 0.3, 0.3)
+				type_name = "攻击"
+			1:
+				type_color = Color(0.3, 0.8, 0.4)
+				type_name = "技能"
+			2:
+				type_color = Color(0.5, 0.4, 1.0)
+				type_name = "能力"
+			_:
+				type_color = Color(0.6, 0.6, 0.6)
+				type_name = "状态"
+
+		# Cost
+		var cost_lbl = Label.new()
+		cost_lbl.text = "[%s]" % (str(card_data.get("cost", 0)) if card_data.get("cost", 0) >= 0 else "X")
+		cost_lbl.custom_minimum_size = Vector2(60, 0)
+		cost_lbl.add_theme_font_size_override("font_size", 22)
+		cost_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.5))
+		row.add_child(cost_lbl)
+
+		# Name
+		var card_name: String = card_data.get("name", "?")
+		if loc and loc.has_method("card_name"):
+			card_name = loc.card_name(card_data)
+		var name_lbl = Label.new()
+		name_lbl.text = card_name
+		name_lbl.custom_minimum_size = Vector2(200, 0)
+		name_lbl.add_theme_font_size_override("font_size", 22)
+		name_lbl.add_theme_color_override("font_color", type_color)
+		row.add_child(name_lbl)
+
+		# Type
+		var type_lbl = Label.new()
+		type_lbl.text = type_name
+		type_lbl.custom_minimum_size = Vector2(80, 0)
+		type_lbl.add_theme_font_size_override("font_size", 18)
+		type_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+		row.add_child(type_lbl)
+
+		# Stats
+		var dmg: int = card_data.get("damage", 0)
+		var blk: int = card_data.get("block", 0)
+		var stat_text: String = ""
+		if dmg > 0: stat_text += "⚔%d " % dmg
+		if blk > 0: stat_text += "🛡%d " % blk
+		var stat_lbl = Label.new()
+		stat_lbl.text = stat_text
+		stat_lbl.custom_minimum_size = Vector2(120, 0)
+		stat_lbl.add_theme_font_size_override("font_size", 20)
+		stat_lbl.add_theme_color_override("font_color", Color(1, 1, 1))
+		row.add_child(stat_lbl)
+
+		# Description
+		var desc: String = card_data.get("description", "")
+		if loc and loc.has_method("card_desc"):
+			desc = loc.card_desc(card_data)
+		var desc_lbl = Label.new()
+		desc_lbl.text = desc.replace("\n", " ")
+		desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		desc_lbl.add_theme_font_size_override("font_size", 16)
+		desc_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.75))
+		row.add_child(desc_lbl)
+
+		vbox.add_child(row)
