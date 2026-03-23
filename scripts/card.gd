@@ -193,14 +193,7 @@ func _apply_card_data() -> void:
 	if card_data.is_empty():
 		return
 
-	# Try STS original image first (exact STS style), fallback to AI frame+art
-	if sts_card_image:
-		var card_id: String = card_data.get("id", "")
-		var sts_path: String = _get_sts_card_path(card_id)
-		if sts_path != "" and ResourceLoader.exists(sts_path):
-			sts_card_image.texture = load(sts_path)
-			return
-	# No STS image — use AI-generated frame + art
+	# Always use AI-generated frame + art
 	_apply_fallback_texture()
 
 func _apply_fallback_texture() -> void:

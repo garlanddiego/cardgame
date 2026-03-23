@@ -154,33 +154,34 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	var card_data_val: Dictionary = card_node.card_data
 	var target_type: String = card_data_val.get("target", "enemy")
 
+	# If a different card is already selected, ignore this click
+	if selected_card != null and selected_card != card_node and is_instance_valid(selected_card):
+		return
+
+	# If THIS card is already selected, deselect it (cancel targeting)
+	if selected_card == card_node:
+		card_node.set_selected(false)
+		selected_card = null
+		targeting_mode = false
+		update_layout()
+		return
+
 	# Energy check before allowing selection
 	if not _can_afford_card(card_data_val):
 		return
 
-	# Self/all_enemies: auto-play immediately on tap
+	# Self/all_enemies: auto-play immediately on first click
 	if target_type == "self" or target_type == "all_enemies":
 		selected_card = card_node
 		targeting_mode = true
 		card_played_tap.emit(card_node)
 		return
 
-	# Enemy-targeted cards: tap-to-select flow
-	if selected_card == card_node:
-		# Tapping already-selected card deselects it
-		card_node.set_selected(false)
-		selected_card = null
-		targeting_mode = false
-		update_layout()
-	else:
-		# Deselect previous if any
-		if selected_card != null and is_instance_valid(selected_card):
-			selected_card.set_selected(false)
-		# Select this card
-		selected_card = card_node
-		card_node.set_selected(true)
-		targeting_mode = true
-		update_layout()
+	# Enemy-targeted cards: select this card
+	selected_card = card_node
+	card_node.set_selected(true)
+	targeting_mode = true
+	update_layout()
 
 func _on_card_long_pressed(card_node: Area2D) -> void:
 	card_long_press_detail.emit(card_node)
@@ -263,10 +264,16 @@ func update_card_playability(current_energy: int) -> void:
 		if cost == -1:
 			cost = 0  # X-cost cards are always playable
 		if card.card_visual:
-			if cost <= current_energy:
+			# Always keep full color (no grey dimming)
+			if not card.is_selected:
 				card.card_visual.modulate = Color(1, 1, 1, 1)
-			else:
-				card.card_visual.modulate = Color(0.5, 0.5, 0.5, 0.8)
+			# Update cost label color: red if unaffordable, gold if affordable
+			var cost_lbl = card.card_visual.get_node_or_null("FallbackCost") as Label
+			if cost_lbl:
+				if cost > current_energy:
+					cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+				else:
+					cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 
 func get_selected_card_data() -> Dictionary:
 	if selected_card != null:

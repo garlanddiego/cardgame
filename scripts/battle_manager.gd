@@ -338,15 +338,20 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	hp_fill.position = Vector2(0, 0)
 	hp_bg.add_child(hp_fill)
 
-	# HP label BELOW bar
+	# HP label ON TOP of HP bar (centered vertically and horizontally)
 	var hp_lbl = Label.new()
 	hp_lbl.name = "HPLabel"
 	hp_lbl.text = "80/80"
-	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 148)
+	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 130 - 3)  # Center 18px label on 12px bar
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hp_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	hp_lbl.custom_minimum_size = Vector2(hp_bar_width, 18)
-	hp_lbl.add_theme_font_size_override("font_size", 18)
-	hp_lbl.add_theme_color_override("font_color", Color(0.949, 0.929, 0.847, 1.0))  # text_primary
+	hp_lbl.add_theme_font_size_override("font_size", 14)
+	hp_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+	hp_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	hp_lbl.add_theme_constant_override("shadow_offset_x", 1)
+	hp_lbl.add_theme_constant_override("shadow_offset_y", 1)
+	hp_lbl.z_index = 5
 	entity.add_child(hp_lbl)
 
 	# Block label — STS style: grey shield badge left of HP bar
@@ -362,10 +367,10 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	block_lbl.visible = false
 	entity.add_child(block_lbl)
 
-	# Status container
+	# Status container BELOW HP bar
 	var status_cont = HBoxContainer.new()
 	status_cont.name = "StatusContainer"
-	status_cont.position = Vector2(-50, 80)
+	status_cont.position = Vector2(-50, 150)
 	entity.add_child(status_cont)
 
 	if is_enemy_entity:
@@ -775,18 +780,11 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 			var str_val: int = player.get_status_stacks("strength")
 			actual_dmg = damage + str_val
 
-		for _hit in range(times):
-			if target_type == "all_enemies":
-				for enemy in enemies:
-					if enemy.alive:
-						enemy.take_damage(actual_dmg)
-			elif target_type == "random_enemy":
-				var alive = _get_alive_enemies()
-				if not alive.is_empty():
-					var rand_target = alive[randi() % alive.size()]
-					rand_target.take_damage(actual_dmg)
-			elif target != null and target.alive:
-				target.take_damage(actual_dmg)
+		if times > 1:
+			# Multi-hit: use tween delays so each damage number appears separately
+			_apply_multi_hit_damage(actual_dmg, times, target, target_type)
+		else:
+			_apply_single_hit_damage(actual_dmg, target, target_type)
 
 	# Apply block and draw
 	_apply_block_and_draw(block_val, draw_count, card_data)
@@ -824,6 +822,29 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 	# Power effects
 	if card_data.has("power_effect"):
 		_activate_power(card_data["power_effect"])
+
+func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> void:
+	if target_type == "all_enemies":
+		for enemy in enemies:
+			if enemy.alive:
+				enemy.take_damage(dmg)
+	elif target_type == "random_enemy":
+		var alive = _get_alive_enemies()
+		if not alive.is_empty():
+			var rand_target = alive[randi() % alive.size()]
+			rand_target.take_damage(dmg)
+	elif target != null and target.alive:
+		target.take_damage(dmg)
+
+func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
+	# First hit immediately
+	_apply_single_hit_damage(dmg, target, target_type)
+	# Remaining hits with 0.3s delays using tween
+	if hit_count > 1:
+		var hit_tween = create_tween()
+		for i in range(1, hit_count):
+			hit_tween.tween_interval(0.3)
+			hit_tween.tween_callback(_apply_single_hit_damage.bind(dmg, target, target_type))
 
 func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionary) -> void:
 	if block_val > 0 and player:

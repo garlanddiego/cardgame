@@ -108,21 +108,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
 	select_highlights[card_id] = card_root
 
-	# Try STS original image first
-	var sts_path = _CardScript._get_sts_card_path(card_id)
-	if sts_path != "" and ResourceLoader.exists(sts_path):
-		var card_img = TextureRect.new()
-		card_img.name = "CardImage"
-		card_img.size = Vector2(CARD_W, CARD_H)
-		card_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		card_img.stretch_mode = TextureRect.STRETCH_SCALE
-		card_img.texture = load(sts_path)
-		card_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_root.add_child(card_img)
-		card_root.gui_input.connect(_on_card_tap.bind(card_id, card_root))
-		return card_root
-
-	# Fallback: text-rendered card
+	# Text-rendered card with frame + art
 	var card_type: int = card.get("type", 0)
 	var bg_color: Color
 	var border_color: Color
