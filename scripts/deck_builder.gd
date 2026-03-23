@@ -155,7 +155,7 @@ func _create_card_entry(card: Dictionary) -> Control:
 		art_img.size = Vector2(260 * sx, 172 * sy)
 		art_img.texture = load(art_path)
 		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		art_img.stretch_mode = TextureRect.STRETCH_SCALE
+		art_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		art_clip.add_child(art_img)
 
