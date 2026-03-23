@@ -18,10 +18,8 @@ func _process(_delta: float) -> bool:
 			if _frame == 10:
 				var builder = _find_child(_main, "DeckBuilder")
 				if builder:
-					# Select iron_wave plus basic cards to fill deck
+					# Select ONLY iron_wave — guaranteed to be drawn
 					builder.selected_card_ids["ic_iron_wave"] = true
-					builder.selected_card_ids["ic_strike"] = true
-					builder.selected_card_ids["ic_defend"] = true
 					builder._update_ui()
 			if _frame == 15:
 				var builder = _find_child(_main, "DeckBuilder")

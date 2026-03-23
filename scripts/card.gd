@@ -47,42 +47,68 @@ static var _sts_card_map: Dictionary = {}
 static func _build_sts_card_map() -> void:
 	if _sts_card_map.size() > 0:
 		return
-	var ordered_ids: Array = [
-		# ATTACKS (type 0) — sorted by name
-		"ic_anger", "ic_bash", "ic_blood_for_blood", "ic_bludgeon", "ic_body_slam",
-		"ic_carnage", "ic_clash", "ic_cleave", "ic_clothesline", "ic_dropkick",
-		"ic_feed", "ic_fiend_fire", "ic_headbutt", "ic_heavy_blade", "ic_hemokinesis",
-		"ic_immolate", "ic_iron_wave", "ic_perfected_strike",
-		"ic_pommel_strike", "ic_pummel", "ic_rampage", "ic_reaper", "ic_reckless_charge",
-		"ic_searing_blow", "ic_sever_soul", "ic_strike", "ic_sword_boomerang",
-		"ic_thunderclap", "ic_twin_strike", "ic_uppercut", "ic_whirlwind", "ic_wild_strike",
-		# SKILLS (type 1) — sorted by name
-		"ic_armaments", "ic_battle_trance", "ic_bloodletting", "ic_burning_pact",
-		"ic_defend", "ic_disarm", "ic_double_tap", "ic_dual_wield", "ic_entrench",
-		"ic_exhume", "ic_flame_barrier", "ic_flex", "ic_ghostly_armor", "ic_havoc",
-		"ic_impervious", "ic_infernal_blade", "ic_intimidate", "ic_limit_break",
-		"ic_offering", "ic_power_through", "ic_second_wind", "ic_seeing_red",
-		"ic_sentinel", "ic_shockwave", "ic_shrug_it_off", "ic_spot_weakness",
-		"ic_true_grit", "ic_war_cry",
-		# POWERS (type 2) — sorted by name
-		"ic_barricade", "ic_berserk", "ic_brutality", "ic_combust", "ic_corruption",
-		"ic_dark_embrace", "ic_demon_form", "ic_evolve", "ic_feel_no_pain",
-		"ic_fire_breathing", "ic_inflame", "ic_juggernaut", "ic_metallicize",
-		"ic_rage", "ic_rupture",
-	]
-	var page := 1
-	var card_on_page := 1
-	var cards_per_page := 18
-	var max_page := 3  # Only pages 1-3 are base cards
-	for card_id in ordered_ids:
-		if page > max_page:
-			break
-		var img_path := "res://assets/img/sts_cards/page%d_card%02d.png" % [page, card_on_page]
-		_sts_card_map[card_id] = img_path
-		card_on_page += 1
-		if card_on_page > cards_per_page:
-			card_on_page = 1
-			page += 1
+	# Direct mapping from card_id to image file, identified by reading Chinese card names
+	# Pages 1-3 are base cards (54 total); pages 4-5 are upgraded versions
+	var _base := "res://assets/img/sts_cards/"
+	_sts_card_map = {
+		# Page 1
+		"ic_strike": _base + "page1_card01.png",
+		"ic_infernal_blade": _base + "page1_card02.png",
+		"ic_sentinel": _base + "page1_card03.png",
+		"ic_dual_wield": _base + "page1_card04.png",
+		"ic_blood_for_blood": _base + "page1_card05.png",
+		"ic_sever_soul": _base + "page1_card06.png",
+		"ic_fire_breathing": _base + "page1_card07.png",
+		"ic_carnage": _base + "page1_card08.png",
+		"ic_dark_embrace": _base + "page1_card09.png",
+		"ic_intimidate": _base + "page1_card10.png",
+		"ic_power_through": _base + "page1_card11.png",
+		"ic_flame_barrier": _base + "page1_card12.png",
+		"ic_bloodletting": _base + "page1_card13.png",
+		"ic_rupture": _base + "page1_card14.png",
+		"ic_battle_trance": _base + "page1_card15.png",
+		"ic_hemokinesis": _base + "page1_card16.png",
+		"ic_ghostly_armor": _base + "page1_card17.png",
+		"ic_entrench": _base + "page1_card18.png",
+		# Page 2
+		"ic_rampage": _base + "page2_card01.png",
+		"ic_corruption": _base + "page2_card02.png",
+		"ic_demon_form": _base + "page2_card03.png",
+		"ic_fiend_fire": _base + "page2_card04.png",
+		"ic_berserk": _base + "page2_card05.png",
+		"ic_limit_break": _base + "page2_card06.png",
+		"ic_impervious": _base + "page2_card07.png",
+		"ic_bludgeon": _base + "page2_card08.png",
+		"ic_immolate": _base + "page2_card09.png",
+		"ic_barricade": _base + "page2_card10.png",
+		"ic_reckless_charge": _base + "page2_card11.png",
+		"ic_whirlwind": _base + "page2_card12.png",
+		"ic_feel_no_pain": _base + "page2_card13.png",
+		"ic_reaper": _base + "page2_card14.png",
+		"ic_brutality": _base + "page2_card15.png",
+		"ic_exhume": _base + "page2_card16.png",
+		"ic_offering": _base + "page2_card17.png",
+		"ic_double_tap": _base + "page2_card18.png",
+		# Page 3
+		"ic_juggernaut": _base + "page3_card01.png",
+		"ic_disarm": _base + "page3_card02.png",
+		"ic_anger": _base + "page3_card03.png",
+		"ic_war_cry": _base + "page3_card04.png",
+		"ic_shrug_it_off": _base + "page3_card05.png",
+		"ic_twin_strike": _base + "page3_card06.png",
+		"ic_pommel_strike": _base + "page3_card07.png",
+		"ic_sword_boomerang": _base + "page3_card08.png",
+		"ic_cleave": _base + "page3_card09.png",
+		"ic_flex": _base + "page3_card10.png",
+		"ic_wild_strike": _base + "page3_card11.png",
+		"ic_defend": _base + "page3_card12.png",
+		"ic_bash": _base + "page3_card13.png",
+		"ic_headbutt": _base + "page3_card14.png",
+		"ic_perfected_strike": _base + "page3_card15.png",
+		"ic_clothesline": _base + "page3_card16.png",
+		"ic_havoc": _base + "page3_card17.png",
+		"ic_heavy_blade": _base + "page3_card18.png",
+	}
 
 static func _get_sts_card_path(card_id: String) -> String:
 	_build_sts_card_map()

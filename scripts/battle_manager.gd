@@ -295,13 +295,16 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	hp_lbl.add_theme_color_override("font_color", Color(0.949, 0.929, 0.847, 1.0))  # text_primary
 	entity.add_child(hp_lbl)
 
-	# Block label (shield icon area) — positioned near HP bar for visibility
+	# Block label — STS style: grey shield badge left of HP bar
 	var block_lbl = Label.new()
 	block_lbl.name = "BlockLabel"
 	block_lbl.text = "0"
-	block_lbl.position = Vector2(hp_bar_width / 2.0 + 6, 126)
+	block_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	block_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	block_lbl.position = Vector2(-hp_bar_width - 8, 130)  # Left of HP bar
+	block_lbl.size = Vector2(40, 32)
 	block_lbl.add_theme_font_size_override("font_size", 18)
-	block_lbl.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0))
+	block_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	block_lbl.visible = false
 	entity.add_child(block_lbl)
 
