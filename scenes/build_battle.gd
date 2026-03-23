@@ -12,7 +12,7 @@ func _initialize() -> void:
 	bg.name = "Background"
 	bg.texture = load("res://assets/img/dungeon_bg.png")
 	bg.position = Vector2.ZERO
-	bg.size = Vector2(1920, 1080)
+	bg.size = Vector2(2560, 1080)  # Extra wide to cover any aspect ratio
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.z_index = -10
