@@ -9,6 +9,8 @@ var cards: Array = []
 var selected_card: Area2D = null
 var hovered_card: Area2D = null
 var targeting_mode: bool = false
+var current_battle_energy: int = 3
+var corruption_active: bool = false
 
 var card_script: GDScript = null
 
@@ -136,9 +138,25 @@ signal card_played_tap(card_node: Area2D)
 # Signal for long-press card detail
 signal card_long_press_detail(card_node: Area2D)
 
+func _can_afford_card(card_data_check: Dictionary) -> bool:
+	var cost: int = card_data_check.get("cost", 0)
+	# X-cost cards (cost -1): playable if energy > 0
+	if cost == -1:
+		return current_battle_energy > 0
+	# Corruption: skills cost 0
+	if corruption_active and card_data_check.get("type", 0) == 1:  # SKILL
+		return true
+	if cost <= 0:
+		return true
+	return cost <= current_battle_energy
+
 func _on_card_clicked(card_node: Area2D) -> void:
-	var card_data: Dictionary = card_node.card_data
-	var target_type: String = card_data.get("target", "enemy")
+	var card_data_val: Dictionary = card_node.card_data
+	var target_type: String = card_data_val.get("target", "enemy")
+
+	# Energy check before allowing selection
+	if not _can_afford_card(card_data_val):
+		return
 
 	# Self/all_enemies: auto-play immediately on tap
 	if target_type == "self" or target_type == "all_enemies":
@@ -261,13 +279,21 @@ func is_targeting() -> bool:
 # ---- Drag-to-play handlers ----
 
 func _on_card_drag_started(card_node: Area2D) -> void:
+	# Energy check before allowing drag
+	if not _can_afford_card(card_node.card_data):
+		# Cancel the drag and snap card back
+		card_node._is_dragging = false
+		card_node._is_pressed = false
+		card_node._press_time = 0.0
+		update_layout()
+		return
 	# Deselect previous if any
 	if selected_card != null and is_instance_valid(selected_card) and selected_card != card_node:
 		selected_card.set_selected(false)
 	selected_card = card_node
 	card_node.set_selected(true)
 	targeting_mode = true
-	# Card follows mouse in its own _process, so don't update layout for it
+	# Card stays in place — targeting arrow shown by battle_manager
 	card_node.z_index = 200
 
 func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:

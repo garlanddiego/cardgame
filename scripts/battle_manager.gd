@@ -464,6 +464,7 @@ func start_player_turn() -> void:
 		end_turn_btn.disabled = false
 	_show_turn_banner("YOUR TURN", Color(0.27, 0.8, 0.4))
 	if card_hand:
+		card_hand.current_battle_energy = current_energy
 		card_hand.update_card_playability(current_energy)
 	turn_started.emit(true)
 
@@ -522,6 +523,7 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	current_energy -= cost
 	_update_energy_label()
 	if card_hand:
+		card_hand.current_battle_energy = current_energy
 		card_hand.update_card_playability(current_energy)
 
 	# Remove from hand tracking
@@ -842,6 +844,8 @@ func _activate_power(power_name: String) -> void:
 			flame_barrier_active = true
 		"corruption":
 			corruption_active = true
+			if card_hand:
+				card_hand.corruption_active = true
 		"berserk":
 			berserk_active = true
 			# Apply 1 Vulnerable to self
@@ -1458,18 +1462,42 @@ func _setup_pile_viewer() -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pile_viewer.add_child(title)
 
-	# Scroll container for card list
+	# Close button (X) top-right
+	var close_btn = Button.new()
+	close_btn.name = "CloseButton"
+	close_btn.text = "X"
+	close_btn.position = Vector2(1920 - 80, 15)
+	close_btn.custom_minimum_size = Vector2(50, 50)
+	close_btn.add_theme_font_size_override("font_size", 28)
+	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	var close_sb = StyleBoxFlat.new()
+	close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
+	close_sb.corner_radius_top_left = 8
+	close_sb.corner_radius_top_right = 8
+	close_sb.corner_radius_bottom_left = 8
+	close_sb.corner_radius_bottom_right = 8
+	close_btn.add_theme_stylebox_override("normal", close_sb)
+	var close_hover = close_sb.duplicate() as StyleBoxFlat
+	close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
+	close_btn.add_theme_stylebox_override("hover", close_hover)
+	close_btn.pressed.connect(func(): _pile_viewer.visible = false)
+	_pile_viewer.add_child(close_btn)
+
+	# Scroll container for card grid
 	var scroll = ScrollContainer.new()
 	scroll.name = "Scroll"
-	scroll.position = Vector2(100, 80)
-	scroll.size = Vector2(1720, 940)
+	scroll.position = Vector2(60, 80)
+	scroll.size = Vector2(1800, 940)
 	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_pile_viewer.add_child(scroll)
 
-	var vbox = VBoxContainer.new()
-	vbox.name = "CardList"
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(vbox)
+	var grid = GridContainer.new()
+	grid.name = "CardGrid"
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 20)
+	grid.add_theme_constant_override("v_separation", 20)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(grid)
 
 func _on_draw_pile_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -1494,10 +1522,10 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 		title_label_node.text = "%s (%d张)" % [title, pile.size()]
 
 	# Clear old cards
-	var vbox = _pile_viewer.get_node_or_null("Scroll/CardList") as VBoxContainer
-	if vbox == null:
+	var grid = _pile_viewer.get_node_or_null("Scroll/CardGrid") as GridContainer
+	if grid == null:
 		return
-	for c in vbox.get_children():
+	for c in grid.get_children():
 		c.queue_free()
 
 	# Sort cards by type then name
@@ -1509,78 +1537,118 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 	)
 
 	var loc = _get_loc()
+	var mini_size := Vector2(200, 270)
 
-	# Add each card as a row
-	for card_data in sorted_pile:
-		var row = HBoxContainer.new()
-		row.custom_minimum_size = Vector2(0, 50)
+	# Add each card as a mini card visual in the grid
+	for cd in sorted_pile:
+		var card_panel = Panel.new()
+		card_panel.custom_minimum_size = mini_size
+		card_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-		var card_type: int = card_data.get("type", 0)
-		var type_color: Color
+		var card_type: int = cd.get("type", 0)
+		var bg_color: Color
+		var border_color: Color
 		var type_name: String
 		match card_type:
 			0:
-				type_color = Color(0.9, 0.3, 0.3)
+				bg_color = Color(0.25, 0.08, 0.08, 0.95)
+				border_color = Color(0.8, 0.2, 0.2, 1.0)
 				type_name = "攻击"
 			1:
-				type_color = Color(0.3, 0.8, 0.4)
+				bg_color = Color(0.08, 0.18, 0.08, 0.95)
+				border_color = Color(0.2, 0.7, 0.3, 1.0)
 				type_name = "技能"
 			2:
-				type_color = Color(0.5, 0.4, 1.0)
+				bg_color = Color(0.12, 0.08, 0.22, 0.95)
+				border_color = Color(0.4, 0.3, 0.9, 1.0)
 				type_name = "能力"
 			_:
-				type_color = Color(0.6, 0.6, 0.6)
+				bg_color = Color(0.15, 0.15, 0.15, 0.95)
+				border_color = Color(0.5, 0.5, 0.5, 1.0)
 				type_name = "状态"
 
-		# Cost
-		var cost_lbl = Label.new()
-		cost_lbl.text = "[%s]" % (str(card_data.get("cost", 0)) if card_data.get("cost", 0) >= 0 else "X")
-		cost_lbl.custom_minimum_size = Vector2(60, 0)
-		cost_lbl.add_theme_font_size_override("font_size", 22)
-		cost_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.5))
-		row.add_child(cost_lbl)
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = bg_color
+		sb.border_color = border_color
+		sb.border_width_left = 3
+		sb.border_width_right = 3
+		sb.border_width_top = 3
+		sb.border_width_bottom = 3
+		sb.corner_radius_top_left = 8
+		sb.corner_radius_top_right = 8
+		sb.corner_radius_bottom_left = 8
+		sb.corner_radius_bottom_right = 8
+		card_panel.add_theme_stylebox_override("panel", sb)
 
-		# Name
-		var card_name: String = card_data.get("name", "?")
+		# Cost (top-left)
+		var cost_val: int = cd.get("cost", 0)
+		var cost_lbl = Label.new()
+		cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+		cost_lbl.position = Vector2(8, 4)
+		cost_lbl.add_theme_font_size_override("font_size", 20)
+		cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+		cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_panel.add_child(cost_lbl)
+
+		# Name (centered)
+		var card_name: String = cd.get("name", "?")
 		if loc and loc.has_method("card_name"):
-			card_name = loc.card_name(card_data)
+			card_name = loc.card_name(cd)
 		var name_lbl = Label.new()
 		name_lbl.text = card_name
-		name_lbl.custom_minimum_size = Vector2(200, 0)
-		name_lbl.add_theme_font_size_override("font_size", 22)
-		name_lbl.add_theme_color_override("font_color", type_color)
-		row.add_child(name_lbl)
+		name_lbl.position = Vector2(6, 30)
+		name_lbl.size = Vector2(mini_size.x - 12, 28)
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.add_theme_font_size_override("font_size", 15)
+		name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
+		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_panel.add_child(name_lbl)
 
-		# Type
+		# Type label
 		var type_lbl = Label.new()
 		type_lbl.text = type_name
-		type_lbl.custom_minimum_size = Vector2(80, 0)
-		type_lbl.add_theme_font_size_override("font_size", 18)
-		type_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-		row.add_child(type_lbl)
+		type_lbl.position = Vector2(6, 58)
+		type_lbl.size = Vector2(mini_size.x - 12, 18)
+		type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		type_lbl.add_theme_font_size_override("font_size", 11)
+		type_lbl.add_theme_color_override("font_color", border_color)
+		type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_panel.add_child(type_lbl)
 
 		# Stats
-		var dmg: int = card_data.get("damage", 0)
-		var blk: int = card_data.get("block", 0)
+		var dmg: int = cd.get("damage", 0)
+		var blk: int = cd.get("block", 0)
 		var stat_text: String = ""
-		if dmg > 0: stat_text += "⚔%d " % dmg
-		if blk > 0: stat_text += "🛡%d " % blk
-		var stat_lbl = Label.new()
-		stat_lbl.text = stat_text
-		stat_lbl.custom_minimum_size = Vector2(120, 0)
-		stat_lbl.add_theme_font_size_override("font_size", 20)
-		stat_lbl.add_theme_color_override("font_color", Color(1, 1, 1))
-		row.add_child(stat_lbl)
+		if dmg > 0 and blk > 0:
+			stat_text = "⚔ %d   🛡 %d" % [dmg, blk]
+		elif dmg > 0:
+			stat_text = "⚔ %d" % dmg
+		elif blk > 0:
+			stat_text = "🛡 %d" % blk
+		if stat_text != "":
+			var stat_lbl = Label.new()
+			stat_lbl.text = stat_text
+			stat_lbl.position = Vector2(6, 85)
+			stat_lbl.size = Vector2(mini_size.x - 12, 30)
+			stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			stat_lbl.add_theme_font_size_override("font_size", 20)
+			stat_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+			stat_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card_panel.add_child(stat_lbl)
 
-		# Description
-		var desc: String = card_data.get("description", "")
+		# Description (bottom half, short)
+		var desc: String = cd.get("description", "")
 		if loc and loc.has_method("card_desc"):
-			desc = loc.card_desc(card_data)
-		var desc_lbl = Label.new()
-		desc_lbl.text = desc.replace("\n", " ")
-		desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		desc_lbl.add_theme_font_size_override("font_size", 16)
-		desc_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.75))
-		row.add_child(desc_lbl)
+			desc = loc.card_desc(cd)
+		if desc != "":
+			var desc_lbl = Label.new()
+			desc_lbl.text = desc
+			desc_lbl.position = Vector2(8, 125)
+			desc_lbl.size = Vector2(mini_size.x - 16, mini_size.y - 135)
+			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc_lbl.add_theme_font_size_override("font_size", 11)
+			desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.8))
+			desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card_panel.add_child(desc_lbl)
 
-		vbox.add_child(row)
+		grid.add_child(card_panel)

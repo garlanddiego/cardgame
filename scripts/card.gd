@@ -369,10 +369,8 @@ func _process(delta: float) -> void:
 			_is_pressed = false
 			_press_time = 0.0
 			card_long_pressed.emit(self)
-	# During drag, follow mouse position
-	if _is_dragging:
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		position = mouse_pos - Vector2(CARD_SIZE.x / 2.0, CARD_SIZE.y / 2.0)
+	# During drag, card stays in place — targeting arrow is shown by battle_manager
+	# (no position update here)
 
 # ---- Signal handlers ----
 
