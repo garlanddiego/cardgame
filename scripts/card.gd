@@ -216,10 +216,10 @@ func _apply_fallback_texture() -> void:
 	var W: float = CARD_SIZE.x  # 320
 	var H: float = CARD_SIZE.y  # 430
 
-	# Hide default background
+	# Dark background behind frame (hides white frame edges)
 	var card_bg = card_visual.get_node_or_null("CardBackground") as ColorRect
 	if card_bg:
-		card_bg.visible = false
+		card_bg.color = Color(0.08, 0.06, 0.04, 1.0)
 
 	# === FRAME TEXTURE (full card size, decorative border) ===
 	if ResourceLoader.exists(frame_path):
@@ -232,12 +232,12 @@ func _apply_fallback_texture() -> void:
 		frame_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card_visual.add_child(frame_img)
 
-	# === ART IMAGE (inside the frame's art area) ===
-	# Art area on frame: approximately x:24-296 y:50-240 (272x190)
-	var art_x: float = 24.0
-	var art_y: float = 50.0
-	var art_w: float = W - 48.0  # 272
-	var art_h: float = 190.0
+	# === ART IMAGE (tightly inside the frame's gold inner border) ===
+	# Frame inner art area: x:30-290, y:50-225 (tighter fit)
+	var art_x: float = 30.0
+	var art_y: float = 52.0
+	var art_w: float = 260.0
+	var art_h: float = 172.0
 	var card_id: String = card_data.get("id", "")
 	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
 	if ResourceLoader.exists(art_path):
@@ -256,8 +256,8 @@ func _apply_fallback_texture() -> void:
 	var cost_lbl = Label.new()
 	cost_lbl.name = "FallbackCost"
 	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
-	cost_lbl.position = Vector2(10, 6)
-	cost_lbl.size = Vector2(30, 30)
+	cost_lbl.position = Vector2(5, 4)
+	cost_lbl.size = Vector2(34, 34)
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_font_size_override("font_size", 18)
@@ -274,8 +274,8 @@ func _apply_fallback_texture() -> void:
 	var name_lbl = Label.new()
 	name_lbl.name = "FallbackName"
 	name_lbl.text = card_name
-	name_lbl.position = Vector2(40, 8)
-	name_lbl.size = Vector2(W - 50, 32)
+	name_lbl.position = Vector2(38, 6)
+	name_lbl.size = Vector2(250, 30)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_font_size_override("font_size", 14)
@@ -288,8 +288,8 @@ func _apply_fallback_texture() -> void:
 	var type_lbl = Label.new()
 	type_lbl.name = "FallbackType"
 	type_lbl.text = type_name
-	type_lbl.position = Vector2(0, 245)
-	type_lbl.size = Vector2(W, 20)
+	type_lbl.position = Vector2(28, 232)
+	type_lbl.size = Vector2(264, 18)
 	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_lbl.add_theme_font_size_override("font_size", 11)
 	type_lbl.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
@@ -297,30 +297,10 @@ func _apply_fallback_texture() -> void:
 	type_lbl.z_index = 5
 	card_visual.add_child(type_lbl)
 
-	# === DESCRIPTION (bottom area, inside the description frame) ===
-	var desc_y: float = 270.0
-	var dmg: int = card_data.get("damage", 0)
-	var blk: int = card_data.get("block", 0)
-	var stat_text: String = ""
-	if dmg > 0 and blk > 0:
-		stat_text = "⚔ %d   🛡 %d" % [dmg, blk]
-	elif dmg > 0:
-		stat_text = "⚔ %d" % dmg
-	elif blk > 0:
-		stat_text = "🛡 %d" % blk
-	if stat_text != "":
-		var stat_lbl = Label.new()
-		stat_lbl.name = "FallbackStats"
-		stat_lbl.text = stat_text
-		stat_lbl.position = Vector2(10, 140)
-		stat_lbl.size = Vector2(CARD_SIZE.x - 20, 50)
-		stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		stat_lbl.add_theme_font_size_override("font_size", 32)
-		stat_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-		stat_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_visual.add_child(stat_lbl)
+	# === DESCRIPTION (inside bottom gold frame: y:258-410) ===
+	# Description area in frame: x:28-292, y:258-410
 
-	# Description text (bottom half)
+	# Description text — centered in bottom frame area (y:258-410)
 	var desc: String = card_data.get("description", "")
 	if loc and loc.has_method("card_desc"):
 		desc = loc.card_desc(card_data)
@@ -328,12 +308,15 @@ func _apply_fallback_texture() -> void:
 		var desc_lbl = Label.new()
 		desc_lbl.name = "FallbackDesc"
 		desc_lbl.text = desc
-		desc_lbl.position = Vector2(16, 210)
-		desc_lbl.size = Vector2(CARD_SIZE.x - 32, CARD_SIZE.y - 230)
+		desc_lbl.position = Vector2(30, 260)
+		desc_lbl.size = Vector2(260, 148)
+		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.add_theme_font_size_override("font_size", 14)
-		desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.8))
+		desc_lbl.add_theme_font_size_override("font_size", 12)
+		desc_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
 		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		desc_lbl.z_index = 5
 		card_visual.add_child(desc_lbl)
 
 func set_selected(selected: bool) -> void:
