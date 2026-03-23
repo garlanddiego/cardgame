@@ -3,6 +3,7 @@ extends Node2D
 ## Refactored to use Area2D-based Card class with drag interaction
 
 signal card_played(card_data: Dictionary, target: Node2D)
+signal card_drag_released(card_node: Area2D, release_position: Vector2)
 
 var cards: Array = []
 var selected_card: Area2D = null
@@ -36,6 +37,8 @@ func add_card(card_data: Dictionary) -> void:
 	card.card_focused.connect(_on_card_hovered)
 	card.card_unfocused.connect(_on_card_unhovered)
 	card.card_long_pressed.connect(_on_card_long_pressed)
+	card.card_drag_started.connect(_on_card_drag_started)
+	card.card_drag_ended.connect(_on_card_drag_ended)
 	update_layout()
 
 func remove_card(card_node: Area2D) -> void:
@@ -50,6 +53,10 @@ func remove_card(card_node: Area2D) -> void:
 			card_node.card_unfocused.disconnect(_on_card_unhovered)
 		if card_node.card_long_pressed.is_connected(_on_card_long_pressed):
 			card_node.card_long_pressed.disconnect(_on_card_long_pressed)
+		if card_node.card_drag_started.is_connected(_on_card_drag_started):
+			card_node.card_drag_started.disconnect(_on_card_drag_started)
+		if card_node.card_drag_ended.is_connected(_on_card_drag_ended):
+			card_node.card_drag_ended.disconnect(_on_card_drag_ended)
 		card_node.queue_free()
 		if selected_card == card_node:
 			selected_card = null
@@ -214,6 +221,10 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 			card_node.card_unfocused.disconnect(_on_card_unhovered)
 		if card_node.card_long_pressed.is_connected(_on_card_long_pressed):
 			card_node.card_long_pressed.disconnect(_on_card_long_pressed)
+		if card_node.card_drag_started.is_connected(_on_card_drag_started):
+			card_node.card_drag_started.disconnect(_on_card_drag_started)
+		if card_node.card_drag_ended.is_connected(_on_card_drag_ended):
+			card_node.card_drag_ended.disconnect(_on_card_drag_ended)
 		# Remove after animation completes
 		var tween = create_tween()
 		tween.tween_interval(0.15)
@@ -246,3 +257,26 @@ func get_selected_card_data() -> Dictionary:
 
 func is_targeting() -> bool:
 	return targeting_mode
+
+# ---- Drag-to-play handlers ----
+
+func _on_card_drag_started(card_node: Area2D) -> void:
+	# Deselect previous if any
+	if selected_card != null and is_instance_valid(selected_card) and selected_card != card_node:
+		selected_card.set_selected(false)
+	selected_card = card_node
+	card_node.set_selected(true)
+	targeting_mode = true
+	# Card follows mouse in its own _process, so don't update layout for it
+	card_node.z_index = 200
+
+func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:
+	# Emit signal for battle_manager to resolve the target at release position
+	var card_data: Dictionary = card_node.card_data
+	var target_type: String = card_data.get("target", "enemy")
+	# Self/all_enemies: auto-play on drag release anywhere
+	if target_type == "self" or target_type == "all_enemies":
+		card_played_tap.emit(card_node)
+		return
+	# Enemy-targeted: let battle_manager resolve
+	card_drag_released.emit(card_node, release_position)

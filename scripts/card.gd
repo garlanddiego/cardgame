@@ -7,6 +7,8 @@ signal card_clicked(card_node: Area2D)
 signal card_focused(card_node: Area2D)
 signal card_unfocused(card_node: Area2D)
 signal card_long_pressed(card_node: Area2D)
+signal card_drag_started(card_node: Area2D)
+signal card_drag_ended(card_node: Area2D, release_position: Vector2)
 
 enum CardState {
 	IN_HAND,
@@ -32,8 +34,11 @@ var _is_pressed: bool = false
 var _press_time: float = 0.0
 var _press_start_pos: Vector2 = Vector2.ZERO
 var _long_press_fired: bool = false
+var _is_dragging: bool = false
 const LONG_PRESS_TIME: float = 0.5  # 500ms for long press (card detail)
-const TAP_MOVE_THRESHOLD: float = 20.0  # Max movement for a tap
+const TAP_MOVE_THRESHOLD: float = 15.0  # Max movement for a tap
+const DRAG_TIME_THRESHOLD: float = 0.2  # 200ms hold to start drag
+const DRAG_MOVE_THRESHOLD: float = 15.0  # 15px movement to start drag
 
 # Child node references (populated in _ready or after build)
 var collision_shape: CollisionShape2D = null
@@ -350,14 +355,24 @@ func set_state(new_state: int) -> void:
 # ---- Tap-to-select and long-press handling ----
 
 func _process(delta: float) -> void:
-	if _is_pressed and not _long_press_fired:
+	if _is_pressed and not _long_press_fired and not _is_dragging:
 		_press_time += delta
-		# Check for long press (card detail popup)
-		if _press_time >= LONG_PRESS_TIME:
+		# Check if drag should start (time OR distance threshold)
+		var current_mouse: Vector2 = get_viewport().get_mouse_position()
+		var dist: float = _press_start_pos.distance_to(current_mouse)
+		if _press_time >= DRAG_TIME_THRESHOLD or dist >= DRAG_MOVE_THRESHOLD:
+			_is_dragging = true
+			card_drag_started.emit(self)
+		# Check for long press only if not dragging and finger hasn't moved
+		elif _press_time >= LONG_PRESS_TIME and dist < TAP_MOVE_THRESHOLD:
 			_long_press_fired = true
 			_is_pressed = false
 			_press_time = 0.0
 			card_long_pressed.emit(self)
+	# During drag, follow mouse position
+	if _is_dragging:
+		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+		position = mouse_pos - Vector2(CARD_SIZE.x / 2.0, CARD_SIZE.y / 2.0)
 
 # ---- Signal handlers ----
 
@@ -377,15 +392,31 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 				_is_pressed = true
 				_press_time = 0.0
 				_long_press_fired = false
+				_is_dragging = false
 				_press_start_pos = event.global_position
 			elif not event.pressed:
-				if _is_pressed and not _long_press_fired:
-					# Check if finger moved too far (would be a swipe, not tap)
+				if _is_dragging:
+					# End drag — emit release position
+					_is_dragging = false
+					_is_pressed = false
+					_press_time = 0.0
+					card_drag_ended.emit(self, event.global_position)
+				elif _is_pressed and not _long_press_fired:
+					# Quick tap — check if finger moved too far
 					var dist: float = _press_start_pos.distance_to(event.global_position)
 					if dist < TAP_MOVE_THRESHOLD:
 						card_clicked.emit(self)
 				_is_pressed = false
 				_press_time = 0.0
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Catch mouse release outside the card area during drag
+	if _is_dragging and event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			_is_dragging = false
+			_is_pressed = false
+			_press_time = 0.0
+			card_drag_ended.emit(self, event.global_position)
 
 func _get_loc() -> Node:
 	if not is_inside_tree():

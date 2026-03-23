@@ -86,6 +86,7 @@ func _ready() -> void:
 		card_hand.card_played.connect(_on_card_played)
 		card_hand.card_played_tap.connect(_on_card_tap_play)
 		card_hand.card_long_press_detail.connect(_on_card_long_press_detail)
+		card_hand.card_drag_released.connect(_on_card_drag_released)
 
 	# STS-style chain targeting arrow — circles along bezier curve
 	_targeting_arrow = preload("res://scripts/targeting_arrow.gd").new()
@@ -130,6 +131,8 @@ func _exit_tree() -> void:
 			card_hand.card_played_tap.disconnect(_on_card_tap_play)
 		if card_hand.card_long_press_detail.is_connected(_on_card_long_press_detail):
 			card_hand.card_long_press_detail.disconnect(_on_card_long_press_detail)
+		if card_hand.card_drag_released.is_connected(_on_card_drag_released):
+			card_hand.card_drag_released.disconnect(_on_card_drag_released)
 
 func _style_end_turn_button() -> void:
 	# Per VISUAL_DESIGN_SPEC section 4.6: 220x56, warm orange, gold border
@@ -1195,6 +1198,28 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 		card_hand.play_selected_on(player)
 	elif target_type == "all_enemies" and not enemies.is_empty():
 		card_hand.play_selected_on(enemies[0])
+
+func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
+	# Handle drag release — check if released over an enemy
+	if not battle_active or not is_player_turn:
+		return
+	_clear_damage_previews()
+	_clear_all_enemy_highlights()
+	_hovered_enemy = null
+	if _targeting_arrow:
+		_targeting_arrow.hide_arrow()
+		_targeting_arrow.visible = false
+	var target_enemy = _get_enemy_at(release_position)
+	if target_enemy and target_enemy.alive:
+		# Play card on this enemy
+		card_hand.play_card_on(card_node, target_enemy)
+	else:
+		# No valid target — snap card back to hand
+		if card_node and is_instance_valid(card_node):
+			card_node.set_selected(false)
+		card_hand.selected_card = null
+		card_hand.targeting_mode = false
+		card_hand.update_layout()
 
 func _highlight_enemy(enemy: Node2D) -> void:
 	enemy.modulate = Color(1.2, 1.2, 1.0)  # Bright warm highlight on hover
