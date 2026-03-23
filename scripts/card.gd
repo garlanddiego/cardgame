@@ -232,8 +232,7 @@ func _apply_fallback_texture() -> void:
 		frame_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card_visual.add_child(frame_img)
 
-	# === ART IMAGE (tightly inside the frame's gold inner border) ===
-	# Frame inner art area: x:30-290, y:50-225 (tighter fit)
+	# === ART IMAGE (clipped inside frame's gold inner border) ===
 	var art_x: float = 30.0
 	var art_y: float = 52.0
 	var art_w: float = 260.0
@@ -241,15 +240,24 @@ func _apply_fallback_texture() -> void:
 	var card_id: String = card_data.get("id", "")
 	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
 	if ResourceLoader.exists(art_path):
+		# Clip container to prevent overflow
+		var art_clip = Control.new()
+		art_clip.name = "ArtClip"
+		art_clip.position = Vector2(art_x, art_y)
+		art_clip.size = Vector2(art_w, art_h)
+		art_clip.clip_contents = true
+		art_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.add_child(art_clip)
+		# Art image fills the clip area
 		var art_img = TextureRect.new()
 		art_img.name = "CardArt"
-		art_img.position = Vector2(art_x, art_y)
+		art_img.position = Vector2.ZERO
 		art_img.size = Vector2(art_w, art_h)
 		art_img.texture = load(art_path)
 		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		art_img.stretch_mode = TextureRect.STRETCH_SCALE
 		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_visual.add_child(art_img)
+		art_clip.add_child(art_img)
 
 	# === COST (top-left, on the energy gem) ===
 	var cost_val: int = card_data.get("cost", 0)
