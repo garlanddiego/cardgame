@@ -73,7 +73,10 @@ static func _build_sts_card_map() -> void:
 	var page := 1
 	var card_on_page := 1
 	var cards_per_page := 18
+	var max_page := 3  # Only pages 1-3 are base cards
 	for card_id in ordered_ids:
+		if page > max_page:
+			break
 		var img_path := "res://assets/img/sts_cards/page%d_card%02d.png" % [page, card_on_page]
 		_sts_card_map[card_id] = img_path
 		card_on_page += 1

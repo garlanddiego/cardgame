@@ -7,16 +7,12 @@ func _initialize() -> void:
 	root.name = "Battle"
 	root.set_script(load("res://scripts/battle_manager.gd"))
 
-	# Background - dungeon image as Sprite2D (TextureRect doesn't work in Node2D)
-	var bg = Sprite2D.new()
+	# Grey background
+	var bg = ColorRect.new()
 	bg.name = "Background"
-	bg.texture = load("res://assets/img/sts_sprites/battle_bg_clean.png")
-	bg.centered = false
-	# Scale to fill 1920x1080
-	if bg.texture:
-		var tex_size: Vector2 = bg.texture.get_size()
-		if tex_size.x > 0 and tex_size.y > 0:
-			bg.scale = Vector2(1920.0 / tex_size.x, 1080.0 / tex_size.y)
+	bg.color = Color(0.25, 0.25, 0.28)
+	bg.position = Vector2.ZERO
+	bg.size = Vector2(1920, 1080)
 	bg.z_index = -10
 	root.add_child(bg)
 

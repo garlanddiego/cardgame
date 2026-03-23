@@ -29,7 +29,8 @@ func _build_sts_card_map() -> void:
 	if _sts_card_map.size() > 0:
 		return
 	# Images are at assets/img/sts_cards/page{N}_card{MM}.png
-	# 82 images total across 5 pages, mapped in grid sort order (type then name)
+	# Only pages 1-3 (54 cards) are base cards; pages 4-5 are upgraded versions
+	# Map first 54 card IDs to pages 1-3
 	var ordered_ids: Array = [
 		# ATTACKS (type 0) — sorted by name
 		"ic_anger", "ic_bash", "ic_blood_for_blood", "ic_bludgeon", "ic_body_slam",
@@ -54,11 +55,14 @@ func _build_sts_card_map() -> void:
 		"ic_rage", "ic_rupture",
 	]
 
-	# Generate sequential page/card filenames
+	# Map first 54 IDs to pages 1-3 (base cards only)
 	var page := 1
 	var card_on_page := 1
 	var cards_per_page := 18
+	var max_page := 3  # Only pages 1-3 are base cards
 	for card_id in ordered_ids:
+		if page > max_page:
+			break  # Skip remaining IDs (no base card image)
 		var img_path := "res://assets/img/sts_cards/page%d_card%02d.png" % [page, card_on_page]
 		_sts_card_map[card_id] = img_path
 		card_on_page += 1
