@@ -180,10 +180,10 @@ func _setup_player(character_id: String, gm: Node) -> void:
 		var tex = load(char_data["sprite"])
 		if tex:
 			sprite.texture = tex
-			# Scale to ~450px tall (large STS-like proportions)
+			# Scale to ~600px tall (large STS-like proportions)
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
-				var scale_factor: float = 450.0 / tex_height
+				var scale_factor: float = 600.0 / tex_height
 				sprite.scale = Vector2(scale_factor, scale_factor)
 	var nlabel = player.get_node_or_null("NameLabel") as Label
 	if nlabel:
@@ -203,16 +203,14 @@ func _setup_enemies() -> void:
 		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/sts_sprites/enemy_jaw_worm_clean.png", "scale_h": 380.0},
 		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/sts_sprites/enemy_cultist_clean.png", "scale_h": 400.0}
 	}
-	var selected_enemies: Array = ["slime", "cultist", "jaw_worm"]
-	for i in range(3):
+	var selected_enemies: Array = ["slime"]
+	for i in range(1):
 		var etype: String = selected_enemies[i]
 		var config = enemy_configs[etype]
 		var enemy = _create_entity_node(true)
 		enemy.init_entity(config["hp"], true, etype)
-		# Horizontal spread, grounded at same level, slight stagger for depth
-		var x_offsets = [0, 220, 440]
-		var y_offsets = [0, -10, 10]  # Subtle stagger for depth
-		enemy.position = Vector2(x_offsets[i], y_offsets[i])
+		# Single enemy centered in enemy area
+		enemy.position = Vector2(150, 0)
 		# Set sprite
 		var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
 		if sprite:
@@ -297,13 +295,13 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	hp_lbl.add_theme_color_override("font_color", Color(0.949, 0.929, 0.847, 1.0))  # text_primary
 	entity.add_child(hp_lbl)
 
-	# Block label (shield icon area)
+	# Block label (shield icon area) — positioned near HP bar for visibility
 	var block_lbl = Label.new()
 	block_lbl.name = "BlockLabel"
 	block_lbl.text = "0"
-	block_lbl.position = Vector2(-60, -50)
-	block_lbl.add_theme_font_size_override("font_size", 16)
-	block_lbl.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0))
+	block_lbl.position = Vector2(hp_bar_width / 2.0 + 6, 126)
+	block_lbl.add_theme_font_size_override("font_size", 18)
+	block_lbl.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0))
 	block_lbl.visible = false
 	entity.add_child(block_lbl)
 

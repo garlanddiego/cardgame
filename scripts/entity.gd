@@ -183,8 +183,26 @@ func _update_block_display() -> void:
 	if block_label == null:
 		return
 	if block > 0:
-		block_label.text = str(block)
+		block_label.text = " " + str(block) + " "
 		block_label.visible = true
+		# Ensure blue background panel is applied for visibility
+		if not block_label.has_theme_stylebox_override("normal"):
+			var block_bg = StyleBoxFlat.new()
+			block_bg.bg_color = Color(0.15, 0.3, 0.7, 0.9)
+			block_bg.border_color = Color(0.4, 0.6, 1.0, 1.0)
+			block_bg.border_width_left = 2
+			block_bg.border_width_right = 2
+			block_bg.border_width_top = 2
+			block_bg.border_width_bottom = 2
+			block_bg.corner_radius_top_left = 6
+			block_bg.corner_radius_top_right = 6
+			block_bg.corner_radius_bottom_left = 6
+			block_bg.corner_radius_bottom_right = 6
+			block_bg.content_margin_left = 4
+			block_bg.content_margin_right = 4
+			block_bg.content_margin_top = 2
+			block_bg.content_margin_bottom = 2
+			block_label.add_theme_stylebox_override("normal", block_bg)
 	else:
 		block_label.visible = false
 
