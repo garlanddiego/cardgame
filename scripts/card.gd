@@ -197,10 +197,9 @@ func _apply_card_data() -> void:
 	_apply_fallback_texture()
 
 func _apply_fallback_texture() -> void:
-	# Render a text-based card when no STS image exists
+	# Render card with: image (upper half) + name + cost + type + description
 	if card_visual == null:
 		return
-	# Hide STS image since we'll draw text instead
 	if sts_card_image:
 		sts_card_image.visible = false
 
@@ -210,28 +209,27 @@ func _apply_fallback_texture() -> void:
 	var type_name: String
 	match card_type:
 		0:  # Attack
-			bg_color = Color(0.25, 0.08, 0.08, 0.95)
+			bg_color = Color(0.20, 0.06, 0.06, 0.95)
 			border_color = Color(0.8, 0.2, 0.2, 1.0)
 			type_name = "攻击"
 		1:  # Skill
-			bg_color = Color(0.08, 0.18, 0.08, 0.95)
+			bg_color = Color(0.06, 0.15, 0.06, 0.95)
 			border_color = Color(0.2, 0.7, 0.3, 1.0)
 			type_name = "技能"
 		2:  # Power
-			bg_color = Color(0.12, 0.08, 0.22, 0.95)
+			bg_color = Color(0.10, 0.06, 0.20, 0.95)
 			border_color = Color(0.4, 0.3, 0.9, 1.0)
 			type_name = "能力"
 		_:
-			bg_color = Color(0.15, 0.15, 0.15, 0.95)
+			bg_color = Color(0.12, 0.12, 0.12, 0.95)
 			border_color = Color(0.5, 0.5, 0.5, 1.0)
 			type_name = "状态"
 
-	# Card background with colored border
 	var card_bg = card_visual.get_node_or_null("CardBackground") as ColorRect
 	if card_bg:
 		card_bg.color = bg_color
 
-	# Border panel
+	# Border
 	var border = Panel.new()
 	border.name = "FallbackBorder"
 	border.position = Vector2.ZERO
@@ -240,29 +238,33 @@ func _apply_fallback_texture() -> void:
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0)
 	sb.border_color = border_color
-	sb.border_width_left = 4
-	sb.border_width_right = 4
-	sb.border_width_top = 4
-	sb.border_width_bottom = 4
-	sb.corner_radius_top_left = 12
-	sb.corner_radius_top_right = 12
-	sb.corner_radius_bottom_left = 12
-	sb.corner_radius_bottom_right = 12
+	sb.border_width_left = 3
+	sb.border_width_right = 3
+	sb.border_width_top = 3
+	sb.border_width_bottom = 3
+	sb.corner_radius_top_left = 10
+	sb.corner_radius_top_right = 10
+	sb.corner_radius_bottom_left = 10
+	sb.corner_radius_bottom_right = 10
 	border.add_theme_stylebox_override("panel", sb)
 	card_visual.add_child(border)
 
-	# Cost circle (top-left)
+	# --- TOP: Cost (top-left corner) ---
 	var cost_val: int = card_data.get("cost", 0)
 	var cost_lbl = Label.new()
 	cost_lbl.name = "FallbackCost"
 	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
-	cost_lbl.position = Vector2(12, 8)
-	cost_lbl.add_theme_font_size_override("font_size", 28)
-	cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+	cost_lbl.position = Vector2(10, 4)
+	cost_lbl.add_theme_font_size_override("font_size", 24)
+	cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	cost_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	cost_lbl.add_theme_constant_override("shadow_offset_x", 1)
+	cost_lbl.add_theme_constant_override("shadow_offset_y", 1)
 	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_lbl.z_index = 5
 	card_visual.add_child(cost_lbl)
 
-	# Card name (centered, top area)
+	# --- TOP: Card name (centered) ---
 	var loc = _get_loc()
 	var card_name: String = card_data.get("name", "???")
 	if loc and loc.has_method("card_name"):
@@ -270,27 +272,50 @@ func _apply_fallback_texture() -> void:
 	var name_lbl = Label.new()
 	name_lbl.name = "FallbackName"
 	name_lbl.text = card_name
-	name_lbl.position = Vector2(10, 50)
-	name_lbl.size = Vector2(CARD_SIZE.x - 20, 40)
+	name_lbl.position = Vector2(6, 4)
+	name_lbl.size = Vector2(CARD_SIZE.x - 12, 28)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 22)
+	name_lbl.add_theme_font_size_override("font_size", 18)
 	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
+	name_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	name_lbl.add_theme_constant_override("shadow_offset_x", 1)
+	name_lbl.add_theme_constant_override("shadow_offset_y", 1)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.z_index = 5
 	card_visual.add_child(name_lbl)
 
-	# Type label
+	# --- UPPER HALF: Card art image ---
+	var card_id: String = card_data.get("id", "")
+	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
+	var img_top: float = 32.0
+	var img_height: float = CARD_SIZE.y * 0.48  # ~48% of card height
+	var img_width: float = CARD_SIZE.x - 12.0
+	if ResourceLoader.exists(art_path):
+		var art_img = TextureRect.new()
+		art_img.name = "CardArt"
+		art_img.position = Vector2(6, img_top)
+		art_img.size = Vector2(img_width, img_height)
+		art_img.texture = load(art_path)
+		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_img.stretch_mode = TextureRect.STRETCH_SCALE
+		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.add_child(art_img)
+
+	# --- MIDDLE: Type label (below image) ---
+	var type_y: float = img_top + img_height + 2
 	var type_lbl = Label.new()
 	type_lbl.name = "FallbackType"
 	type_lbl.text = type_name
-	type_lbl.position = Vector2(10, 90)
-	type_lbl.size = Vector2(CARD_SIZE.x - 20, 24)
+	type_lbl.position = Vector2(6, type_y)
+	type_lbl.size = Vector2(CARD_SIZE.x - 12, 20)
 	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_lbl.add_theme_font_size_override("font_size", 14)
+	type_lbl.add_theme_font_size_override("font_size", 12)
 	type_lbl.add_theme_color_override("font_color", border_color)
 	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(type_lbl)
 
-	# Damage/Block stats (big numbers in center)
+	# --- BOTTOM: Description text ---
+	var desc_y: float = type_y + 22
 	var dmg: int = card_data.get("damage", 0)
 	var blk: int = card_data.get("block", 0)
 	var stat_text: String = ""
