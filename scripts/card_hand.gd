@@ -8,19 +8,17 @@ var cards: Array = []
 var selected_card: Area2D = null
 var hovered_card: Area2D = null
 var targeting_mode: bool = false
-var _dragging_card: Area2D = null
-var _drag_origin_pos: Vector2 = Vector2.ZERO
 
 var card_script: GDScript = null
 
-# STS-style layout — matching card.gd CARD_SIZE (260x350)
-const CARD_WIDTH: float = 260.0
-const CARD_HEIGHT: float = 350.0
-const CARD_OVERLAP: float = 30.0  # Slight edge overlap only (~30px)
-const HOVER_LIFT: float = -100.0  # Card lifts well above hand
+# STS-style layout — matching card.gd CARD_SIZE (320x430)
+const CARD_WIDTH: float = 320.0
+const CARD_HEIGHT: float = 430.0
+const CARD_OVERLAP: float = 60.0  # More overlap since cards are bigger
+const HOVER_LIFT: float = -140.0  # Card lifts well above hand
 const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
 const MAX_ROTATION: float = 8.0  # Fan arc
-const ARC_HEIGHT: float = 20.0  # Gentle curve
+const ARC_HEIGHT: float = 15.0  # Gentle curve
 const HAND_Y: float = 0.0
 
 func _ready() -> void:
@@ -37,19 +35,25 @@ func add_card(card_data: Dictionary) -> void:
 	card.card_clicked.connect(_on_card_clicked)
 	card.card_focused.connect(_on_card_hovered)
 	card.card_unfocused.connect(_on_card_unhovered)
-	card.card_drag_started.connect(_on_card_drag_started)
-	card.card_drag_ended.connect(_on_card_drag_ended)
+	card.card_long_pressed.connect(_on_card_long_pressed)
 	update_layout()
 
 func remove_card(card_node: Area2D) -> void:
 	if card_node in cards:
 		cards.erase(card_node)
+		# Disconnect signals before freeing
+		if card_node.card_clicked.is_connected(_on_card_clicked):
+			card_node.card_clicked.disconnect(_on_card_clicked)
+		if card_node.card_focused.is_connected(_on_card_hovered):
+			card_node.card_focused.disconnect(_on_card_hovered)
+		if card_node.card_unfocused.is_connected(_on_card_unhovered):
+			card_node.card_unfocused.disconnect(_on_card_unhovered)
+		if card_node.card_long_pressed.is_connected(_on_card_long_pressed):
+			card_node.card_long_pressed.disconnect(_on_card_long_pressed)
 		card_node.queue_free()
 		if selected_card == card_node:
 			selected_card = null
 			targeting_mode = false
-		if _dragging_card == card_node:
-			_dragging_card = null
 		update_layout()
 
 func clear_hand() -> void:
@@ -59,7 +63,6 @@ func clear_hand() -> void:
 	cards.clear()
 	selected_card = null
 	targeting_mode = false
-	_dragging_card = null
 
 func update_layout() -> void:
 	if cards.is_empty():
@@ -78,9 +81,6 @@ func update_layout() -> void:
 	for i in range(card_count):
 		var card = cards[i]
 		if not is_instance_valid(card):
-			continue
-		# Skip layout update for card being dragged
-		if card == _dragging_card:
 			continue
 		var t: float = 0.5
 		if card_count > 1:
@@ -102,10 +102,14 @@ func update_layout() -> void:
 		var target_rot := rot
 		var target_scale := Vector2.ONE
 
-		if card == hovered_card:
+		if card == selected_card:
+			target_pos.y += HOVER_LIFT - 30  # Selected card lifts even higher
+			target_rot = 0.0
+			target_scale = Vector2(1.4, 1.4)
+		elif card == hovered_card:
 			target_pos.y += HOVER_LIFT
 			target_rot = 0.0
-			target_scale = Vector2(1.3, 1.3)
+			target_scale = Vector2(1.4, 1.4)
 
 		# Use the card's move_to method for smooth animation
 		card.move_to(target_pos, target_rot, target_scale, 0.12)
@@ -113,65 +117,50 @@ func update_layout() -> void:
 		card.z_index = i
 		card.base_z_index = i
 
-		if card == hovered_card:
+		if card == selected_card:
+			card.z_index = 150
+		elif card == hovered_card:
 			card.z_index = 100
 
-# ---- Drag-to-target handlers ----
+# ---- Tap-to-select handlers ----
 
-func _on_card_drag_started(card_node: Area2D) -> void:
-	_dragging_card = card_node
-	_drag_origin_pos = card_node.position
-	# Visually indicate dragging
-	card_node.set_selected(true)
-	# Enter targeting mode so battle_manager shows arrow
-	selected_card = card_node
-	targeting_mode = true
-
-func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:
-	if _dragging_card != card_node:
-		return
-	_dragging_card = null
-	card_node.set_selected(false)
-
-	# Check card target type for auto-play logic
-	var card_data: Dictionary = card_node.card_data
-	var target_type: String = card_data.get("target", "enemy")
-
-	# For drag-to-target, we emit the release position info
-	# The battle_manager will check if release is over an enemy
-	# We signal with null target — battle_manager resolves the actual target
-	# via _on_card_drag_release which is connected in battle_manager
-	card_drag_released.emit(card_node, release_position)
-
-	# Reset targeting state (battle_manager will handle play or snap-back)
-	selected_card = null
-	targeting_mode = false
-	update_layout()
-
-# Signal for battle_manager to handle drag release target resolution
-signal card_drag_released(card_node: Area2D, release_position: Vector2)
+# Signal for auto-play on non-targeted cards (self/all_enemies)
+signal card_played_tap(card_node: Area2D)
+# Signal for long-press card detail
+signal card_long_press_detail(card_node: Area2D)
 
 func _on_card_clicked(card_node: Area2D) -> void:
-	# Quick tap: for non-targeted cards (self/all_enemies), play immediately
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
 
+	# Self/all_enemies: auto-play immediately on tap
 	if target_type == "self" or target_type == "all_enemies":
-		# Single tap plays non-targeted cards
 		selected_card = card_node
 		targeting_mode = true
-		# Emit so battle_manager can auto-play
 		card_played_tap.emit(card_node)
-	else:
-		# For targeted cards, quick tap does nothing (must drag)
-		pass
+		return
 
-# Signal for quick-tap on non-targeted cards
-signal card_played_tap(card_node: Area2D)
+	# Enemy-targeted cards: tap-to-select flow
+	if selected_card == card_node:
+		# Tapping already-selected card deselects it
+		card_node.set_selected(false)
+		selected_card = null
+		targeting_mode = false
+		update_layout()
+	else:
+		# Deselect previous if any
+		if selected_card != null and is_instance_valid(selected_card):
+			selected_card.set_selected(false)
+		# Select this card
+		selected_card = card_node
+		card_node.set_selected(true)
+		targeting_mode = true
+		update_layout()
+
+func _on_card_long_pressed(card_node: Area2D) -> void:
+	card_long_press_detail.emit(card_node)
 
 func _on_card_hovered(card_node: Area2D) -> void:
-	if _dragging_card != null:
-		return  # Don't change hover during drag
 	hovered_card = card_node
 	update_layout()
 
@@ -211,9 +200,44 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 	var card_node = selected_card
 	selected_card = null
 	targeting_mode = false
-	_dragging_card = null
-	remove_card(card_node)
+	# Animate card flying up before removing
+	if card_node and is_instance_valid(card_node):
+		var fly_pos: Vector2 = card_node.position + Vector2(0, -300)
+		card_node.move_to(fly_pos, 0.0, Vector2(0.6, 0.6), 0.15)
+		cards.erase(card_node)
+		# Disconnect signals before freeing
+		if card_node.card_clicked.is_connected(_on_card_clicked):
+			card_node.card_clicked.disconnect(_on_card_clicked)
+		if card_node.card_focused.is_connected(_on_card_hovered):
+			card_node.card_focused.disconnect(_on_card_hovered)
+		if card_node.card_unfocused.is_connected(_on_card_unhovered):
+			card_node.card_unfocused.disconnect(_on_card_unhovered)
+		if card_node.card_long_pressed.is_connected(_on_card_long_pressed):
+			card_node.card_long_pressed.disconnect(_on_card_long_pressed)
+		# Remove after animation completes
+		var tween = create_tween()
+		tween.tween_interval(0.15)
+		tween.tween_callback(func():
+			if is_instance_valid(card_node):
+				card_node.queue_free()
+		)
+		update_layout()
+	else:
+		remove_card(card_node)
 	card_played.emit(data, target)
+
+func update_card_playability(current_energy: int) -> void:
+	for card in cards:
+		if not is_instance_valid(card):
+			continue
+		var cost: int = card.card_data.get("cost", 0)
+		if cost == -1:
+			cost = 0  # X-cost cards are always playable
+		if card.card_visual:
+			if cost <= current_energy:
+				card.card_visual.modulate = Color(1, 1, 1, 1)
+			else:
+				card.card_visual.modulate = Color(0.5, 0.5, 0.5, 0.8)
 
 func get_selected_card_data() -> Dictionary:
 	if selected_card != null:

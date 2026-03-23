@@ -111,7 +111,7 @@ func _auto_play_card() -> void:
 		return
 
 	# Try to play a card
-	if card_hand.cards.size() > 0 and _battle.current_energy > 0:
+	if not card_hand.cards.is_empty() and _battle.current_energy > 0:
 		# Find a playable card (cost <= energy)
 		for card in card_hand.cards:
 			if not is_instance_valid(card):

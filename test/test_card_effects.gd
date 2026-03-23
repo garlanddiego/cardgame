@@ -77,7 +77,7 @@ func _process(_delta: float) -> bool:
 			# Play first available attack card on enemy 0
 			if _frame == 40:
 				var card_hand = _battle.get_node_or_null("CardHand")
-				if card_hand and card_hand.cards.size() > 0:
+				if card_hand and not card_hand.cards.is_empty():
 					for card in card_hand.cards:
 						var data = card.card_data
 						if data.get("damage", 0) > 0 and data.get("target", "") == "enemy":

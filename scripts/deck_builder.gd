@@ -21,81 +21,8 @@ var bottom_bar: HBoxContainer = null
 var all_card_data: Dictionary = {}
 var select_highlights: Dictionary = {}  # card_id -> Control (card root for highlight)
 
-# STS card image mapping: card_id -> res:// path
-# Images are ordered to match the grid sort order (type ascending, then name ascending)
-var _sts_card_map: Dictionary = {}
-
-func _build_sts_card_map() -> void:
-	if _sts_card_map.size() > 0:
-		return
-	# Direct mapping from card_id to image file, identified by reading Chinese card names
-	# Pages 1-3 are base cards (54 total); pages 4-5 are upgraded versions
-	var _base := "res://assets/img/sts_cards/"
-	_sts_card_map = {
-		# Page 1
-		"ic_strike": _base + "page1_card01.png",
-		"ic_infernal_blade": _base + "page1_card02.png",
-		"ic_sentinel": _base + "page1_card03.png",
-		"ic_dual_wield": _base + "page1_card04.png",
-		"ic_blood_for_blood": _base + "page1_card05.png",
-		"ic_sever_soul": _base + "page1_card06.png",
-		"ic_fire_breathing": _base + "page1_card07.png",
-		"ic_carnage": _base + "page1_card08.png",
-		"ic_dark_embrace": _base + "page1_card09.png",
-		"ic_intimidate": _base + "page1_card10.png",
-		"ic_power_through": _base + "page1_card11.png",
-		"ic_flame_barrier": _base + "page1_card12.png",
-		"ic_bloodletting": _base + "page1_card13.png",
-		"ic_rupture": _base + "page1_card14.png",
-		"ic_battle_trance": _base + "page1_card15.png",
-		"ic_hemokinesis": _base + "page1_card16.png",
-		"ic_ghostly_armor": _base + "page1_card17.png",
-		"ic_entrench": _base + "page1_card18.png",
-		# Page 2
-		"ic_rampage": _base + "page2_card01.png",
-		"ic_corruption": _base + "page2_card02.png",
-		"ic_demon_form": _base + "page2_card03.png",
-		"ic_fiend_fire": _base + "page2_card04.png",
-		"ic_berserk": _base + "page2_card05.png",
-		"ic_limit_break": _base + "page2_card06.png",
-		"ic_impervious": _base + "page2_card07.png",
-		"ic_bludgeon": _base + "page2_card08.png",
-		"ic_immolate": _base + "page2_card09.png",
-		"ic_barricade": _base + "page2_card10.png",
-		"ic_reckless_charge": _base + "page2_card11.png",
-		"ic_whirlwind": _base + "page2_card12.png",
-		"ic_feel_no_pain": _base + "page2_card13.png",
-		"ic_reaper": _base + "page2_card14.png",
-		"ic_brutality": _base + "page2_card15.png",
-		"ic_exhume": _base + "page2_card16.png",
-		"ic_offering": _base + "page2_card17.png",
-		"ic_double_tap": _base + "page2_card18.png",
-		# Page 3
-		"ic_juggernaut": _base + "page3_card01.png",
-		"ic_disarm": _base + "page3_card02.png",
-		"ic_anger": _base + "page3_card03.png",
-		"ic_war_cry": _base + "page3_card04.png",
-		"ic_shrug_it_off": _base + "page3_card05.png",
-		"ic_twin_strike": _base + "page3_card06.png",
-		"ic_pommel_strike": _base + "page3_card07.png",
-		"ic_sword_boomerang": _base + "page3_card08.png",
-		"ic_cleave": _base + "page3_card09.png",
-		"ic_flex": _base + "page3_card10.png",
-		"ic_wild_strike": _base + "page3_card11.png",
-		"ic_defend": _base + "page3_card12.png",
-		"ic_bash": _base + "page3_card13.png",
-		"ic_headbutt": _base + "page3_card14.png",
-		"ic_perfected_strike": _base + "page3_card15.png",
-		"ic_clothesline": _base + "page3_card16.png",
-		"ic_havoc": _base + "page3_card17.png",
-		"ic_heavy_blade": _base + "page3_card18.png",
-	}
-
-func _get_sts_card_path(card_id: String) -> String:
-	_build_sts_card_map()
-	if _sts_card_map.has(card_id):
-		return _sts_card_map[card_id]
-	return ""
+# STS card image mapping: delegated to Card script (single source of truth)
+var _CardScript = preload("res://scripts/card.gd")
 
 func _ready() -> void:
 	_find_nodes()
@@ -124,7 +51,7 @@ func _build_card_grid() -> void:
 	_clear_grid()
 	_clear_tracking()
 	if grid:
-		grid.columns = 6
+		grid.columns = 4
 	if title_label:
 		var loc = _get_loc()
 		if loc:
@@ -167,37 +94,143 @@ func _populate_grid() -> void:
 		var entry = _create_card_entry(card)
 		grid.add_child(entry)
 
-# ─── STS CARD IMAGE ENTRY ────────────────────────────────────────────────────
+# ─── TEXT-RENDERED CARD ENTRY ─────────────────────────────────────────────────
 
 func _create_card_entry(card: Dictionary) -> Control:
 	var card_id: String = card["id"]
 	all_card_data[card_id] = card
 
-	var CARD_W: float = 290.0
-	var CARD_H: float = 390.0
+	var CARD_W: float = 360.0
+	var CARD_H: float = 485.0
 
 	var card_root = Control.new()
 	card_root.custom_minimum_size = Vector2(CARD_W, CARD_H)
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
 	select_highlights[card_id] = card_root
 
-	# Use complete STS card image as the entire card visual
-	var card_img = TextureRect.new()
-	card_img.name = "CardImage"
-	card_img.position = Vector2.ZERO
-	card_img.size = Vector2(CARD_W, CARD_H)
-	card_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	card_img.stretch_mode = TextureRect.STRETCH_SCALE
-	card_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Card type colors
+	var card_type: int = card.get("type", 0)
+	var bg_color: Color
+	var border_color: Color
+	var type_name: String
+	match card_type:
+		0:  # Attack
+			bg_color = Color(0.25, 0.08, 0.08, 0.95)
+			border_color = Color(0.8, 0.2, 0.2, 1.0)
+			type_name = "攻击"
+		1:  # Skill
+			bg_color = Color(0.08, 0.18, 0.08, 0.95)
+			border_color = Color(0.2, 0.7, 0.3, 1.0)
+			type_name = "技能"
+		2:  # Power
+			bg_color = Color(0.12, 0.08, 0.22, 0.95)
+			border_color = Color(0.4, 0.3, 0.9, 1.0)
+			type_name = "能力"
+		_:
+			bg_color = Color(0.15, 0.15, 0.15, 0.95)
+			border_color = Color(0.5, 0.5, 0.5, 1.0)
+			type_name = "状态"
 
-	# Load the STS card image
-	var sts_path = _get_sts_card_path(card_id)
-	if sts_path != "" and ResourceLoader.exists(sts_path):
-		card_img.texture = load(sts_path)
+	# Background
+	var bg = ColorRect.new()
+	bg.name = "CardBG"
+	bg.size = Vector2(CARD_W, CARD_H)
+	bg.color = bg_color
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(bg)
 
-	card_root.add_child(card_img)
+	# Border
+	var border = Panel.new()
+	border.name = "CardBorder"
+	border.size = Vector2(CARD_W, CARD_H)
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.border_color = border_color
+	sb.border_width_left = 3
+	sb.border_width_right = 3
+	sb.border_width_top = 3
+	sb.border_width_bottom = 3
+	sb.corner_radius_top_left = 10
+	sb.corner_radius_top_right = 10
+	sb.corner_radius_bottom_left = 10
+	sb.corner_radius_bottom_right = 10
+	border.add_theme_stylebox_override("panel", sb)
+	card_root.add_child(border)
 
-	# Connect tap on entire card
+	# Cost (top-left)
+	var cost_val: int = card.get("cost", 0)
+	var cost_lbl = Label.new()
+	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	cost_lbl.position = Vector2(12, 8)
+	cost_lbl.add_theme_font_size_override("font_size", 24)
+	cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(cost_lbl)
+
+	# Card name
+	var loc = _get_loc()
+	var card_name: String = card.get("name", "???")
+	if loc and loc.has_method("card_name"):
+		card_name = loc.card_name(card)
+	var name_lbl = Label.new()
+	name_lbl.text = card_name
+	name_lbl.position = Vector2(10, 45)
+	name_lbl.size = Vector2(CARD_W - 20, 36)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 20)
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(name_lbl)
+
+	# Type
+	var type_lbl = Label.new()
+	type_lbl.text = type_name
+	type_lbl.position = Vector2(10, 80)
+	type_lbl.size = Vector2(CARD_W - 20, 20)
+	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_lbl.add_theme_font_size_override("font_size", 13)
+	type_lbl.add_theme_color_override("font_color", border_color)
+	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(type_lbl)
+
+	# Stats
+	var dmg: int = card.get("damage", 0)
+	var blk: int = card.get("block", 0)
+	var stat_text: String = ""
+	if dmg > 0 and blk > 0:
+		stat_text = "⚔ %d   🛡 %d" % [dmg, blk]
+	elif dmg > 0:
+		stat_text = "⚔ %d" % dmg
+	elif blk > 0:
+		stat_text = "🛡 %d" % blk
+	if stat_text != "":
+		var stat_lbl = Label.new()
+		stat_lbl.text = stat_text
+		stat_lbl.position = Vector2(10, 120)
+		stat_lbl.size = Vector2(CARD_W - 20, 40)
+		stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stat_lbl.add_theme_font_size_override("font_size", 28)
+		stat_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+		stat_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_root.add_child(stat_lbl)
+
+	# Description
+	var desc: String = card.get("description", "")
+	if loc and loc.has_method("card_desc"):
+		desc = loc.card_desc(card)
+	if desc != "":
+		var desc_lbl = Label.new()
+		desc_lbl.text = desc
+		desc_lbl.position = Vector2(14, 180)
+		desc_lbl.size = Vector2(CARD_W - 28, CARD_H - 200)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.add_theme_font_size_override("font_size", 14)
+		desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.8))
+		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_root.add_child(desc_lbl)
+
+	# Connect tap
 	card_root.gui_input.connect(_on_card_tap.bind(card_id, card_root))
 
 	return card_root
@@ -225,10 +258,11 @@ func _on_card_tap(event: InputEvent, card_id: String, card_root: Control) -> voi
 func _set_card_selected(card_root: Control, selected: bool) -> void:
 	# Manage selection glow border overlay
 	var glow = card_root.get_node_or_null("SelectionBorder") as Panel
+	var check = card_root.get_node_or_null("CheckMark") as Label
 	if selected:
 		# Green tint per spec
 		card_root.modulate = Color(0.8, 1.2, 0.8, 1.0)
-		# Show gold border glow overlay
+		# Show gold border glow overlay (thicker: 8px)
 		if glow == null:
 			glow = Panel.new()
 			glow.name = "SelectionBorder"
@@ -238,22 +272,40 @@ func _set_card_selected(card_root: Control, selected: bool) -> void:
 			var sb = StyleBoxFlat.new()
 			sb.bg_color = Color(0, 0, 0, 0)  # transparent fill
 			sb.border_color = Color(0.902, 0.722, 0.290, 1.0)  # border_gold
-			sb.border_width_left = 6
-			sb.border_width_right = 6
-			sb.border_width_top = 6
-			sb.border_width_bottom = 6
-			sb.corner_radius_top_left = 6
-			sb.corner_radius_top_right = 6
-			sb.corner_radius_bottom_left = 6
-			sb.corner_radius_bottom_right = 6
+			sb.border_width_left = 8
+			sb.border_width_right = 8
+			sb.border_width_top = 8
+			sb.border_width_bottom = 8
+			sb.corner_radius_top_left = 8
+			sb.corner_radius_top_right = 8
+			sb.corner_radius_bottom_left = 8
+			sb.corner_radius_bottom_right = 8
 			glow.add_theme_stylebox_override("panel", sb)
 			card_root.add_child(glow)
 		else:
 			glow.visible = true
+		# Show checkmark overlay
+		if check == null:
+			check = Label.new()
+			check.name = "CheckMark"
+			check.text = "✓"
+			check.add_theme_font_size_override("font_size", 64)
+			check.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3))
+			check.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+			check.add_theme_constant_override("shadow_offset_x", 2)
+			check.add_theme_constant_override("shadow_offset_y", 2)
+			check.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			check.position = Vector2(card_root.custom_minimum_size.x - 60, 10)
+			check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card_root.add_child(check)
+		else:
+			check.visible = true
 	else:
 		card_root.modulate = Color(1.0, 1.0, 1.0, 1.0)
 		if glow:
 			glow.visible = false
+		if check:
+			check.visible = false
 
 # ─── UI UPDATE ───────────────────────────────────────────────────────────────
 
@@ -271,7 +323,7 @@ func _update_ui() -> void:
 # ─── CONFIRM ─────────────────────────────────────────────────────────────────
 
 func _on_confirm() -> void:
-	if selected_card_ids.size() == 0:
+	if selected_card_ids.is_empty():
 		return
 	var deck: Array = selected_card_ids.keys()
 	var gm = _get_game_manager()

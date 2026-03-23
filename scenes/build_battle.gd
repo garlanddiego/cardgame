@@ -7,32 +7,36 @@ func _initialize() -> void:
 	root.name = "Battle"
 	root.set_script(load("res://scripts/battle_manager.gd"))
 
-	# Grey background
-	var bg = ColorRect.new()
+	# Dungeon background image
+	var bg = TextureRect.new()
 	bg.name = "Background"
-	bg.color = Color(0.25, 0.25, 0.28)
+	bg.texture = load("res://assets/img/dungeon_bg.png")
 	bg.position = Vector2.ZERO
 	bg.size = Vector2(1920, 1080)
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.z_index = -10
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(bg)
 
-	# Player area (far left, like STS)
+	# Player area — positioned so midpoint of player+enemies is screen center
+	# With 1 enemy: player at ~480, enemy at ~1200 → midpoint ~840 (near center)
 	var player_area = Node2D.new()
 	player_area.name = "PlayerArea"
-	player_area.position = Vector2(180, 500)
+	player_area.position = Vector2(480, 480)
 	root.add_child(player_area)
 
-	# Enemy area (spread across right half, at ground level)
+	# Enemy area — right side, centered vertically
 	var enemy_area = Node2D.new()
 	enemy_area.name = "EnemyArea"
-	enemy_area.position = Vector2(900, 500)
+	enemy_area.position = Vector2(1200, 480)
 	root.add_child(enemy_area)
 
 	# Card hand (bottom center) - Node2D for Area2D-based cards
 	var card_hand = Node2D.new()
 	card_hand.name = "CardHand"
 	card_hand.set_script(load("res://scripts/card_hand.gd"))
-	card_hand.position = Vector2(0, 750)
+	card_hand.position = Vector2(0, 700)
 	root.add_child(card_hand)
 
 	# HUD layer
@@ -123,8 +127,8 @@ func _initialize() -> void:
 	var end_turn_btn = Button.new()
 	end_turn_btn.name = "EndTurnButton"
 	end_turn_btn.text = "End Turn"
-	end_turn_btn.position = Vector2(1680, 762)
-	end_turn_btn.custom_minimum_size = Vector2(220, 56)
+	end_turn_btn.position = Vector2(1640, 400)
+	end_turn_btn.custom_minimum_size = Vector2(240, 70)
 	hud.add_child(end_turn_btn)
 
 	# Turn indicator with semi-transparent bg

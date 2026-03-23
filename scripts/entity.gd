@@ -84,7 +84,7 @@ func take_damage(amount: int) -> void:
 	else:
 		hp_changed.emit(current_hp, max_hp)
 		_update_hp_bar()
-		_flash_damage()
+		_flash_damage(actual_damage)
 
 func take_damage_direct(amount: int) -> void:
 	## Deal damage bypassing block (e.g. self-harm effects like Offering, Hemokinesis)
@@ -124,6 +124,7 @@ func add_block(amount: int) -> void:
 	block += actual_block
 	block_changed.emit(block)
 	_update_block_display()
+	_flash_block()
 
 func apply_status(status_type: String, stacks: int) -> void:
 	if not alive:
@@ -223,7 +224,7 @@ func _update_status_display() -> void:
 		var container = HBoxContainer.new()
 		var icon = TextureRect.new()
 		icon.texture = tex
-		icon.custom_minimum_size = Vector2(24, 24)
+		icon.custom_minimum_size = Vector2(32, 32)
 		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		container.add_child(icon)
@@ -252,11 +253,37 @@ func update_intent_display() -> void:
 		intent_label.text = desc
 		intent_label.visible = true
 
-func _flash_damage() -> void:
+func _flash_damage(damage_amount: int = 0) -> void:
 	if sprite_node == null:
 		return
 	var tween = create_tween()
 	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.3, 0.3), 0.1)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	# Floating damage number
+	if damage_amount <= 0:
+		return
+	var dmg_label = Label.new()
+	dmg_label.text = "-" + str(damage_amount)
+	dmg_label.add_theme_font_size_override("font_size", 32)
+	dmg_label.add_theme_color_override("font_color", Color(1.0, 0.15, 0.15))
+	dmg_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	dmg_label.add_theme_constant_override("shadow_offset_x", 1)
+	dmg_label.add_theme_constant_override("shadow_offset_y", 2)
+	dmg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	dmg_label.position = Vector2(-30, -80)
+	add_child(dmg_label)
+	var float_tween = create_tween()
+	float_tween.set_parallel(true)
+	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 60, 0.8)
+	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 0.8).set_delay(0.3)
+	float_tween.set_parallel(false)
+	float_tween.tween_callback(dmg_label.queue_free)
+
+func _flash_block() -> void:
+	if sprite_node == null:
+		return
+	var tween = create_tween()
+	tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1)
 	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
 
 func _play_death() -> void:

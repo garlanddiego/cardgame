@@ -6,20 +6,19 @@ extends Area2D
 signal card_clicked(card_node: Area2D)
 signal card_focused(card_node: Area2D)
 signal card_unfocused(card_node: Area2D)
-signal card_drag_started(card_node: Area2D)
-signal card_drag_ended(card_node: Area2D, release_position: Vector2)
+signal card_long_pressed(card_node: Area2D)
 
 enum CardState {
 	IN_HAND,
 	FOCUSED_IN_HAND,
-	DRAGGED,
+	SELECTED,
 	DROPPING_TO_BOARD,
 	ON_PLAY_BOARD,
 	IN_PILE,
 	MOVING_TO_CONTAINER
 }
 
-const CARD_SIZE := Vector2(260, 350)
+const CARD_SIZE := Vector2(320, 430)
 
 var card_data: Dictionary = {}
 var card_state: int = CardState.IN_HAND
@@ -28,13 +27,13 @@ var is_selected: bool = false
 var base_z_index: int = 0
 var _current_tween: Tween = null
 
-# Drag-to-target state
+# Tap and long-press detection
 var _is_pressed: bool = false
 var _press_time: float = 0.0
-var _drag_active: bool = false
 var _press_start_pos: Vector2 = Vector2.ZERO
-const DRAG_HOLD_TIME: float = 0.2  # 200ms hold to start drag
-const DRAG_DISTANCE_THRESHOLD: float = 15.0  # pixels moved to start drag immediately
+var _long_press_fired: bool = false
+const LONG_PRESS_TIME: float = 0.5  # 500ms for long press (card detail)
+const TAP_MOVE_THRESHOLD: float = 20.0  # Max movement for a tap
 
 # Child node references (populated in _ready or after build)
 var collision_shape: CollisionShape2D = null
@@ -45,7 +44,7 @@ var sts_card_image: TextureRect = null  # Single STS card image
 static var _sts_card_map: Dictionary = {}
 
 static func _build_sts_card_map() -> void:
-	if _sts_card_map.size() > 0:
+	if not _sts_card_map.is_empty():
 		return
 	# Direct mapping from card_id to image file, identified by reading Chinese card names
 	# Pages 1-3 are base cards (54 total); pages 4-5 are upgraded versions
@@ -189,41 +188,140 @@ func _apply_card_data() -> void:
 	if card_data.is_empty():
 		return
 
-	# Load the STS card image based on card ID
-	if sts_card_image:
-		var card_id: String = card_data.get("id", "")
-		var sts_path: String = _get_sts_card_path(card_id)
-		if sts_path != "" and ResourceLoader.exists(sts_path):
-			sts_card_image.texture = load(sts_path)
-		else:
-			# Fallback: try loading frame texture for unknown cards
-			_apply_fallback_texture()
+	# Always use text-rendered mode (no STS images)
+	_apply_fallback_texture()
 
 func _apply_fallback_texture() -> void:
-	# If no STS image found, show a colored background based on type
-	if sts_card_image == null:
+	# Render a text-based card when no STS image exists
+	if card_visual == null:
 		return
+	# Hide STS image since we'll draw text instead
+	if sts_card_image:
+		sts_card_image.visible = false
+
 	var card_type: int = card_data.get("type", 0)
-	var frame_path: String
-	var fallback_path: String
+	var bg_color: Color
+	var border_color: Color
+	var type_name: String
 	match card_type:
 		0:  # Attack
-			frame_path = "res://assets/img/frame_attack_v2.png"
-			fallback_path = "res://assets/img/card_frame_attack_clean.png"
+			bg_color = Color(0.25, 0.08, 0.08, 0.95)
+			border_color = Color(0.8, 0.2, 0.2, 1.0)
+			type_name = "攻击"
 		1:  # Skill
-			frame_path = "res://assets/img/frame_skill_v2.png"
-			fallback_path = "res://assets/img/card_frame_skill.png"
+			bg_color = Color(0.08, 0.18, 0.08, 0.95)
+			border_color = Color(0.2, 0.7, 0.3, 1.0)
+			type_name = "技能"
 		2:  # Power
-			frame_path = "res://assets/img/frame_power_v2.png"
-			fallback_path = "res://assets/img/card_frame_power_clean.png"
-		_:  # Status / other
-			frame_path = "res://assets/img/frame_skill_v2.png"
-			fallback_path = "res://assets/img/card_frame_skill.png"
-	var tex = load(frame_path)
-	if tex == null:
-		tex = load(fallback_path)
-	if tex:
-		sts_card_image.texture = tex
+			bg_color = Color(0.12, 0.08, 0.22, 0.95)
+			border_color = Color(0.4, 0.3, 0.9, 1.0)
+			type_name = "能力"
+		_:
+			bg_color = Color(0.15, 0.15, 0.15, 0.95)
+			border_color = Color(0.5, 0.5, 0.5, 1.0)
+			type_name = "状态"
+
+	# Card background with colored border
+	var card_bg = card_visual.get_node_or_null("CardBackground") as ColorRect
+	if card_bg:
+		card_bg.color = bg_color
+
+	# Border panel
+	var border = Panel.new()
+	border.name = "FallbackBorder"
+	border.position = Vector2.ZERO
+	border.size = CARD_SIZE
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.border_color = border_color
+	sb.border_width_left = 4
+	sb.border_width_right = 4
+	sb.border_width_top = 4
+	sb.border_width_bottom = 4
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	border.add_theme_stylebox_override("panel", sb)
+	card_visual.add_child(border)
+
+	# Cost circle (top-left)
+	var cost_val: int = card_data.get("cost", 0)
+	var cost_lbl = Label.new()
+	cost_lbl.name = "FallbackCost"
+	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	cost_lbl.position = Vector2(12, 8)
+	cost_lbl.add_theme_font_size_override("font_size", 28)
+	cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.add_child(cost_lbl)
+
+	# Card name (centered, top area)
+	var loc = _get_loc()
+	var card_name: String = card_data.get("name", "???")
+	if loc and loc.has_method("card_name"):
+		card_name = loc.card_name(card_data)
+	var name_lbl = Label.new()
+	name_lbl.name = "FallbackName"
+	name_lbl.text = card_name
+	name_lbl.position = Vector2(10, 50)
+	name_lbl.size = Vector2(CARD_SIZE.x - 20, 40)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 22)
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.add_child(name_lbl)
+
+	# Type label
+	var type_lbl = Label.new()
+	type_lbl.name = "FallbackType"
+	type_lbl.text = type_name
+	type_lbl.position = Vector2(10, 90)
+	type_lbl.size = Vector2(CARD_SIZE.x - 20, 24)
+	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_lbl.add_theme_font_size_override("font_size", 14)
+	type_lbl.add_theme_color_override("font_color", border_color)
+	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.add_child(type_lbl)
+
+	# Damage/Block stats (big numbers in center)
+	var dmg: int = card_data.get("damage", 0)
+	var blk: int = card_data.get("block", 0)
+	var stat_text: String = ""
+	if dmg > 0 and blk > 0:
+		stat_text = "⚔ %d   🛡 %d" % [dmg, blk]
+	elif dmg > 0:
+		stat_text = "⚔ %d" % dmg
+	elif blk > 0:
+		stat_text = "🛡 %d" % blk
+	if stat_text != "":
+		var stat_lbl = Label.new()
+		stat_lbl.name = "FallbackStats"
+		stat_lbl.text = stat_text
+		stat_lbl.position = Vector2(10, 140)
+		stat_lbl.size = Vector2(CARD_SIZE.x - 20, 50)
+		stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stat_lbl.add_theme_font_size_override("font_size", 32)
+		stat_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+		stat_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.add_child(stat_lbl)
+
+	# Description text (bottom half)
+	var desc: String = card_data.get("description", "")
+	if loc and loc.has_method("card_desc"):
+		desc = loc.card_desc(card_data)
+	if desc != "":
+		var desc_lbl = Label.new()
+		desc_lbl.name = "FallbackDesc"
+		desc_lbl.text = desc
+		desc_lbl.position = Vector2(16, 210)
+		desc_lbl.size = Vector2(CARD_SIZE.x - 32, CARD_SIZE.y - 230)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.add_theme_font_size_override("font_size", 14)
+		desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.8))
+		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.add_child(desc_lbl)
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
@@ -249,40 +347,17 @@ func move_to(target_pos: Vector2, target_rot: float, target_scale: Vector2, dura
 func set_state(new_state: int) -> void:
 	card_state = new_state
 
-# ---- Drag-to-target handling ----
+# ---- Tap-to-select and long-press handling ----
 
 func _process(delta: float) -> void:
-	if _is_pressed and not _drag_active:
+	if _is_pressed and not _long_press_fired:
 		_press_time += delta
-		# Check if held long enough or moved far enough to start drag
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		var dist: float = _press_start_pos.distance_to(mouse_pos)
-		if _press_time >= DRAG_HOLD_TIME or dist >= DRAG_DISTANCE_THRESHOLD:
-			_start_drag()
-	if _drag_active:
-		# Card follows mouse while dragging
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		position = mouse_pos - Vector2(CARD_SIZE.x / 2.0, CARD_SIZE.y / 2.0)
-
-func _start_drag() -> void:
-	_drag_active = true
-	card_state = CardState.DRAGGED
-	z_index = 200
-	# Lift card slightly with scale
-	scale = Vector2(1.15, 1.15)
-	rotation_degrees = 0
-	# Cancel any running move tween
-	if _current_tween and _current_tween.is_valid():
-		_current_tween.kill()
-	card_drag_started.emit(self)
-
-func _end_drag() -> void:
-	var release_pos: Vector2 = get_viewport().get_mouse_position()
-	_drag_active = false
-	_is_pressed = false
-	_press_time = 0.0
-	card_state = CardState.IN_HAND
-	card_drag_ended.emit(self, release_pos)
+		# Check for long press (card detail popup)
+		if _press_time >= LONG_PRESS_TIME:
+			_long_press_fired = true
+			_is_pressed = false
+			_press_time = 0.0
+			card_long_pressed.emit(self)
 
 # ---- Signal handlers ----
 
@@ -292,7 +367,7 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
 	is_hovered = false
-	if not _drag_active and not _is_pressed:
+	if not _is_pressed:
 		card_unfocused.emit(self)
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
@@ -301,21 +376,16 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 			if event.pressed:
 				_is_pressed = true
 				_press_time = 0.0
+				_long_press_fired = false
 				_press_start_pos = event.global_position
 			elif not event.pressed:
-				if _drag_active:
-					_end_drag()
-				elif _is_pressed:
-					# Quick tap — released before drag threshold
-					_is_pressed = false
-					_press_time = 0.0
-					card_clicked.emit(self)
-
-func _input(event: InputEvent) -> void:
-	# Catch mouse release even if outside card area during drag
-	if _drag_active and event is InputEventMouseButton:
-		if not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_end_drag()
+				if _is_pressed and not _long_press_fired:
+					# Check if finger moved too far (would be a swipe, not tap)
+					var dist: float = _press_start_pos.distance_to(event.global_position)
+					if dist < TAP_MOVE_THRESHOLD:
+						card_clicked.emit(self)
+				_is_pressed = false
+				_press_time = 0.0
 
 func _get_loc() -> Node:
 	if not is_inside_tree():

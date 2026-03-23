@@ -193,7 +193,7 @@ func _do_turn_2_phase() -> void:
 		_play_card_on_enemy(0, 1)
 
 	if _frame == PLAY_CARD_6:
-		if _battle_node and _battle_node.hand.size() > 0:
+		if _battle_node and not _battle_node.hand.is_empty():
 			_hover_card(0)
 			# Small delay then play
 			await_and_play_card()
@@ -346,5 +346,5 @@ func await_and_play_card() -> void:
 	if _battle_node == null or not _battle_node.battle_active:
 		return
 	_unhover_card()
-	if _battle_node.hand.size() > 0:
+	if not _battle_node.hand.is_empty():
 		_play_card_on_enemy(0, 2)

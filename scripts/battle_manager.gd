@@ -55,6 +55,15 @@ var turn_label: Label = null
 var player_area: Node2D = null
 var enemy_area: Node2D = null
 
+# Card detail overlay
+var _card_detail_overlay: Control = null
+
+# Damage preview labels
+var _damage_preview_labels: Array = []
+
+# Turn banner
+var _turn_banner: Label = null
+
 func _ready() -> void:
 	card_hand = get_node_or_null("CardHand")
 	energy_label = get_node_or_null("HUDLayer/HUD/EnergyPanel/EnergyContainer/EnergyLabel")
@@ -72,14 +81,45 @@ func _ready() -> void:
 			end_turn_btn.text = loc.t("end_turn")
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
-		card_hand.card_drag_released.connect(_on_card_drag_released)
 		card_hand.card_played_tap.connect(_on_card_tap_play)
+		card_hand.card_long_press_detail.connect(_on_card_long_press_detail)
 
 	# STS-style chain targeting arrow — circles along bezier curve
 	_targeting_arrow = preload("res://scripts/targeting_arrow.gd").new()
 	_targeting_arrow.name = "TargetingArrow"
 	_targeting_arrow.z_index = 200
 	add_child(_targeting_arrow)
+
+	# Card detail overlay (for long-press)
+	_setup_card_detail_overlay()
+
+	# Turn banner
+	_setup_turn_banner()
+
+	# HUD font size improvements
+	if energy_label:
+		energy_label.add_theme_font_size_override("font_size", 32)
+	if draw_pile_label:
+		draw_pile_label.add_theme_font_size_override("font_size", 18)
+	if discard_label:
+		discard_label.add_theme_font_size_override("font_size", 18)
+	if turn_label:
+		turn_label.add_theme_font_size_override("font_size", 24)
+
+	# Reposition end turn button to right-center
+	if end_turn_btn:
+		end_turn_btn.position = Vector2(1920 - 280, 400)
+
+func _exit_tree() -> void:
+	if end_turn_btn and end_turn_btn.pressed.is_connected(_on_end_turn):
+		end_turn_btn.pressed.disconnect(_on_end_turn)
+	if card_hand:
+		if card_hand.card_played.is_connected(_on_card_played):
+			card_hand.card_played.disconnect(_on_card_played)
+		if card_hand.card_played_tap.is_connected(_on_card_tap_play):
+			card_hand.card_played_tap.disconnect(_on_card_tap_play)
+		if card_hand.card_long_press_detail.is_connected(_on_card_long_press_detail):
+			card_hand.card_long_press_detail.disconnect(_on_card_long_press_detail)
 
 func _style_end_turn_button() -> void:
 	# Per VISUAL_DESIGN_SPEC section 4.6: 220x56, warm orange, gold border
@@ -109,7 +149,8 @@ func _style_end_turn_button() -> void:
 	disabled_style.border_color = Color(0.902, 0.722, 0.290, 0.5)  # border_gold_dim
 	end_turn_btn.add_theme_stylebox_override("disabled", disabled_style)
 
-	end_turn_btn.add_theme_font_size_override("font_size", 20)
+	end_turn_btn.add_theme_font_size_override("font_size", 26)
+	end_turn_btn.custom_minimum_size = Vector2(240, 70)
 	end_turn_btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
 	end_turn_btn.add_theme_color_override("font_disabled_color", Color(0.478, 0.447, 0.376, 0.80))
 	# Drop shadow for button text
@@ -198,10 +239,10 @@ func _setup_enemies() -> void:
 	# Pick 3 random enemy types
 	var enemy_types = ["slime", "cultist", "jaw_worm"]
 	var enemy_configs = {
-		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/sts_sprites/enemy_slime_clean.png", "scale_h": 350.0},
-		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/sts_sprites/enemy_cultist_ref_clean.png", "scale_h": 400.0},
-		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/sts_sprites/enemy_jaw_worm_clean.png", "scale_h": 380.0},
-		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/sts_sprites/enemy_cultist_clean.png", "scale_h": 400.0}
+		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime.png", "scale_h": 350.0},
+		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist.png", "scale_h": 400.0},
+		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm.png", "scale_h": 380.0},
+		"guardian": {"name": "Guardian", "hp": 1000, "sprite": "res://assets/img/guardian.png", "scale_h": 400.0}
 	}
 	var selected_enemies: Array = ["slime"]
 	for i in range(1):
@@ -253,10 +294,10 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	var name_lbl = Label.new()
 	name_lbl.name = "NameLabel"
 	name_lbl.text = ""
-	name_lbl.position = Vector2(-70, 100)
+	name_lbl.position = Vector2(-90, 100)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.custom_minimum_size = Vector2(140, 22)
-	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.custom_minimum_size = Vector2(180, 24)
+	name_lbl.add_theme_font_size_override("font_size", 18)
 	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
 	var name_bg = StyleBoxFlat.new()
 	name_bg.bg_color = Color(0.1, 0.07, 0.03, 0.8)
@@ -267,8 +308,8 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	name_lbl.add_theme_stylebox_override("normal", name_bg)
 	entity.add_child(name_lbl)
 
-	# HP bar BELOW name — wider (140px), dark red bg, rounded feel
-	var hp_bar_width: float = 140.0
+	# HP bar BELOW name — wider (180px), dark red bg, rounded feel
+	var hp_bar_width: float = 180.0
 	var hp_bg = ColorRect.new()
 	hp_bg.name = "HPBarBG"
 	hp_bg.color = Color(0.200, 0.059, 0.059, 1.0)  # hp_bar_bg per spec
@@ -291,7 +332,7 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 148)
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hp_lbl.custom_minimum_size = Vector2(hp_bar_width, 18)
-	hp_lbl.add_theme_font_size_override("font_size", 16)
+	hp_lbl.add_theme_font_size_override("font_size", 18)
 	hp_lbl.add_theme_color_override("font_color", Color(0.949, 0.929, 0.847, 1.0))  # text_primary
 	entity.add_child(hp_lbl)
 
@@ -318,24 +359,36 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 		# Intent icon above enemy
 		var intent_icon = TextureRect.new()
 		intent_icon.name = "IntentIcon"
-		intent_icon.custom_minimum_size = Vector2(40, 40)
-		intent_icon.position = Vector2(-16, -170)
+		intent_icon.custom_minimum_size = Vector2(64, 64)
+		intent_icon.position = Vector2(-32, -200)
 		intent_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		intent_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		intent_icon.visible = false
 		entity.add_child(intent_icon)
 
-		# Intent description
+		# Intent description — larger, positioned above sprite
 		var intent_lbl = Label.new()
 		intent_lbl.name = "IntentLabel"
 		intent_lbl.text = ""
-		intent_lbl.position = Vector2(-50, -195)
+		intent_lbl.position = Vector2(-70, -220)
 		intent_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		intent_lbl.custom_minimum_size = Vector2(100, 16)
-		intent_lbl.add_theme_font_size_override("font_size", 10)
+		intent_lbl.custom_minimum_size = Vector2(140, 20)
+		intent_lbl.add_theme_font_size_override("font_size", 16)
 		intent_lbl.add_theme_color_override("font_color", Color(1.0, 0.8, 0.6))
 		intent_lbl.visible = false
 		entity.add_child(intent_lbl)
+
+		# Click area for enemy targeting (invisible clickable region)
+		var click_area = Area2D.new()
+		click_area.name = "ClickArea"
+		click_area.input_pickable = true
+		var click_shape = CollisionShape2D.new()
+		var rect_shape = RectangleShape2D.new()
+		rect_shape.size = Vector2(240, 400)
+		click_shape.shape = rect_shape
+		click_area.add_child(click_shape)
+		click_area.input_event.connect(_on_enemy_click_area_input.bind(entity))
+		entity.add_child(click_area)
 
 	return entity
 
@@ -343,7 +396,7 @@ func _build_deck(character_id: String, gm: Node) -> void:
 	draw_pile.clear()
 	discard_pile.clear()
 	exhaust_pile.clear()
-	var deck_ids: Array = gm.player_deck if gm.player_deck.size() > 0 else gm.get_starting_deck(character_id)
+	var deck_ids: Array = gm.player_deck if not gm.player_deck.is_empty() else gm.get_starting_deck(character_id)
 	for card_id in deck_ids:
 		var data: Dictionary
 		if card_id.ends_with("+"):
@@ -396,6 +449,9 @@ func start_player_turn() -> void:
 		turn_label.add_theme_color_override("font_color", Color(0.27, 0.8, 0.4))
 	if end_turn_btn:
 		end_turn_btn.disabled = false
+	_show_turn_banner("YOUR TURN", Color(0.27, 0.8, 0.4))
+	if card_hand:
+		card_hand.update_card_playability(current_energy)
 	turn_started.emit(true)
 
 func draw_cards(count: int) -> void:
@@ -452,6 +508,8 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		return
 	current_energy -= cost
 	_update_energy_label()
+	if card_hand:
+		card_hand.update_card_playability(current_energy)
 
 	# Remove from hand tracking
 	for i in range(hand.size()):
@@ -499,7 +557,7 @@ func _trigger_juggernaut() -> void:
 		for e in enemies:
 			if e.alive:
 				alive_enemies.append(e)
-		if alive_enemies.size() > 0:
+		if not alive_enemies.is_empty():
 			var random_enemy = alive_enemies[randi() % alive_enemies.size()]
 			random_enemy.take_damage(juggernaut_damage)
 
@@ -663,7 +721,7 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 					var c = gm.card_database[key]
 					if c.get("character", "") == "ironclad" and c.get("type", 0) == 0:  # ATTACK
 						attack_ids.append(key)
-				if attack_ids.size() > 0:
+				if not attack_ids.is_empty():
 					var rand_id = attack_ids[randi() % attack_ids.size()]
 					var new_card = gm.get_card_data(rand_id)
 					new_card["cost"] = 0
@@ -682,7 +740,7 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 					break
 		"burning_pact":
 			# Exhaust a random non-this card from hand (simplified)
-			if hand.size() > 0:
+			if not hand.is_empty():
 				var idx = randi() % hand.size()
 				var exhausted = hand[idx]
 				hand.remove_at(idx)
@@ -709,7 +767,7 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 						enemy.take_damage(actual_dmg)
 			elif target_type == "random_enemy":
 				var alive = _get_alive_enemies()
-				if alive.size() > 0:
+				if not alive.is_empty():
 					var rand_target = alive[randi() % alive.size()]
 					rand_target.take_damage(actual_dmg)
 			elif target != null and target.alive:
@@ -879,6 +937,7 @@ func start_enemy_turn() -> void:
 		else:
 			turn_label.text = "Enemy Turn"
 		turn_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+	_show_turn_banner("ENEMY TURN", Color(1.0, 0.3, 0.3))
 	turn_started.emit(false)
 	# Process each enemy action sequentially
 	_process_enemy_actions(0)
@@ -930,6 +989,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			for _i in range(times):
 				if player.alive:
 					player.take_damage(actual_dmg)
+					_screen_shake()
 					# Flame Barrier: deal damage back when attacked
 					if flame_barrier_active and enemy.alive:
 						enemy.take_damage(flame_barrier_damage)
@@ -948,6 +1008,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var blk: int = action.get("block_val", 5)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			player.take_damage(actual_dmg)
+			_screen_shake()
 			enemy.add_block(blk)
 			if flame_barrier_active and enemy.alive:
 				enemy.take_damage(flame_barrier_damage)
@@ -962,6 +1023,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var stacks: int = action.get("stacks", 1)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			player.take_damage(actual_dmg)
+			_screen_shake()
 			player.apply_status(status_name, stacks)
 			if flame_barrier_active and enemy.alive:
 				enemy.take_damage(flame_barrier_damage)
@@ -976,6 +1038,12 @@ func _end_enemy_turn() -> void:
 		start_player_turn()
 
 func _on_card_played(card_data: Dictionary, target: Node2D) -> void:
+	_clear_damage_previews()
+	_clear_all_enemy_highlights()
+	_hovered_enemy = null
+	if _targeting_arrow:
+		_targeting_arrow.hide_arrow()
+		_targeting_arrow.visible = false
 	play_card(card_data, target)
 
 func _on_end_turn() -> void:
@@ -1044,14 +1112,15 @@ func _process(_delta: float) -> void:
 	if not battle_active or not is_player_turn:
 		if _targeting_arrow:
 			_targeting_arrow.hide_arrow()
+		_clear_damage_previews()
 		return
-	# Update targeting arrow and enemy hover highlight during drag
+	# Update targeting arrow and enemy hover highlight during tap-to-select targeting
 	if card_hand and card_hand.is_targeting() and card_hand.selected_card:
 		var card_data: Dictionary = card_hand.get_selected_card_data()
 		var target_type: String = card_data.get("target", "enemy")
-		# Draw chain-style targeting arrow from card origin to mouse during drag
+		# Draw chain-style targeting arrow from card to mouse
 		if _targeting_arrow and target_type == "enemy":
-			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(130, 175)
+			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(160, 215)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
 			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow)
 			_targeting_arrow.visible = true
@@ -1066,6 +1135,9 @@ func _process(_delta: float) -> void:
 				_hovered_enemy = hover_enemy
 				if _hovered_enemy:
 					_highlight_enemy(_hovered_enemy)
+			# Show damage previews for attack cards
+			if _damage_preview_labels.is_empty():
+				_show_damage_previews()
 		elif target_type == "all_enemies":
 			# Highlight all enemies
 			if _hovered_enemy == null:
@@ -1074,6 +1146,9 @@ func _process(_delta: float) -> void:
 						_highlight_enemy(enemy)
 				if not enemies.is_empty():
 					_hovered_enemy = enemies[0]  # marker
+			# Show damage previews
+			if _damage_preview_labels.is_empty():
+				_show_damage_previews()
 	else:
 		if _hovered_enemy != null:
 			_clear_all_enemy_highlights()
@@ -1081,6 +1156,7 @@ func _process(_delta: float) -> void:
 		if _targeting_arrow:
 			_targeting_arrow.hide_arrow()
 			_targeting_arrow.visible = false
+		_clear_damage_previews()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:
@@ -1093,35 +1169,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			card_hand.selected_card = null
 			card_hand.targeting_mode = false
 			_clear_all_enemy_highlights()
+			_clear_damage_previews()
 			_hovered_enemy = null
+			card_hand.update_layout()
 	if event is InputEventKey and event.pressed and event.keycode == KEY_E:
 		_on_end_turn()
-
-func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
-	if not battle_active or not is_player_turn:
-		return
-	var card_data: Dictionary = card_node.card_data
-	var target_type: String = card_data.get("target", "enemy")
-	_clear_all_enemy_highlights()
-	_hovered_enemy = null
-	if _targeting_arrow:
-		_targeting_arrow.hide_arrow()
-		_targeting_arrow.visible = false
-
-	if target_type == "enemy":
-		var enemy_target = _get_enemy_at(release_position)
-		if enemy_target:
-			card_hand.selected_card = card_node
-			card_hand.play_card_on(card_node, enemy_target)
-		# else: dropped on nothing — card snaps back (layout update handles this)
-	elif target_type == "self":
-		if player:
-			card_hand.selected_card = card_node
-			card_hand.play_card_on(card_node, player)
-	elif target_type == "all_enemies":
-		if not enemies.is_empty():
-			card_hand.selected_card = card_node
-			card_hand.play_card_on(card_node, enemies[0])
 
 func _on_card_tap_play(card_node: Area2D) -> void:
 	# Handle quick-tap for non-targeted cards (self/all_enemies)
@@ -1135,22 +1187,16 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 		card_hand.play_selected_on(enemies[0])
 
 func _highlight_enemy(enemy: Node2D) -> void:
-	var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
-	if sprite:
-		sprite.modulate = Color(1.3, 1.0, 1.0)  # Slight red tint highlight
+	enemy.modulate = Color(1.2, 1.2, 1.0)  # Bright warm highlight on hover
 
 func _clear_enemy_highlight() -> void:
 	if _hovered_enemy and is_instance_valid(_hovered_enemy):
-		var sprite = _hovered_enemy.get_node_or_null("Sprite") as Sprite2D
-		if sprite:
-			sprite.modulate = Color.WHITE
+		_hovered_enemy.modulate = Color.WHITE
 
 func _clear_all_enemy_highlights() -> void:
 	for enemy in enemies:
 		if is_instance_valid(enemy):
-			var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
-			if sprite:
-				sprite.modulate = Color.WHITE
+			enemy.modulate = Color.WHITE
 
 func _get_enemy_at(screen_pos: Vector2) -> Node2D:
 	if enemy_area == null:
@@ -1163,3 +1209,182 @@ func _get_enemy_at(screen_pos: Vector2) -> Node2D:
 		if rect.has_point(screen_pos):
 			return enemy
 	return null
+
+# ---- Enemy click handling for tap-to-select targeting ----
+
+func _on_enemy_click_area_input(_viewport: Node, event: InputEvent, _shape_idx: int, enemy_entity: Node2D) -> void:
+	if not battle_active or not is_player_turn:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if card_hand and card_hand.is_targeting() and card_hand.selected_card:
+			var card_data: Dictionary = card_hand.get_selected_card_data()
+			var target_type: String = card_data.get("target", "enemy")
+			if target_type == "enemy" and enemy_entity.alive:
+				_clear_damage_previews()
+				_clear_all_enemy_highlights()
+				_hovered_enemy = null
+				if _targeting_arrow:
+					_targeting_arrow.hide_arrow()
+					_targeting_arrow.visible = false
+				card_hand.play_card_on(card_hand.selected_card, enemy_entity)
+
+# ---- Card Detail Overlay (long-press) ----
+
+func _setup_card_detail_overlay() -> void:
+	var hud_layer = get_node_or_null("HUDLayer")
+	if hud_layer == null:
+		return
+	_card_detail_overlay = Control.new()
+	_card_detail_overlay.name = "CardDetailOverlay"
+	_card_detail_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_card_detail_overlay.visible = false
+	_card_detail_overlay.z_index = 500
+	_card_detail_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	# Semi-transparent dark background
+	var bg = ColorRect.new()
+	bg.name = "DarkBG"
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.7)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_detail_overlay.add_child(bg)
+
+	# Large card image centered
+	var card_img = TextureRect.new()
+	card_img.name = "DetailCardImage"
+	card_img.custom_minimum_size = Vector2(500, 670)
+	card_img.size = Vector2(500, 670)
+	card_img.position = Vector2((1920 - 500) / 2.0, (1080 - 670) / 2.0)
+	card_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	card_img.stretch_mode = TextureRect.STRETCH_SCALE
+	card_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_detail_overlay.add_child(card_img)
+
+	# Tap anywhere to dismiss
+	_card_detail_overlay.gui_input.connect(_on_detail_overlay_input)
+	hud_layer.add_child(_card_detail_overlay)
+
+func _on_detail_overlay_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		_card_detail_overlay.visible = false
+
+func _on_card_long_press_detail(card_node: Area2D) -> void:
+	if _card_detail_overlay == null:
+		return
+	var card_data_dict: Dictionary = card_node.card_data
+	var card_id: String = card_data_dict.get("id", "")
+	# Use the card's own STS image if it has one
+	var sts_path: String = ""
+	if card_node.sts_card_image and card_node.sts_card_image.texture:
+		var detail_img = _card_detail_overlay.get_node_or_null("DetailCardImage") as TextureRect
+		if detail_img:
+			detail_img.texture = card_node.sts_card_image.texture
+		_card_detail_overlay.visible = true
+		return
+	# Fallback: try loading via static map
+	var card_script_class = load("res://scripts/card.gd")
+	sts_path = card_script_class._get_sts_card_path(card_id)
+	var detail_img = _card_detail_overlay.get_node_or_null("DetailCardImage") as TextureRect
+	if detail_img and sts_path != "" and ResourceLoader.exists(sts_path):
+		detail_img.texture = load(sts_path)
+	_card_detail_overlay.visible = true
+
+# ---- Damage Preview ----
+
+func _show_damage_previews() -> void:
+	_clear_damage_previews()
+	if card_hand == null or not card_hand.is_targeting() or card_hand.selected_card == null:
+		return
+	var card_data: Dictionary = card_hand.get_selected_card_data()
+	var damage: int = card_data.get("damage", 0)
+	if damage <= 0:
+		return
+	var target_type: String = card_data.get("target", "enemy")
+	if target_type != "enemy" and target_type != "all_enemies":
+		return
+	# Calculate actual damage with player strength and weak
+	var actual_dmg: int = damage
+	if player:
+		actual_dmg = player.get_attack_damage(damage)
+	# Show preview labels above enemies
+	for enemy in enemies:
+		if not enemy.alive:
+			continue
+		var preview_lbl = Label.new()
+		preview_lbl.text = str(actual_dmg)
+		preview_lbl.add_theme_font_size_override("font_size", 28)
+		preview_lbl.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+		preview_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+		preview_lbl.add_theme_constant_override("shadow_offset_x", 1)
+		preview_lbl.add_theme_constant_override("shadow_offset_y", 2)
+		preview_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		preview_lbl.custom_minimum_size = Vector2(80, 30)
+		# Position above enemy sprite
+		var enemy_global = enemy_area.position + enemy.position if enemy_area else enemy.position
+		preview_lbl.position = Vector2(enemy_global.x - 40, enemy_global.y - 260)
+		# Add to HUD layer so it's on top
+		var hud_layer = get_node_or_null("HUDLayer")
+		if hud_layer:
+			hud_layer.add_child(preview_lbl)
+			_damage_preview_labels.append(preview_lbl)
+
+func _clear_damage_previews() -> void:
+	for lbl in _damage_preview_labels:
+		if is_instance_valid(lbl):
+			lbl.queue_free()
+	_damage_preview_labels.clear()
+
+# ---- Turn Banner Animation ----
+
+func _setup_turn_banner() -> void:
+	var hud_ctrl = get_node_or_null("HUDLayer/HUD")
+	if hud_ctrl == null:
+		return
+	_turn_banner = Label.new()
+	_turn_banner.name = "TurnBanner"
+	_turn_banner.text = ""
+	_turn_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_turn_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_turn_banner.custom_minimum_size = Vector2(600, 100)
+	_turn_banner.size = Vector2(600, 100)
+	_turn_banner.position = Vector2(660, 490)
+	_turn_banner.add_theme_font_size_override("font_size", 56)
+	_turn_banner.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	_turn_banner.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	_turn_banner.add_theme_constant_override("shadow_offset_x", 2)
+	_turn_banner.add_theme_constant_override("shadow_offset_y", 3)
+	_turn_banner.modulate = Color(1, 1, 1, 0)
+	_turn_banner.visible = false
+	_turn_banner.z_index = 400
+	_turn_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud_ctrl.add_child(_turn_banner)
+
+func _show_turn_banner(text: String, color: Color) -> void:
+	if _turn_banner == null:
+		return
+	_turn_banner.text = text
+	_turn_banner.add_theme_color_override("font_color", color)
+	_turn_banner.visible = true
+	_turn_banner.modulate = Color(1, 1, 1, 0)
+	_turn_banner.scale = Vector2(0.8, 0.8)
+	_turn_banner.pivot_offset = Vector2(300, 50)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_turn_banner, "modulate", Color(1, 1, 1, 1), 0.25).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_turn_banner, "scale", Vector2(1.0, 1.0), 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.set_parallel(false)
+	tween.tween_interval(0.8)
+	tween.tween_property(_turn_banner, "modulate", Color(1, 1, 1, 0), 0.3)
+	tween.tween_callback(func(): _turn_banner.visible = false)
+
+# ---- Screen Shake ----
+
+func _screen_shake(intensity: float = 8.0, duration: float = 0.15) -> void:
+	var original_pos: Vector2 = position
+	var tween = create_tween()
+	var steps: int = 4
+	var step_dur: float = duration / float(steps)
+	for i in range(steps):
+		var offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
+		tween.tween_property(self, "position", original_pos + offset, step_dur)
+	tween.tween_property(self, "position", original_pos, step_dur)
