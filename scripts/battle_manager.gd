@@ -180,10 +180,10 @@ func _setup_player(character_id: String, gm: Node) -> void:
 		var tex = load(char_data["sprite"])
 		if tex:
 			sprite.texture = tex
-			# Scale to ~320px tall (STS-like proportions)
+			# Scale to ~450px tall (large STS-like proportions)
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
-				var scale_factor: float = 320.0 / tex_height
+				var scale_factor: float = 450.0 / tex_height
 				sprite.scale = Vector2(scale_factor, scale_factor)
 	var nlabel = player.get_node_or_null("NameLabel") as Label
 	if nlabel:
@@ -198,10 +198,10 @@ func _setup_enemies() -> void:
 	# Pick 3 random enemy types
 	var enemy_types = ["slime", "cultist", "jaw_worm"]
 	var enemy_configs = {
-		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/sts_sprites/enemy_slime_clean.png", "scale_h": 200.0},
-		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/sts_sprites/enemy_cultist_ref_clean.png", "scale_h": 260.0},
-		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/sts_sprites/enemy_jaw_worm_clean.png", "scale_h": 220.0},
-		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/sts_sprites/enemy_cultist_clean.png", "scale_h": 280.0}
+		"slime": {"name": "Slime", "hp": 30, "sprite": "res://assets/img/sts_sprites/enemy_slime_clean.png", "scale_h": 350.0},
+		"cultist": {"name": "Cultist", "hp": 50, "sprite": "res://assets/img/sts_sprites/enemy_cultist_ref_clean.png", "scale_h": 400.0},
+		"jaw_worm": {"name": "Jaw Worm", "hp": 44, "sprite": "res://assets/img/sts_sprites/enemy_jaw_worm_clean.png", "scale_h": 380.0},
+		"guardian": {"name": "Guardian", "hp": 60, "sprite": "res://assets/img/sts_sprites/enemy_cultist_clean.png", "scale_h": 400.0}
 	}
 	var selected_enemies: Array = ["slime", "cultist", "jaw_worm"]
 	for i in range(3):
@@ -255,9 +255,9 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	var name_lbl = Label.new()
 	name_lbl.name = "NameLabel"
 	name_lbl.text = ""
-	name_lbl.position = Vector2(-60, 100)
+	name_lbl.position = Vector2(-70, 100)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.custom_minimum_size = Vector2(120, 22)
+	name_lbl.custom_minimum_size = Vector2(140, 22)
 	name_lbl.add_theme_font_size_override("font_size", 15)
 	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
 	var name_bg = StyleBoxFlat.new()
@@ -269,13 +269,13 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	name_lbl.add_theme_stylebox_override("normal", name_bg)
 	entity.add_child(name_lbl)
 
-	# HP bar BELOW name — wider per spec (120px), dark red bg, rounded feel
-	var hp_bar_width: float = 120.0
+	# HP bar BELOW name — wider (140px), dark red bg, rounded feel
+	var hp_bar_width: float = 140.0
 	var hp_bg = ColorRect.new()
 	hp_bg.name = "HPBarBG"
 	hp_bg.color = Color(0.200, 0.059, 0.059, 1.0)  # hp_bar_bg per spec
 	hp_bg.size = Vector2(hp_bar_width, 12)
-	hp_bg.position = Vector2(-hp_bar_width / 2.0, 124)
+	hp_bg.position = Vector2(-hp_bar_width / 2.0, 130)
 	entity.add_child(hp_bg)
 
 	# HP bar fill — red per spec, gradient handled in entity.gd
@@ -286,11 +286,11 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 	hp_fill.position = Vector2(0, 0)
 	hp_bg.add_child(hp_fill)
 
-	# HP label ABOVE bar per spec — font_size 22 for player, 16 for enemy
+	# HP label BELOW bar
 	var hp_lbl = Label.new()
 	hp_lbl.name = "HPLabel"
 	hp_lbl.text = "80/80"
-	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 106)
+	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 148)
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hp_lbl.custom_minimum_size = Vector2(hp_bar_width, 18)
 	hp_lbl.add_theme_font_size_override("font_size", 16)

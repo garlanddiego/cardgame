@@ -140,15 +140,7 @@ func _build_card_nodes() -> void:
 	sts_card_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.add_child(sts_card_image)
 
-	# Selection glow overlay (hidden by default, shown when card is selected)
-	var glow_overlay = ColorRect.new()
-	glow_overlay.name = "SelectionGlow"
-	glow_overlay.position = Vector2(-3, -3)
-	glow_overlay.size = CARD_SIZE + Vector2(6, 6)
-	glow_overlay.color = Color(0.267, 0.800, 0.400, 0.0)
-	glow_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	glow_overlay.z_index = -1
-	card_visual.add_child(glow_overlay)
+	# No selection glow overlay — cards show only the STS card image
 
 func _find_child_refs() -> void:
 	collision_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
@@ -207,17 +199,11 @@ func _apply_fallback_texture() -> void:
 func set_selected(selected: bool) -> void:
 	is_selected = selected
 	if card_visual:
-		var glow = card_visual.get_node_or_null("SelectionGlow")
 		if selected:
-			# Golden modulate per spec: Color(1.1, 1.0, 0.7, 1.0)
+			# Slight golden tint when selected — no border overlay
 			card_visual.modulate = Color(1.1, 1.0, 0.7, 1.0)
-			# Show green selection glow border
-			if glow:
-				glow.color = Color(0.267, 0.800, 0.400, 0.35)
 		else:
 			card_visual.modulate = Color.WHITE
-			if glow:
-				glow.color = Color(0.267, 0.800, 0.400, 0.0)
 
 func move_to(target_pos: Vector2, target_rot: float, target_scale: Vector2, duration: float = 0.15) -> void:
 	# Cancel any in-progress tween
