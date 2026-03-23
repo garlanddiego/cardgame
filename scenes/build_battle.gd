@@ -10,7 +10,7 @@ func _initialize() -> void:
 	# Dungeon background image
 	var bg = TextureRect.new()
 	bg.name = "Background"
-	bg.texture = load("res://assets/img/dungeon_bg.png")
+	bg.texture = load("res://assets/img/dungeon_bg_sts.png")
 	bg.position = Vector2.ZERO
 	bg.size = Vector2(2560, 1080)  # Extra wide to cover any aspect ratio
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

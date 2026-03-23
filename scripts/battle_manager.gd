@@ -252,9 +252,9 @@ func _setup_enemies() -> void:
 	# Pick 3 random enemy types
 	var enemy_types = ["slime", "cultist", "jaw_worm"]
 	var enemy_configs = {
-		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime.png", "scale_h": 350.0},
-		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist.png", "scale_h": 400.0},
-		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm.png", "scale_h": 380.0},
+		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime_sts.png", "scale_h": 350.0},
+		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist_sts.png", "scale_h": 400.0},
+		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm_sts.png", "scale_h": 380.0},
 		"guardian": {"name": "Guardian", "hp": 1000, "sprite": "res://assets/img/guardian.png", "scale_h": 400.0}
 	}
 	var selected_enemies: Array = ["slime"]

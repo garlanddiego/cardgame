@@ -45,7 +45,7 @@ func _init_character_data() -> void:
 			"name": "Ironclad",
 			"max_hp": 1000,
 			"color": Color(0.8, 0.2, 0.2),
-			"sprite": "res://assets/img/ironclad.png",
+			"sprite": "res://assets/img/ironclad_sts.png",
 			"description": "A powerful warrior who uses strength and heavy attacks."
 		},
 		"silent": {
