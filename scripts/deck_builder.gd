@@ -51,7 +51,7 @@ func _build_card_grid() -> void:
 	_clear_grid()
 	_clear_tracking()
 	if grid:
-		grid.columns = 4
+		grid.columns = 3
 	if title_label:
 		var loc = _get_loc()
 		if loc:
@@ -100,8 +100,8 @@ func _create_card_entry(card: Dictionary) -> Control:
 	var card_id: String = card["id"]
 	all_card_data[card_id] = card
 
-	var CARD_W: float = 360.0
-	var CARD_H: float = 485.0
+	var CARD_W: float = 440.0
+	var CARD_H: float = 590.0
 
 	var card_root = Control.new()
 	card_root.custom_minimum_size = Vector2(CARD_W, CARD_H)

@@ -384,15 +384,18 @@ func _create_entity_node(is_enemy_entity: bool) -> Node2D:
 		intent_icon.visible = false
 		entity.add_child(intent_icon)
 
-		# Intent description — larger, positioned above sprite
+		# Intent description — larger text, positioned above intent icon
 		var intent_lbl = Label.new()
 		intent_lbl.name = "IntentLabel"
 		intent_lbl.text = ""
-		intent_lbl.position = Vector2(-70, -220)
+		intent_lbl.position = Vector2(-90, -245)
 		intent_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		intent_lbl.custom_minimum_size = Vector2(140, 20)
-		intent_lbl.add_theme_font_size_override("font_size", 16)
-		intent_lbl.add_theme_color_override("font_color", Color(1.0, 0.8, 0.6))
+		intent_lbl.custom_minimum_size = Vector2(180, 28)
+		intent_lbl.add_theme_font_size_override("font_size", 18)
+		intent_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.6))
+		intent_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+		intent_lbl.add_theme_constant_override("shadow_offset_x", 1)
+		intent_lbl.add_theme_constant_override("shadow_offset_y", 1)
 		intent_lbl.visible = false
 		entity.add_child(intent_lbl)
 
@@ -1433,7 +1436,7 @@ func _show_turn_banner(text: String, color: Color) -> void:
 	tween.tween_property(_turn_banner, "modulate", Color(1, 1, 1, 1), 0.25).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_turn_banner, "scale", Vector2(1.0, 1.0), 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tween.set_parallel(false)
-	tween.tween_interval(0.8)
+	tween.tween_interval(0.5)
 	tween.tween_property(_turn_banner, "modulate", Color(1, 1, 1, 0), 0.3)
 	tween.tween_callback(func(): _turn_banner.visible = false)
 

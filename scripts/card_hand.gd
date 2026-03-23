@@ -7,6 +7,7 @@ signal card_drag_released(card_node: Area2D, release_position: Vector2)
 
 var cards: Array = []
 var selected_card: Area2D = null
+var focused_card: Area2D = null  # First-tap zoom preview
 var hovered_card: Area2D = null
 var targeting_mode: bool = false
 var current_battle_energy: int = 3
@@ -17,7 +18,7 @@ var card_script: GDScript = null
 # STS-style layout — matching card.gd CARD_SIZE (320x430)
 const CARD_WIDTH: float = 320.0
 const CARD_HEIGHT: float = 430.0
-const CARD_OVERLAP: float = 60.0  # More overlap since cards are bigger
+const CARD_OVERLAP: float = 80.0  # More overlap so 5+ cards fit better
 const HOVER_LIFT: float = -140.0  # Card lifts well above hand
 const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
 const MAX_ROTATION: float = 8.0  # Fan arc
@@ -63,6 +64,8 @@ func remove_card(card_node: Area2D) -> void:
 		if selected_card == card_node:
 			selected_card = null
 			targeting_mode = false
+		if focused_card == card_node:
+			focused_card = null
 		update_layout()
 
 func clear_hand() -> void:
@@ -71,6 +74,7 @@ func clear_hand() -> void:
 			card.queue_free()
 	cards.clear()
 	selected_card = null
+	focused_card = null
 	targeting_mode = false
 
 func update_layout() -> void:
@@ -115,6 +119,10 @@ func update_layout() -> void:
 			target_pos.y += HOVER_LIFT - 30  # Selected card lifts even higher
 			target_rot = 0.0
 			target_scale = Vector2(1.4, 1.4)
+		elif card == focused_card:
+			target_pos.y += HOVER_LIFT - 10  # Focused card lifts up for preview
+			target_rot = 0.0
+			target_scale = Vector2(1.5, 1.5)
 		elif card == hovered_card:
 			target_pos.y += HOVER_LIFT
 			target_rot = 0.0
@@ -128,6 +136,8 @@ func update_layout() -> void:
 
 		if card == selected_card:
 			card.z_index = 150
+		elif card == focused_card:
+			card.z_index = 120
 		elif card == hovered_card:
 			card.z_index = 100
 
@@ -158,29 +168,46 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	if selected_card != null and selected_card != card_node and is_instance_valid(selected_card):
 		return
 
-	# If THIS card is already selected, deselect it (cancel targeting)
+	# If THIS card is already selected (3rd tap), deselect it (cancel targeting)
 	if selected_card == card_node:
 		card_node.set_selected(false)
 		selected_card = null
+		focused_card = null
 		targeting_mode = false
 		update_layout()
 		return
 
-	# Energy check before allowing selection
+	# Energy check before allowing focus/selection
 	if not _can_afford_card(card_data_val):
 		return
 
-	# Self/all_enemies: auto-play immediately on first click
+	# If a DIFFERENT card is focused, switch focus to this card
+	if focused_card != null and focused_card != card_node:
+		focused_card = card_node
+		update_layout()
+		return
+
+	# If NO card is focused: FOCUS this card (1st tap — zoom preview)
+	if focused_card != card_node:
+		focused_card = card_node
+		update_layout()
+		return
+
+	# This card IS focused (2nd tap) — SELECT it for play
+
+	# Self/all_enemies: auto-play immediately
 	if target_type == "self" or target_type == "all_enemies":
 		selected_card = card_node
 		targeting_mode = true
+		focused_card = null
 		card_played_tap.emit(card_node)
 		return
 
-	# Enemy-targeted cards: select this card
+	# Enemy-targeted cards: enter targeting mode
 	selected_card = card_node
 	card_node.set_selected(true)
 	targeting_mode = true
+	focused_card = null
 	update_layout()
 
 func _on_card_long_pressed(card_node: Area2D) -> void:
@@ -225,11 +252,20 @@ func play_card_on(card_node: Area2D, target: Node2D) -> void:
 func _do_play(data: Dictionary, target: Node2D) -> void:
 	var card_node = selected_card
 	selected_card = null
+	focused_card = null
 	targeting_mode = false
-	# Animate card flying up before removing
+	# Animate card flying toward the target before removing
 	if card_node and is_instance_valid(card_node):
-		var fly_pos: Vector2 = card_node.position + Vector2(0, -300)
-		card_node.move_to(fly_pos, 0.0, Vector2(0.6, 0.6), 0.15)
+		# Calculate target position in card_hand's local space
+		var fly_pos: Vector2
+		if target and is_instance_valid(target):
+			# Convert target's global position to our local space
+			var target_global: Vector2 = target.global_position
+			fly_pos = to_local(target_global)
+		else:
+			# Fallback: fly upward
+			fly_pos = card_node.position + Vector2(0, -300)
+		card_node.move_to(fly_pos, 0.0, Vector2(0.5, 0.5), 0.2)
 		cards.erase(card_node)
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
@@ -244,9 +280,9 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 			card_node.card_drag_started.disconnect(_on_card_drag_started)
 		if card_node.card_drag_ended.is_connected(_on_card_drag_ended):
 			card_node.card_drag_ended.disconnect(_on_card_drag_ended)
-		# Remove after animation completes
+		# Remove after fly animation completes
 		var tween = create_tween()
-		tween.tween_interval(0.15)
+		tween.tween_interval(0.2)
 		tween.tween_callback(func():
 			if is_instance_valid(card_node):
 				card_node.queue_free()
