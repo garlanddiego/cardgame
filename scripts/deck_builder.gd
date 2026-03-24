@@ -378,7 +378,7 @@ func _populate_browse() -> void:
 func _create_browse_card(card: Dictionary, card_size: Vector2, loc: Node) -> Control:
 	var card_id: String = card["id"]
 
-	var card_root = _create_lightweight_card(card, card_size, loc)
+	var card_root = _CardScript.create_card_visual(card, card_size, loc)
 	card_root.name = "Browse_" + card_id
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
 

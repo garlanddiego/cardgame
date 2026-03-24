@@ -334,7 +334,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 
 	# --- Layer 6: Cost circle (top-left, overlapping border) ---
 	var cost_val: int = card.get("cost", 0)
-	var orb_r: float = 18.0 * sx
+	var orb_r: float = 27.0 * sx  # 50% bigger (was 18)
 	var orb_cx: float = 6.0 * sx + orb_r  # Slightly inside left border
 	var orb_cy: float = 6.0 * sy + orb_r  # Slightly inside top border
 
@@ -365,7 +365,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	cost_lbl.size = Vector2(orb_r * 2, orb_r * 2)
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_lbl.add_theme_font_size_override("font_size", int(22 * sx))
+	cost_lbl.add_theme_font_size_override("font_size", int(30 * sx))  # Bigger (was 22)
 	cost_lbl.add_theme_color_override("font_color", Color(0.2, 0.85, 0.3))  # Green number
 	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_lbl.z_index = 11
