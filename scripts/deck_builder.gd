@@ -459,22 +459,7 @@ func _create_lightweight_card(card: Dictionary, size: Vector2, loc: Node) -> Con
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(name_lbl)
 
-	# Art thumbnail (if available)
-	var card_id: String = card.get("id", "")
-	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
-	if ResourceLoader.exists(art_path):
-		var art_rect = TextureRect.new()
-		art_rect.texture = load(art_path)
-		var art_margin: float = 10 * sx
-		var art_top: float = 66 * sy
-		var art_w: float = size.x - art_margin * 2
-		var art_h: float = size.y * 0.45
-		art_rect.position = Vector2(art_margin, art_top)
-		art_rect.size = Vector2(art_w, art_h)
-		art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		root.add_child(art_rect)
+	# Skip art in browse mode for performance (150 texture loads is slow)
 
 	# Type + stats line (bottom area)
 	var dmg: int = card.get("damage", 0)
