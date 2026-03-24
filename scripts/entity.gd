@@ -16,6 +16,7 @@ var enemy_type: String = ""
 var intent: Dictionary = {}
 var alive: bool = true
 var power_effects: Array = []
+var active_powers: Dictionary = {}  # power_id -> stack count
 
 # Node references
 var sprite_node: Sprite2D = null
@@ -55,6 +56,7 @@ func init_entity(hp: int, enemy: bool, etype: String = "") -> void:
 	block = 0
 	status_effects = {}
 	power_effects = []
+	active_powers = {}
 
 func take_damage(amount: int) -> void:
 	if not alive:
@@ -267,6 +269,66 @@ func _update_status_display() -> void:
 			lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.7))
 		container.add_child(lbl)
 		status_container.add_child(container)
+	# Add active power icons
+	var power_icon_map: Dictionary = {
+		"demon_form": "fire",
+		"caltrops": "lightning",
+		"envenom": "poison",
+		"flame_barrier": "fire",
+		"corruption": "death",
+		"berserk": "fire",
+		"feel_no_pain": "dexterity",
+		"juggernaut": "strength",
+		"evolve": "eye",
+		"rage": "fire",
+		"barricade": "dexterity",
+		"metallicize": "strength",
+		"accuracy": "lightning",
+		"infinite_blades": "lightning",
+		"noxious_fumes": "poison",
+		"a_thousand_cuts": "lightning",
+		"after_image": "dexterity",
+	}
+	for power_id in active_powers:
+		if active_powers[power_id] <= 0:
+			continue
+		var icon_name: String = power_icon_map.get(power_id, "hourglass")
+		var icon_path: String = "res://assets/img/ui_icons/" + icon_name + ".png"
+		var tex = load(icon_path)
+		if tex == null:
+			continue
+		var container = HBoxContainer.new()
+		# Power background badge
+		var badge = Panel.new()
+		var badge_style = StyleBoxFlat.new()
+		badge_style.bg_color = Color(0.4, 0.15, 0.6, 0.85)
+		badge_style.corner_radius_top_left = 6
+		badge_style.corner_radius_top_right = 6
+		badge_style.corner_radius_bottom_left = 6
+		badge_style.corner_radius_bottom_right = 6
+		badge_style.content_margin_left = 2
+		badge_style.content_margin_right = 2
+		badge_style.content_margin_top = 2
+		badge_style.content_margin_bottom = 2
+		badge.add_theme_stylebox_override("panel", badge_style)
+		badge.custom_minimum_size = Vector2(36, 36)
+		var icon = TextureRect.new()
+		icon.texture = tex
+		icon.custom_minimum_size = Vector2(28, 28)
+		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.position = Vector2(4, 4)
+		badge.add_child(icon)
+		container.add_child(badge)
+		var lbl = Label.new()
+		if active_powers[power_id] > 1:
+			lbl.text = str(active_powers[power_id])
+		else:
+			lbl.text = ""
+		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+		container.add_child(lbl)
+		status_container.add_child(container)
 
 func update_intent_display() -> void:
 	if intent.is_empty():
@@ -343,6 +405,49 @@ func _flash_block() -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1)
 	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+
+func show_speech(text: String, duration: float = 1.5) -> void:
+	## Show a temporary speech bubble above the entity
+	var panel = PanelContainer.new()
+	panel.name = "SpeechBubble"
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 1.0, 1.0, 0.95)
+	style.border_color = Color(0.3, 0.3, 0.3, 1.0)
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var lbl = Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(lbl)
+	panel.position = Vector2(-80, -280)
+	panel.z_index = 100
+	add_child(panel)
+	# Fade out after duration
+	var tween = create_tween()
+	tween.tween_interval(duration)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.4)
+	tween.tween_callback(panel.queue_free)
+
+func add_power(power_id: String, stacks: int = 1) -> void:
+	## Add a power effect with stack count for visual display
+	if active_powers.has(power_id):
+		active_powers[power_id] += stacks
+	else:
+		active_powers[power_id] = stacks
+	_update_status_display()
 
 func _play_death() -> void:
 	if sprite_node == null:

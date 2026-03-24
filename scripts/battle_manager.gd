@@ -524,6 +524,10 @@ func start_player_turn() -> void:
 
 func draw_cards(count: int) -> void:
 	for i in range(count):
+		if hand.size() >= 10:
+			if player:
+				player.show_speech("手上的牌太多啦", 1.2)
+			break
 		if draw_pile.is_empty():
 			_reshuffle_discard()
 		if draw_pile.is_empty():
@@ -573,6 +577,8 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		cost = 0
 
 	if current_energy < cost:
+		if player:
+			player.show_speech("费用不够！", 1.2)
 		return
 	current_energy -= cost
 	_update_energy_label()
@@ -827,6 +833,16 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 					card_hand.clear_hand()
 					for c in hand:
 						card_hand.add_card(c)
+		"blade_dance":
+			_add_shiv_to_hand(3)
+		"blade_dance_plus":
+			_add_shiv_to_hand(4)
+		"cloak_and_dagger":
+			_add_shiv_to_hand(1)
+		"cloak_and_dagger_plus":
+			_add_shiv_to_hand(2)
+		"leading_strike":
+			pass  # Shiv added after damage below
 
 	# Apply damage with multi-hit support
 	if damage > 0 and special != "reaper" and special != "heavy_blade":
@@ -843,6 +859,10 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 			_apply_multi_hit_damage(actual_dmg, times, target, target_type)
 		else:
 			_apply_single_hit_damage(actual_dmg, target, target_type)
+
+	# Leading Strike: add shiv after dealing damage
+	if special == "leading_strike":
+		_add_shiv_to_hand(1)
 
 	# Apply block and draw
 	_apply_block_and_draw(block_val, draw_count, card_data)
@@ -912,6 +932,9 @@ func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionar
 		draw_cards(draw_count)
 
 func _activate_power(power_name: String) -> void:
+	# Add visual power indicator on player
+	if player:
+		player.add_power(power_name)
 	match power_name:
 		"demon_form":
 			demon_form_active = true
@@ -965,6 +988,21 @@ func _add_status_card_to_hand(card_id: String) -> void:
 			hand.append(card)
 			if card_hand:
 				card_hand.add_card(card)
+
+func _add_shiv_to_hand(count: int = 1) -> void:
+	var gm = _get_game_manager()
+	for i in range(count):
+		if hand.size() >= 10:
+			if player:
+				player.show_speech("手上的牌太多啦", 1.2)
+			break
+		var shiv = gm.get_card_data("si_shiv")
+		if shiv.is_empty():
+			continue
+		hand.append(shiv)
+		if card_hand:
+			card_hand.add_card(shiv)
+	_update_pile_labels()
 
 func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, use_strength: bool = true) -> void:
 	if damage <= 0:
