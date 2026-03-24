@@ -307,23 +307,178 @@ func _init_card_database() -> void:
 	card_database["status_dazed"] = {"id": "status_dazed", "name": "Dazed", "cost": -2, "type": CardType.STATUS, "character": "neutral", "damage": 0, "block": 0, "description": "Unplayable.\nEthereal.", "art": _ic_art(10), "target": "none", "unplayable": true, "ethereal": true}
 
 	# =========================================================================
-	# SILENT CARDS (14 cards — unchanged)
+	# SILENT CARDS (75 cards)
 	# =========================================================================
 
-	card_database["si_dagger_throw"] = {"id": "si_dagger_throw", "name": "Dagger Throw", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 9, "block": 0, "description": "Deal 9 damage.\nDraw 1 card.", "art": "res://assets/img/card_art_silent/dagger_throw.png", "target": "enemy", "draw": 1}
-	card_database["si_quick_slash"] = {"id": "si_quick_slash", "name": "Quick Slash", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nDraw 1 card.", "art": "res://assets/img/card_art_silent/quick_slash.png", "target": "enemy", "draw": 1}
-	card_database["si_poisoned_stab"] = {"id": "si_poisoned_stab", "name": "Poisoned Stab", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 5, "block": 0, "description": "Deal 5 damage.\nApply 3 Vulnerable.", "art": "res://assets/img/card_art_silent/poisoned_stab.png", "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 3}}
-	card_database["si_dash"] = {"id": "si_dash", "name": "Dash", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 10, "description": "Gain 10 Block.", "art": "res://assets/img/card_art_silent/dash.png", "target": "self"}
-	card_database["si_backstab"] = {"id": "si_backstab", "name": "Backstab", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 11, "block": 0, "description": "Deal 11 damage.", "art": "res://assets/img/card_art_silent/backstab.png", "target": "enemy"}
-	card_database["si_fan_of_knives"] = {"id": "si_fan_of_knives", "name": "Fan of Knives", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage to\nALL enemies.\nDraw 1 card.", "art": "res://assets/img/card_art_silent/fan_of_knives.png", "target": "all_enemies", "draw": 1}
-	card_database["si_blade_dance"] = {"id": "si_blade_dance", "name": "Blade Dance", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add 3 Shivs to\nyour hand.", "art": "res://assets/img/card_art_silent/blade_dance.png", "target": "self", "special": "blade_dance"}
-	card_database["si_predator_strike"] = {"id": "si_predator_strike", "name": "Predator", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 15, "block": 0, "description": "Deal 15 damage.", "art": "res://assets/img/card_art_silent/predator_strike.png", "target": "enemy"}
-	card_database["si_dodge"] = {"id": "si_dodge", "name": "Dodge and Roll", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block.\nGain 4 Dexterity\nnext turn.", "art": "res://assets/img/card_art_silent/dodge.png", "target": "self"}
-	card_database["si_cloak"] = {"id": "si_cloak", "name": "Cloak of Shadows", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 6, "description": "Gain 6 Block.", "art": "res://assets/img/card_art_silent/cloak_of_shadows.png", "target": "self"}
-	card_database["si_caltrops"] = {"id": "si_caltrops", "name": "Caltrops", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Whenever you are\nattacked, deal 3\ndamage back.", "art": "res://assets/img/card_art_silent/caltrops.png", "target": "self", "power_effect": "caltrops"}
-	card_database["si_envenom"] = {"id": "si_envenom", "name": "Envenom", "cost": 2, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Whenever you deal\nunblocked damage,\napply 1 Vulnerable.", "art": "res://assets/img/card_art_silent/envenom.png", "target": "self", "power_effect": "envenom"}
-	card_database["si_adrenaline"] = {"id": "si_adrenaline", "name": "Adrenaline", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 1 Energy.\nDraw 2 cards.", "art": "res://assets/img/card_art_silent/adrenaline.png", "target": "self", "draw": 2, "energy_gain": 1}
-	card_database["si_accuracy"] = {"id": "si_accuracy", "name": "Accuracy", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Gain 3 Dexterity.", "art": "res://assets/img/card_art_silent/accuracy.png", "target": "self", "apply_self_status": {"type": "dexterity", "stacks": 3}}
+	# --- Basic Cards ---
+	# 1. Strike
+	card_database["si_strike"] = {"id": "si_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy"}
+	# 2. Defend
+	card_database["si_defend"] = {"id": "si_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self"}
+	# 3. Neutralize
+	card_database["si_neutralize"] = {"id": "si_neutralize", "name": "Neutralize", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}}
+	# 4. Survivor
+	card_database["si_survivor"] = {"id": "si_survivor", "name": "Survivor", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDiscard 1 card.", "art": "", "target": "self", "special": "survivor"}
+
+	# --- Common Attacks ---
+	# 5. Slice
+	card_database["si_slice"] = {"id": "si_slice", "name": "Slice", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy"}
+	# 6. Dagger Spray
+	card_database["si_dagger_spray"] = {"id": "si_dagger_spray", "name": "Dagger Spray", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage to ALL\nenemies twice.", "art": "", "target": "all_enemies", "times": 2}
+	# 7. Dagger Throw
+	card_database["si_dagger_throw"] = {"id": "si_dagger_throw", "name": "Dagger Throw", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 9, "block": 0, "description": "Deal 9 damage.\nDraw 1, Discard 1.", "art": "", "target": "enemy", "draw": 1, "special": "dagger_throw"}
+	# 8. Flick-Flack
+	card_database["si_flick_flack"] = {"id": "si_flick_flack", "name": "Flick-Flack", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Sly. Deal 7 damage\nto ALL enemies.", "art": "", "target": "all_enemies", "special": "sly"}
+	# 9. Leading Strike
+	card_database["si_leading_strike"] = {"id": "si_leading_strike", "name": "Leading Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage.\nAdd 1 Shiv to hand.", "art": "", "target": "enemy", "special": "leading_strike"}
+	# 10. Poisoned Stab
+	card_database["si_poisoned_stab"] = {"id": "si_poisoned_stab", "name": "Poisoned Stab", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.\nApply 3 Poison.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 3}}
+	# 11. Sucker Punch
+	card_database["si_sucker_punch"] = {"id": "si_sucker_punch", "name": "Sucker Punch", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}}
+	# 12. Ricochet
+	card_database["si_ricochet"] = {"id": "si_ricochet", "name": "Ricochet", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Sly. Deal 3 damage\nto random enemy 4x.", "art": "", "target": "random_enemy", "times": 4, "special": "sly"}
+	# 13. Quick Slash
+	card_database["si_quick_slash"] = {"id": "si_quick_slash", "name": "Quick Slash", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nDraw 1 card.", "art": "", "target": "enemy", "draw": 1}
+
+	# --- Common Skills ---
+	# 14. Anticipate
+	card_database["si_anticipate"] = {"id": "si_anticipate", "name": "Anticipate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 3 Dexterity\nthis turn.", "art": "", "target": "self", "special": "anticipate"}
+	# 15. Deflect
+	card_database["si_deflect"] = {"id": "si_deflect", "name": "Deflect", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block.", "art": "", "target": "self"}
+	# 16. Prepared
+	card_database["si_prepared"] = {"id": "si_prepared", "name": "Prepared", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 1, Discard 1.", "art": "", "target": "self", "draw": 1, "special": "prepared"}
+	# 17. Backflip
+	card_database["si_backflip"] = {"id": "si_backflip", "name": "Backflip", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nDraw 2 cards.", "art": "", "target": "self", "draw": 2}
+	# 18. Dodge and Roll
+	card_database["si_dodge_and_roll"] = {"id": "si_dodge_and_roll", "name": "Dodge and Roll", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block this\nturn and next.", "art": "", "target": "self", "special": "dodge_and_roll"}
+	# 19. Cloak and Dagger
+	card_database["si_cloak_and_dagger"] = {"id": "si_cloak_and_dagger", "name": "Cloak and Dagger", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 6, "description": "Gain 6 Block.\nAdd 1 Shiv to hand.", "art": "", "target": "self", "special": "cloak_and_dagger"}
+	# 20. Outmaneuver
+	card_database["si_outmaneuver"] = {"id": "si_outmaneuver", "name": "Outmaneuver", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Energy\nnext turn.", "art": "", "target": "self", "special": "outmaneuver"}
+	# 21. Acrobatics
+	card_database["si_acrobatics"] = {"id": "si_acrobatics", "name": "Acrobatics", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 3 cards.\nDiscard 1.", "art": "", "target": "self", "draw": 3, "special": "acrobatics"}
+	# 22. Blade Dance
+	card_database["si_blade_dance"] = {"id": "si_blade_dance", "name": "Blade Dance", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add 3 Shivs to\nyour hand.", "art": "", "target": "self", "special": "blade_dance"}
+	# 23. Escape Plan
+	card_database["si_escape_plan"] = {"id": "si_escape_plan", "name": "Escape Plan", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 1 card. If it\nis a Skill, gain\n3 Block.", "art": "", "target": "self", "draw": 1, "special": "escape_plan"}
+	# 24. Calculated Gamble
+	card_database["si_calculated_gamble"] = {"id": "si_calculated_gamble", "name": "Calculated Gamble", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard your hand.\nDraw that many cards.", "art": "", "target": "self", "special": "calculated_gamble"}
+	# 25. Concentrate
+	card_database["si_concentrate"] = {"id": "si_concentrate", "name": "Concentrate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard 3 cards.\nGain 2 Energy.", "art": "", "target": "self", "special": "concentrate"}
+
+	# --- Uncommon Attacks ---
+	# 26. Predator
+	card_database["si_predator"] = {"id": "si_predator", "name": "Predator", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 15, "block": 0, "description": "Deal 15 damage.", "art": "", "target": "enemy"}
+	# 27. Masterful Stab
+	card_database["si_masterful_stab"] = {"id": "si_masterful_stab", "name": "Masterful Stab", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 12, "block": 0, "description": "Innate.\nDeal 12 damage.", "art": "", "target": "enemy", "innate": true}
+	# 28. Skewer
+	card_database["si_skewer"] = {"id": "si_skewer", "name": "Skewer", "cost": -1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage X times.\n(X = current Energy)", "art": "", "target": "enemy", "special": "skewer"}
+	# 29. Die Die Die
+	card_database["si_die_die_die"] = {"id": "si_die_die_die", "name": "Die Die Die", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 13, "block": 0, "description": "Deal 13 damage to\nALL enemies. Exhaust.", "art": "", "target": "all_enemies", "exhaust": true}
+	# 30. Endless Agony
+	card_database["si_endless_agony"] = {"id": "si_endless_agony", "name": "Endless Agony", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage.\nExhaust. When drawn,\nadd copy to hand.", "art": "", "target": "enemy", "exhaust": true, "special": "endless_agony"}
+	# 31. Eviscerate
+	card_database["si_eviscerate"] = {"id": "si_eviscerate", "name": "Eviscerate", "cost": 3, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage\n3 times.", "art": "", "target": "enemy", "times": 3}
+	# 32. Finisher
+	card_database["si_finisher"] = {"id": "si_finisher", "name": "Finisher", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage for\neach Attack played\nthis turn.", "art": "", "target": "enemy", "special": "finisher"}
+	# 33. Flying Knee
+	card_database["si_flying_knee"] = {"id": "si_flying_knee", "name": "Flying Knee", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nGain 1 Energy\nnext turn.", "art": "", "target": "enemy", "special": "flying_knee"}
+	# 34. Heel Hook
+	card_database["si_heel_hook"] = {"id": "si_heel_hook", "name": "Heel Hook", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1.", "art": "", "target": "enemy", "special": "heel_hook"}
+	# 35. Glass Knife
+	card_database["si_glass_knife"] = {"id": "si_glass_knife", "name": "Glass Knife", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage twice.\nDamage decreases by 2\neach use.", "art": "", "target": "enemy", "times": 2, "special": "glass_knife"}
+	# 36. Choke
+	card_database["si_choke"] = {"id": "si_choke", "name": "Choke", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 12, "block": 0, "description": "Deal 12 damage.\nWhenever enemy plays\na card, take 3 damage.", "art": "", "target": "enemy", "special": "choke"}
+	# 37. Riddle with Holes
+	card_database["si_riddle_with_holes"] = {"id": "si_riddle_with_holes", "name": "Riddle with Holes", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage\n5 times.", "art": "", "target": "enemy", "times": 5}
+
+	# --- Uncommon Skills ---
+	# 38. Blur
+	card_database["si_blur"] = {"id": "si_blur", "name": "Blur", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nBlock not removed\nnext turn.", "art": "", "target": "self", "special": "blur"}
+	# 39. Dash
+	card_database["si_dash"] = {"id": "si_dash", "name": "Dash", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 10, "block": 10, "description": "Gain 10 Block.\nDeal 10 damage.", "art": "", "target": "enemy"}
+	# 40. Terror
+	card_database["si_terror"] = {"id": "si_terror", "name": "Terror", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 99 Vulnerable.\nExhaust.", "art": "", "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 99}, "exhaust": true}
+	# 41. Distraction
+	card_database["si_distraction"] = {"id": "si_distraction", "name": "Distraction", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add a random Skill\nto your hand.\nExhaust.", "art": "", "target": "self", "special": "distraction", "exhaust": true}
+	# 42. Expertise
+	card_database["si_expertise"] = {"id": "si_expertise", "name": "Expertise", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw cards until you\nhave 6 in hand.", "art": "", "target": "self", "special": "expertise"}
+	# 43. Infinite Blades
+	card_database["si_infinite_blades"] = {"id": "si_infinite_blades", "name": "Infinite Blades", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "At start of turn,\nadd a Shiv to hand.", "art": "", "target": "self", "special": "infinite_blades"}
+	# 44. Leg Sweep
+	card_database["si_leg_sweep"] = {"id": "si_leg_sweep", "name": "Leg Sweep", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 11, "description": "Apply 2 Weak.\nGain 11 Block.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 2}}
+	# 45. Reflex
+	card_database["si_reflex"] = {"id": "si_reflex", "name": "Reflex", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Unplayable.\nWhen discarded,\ndraw 2 cards.", "art": "", "target": "self", "unplayable": true, "special": "reflex"}
+	# 46. Setup
+	card_database["si_setup"] = {"id": "si_setup", "name": "Setup", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Put a card from hand\non top of draw pile.", "art": "", "target": "self", "special": "setup"}
+	# 47. Tactician
+	card_database["si_tactician"] = {"id": "si_tactician", "name": "Tactician", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Unplayable.\nWhen discarded,\ngain 1 Energy.", "art": "", "target": "self", "unplayable": true, "special": "tactician"}
+	# 48. Bouncing Flask
+	card_database["si_bouncing_flask"] = {"id": "si_bouncing_flask", "name": "Bouncing Flask", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 3 Poison to\nrandom enemies 3x.", "art": "", "target": "random_enemy", "apply_status": {"type": "poison", "stacks": 3}, "times": 3}
+	# 49. Catalyst
+	card_database["si_catalyst"] = {"id": "si_catalyst", "name": "Catalyst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Double a target's\nPoison. Exhaust.", "art": "", "target": "enemy", "special": "catalyst", "exhaust": true}
+	# 50. Crippling Cloud
+	card_database["si_crippling_cloud"] = {"id": "si_crippling_cloud", "name": "Crippling Cloud", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 4 Poison and\n2 Weak to ALL enemies.", "art": "", "target": "all_enemies", "apply_status": {"type": "poison", "stacks": 4}, "apply_status_2": {"type": "weak", "stacks": 2}}
+	# 51. Deadly Poison
+	card_database["si_deadly_poison"] = {"id": "si_deadly_poison", "name": "Deadly Poison", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 5 Poison.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 5}}
+	# 52. Noxious Fumes
+	card_database["si_noxious_fumes"] = {"id": "si_noxious_fumes", "name": "Noxious Fumes", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "At start of turn,\napply 2 Poison to\nALL enemies.", "art": "", "target": "self", "power_effect": "noxious_fumes"}
+
+	# --- Uncommon Powers ---
+	# 53. Accuracy
+	card_database["si_accuracy"] = {"id": "si_accuracy", "name": "Accuracy", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Shivs deal 4 more\ndamage.", "art": "", "target": "self", "power_effect": "accuracy"}
+	# 54. Caltrops
+	card_database["si_caltrops"] = {"id": "si_caltrops", "name": "Caltrops", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "When attacked, deal\n3 damage back.", "art": "", "target": "self", "power_effect": "caltrops"}
+	# 55. A Thousand Cuts
+	card_database["si_a_thousand_cuts"] = {"id": "si_a_thousand_cuts", "name": "A Thousand Cuts", "cost": 2, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Whenever you play a\ncard, deal 1 damage\nto ALL enemies.", "art": "", "target": "self", "power_effect": "a_thousand_cuts"}
+	# 56. Envenom
+	card_database["si_envenom"] = {"id": "si_envenom", "name": "Envenom", "cost": 2, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Whenever you deal\nunblocked damage,\napply 1 Poison.", "art": "", "target": "self", "power_effect": "envenom"}
+	# 57. Footwork
+	card_database["si_footwork"] = {"id": "si_footwork", "name": "Footwork", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Dexterity.", "art": "", "target": "self", "apply_self_status": {"type": "dexterity", "stacks": 2}}
+	# 58. Tools of the Trade
+	card_database["si_tools_of_the_trade"] = {"id": "si_tools_of_the_trade", "name": "Tools of the Trade", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "At start of turn,\ndraw 1, discard 1.", "art": "", "target": "self", "power_effect": "tools_of_the_trade"}
+
+	# --- Rare Attacks ---
+	# 59. Backstab
+	card_database["si_backstab"] = {"id": "si_backstab", "name": "Backstab", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 11, "block": 0, "description": "Deal 11 damage.\nInnate. Exhaust.", "art": "", "target": "enemy", "innate": true, "exhaust": true}
+	# 60. Grand Finale
+	card_database["si_grand_finale"] = {"id": "si_grand_finale", "name": "Grand Finale", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 50, "block": 0, "description": "Can only play if draw\npile is empty.\nDeal 50 damage.", "art": "", "target": "enemy", "special": "grand_finale"}
+	# 61. Unload
+	card_database["si_unload"] = {"id": "si_unload", "name": "Unload", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 14, "block": 0, "description": "Deal 14 damage.\nDiscard all non-Attack\ncards in hand.", "art": "", "target": "enemy", "special": "unload"}
+
+	# --- Rare Skills ---
+	# 62. Adrenaline
+	card_database["si_adrenaline"] = {"id": "si_adrenaline", "name": "Adrenaline", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 1 Energy.\nDraw 2 cards.\nExhaust.", "art": "", "target": "self", "draw": 2, "energy_gain": 1, "exhaust": true}
+	# 63. Alchemize
+	card_database["si_alchemize"] = {"id": "si_alchemize", "name": "Alchemize", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Obtain a random\npotion. Exhaust.", "art": "", "target": "self", "special": "alchemize", "exhaust": true}
+	# 64. Bullet Time
+	card_database["si_bullet_time"] = {"id": "si_bullet_time", "name": "Bullet Time", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Cards cost 0 this\nturn. No draw\nnext turn.", "art": "", "target": "self", "special": "bullet_time"}
+	# 65. Burst
+	card_database["si_burst"] = {"id": "si_burst", "name": "Burst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next Skill is played\ntwice.", "art": "", "target": "self", "special": "burst"}
+	# 66. Corpse Explosion
+	card_database["si_corpse_explosion"] = {"id": "si_corpse_explosion", "name": "Corpse Explosion", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 6 Poison.\nWhen enemy dies, deal\ndamage to ALL.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 6}, "special": "corpse_explosion"}
+	# 67. Malaise
+	card_database["si_malaise"] = {"id": "si_malaise", "name": "Malaise", "cost": -1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Enemy loses X Strength.\nApply X Weak.", "art": "", "target": "enemy", "special": "malaise"}
+	# 68. Nightmare
+	card_database["si_nightmare"] = {"id": "si_nightmare", "name": "Nightmare", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Choose a card. Add\n3 copies to hand\nnext turn.", "art": "", "target": "self", "special": "nightmare"}
+	# 69. Phantasmal Killer
+	card_database["si_phantasmal_killer"] = {"id": "si_phantasmal_killer", "name": "Phantasmal Killer", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next turn, deal\ndouble damage.", "art": "", "target": "self", "special": "phantasmal_killer"}
+
+	# --- Rare Powers ---
+	# 70. After Image
+	card_database["si_after_image"] = {"id": "si_after_image", "name": "After Image", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Whenever you play a\ncard, gain 1 Block.", "art": "", "target": "self", "power_effect": "after_image"}
+	# 71. Storm of Steel
+	card_database["si_storm_of_steel"] = {"id": "si_storm_of_steel", "name": "Storm of Steel", "cost": 0, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Discard your hand.\nAdd a Shiv per card\ndiscarded.", "art": "", "target": "self", "special": "storm_of_steel"}
+	# 72. Well-Laid Plans
+	card_database["si_well_laid_plans"] = {"id": "si_well_laid_plans", "name": "Well-Laid Plans", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "At end of turn,\nRetain up to 1 card.", "art": "", "target": "self", "power_effect": "well_laid_plans"}
+	# 73. Wraith Form
+	card_database["si_wraith_form"] = {"id": "si_wraith_form", "name": "Wraith Form", "cost": 3, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Intangible.\nLose 1 Dexterity\nper turn.", "art": "", "target": "self", "power_effect": "wraith_form"}
+
+	# --- Status Cards ---
+	# 74. Shiv
+	card_database["si_shiv"] = {"id": "si_shiv", "name": "Shiv", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage.\nExhaust.", "art": "", "target": "enemy", "exhaust": true}
+	# 75. Shiv+
+	card_database["si_shiv_plus"] = {"id": "si_shiv_plus", "name": "Shiv+", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.\nExhaust.", "art": "", "target": "enemy", "exhaust": true, "upgraded": true}
 
 func select_character(character_id: String) -> void:
 	current_character = character_id
@@ -343,18 +498,13 @@ func get_starting_deck(character_id: String) -> Array:
 			deck.append("ic_defend")
 		deck.append("ic_bash")
 	elif character_id == "silent":
-		for i in range(4):
-			deck.append("si_dagger_throw")
-		deck.append("si_quick_slash")
-		deck.append("si_poisoned_stab")
-		deck.append("si_dash")
-		deck.append("si_backstab")
-		deck.append("si_fan_of_knives")
-		deck.append("si_cloak")
-		deck.append("si_dodge")
-		deck.append("si_blade_dance")
-		deck.append("si_adrenaline")
-		deck.append("si_predator_strike")
+		# STS Silent starter: 5 Strike, 5 Defend, 1 Neutralize, 1 Survivor
+		for i in range(5):
+			deck.append("si_strike")
+		for i in range(5):
+			deck.append("si_defend")
+		deck.append("si_neutralize")
+		deck.append("si_survivor")
 	return deck
 
 func get_card_data(card_id: String) -> Dictionary:
@@ -469,4 +619,113 @@ func _get_upgrade_overrides() -> Dictionary:
 		"ic_blood_for_blood": {"damage": 22, "description": "Costs 1 less for each\ntime you lose HP.\nDeal 22 damage."},
 		"ic_double_tap": {"description": "This turn, your next\n2 Attacks are played\ntwice."},
 		"ic_fire_breathing": {"description": "Whenever you draw a\nStatus or Curse, deal\n10 damage to ALL."},
+
+		# =====================================================================
+		# SILENT BASIC
+		# =====================================================================
+		"si_strike": {"damage": 9, "description": "Deal 9 damage."},
+		"si_defend": {"block": 8, "description": "Gain 8 Block."},
+		"si_neutralize": {"damage": 4, "apply_status": {"type": "weak", "stacks": 2}, "description": "Deal 4 damage.\nApply 2 Weak."},
+		"si_survivor": {"block": 11, "description": "Gain 11 Block.\nDiscard 1 card."},
+
+		# =====================================================================
+		# SILENT COMMON ATTACKS
+		# =====================================================================
+		"si_slice": {"damage": 9, "description": "Deal 9 damage."},
+		"si_dagger_spray": {"damage": 6, "description": "Deal 6 damage to ALL\nenemies twice."},
+		"si_dagger_throw": {"damage": 12, "description": "Deal 12 damage.\nDraw 1, Discard 1."},
+		"si_flick_flack": {"damage": 10, "description": "Sly. Deal 10 damage\nto ALL enemies."},
+		"si_leading_strike": {"damage": 10, "description": "Deal 10 damage.\nAdd 1 Shiv to hand."},
+		"si_poisoned_stab": {"damage": 8, "apply_status": {"type": "poison", "stacks": 4}, "description": "Deal 8 damage.\nApply 4 Poison."},
+		"si_sucker_punch": {"damage": 11, "apply_status": {"type": "weak", "stacks": 2}, "description": "Deal 11 damage.\nApply 2 Weak."},
+		"si_ricochet": {"damage": 4, "description": "Sly. Deal 4 damage\nto random enemy 4x."},
+		"si_quick_slash": {"damage": 12, "description": "Deal 12 damage.\nDraw 1 card."},
+
+		# =====================================================================
+		# SILENT COMMON SKILLS
+		# =====================================================================
+		"si_anticipate": {"description": "Gain 5 Dexterity\nthis turn."},
+		"si_deflect": {"block": 7, "description": "Gain 7 Block."},
+		"si_prepared": {"draw": 2, "description": "Draw 2, Discard 1."},
+		"si_backflip": {"block": 8, "description": "Gain 8 Block.\nDraw 2 cards."},
+		"si_dodge_and_roll": {"block": 6, "description": "Gain 6 Block this\nturn and next."},
+		"si_cloak_and_dagger": {"block": 6, "description": "Gain 6 Block.\nAdd 2 Shivs to hand.", "special": "cloak_and_dagger_plus"},
+		"si_outmaneuver": {"description": "Gain 3 Energy\nnext turn."},
+		"si_acrobatics": {"draw": 4, "description": "Draw 4 cards.\nDiscard 1."},
+		"si_blade_dance": {"description": "Add 4 Shivs to\nyour hand.", "special": "blade_dance_plus"},
+		"si_escape_plan": {"block": 5, "description": "Draw 1 card. If it\nis a Skill, gain\n5 Block."},
+		"si_calculated_gamble": {"description": "Discard your hand.\nDraw that many +1."},
+		"si_concentrate": {"description": "Discard 2 cards.\nGain 2 Energy."},
+
+		# =====================================================================
+		# SILENT UNCOMMON ATTACKS
+		# =====================================================================
+		"si_predator": {"damage": 20, "description": "Deal 20 damage."},
+		"si_masterful_stab": {"damage": 16, "description": "Innate.\nDeal 16 damage."},
+		"si_skewer": {"damage": 10, "description": "Deal 10 damage X times.\n(X = current Energy)"},
+		"si_die_die_die": {"damage": 17, "description": "Deal 17 damage to\nALL enemies. Exhaust."},
+		"si_endless_agony": {"damage": 6, "description": "Deal 6 damage.\nExhaust. When drawn,\nadd copy to hand."},
+		"si_eviscerate": {"damage": 9, "description": "Deal 9 damage\n3 times."},
+		"si_finisher": {"damage": 8, "description": "Deal 8 damage for\neach Attack played\nthis turn."},
+		"si_flying_knee": {"damage": 11, "description": "Deal 11 damage.\nGain 1 Energy\nnext turn."},
+		"si_heel_hook": {"damage": 8, "description": "Deal 8 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1."},
+		"si_glass_knife": {"damage": 12, "description": "Deal 12 damage twice.\nDamage decreases by 2\neach use."},
+		"si_choke": {"damage": 16, "description": "Deal 16 damage.\nWhenever enemy plays\na card, take 4 damage."},
+		"si_riddle_with_holes": {"damage": 4, "description": "Deal 4 damage\n5 times."},
+
+		# =====================================================================
+		# SILENT UNCOMMON SKILLS
+		# =====================================================================
+		"si_blur": {"block": 8, "description": "Gain 8 Block.\nBlock not removed\nnext turn."},
+		"si_dash": {"damage": 13, "block": 13, "description": "Gain 13 Block.\nDeal 13 damage."},
+		"si_terror": {"cost": 0, "description": "Apply 99 Vulnerable.\nExhaust."},
+		"si_distraction": {"cost": 0, "description": "Add a random Skill\nto your hand.\nExhaust."},
+		"si_expertise": {"description": "Draw cards until you\nhave 7 in hand."},
+		"si_infinite_blades": {"description": "At start of turn,\nadd a Shiv+ to hand."},
+		"si_leg_sweep": {"block": 14, "apply_status": {"type": "weak", "stacks": 3}, "description": "Apply 3 Weak.\nGain 14 Block."},
+		"si_reflex": {"description": "Unplayable.\nWhen discarded,\ndraw 3 cards."},
+		"si_setup": {"cost": 0, "description": "Put a card from hand\non top of draw pile."},
+		"si_tactician": {"description": "Unplayable.\nWhen discarded,\ngain 2 Energy."},
+		"si_bouncing_flask": {"apply_status": {"type": "poison", "stacks": 4}, "description": "Apply 4 Poison to\nrandom enemies 3x."},
+		"si_catalyst": {"description": "Triple a target's\nPoison. Exhaust.", "special": "catalyst_plus"},
+		"si_crippling_cloud": {"apply_status": {"type": "poison", "stacks": 7}, "apply_status_2": {"type": "weak", "stacks": 3}, "description": "Apply 7 Poison and\n3 Weak to ALL enemies."},
+		"si_deadly_poison": {"apply_status": {"type": "poison", "stacks": 7}, "description": "Apply 7 Poison."},
+		"si_noxious_fumes": {"description": "At start of turn,\napply 3 Poison to\nALL enemies.", "power_effect": "noxious_fumes_plus"},
+
+		# =====================================================================
+		# SILENT UNCOMMON POWERS
+		# =====================================================================
+		"si_accuracy": {"description": "Shivs deal 6 more\ndamage.", "power_effect": "accuracy_plus"},
+		"si_caltrops": {"description": "When attacked, deal\n5 damage back.", "power_effect": "caltrops_plus"},
+		"si_a_thousand_cuts": {"description": "Whenever you play a\ncard, deal 2 damage\nto ALL enemies.", "power_effect": "a_thousand_cuts_plus"},
+		"si_envenom": {"description": "Whenever you deal\nunblocked damage,\napply 2 Poison.", "power_effect": "envenom_plus"},
+		"si_footwork": {"apply_self_status": {"type": "dexterity", "stacks": 3}, "description": "Gain 3 Dexterity."},
+		"si_tools_of_the_trade": {"description": "At start of turn,\ndraw 1, discard 1."},
+
+		# =====================================================================
+		# SILENT RARE ATTACKS
+		# =====================================================================
+		"si_backstab": {"damage": 15, "description": "Deal 15 damage.\nInnate. Exhaust."},
+		"si_grand_finale": {"damage": 60, "description": "Can only play if draw\npile is empty.\nDeal 60 damage."},
+		"si_unload": {"damage": 18, "description": "Deal 18 damage.\nDiscard all non-Attack\ncards in hand."},
+
+		# =====================================================================
+		# SILENT RARE SKILLS
+		# =====================================================================
+		"si_adrenaline": {"draw": 3, "description": "Gain 2 Energy.\nDraw 3 cards.\nExhaust.", "energy_gain": 2},
+		"si_alchemize": {"cost": 0, "description": "Obtain a random\npotion. Exhaust."},
+		"si_bullet_time": {"cost": 2, "description": "Cards cost 0 this\nturn. No draw\nnext turn."},
+		"si_burst": {"description": "Next 2 Skills are\nplayed twice.", "special": "burst_plus"},
+		"si_corpse_explosion": {"apply_status": {"type": "poison", "stacks": 9}, "description": "Apply 9 Poison.\nWhen enemy dies, deal\ndamage to ALL."},
+		"si_malaise": {"description": "Enemy loses X+1\nStrength. Apply X+1\nWeak."},
+		"si_nightmare": {"cost": 2, "description": "Choose a card. Add\n3 copies to hand\nnext turn."},
+		"si_phantasmal_killer": {"description": "Next turn, deal\ndouble damage."},
+
+		# =====================================================================
+		# SILENT RARE POWERS
+		# =====================================================================
+		"si_after_image": {"description": "Whenever you play a\ncard, gain 1 Block."},
+		"si_storm_of_steel": {"description": "Discard your hand.\nAdd a Shiv+ per card\ndiscarded."},
+		"si_well_laid_plans": {"description": "At end of turn,\nRetain up to 2 cards.", "power_effect": "well_laid_plans_plus"},
+		"si_wraith_form": {"description": "Gain 3 Intangible.\nLose 1 Dexterity\nper turn.", "power_effect": "wraith_form_plus"},
 	}
