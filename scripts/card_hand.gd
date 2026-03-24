@@ -264,18 +264,12 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 	selected_card = null
 	focused_card = null
 	targeting_mode = false
-	# Animate card flying toward the target before removing
+	# Animate card flying toward the discard pile (bottom-right) before removing
 	if card_node and is_instance_valid(card_node):
-		# Calculate target position in card_hand's local space
-		var fly_pos: Vector2
-		if target and is_instance_valid(target):
-			# Convert target's global position to our local space
-			var target_global: Vector2 = target.global_position
-			fly_pos = to_local(target_global)
-		else:
-			# Fallback: fly upward
-			fly_pos = card_node.position + Vector2(0, -300)
-		card_node.move_to(fly_pos, 0.0, Vector2(0.5, 0.5), 0.2)
+		# Discard pile is at approximately (1700, 890) in screen coordinates
+		var discard_global := Vector2(1700, 890)
+		var fly_pos: Vector2 = to_local(discard_global)
+		card_node.move_to(fly_pos, 0.0, Vector2(0.3, 0.3), 0.2)
 		cards.erase(card_node)
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
