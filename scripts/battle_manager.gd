@@ -890,6 +890,7 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 			var gamble_count: int = hand.size()
 			for c in hand:
 				discard_pile.append(c)
+				_check_sly_on_discard(c)
 			hand.clear()
 			if card_hand:
 				card_hand.clear_hand()
@@ -1101,9 +1102,10 @@ func end_player_turn() -> void:
 		hand.erase(card_data)
 		_exhaust_card(card_data)
 
-	# Discard remaining hand
+	# Discard remaining hand — trigger sly cards
 	for card_data in hand:
 		discard_pile.append(card_data)
+		_check_sly_on_discard(card_data)
 	hand.clear()
 	if card_hand:
 		card_hand.clear_hand()
@@ -1309,6 +1311,15 @@ func _update_pile_labels() -> void:
 			discard_label.text = loc.tf("discard_pile", [discard_pile.size()])
 		else:
 			discard_label.text = "弃牌: " + str(discard_pile.size())
+	# Move pile labels up when hand is full (7+ cards) to prevent overlap
+	var hand_count: int = hand.size()
+	var y_offset: float = -60.0 if hand_count >= 7 else 0.0
+	var draw_panel = draw_pile_label.get_parent() if draw_pile_label else null
+	if draw_panel and draw_panel is Panel:
+		draw_panel.position.y = 890 + y_offset
+	var discard_panel_node = discard_label.get_parent() if discard_label else null
+	if discard_panel_node and discard_panel_node is Panel:
+		discard_panel_node.position.y = 890 + y_offset
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)
@@ -1997,6 +2008,7 @@ func _on_discard_confirm() -> void:
 		if idx < hand.size():
 			var card_data = hand[idx]
 			discard_pile.append(card_data)
+			_check_sly_on_discard(card_data)
 			hand.remove_at(idx)
 	# Rebuild hand display
 	if card_hand:
@@ -2028,3 +2040,218 @@ func _auto_discard(count: int) -> void:
 		for c in hand:
 			card_hand.add_card(c)
 	_update_pile_labels()
+
+func _check_sly_on_discard(card_data: Dictionary) -> void:
+	## Sly mechanic: when a card with special "sly" is discarded, trigger its effects
+	if card_data.get("special", "") != "sly":
+		return
+	if not battle_active or player == null or not player.alive:
+		return
+	# Pick a target for the sly effect
+	var target_type: String = card_data.get("target", "enemy")
+	var target: Node2D = null
+	if target_type == "all_enemies":
+		# all_enemies doesn't need a specific target, but we pass the first alive enemy
+		var alive = _get_alive_enemies()
+		if not alive.is_empty():
+			target = alive[0]
+	elif target_type == "random_enemy":
+		var alive = _get_alive_enemies()
+		if not alive.is_empty():
+			target = alive[randi() % alive.size()]
+	elif target_type == "enemy":
+		var alive = _get_alive_enemies()
+		if not alive.is_empty():
+			target = alive[randi() % alive.size()]
+	elif target_type == "self":
+		target = player
+	if target == null and target_type != "self":
+		return
+	# Execute the card effects (without spending energy)
+	_execute_card(card_data, target, 0)
+
+# ---- Pile Selection Popup (for cards like Exhume) ----
+
+var _pile_selection_overlay: Control = null
+var _pile_selection_callback: Callable
+var _pile_selection_count: int = 0
+var _pile_selection_selected: Array = []
+var _pile_selection_card_nodes: Array = []
+var _pile_selection_confirm_btn: Button = null
+
+func _show_pile_selection(pile: Array, title: String, count: int, callback: Callable) -> void:
+	## Show a fullscreen overlay where the player selects 'count' cards from 'pile'.
+	## Selected card data is returned via callback as an Array.
+	if pile.is_empty():
+		callback.call([])
+		return
+	_pile_selection_callback = callback
+	_pile_selection_count = count
+	_pile_selection_selected.clear()
+	_pile_selection_card_nodes.clear()
+
+	# Create overlay if not exists
+	if _pile_selection_overlay != null and is_instance_valid(_pile_selection_overlay):
+		_pile_selection_overlay.queue_free()
+
+	var hud_layer = get_node_or_null("HUDLayer")
+	if hud_layer == null:
+		callback.call([])
+		return
+
+	_pile_selection_overlay = Control.new()
+	_pile_selection_overlay.name = "PileSelectionOverlay"
+	_pile_selection_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_pile_selection_overlay.z_index = 700
+	_pile_selection_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	# Dark background
+	var bg = ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.85)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pile_selection_overlay.add_child(bg)
+
+	# Title
+	var title_lbl = Label.new()
+	title_lbl.text = title
+	title_lbl.position = Vector2(0, 30)
+	title_lbl.size = Vector2(1920, 60)
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 36)
+	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+	title_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	title_lbl.add_theme_constant_override("shadow_offset_x", 1)
+	title_lbl.add_theme_constant_override("shadow_offset_y", 2)
+	title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pile_selection_overlay.add_child(title_lbl)
+
+	# Scroll + Grid for cards
+	var scroll = ScrollContainer.new()
+	scroll.position = Vector2(60, 110)
+	scroll.size = Vector2(1800, 800)
+	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_pile_selection_overlay.add_child(scroll)
+
+	var grid = GridContainer.new()
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 20)
+	grid.add_theme_constant_override("v_separation", 20)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(grid)
+
+	var loc = _get_loc()
+	var card_script_class = load("res://scripts/card.gd")
+	var mini_size := Vector2(180, 250)
+
+	for i in range(pile.size()):
+		var cd: Dictionary = pile[i]
+		var card_visual = card_script_class.create_card_visual(cd, mini_size, loc)
+		var btn_wrapper = Button.new()
+		btn_wrapper.custom_minimum_size = mini_size
+		btn_wrapper.size = mini_size
+		btn_wrapper.clip_contents = true
+		btn_wrapper.mouse_filter = Control.MOUSE_FILTER_STOP
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0, 0, 0, 0.01)
+		btn_wrapper.add_theme_stylebox_override("normal", btn_style)
+		var btn_hover = StyleBoxFlat.new()
+		btn_hover.bg_color = Color(1, 1, 1, 0.1)
+		btn_wrapper.add_theme_stylebox_override("hover", btn_hover)
+		var btn_pressed = StyleBoxFlat.new()
+		btn_pressed.bg_color = Color(1, 0.8, 0.2, 0.2)
+		btn_wrapper.add_theme_stylebox_override("pressed", btn_pressed)
+		btn_wrapper.add_child(card_visual)
+		var card_index: int = i
+		btn_wrapper.pressed.connect(_on_pile_selection_card_toggled.bind(card_index))
+		btn_wrapper.set_meta("card_index", card_index)
+		btn_wrapper.set_meta("selected", false)
+		grid.add_child(btn_wrapper)
+		_pile_selection_card_nodes.append(btn_wrapper)
+
+	# Confirm button
+	_pile_selection_confirm_btn = Button.new()
+	_pile_selection_confirm_btn.text = "确认选择 (0/%d)" % count
+	_pile_selection_confirm_btn.position = Vector2(810, 930)
+	_pile_selection_confirm_btn.custom_minimum_size = Vector2(300, 60)
+	_pile_selection_confirm_btn.add_theme_font_size_override("font_size", 28)
+	_pile_selection_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	_pile_selection_confirm_btn.disabled = true
+	var confirm_style = StyleBoxFlat.new()
+	confirm_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+	confirm_style.corner_radius_top_left = 10
+	confirm_style.corner_radius_top_right = 10
+	confirm_style.corner_radius_bottom_left = 10
+	confirm_style.corner_radius_bottom_right = 10
+	_pile_selection_confirm_btn.add_theme_stylebox_override("normal", confirm_style)
+	_pile_selection_confirm_btn.add_theme_stylebox_override("hover", confirm_style)
+	_pile_selection_confirm_btn.pressed.connect(_on_pile_selection_confirm.bind(pile))
+	_pile_selection_overlay.add_child(_pile_selection_confirm_btn)
+
+	hud_layer.add_child(_pile_selection_overlay)
+
+func _on_pile_selection_card_toggled(card_index: int) -> void:
+	var btn: Button = null
+	for node in _pile_selection_card_nodes:
+		if node.get_meta("card_index") == card_index:
+			btn = node
+			break
+	if btn == null:
+		return
+	var is_selected: bool = btn.get_meta("selected")
+	if is_selected:
+		btn.set_meta("selected", false)
+		btn.modulate = Color.WHITE
+		_pile_selection_selected.erase(card_index)
+	else:
+		if _pile_selection_selected.size() >= _pile_selection_count:
+			return
+		btn.set_meta("selected", true)
+		btn.modulate = Color(0.4, 0.9, 1.0, 1.0)  # Blue highlight
+		_pile_selection_selected.append(card_index)
+	_update_pile_selection_confirm()
+
+func _update_pile_selection_confirm() -> void:
+	if _pile_selection_confirm_btn == null:
+		return
+	var ready: bool = _pile_selection_selected.size() >= _pile_selection_count
+	_pile_selection_confirm_btn.text = "确认选择 (%d/%d)" % [_pile_selection_selected.size(), _pile_selection_count]
+	_pile_selection_confirm_btn.disabled = not ready
+	if ready:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.15, 0.6, 0.2, 0.9)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
+		_pile_selection_confirm_btn.add_theme_stylebox_override("normal", style)
+		var hover_style = style.duplicate() as StyleBoxFlat
+		hover_style.bg_color = Color(0.2, 0.7, 0.25, 0.95)
+		_pile_selection_confirm_btn.add_theme_stylebox_override("hover", hover_style)
+	else:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
+		_pile_selection_confirm_btn.add_theme_stylebox_override("normal", style)
+		_pile_selection_confirm_btn.add_theme_stylebox_override("hover", style)
+
+func _on_pile_selection_confirm(pile: Array) -> void:
+	if _pile_selection_selected.size() < _pile_selection_count:
+		return
+	var selected_cards: Array = []
+	for idx in _pile_selection_selected:
+		if idx < pile.size():
+			selected_cards.append(pile[idx])
+	# Close overlay
+	if _pile_selection_overlay and is_instance_valid(_pile_selection_overlay):
+		_pile_selection_overlay.queue_free()
+		_pile_selection_overlay = null
+	_pile_selection_selected.clear()
+	_pile_selection_card_nodes.clear()
+	_pile_selection_confirm_btn = null
+	# Invoke callback with selected cards
+	if _pile_selection_callback.is_valid():
+		_pile_selection_callback.call(selected_cards)

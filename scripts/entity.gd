@@ -28,6 +28,35 @@ var intent_icon: TextureRect = null
 var intent_label: Label = null
 var status_container: HBoxContainer = null
 var name_label: Label = null
+var _active_tooltip: Label = null  # Currently shown status tooltip
+
+# Chinese names for status effects and powers
+const STATUS_NAMES: Dictionary = {
+	"strength": "力量",
+	"dexterity": "敏捷",
+	"vulnerable": "易伤",
+	"weak": "虚弱",
+	"poison": "中毒",
+}
+const POWER_NAMES: Dictionary = {
+	"demon_form": "恶魔形态",
+	"caltrops": "蒺藜",
+	"envenom": "淬毒",
+	"flame_barrier": "烈焰屏障",
+	"corruption": "腐化",
+	"berserk": "狂暴",
+	"feel_no_pain": "无痛",
+	"juggernaut": "主宰",
+	"evolve": "进化",
+	"rage": "怒火",
+	"barricade": "壁垒",
+	"metallicize": "金属化",
+	"accuracy": "精准",
+	"infinite_blades": "无限刀刃",
+	"noxious_fumes": "剧毒烟雾",
+	"a_thousand_cuts": "千刀万剐",
+	"after_image": "残影",
+}
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -254,15 +283,21 @@ func _update_status_display() -> void:
 		if tex == null:
 			continue
 		var container = HBoxContainer.new()
+		container.mouse_filter = Control.MOUSE_FILTER_PASS
+		var status_name: String = STATUS_NAMES.get(status_type, status_type)
+		var stacks: int = status_effects[status_type]
+		container.gui_input.connect(_on_status_icon_clicked.bind(container, status_name, stacks))
 		var icon = TextureRect.new()
 		icon.texture = tex
 		icon.custom_minimum_size = Vector2(32, 32)
 		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(icon)
 		var lbl = Label.new()
 		lbl.text = str(status_effects[status_type])
 		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if status_type == "poison":
 			lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
 		else:
@@ -463,6 +498,9 @@ func _update_power_display() -> void:
 			continue
 		var container = HBoxContainer.new()
 		container.name = "PowerIcon_" + power_id
+		container.mouse_filter = Control.MOUSE_FILTER_PASS
+		var power_name: String = POWER_NAMES.get(power_id, power_id)
+		container.gui_input.connect(_on_status_icon_clicked.bind(container, power_name, stacks))
 		# Try loading power-specific icon
 		var icon_path: String = "res://assets/img/power_icons/" + power_id + ".png"
 		var tex = load(icon_path) if ResourceLoader.exists(icon_path) else null
@@ -472,19 +510,75 @@ func _update_power_display() -> void:
 			icon.custom_minimum_size = Vector2(28, 28)
 			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(icon)
 		else:
 			# Fallback: purple square
 			var fallback = ColorRect.new()
 			fallback.custom_minimum_size = Vector2(28, 28)
 			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
+			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(fallback)
 		var lbl = Label.new()
 		lbl.text = str(stacks)
 		lbl.add_theme_font_size_override("font_size", 16)
 		lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(lbl)
 		status_container.add_child(container)
+
+func _on_status_icon_clicked(event: InputEvent, icon_container: Control, status_name: String, stacks: int) -> void:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	# Remove existing tooltip if any
+	if _active_tooltip and is_instance_valid(_active_tooltip):
+		_active_tooltip.queue_free()
+		_active_tooltip = null
+	# Create tooltip label above the icon
+	var tooltip = Label.new()
+	tooltip.text = "%s x%d" % [status_name, stacks]
+	tooltip.add_theme_font_size_override("font_size", 18)
+	tooltip.add_theme_color_override("font_color", Color(1.0, 1.0, 0.85))
+	tooltip.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	tooltip.add_theme_constant_override("shadow_offset_x", 1)
+	tooltip.add_theme_constant_override("shadow_offset_y", 1)
+	tooltip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# Style background
+	var bg = StyleBoxFlat.new()
+	bg.bg_color = Color(0.1, 0.1, 0.15, 0.92)
+	bg.border_color = Color(0.5, 0.5, 0.6, 0.8)
+	bg.border_width_left = 1
+	bg.border_width_right = 1
+	bg.border_width_top = 1
+	bg.border_width_bottom = 1
+	bg.corner_radius_top_left = 6
+	bg.corner_radius_top_right = 6
+	bg.corner_radius_bottom_left = 6
+	bg.corner_radius_bottom_right = 6
+	bg.content_margin_left = 10
+	bg.content_margin_right = 10
+	bg.content_margin_top = 4
+	bg.content_margin_bottom = 4
+	tooltip.add_theme_stylebox_override("normal", bg)
+	tooltip.z_index = 200
+	tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Position above status container
+	tooltip.position = Vector2(icon_container.position.x - 20, -45)
+	if status_container:
+		status_container.add_child(tooltip)
+	else:
+		add_child(tooltip)
+	_active_tooltip = tooltip
+	# Auto-hide after 2 seconds
+	var tw = create_tween()
+	tw.tween_interval(1.6)
+	tw.tween_property(tooltip, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(func():
+		if is_instance_valid(tooltip):
+			tooltip.queue_free()
+		if _active_tooltip == tooltip:
+			_active_tooltip = null
+	)
 
 func _play_death() -> void:
 	if sprite_node == null:

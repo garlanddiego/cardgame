@@ -14,6 +14,7 @@ var current_battle_energy: int = 3
 var corruption_active: bool = false
 
 var card_script: GDScript = null
+var _any_card_dragging: bool = false
 
 # STS2-style layout — matching card.gd CARD_SIZE (256x430)
 const CARD_WIDTH: float = 256.0
@@ -167,6 +168,8 @@ func _can_afford_card(card_data_check: Dictionary) -> bool:
 	return cost <= current_battle_energy
 
 func _on_card_clicked(card_node: Area2D) -> void:
+	if _any_card_dragging:
+		return
 	var card_data_val: Dictionary = card_node.card_data
 	var target_type: String = card_data_val.get("target", "enemy")
 
@@ -224,6 +227,8 @@ func _on_card_long_pressed(card_node: Area2D) -> void:
 	card_long_press_detail.emit(card_node)
 
 func _on_card_hovered(card_node: Area2D) -> void:
+	if _any_card_dragging:
+		return
 	hovered_card = card_node
 	update_layout()
 
@@ -338,9 +343,11 @@ func is_targeting() -> bool:
 # ---- Drag-to-play handlers ----
 
 func _on_card_drag_started(card_node: Area2D) -> void:
+	_any_card_dragging = true
 	# Energy check before allowing drag
 	if not _can_afford_card(card_node.card_data):
 		# Cancel the drag and snap card back
+		_any_card_dragging = false
 		card_node._is_dragging = false
 		card_node._is_pressed = false
 		card_node._press_time = 0.0
@@ -356,6 +363,7 @@ func _on_card_drag_started(card_node: Area2D) -> void:
 	card_node.z_index = 200
 
 func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:
+	_any_card_dragging = false
 	# Emit signal for battle_manager to resolve the target at release position
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
