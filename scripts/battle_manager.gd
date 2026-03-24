@@ -61,6 +61,17 @@ var _card_detail_overlay: Control = null
 # Pile viewer overlay
 var _pile_viewer: Control = null
 
+# Discard selection overlay
+var _discard_overlay: Control = null
+var _discard_selected_cards: Array = []
+var _discard_required_count: int = 0
+var _discard_callback: Callable
+var _discard_card_nodes: Array = []  # card visual nodes in the overlay
+var _discard_confirm_btn: Button = null
+var _discard_selected_container: HBoxContainer = null
+var _discard_hand_container: HBoxContainer = null
+var _discard_title_label: Label = null
+
 # Damage preview labels
 var _damage_preview_labels: Array = []
 
@@ -147,6 +158,8 @@ func _ready() -> void:
 
 	# Pile viewer overlay
 	_setup_pile_viewer()
+	# Discard selection overlay
+	_setup_discard_overlay()
 	if turn_label:
 		turn_label.add_theme_font_size_override("font_size", 24)
 
@@ -597,6 +610,15 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		discard_pile.append(card_data)
 
 	_update_pile_labels()
+
+	# Handle discard requirement (e.g., Acrobatics: draw 3, discard 1)
+	var discard_count: int = card_data.get("discard", 0)
+	if discard_count > 0 and not hand.is_empty():
+		# Clamp to hand size
+		discard_count = mini(discard_count, hand.size())
+		_show_discard_selection(discard_count, _on_discard_complete)
+		return  # Don't check battle end yet — wait for discard to finish
+
 	# Check win condition
 	_check_battle_end()
 
@@ -1013,8 +1035,24 @@ func start_enemy_turn() -> void:
 		turn_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	_show_turn_banner("ENEMY TURN", Color(1.0, 0.3, 0.3))
 	turn_started.emit(false)
-	# Process each enemy action sequentially
-	_process_enemy_actions(0)
+	# Tick poison on all enemies before their actions
+	_tick_enemy_poison(0)
+
+func _tick_enemy_poison(index: int) -> void:
+	if index >= enemies.size():
+		# All poison ticked, now process enemy actions
+		_check_battle_end()
+		if battle_active:
+			_process_enemy_actions(0)
+		return
+	var enemy = enemies[index]
+	if enemy.alive and enemy.status_effects.has("poison") and enemy.status_effects["poison"] > 0:
+		enemy.tick_poison()
+		# Small delay so player can see the poison damage
+		var timer = get_tree().create_timer(0.4)
+		timer.timeout.connect(_tick_enemy_poison.bind(index + 1))
+	else:
+		_tick_enemy_poison(index + 1)
 
 func _process_enemy_actions(index: int) -> void:
 	if index >= enemies.size():
@@ -1722,3 +1760,283 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 			card_panel.add_child(desc_lbl)
 
 		grid.add_child(card_panel)
+
+# ---- Discard Selection Overlay ----
+
+func _setup_discard_overlay() -> void:
+	var hud_layer = get_node_or_null("HUDLayer")
+	if hud_layer == null:
+		return
+	_discard_overlay = Control.new()
+	_discard_overlay.name = "DiscardOverlay"
+	_discard_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_discard_overlay.visible = false
+	_discard_overlay.z_index = 600
+	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	# Dark background (80% opacity)
+	var bg = ColorRect.new()
+	bg.name = "DarkBG"
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.8)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	_discard_overlay.add_child(bg)
+
+	# Title label
+	_discard_title_label = Label.new()
+	_discard_title_label.name = "Title"
+	_discard_title_label.text = ""
+	_discard_title_label.position = Vector2(0, 40)
+	_discard_title_label.size = Vector2(1920, 60)
+	_discard_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_discard_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_discard_title_label.add_theme_font_size_override("font_size", 36)
+	_discard_title_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+	_discard_title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	_discard_title_label.add_theme_constant_override("shadow_offset_x", 1)
+	_discard_title_label.add_theme_constant_override("shadow_offset_y", 2)
+	_discard_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_discard_overlay.add_child(_discard_title_label)
+
+	# Selected cards area (center) — label
+	var selected_label = Label.new()
+	selected_label.name = "SelectedLabel"
+	selected_label.text = "Selected:"
+	selected_label.position = Vector2(0, 130)
+	selected_label.size = Vector2(1920, 30)
+	selected_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	selected_label.add_theme_font_size_override("font_size", 20)
+	selected_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	selected_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_discard_overlay.add_child(selected_label)
+
+	# ScrollContainer for selected cards in center
+	var selected_scroll = ScrollContainer.new()
+	selected_scroll.name = "SelectedScroll"
+	selected_scroll.position = Vector2(260, 170)
+	selected_scroll.size = Vector2(1400, 300)
+	selected_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_discard_overlay.add_child(selected_scroll)
+
+	_discard_selected_container = HBoxContainer.new()
+	_discard_selected_container.name = "SelectedContainer"
+	_discard_selected_container.add_theme_constant_override("separation", 20)
+	_discard_selected_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	selected_scroll.add_child(_discard_selected_container)
+
+	# Hand cards area label
+	var hand_label = Label.new()
+	hand_label.name = "HandLabel"
+	hand_label.text = "Your Hand:"
+	hand_label.position = Vector2(0, 500)
+	hand_label.size = Vector2(1920, 30)
+	hand_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hand_label.add_theme_font_size_override("font_size", 20)
+	hand_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	hand_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_discard_overlay.add_child(hand_label)
+
+	# ScrollContainer for hand cards at bottom
+	var hand_scroll = ScrollContainer.new()
+	hand_scroll.name = "HandScroll"
+	hand_scroll.position = Vector2(60, 540)
+	hand_scroll.size = Vector2(1800, 340)
+	hand_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_discard_overlay.add_child(hand_scroll)
+
+	_discard_hand_container = HBoxContainer.new()
+	_discard_hand_container.name = "HandContainer"
+	_discard_hand_container.add_theme_constant_override("separation", 15)
+	hand_scroll.add_child(_discard_hand_container)
+
+	# Confirm button
+	_discard_confirm_btn = Button.new()
+	_discard_confirm_btn.name = "ConfirmButton"
+	_discard_confirm_btn.text = "Confirm"
+	_discard_confirm_btn.position = Vector2(810, 900)
+	_discard_confirm_btn.custom_minimum_size = Vector2(300, 60)
+	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
+	_discard_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	_discard_confirm_btn.pressed.connect(_on_discard_confirm)
+	_discard_overlay.add_child(_discard_confirm_btn)
+	_update_discard_confirm_style()
+
+	hud_layer.add_child(_discard_overlay)
+
+func _show_discard_selection(count: int, callback: Callable) -> void:
+	if _discard_overlay == null:
+		# Fallback: auto-discard random cards
+		_auto_discard(count)
+		callback.call()
+		return
+	_discard_required_count = count
+	_discard_callback = callback
+	_discard_selected_cards.clear()
+	_discard_card_nodes.clear()
+
+	# Update title
+	if _discard_title_label:
+		_discard_title_label.text = "选择 %d 张牌弃掉" % count
+
+	# Clear containers
+	if _discard_selected_container:
+		for c in _discard_selected_container.get_children():
+			c.queue_free()
+	if _discard_hand_container:
+		for c in _discard_hand_container.get_children():
+			c.queue_free()
+
+	# Populate hand cards
+	var loc = _get_loc()
+	var card_script_class = load("res://scripts/card.gd")
+	var mini_size := Vector2(180, 250)
+	for i in range(hand.size()):
+		var cd: Dictionary = hand[i]
+		var card_visual = card_script_class.create_card_visual(cd, mini_size, loc)
+		var btn_wrapper = Button.new()
+		btn_wrapper.custom_minimum_size = mini_size
+		btn_wrapper.size = mini_size
+		btn_wrapper.clip_contents = true
+		btn_wrapper.mouse_filter = Control.MOUSE_FILTER_STOP
+		# Remove default button style, use transparent
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0, 0, 0, 0.01)
+		btn_wrapper.add_theme_stylebox_override("normal", btn_style)
+		var btn_hover = StyleBoxFlat.new()
+		btn_hover.bg_color = Color(1, 1, 1, 0.1)
+		btn_wrapper.add_theme_stylebox_override("hover", btn_hover)
+		var btn_pressed = StyleBoxFlat.new()
+		btn_pressed.bg_color = Color(1, 0.8, 0.2, 0.2)
+		btn_wrapper.add_theme_stylebox_override("pressed", btn_pressed)
+		btn_wrapper.add_child(card_visual)
+		var card_index: int = i
+		btn_wrapper.pressed.connect(_on_discard_card_toggled.bind(card_index))
+		btn_wrapper.set_meta("card_index", card_index)
+		btn_wrapper.set_meta("selected", false)
+		_discard_hand_container.add_child(btn_wrapper)
+		_discard_card_nodes.append(btn_wrapper)
+
+	_update_discard_confirm_style()
+	_discard_overlay.visible = true
+
+func _on_discard_card_toggled(card_index: int) -> void:
+	# Find the button wrapper for this card
+	var btn: Button = null
+	for node in _discard_card_nodes:
+		if node.get_meta("card_index") == card_index:
+			btn = node
+			break
+	if btn == null:
+		return
+
+	var is_selected: bool = btn.get_meta("selected")
+
+	if is_selected:
+		# Deselect
+		btn.set_meta("selected", false)
+		btn.modulate = Color.WHITE
+		_discard_selected_cards.erase(card_index)
+	else:
+		# Select (only if we haven't reached the limit)
+		if _discard_selected_cards.size() >= _discard_required_count:
+			return
+		btn.set_meta("selected", true)
+		btn.modulate = Color(1.0, 0.6, 0.2, 1.0)  # Orange highlight for selected
+		_discard_selected_cards.append(card_index)
+
+	# Update selected display
+	_update_discard_selected_display()
+	_update_discard_confirm_style()
+
+func _update_discard_selected_display() -> void:
+	if _discard_selected_container == null:
+		return
+	for c in _discard_selected_container.get_children():
+		c.queue_free()
+	var loc = _get_loc()
+	var card_script_class = load("res://scripts/card.gd")
+	var mini_size := Vector2(140, 195)
+	for idx in _discard_selected_cards:
+		if idx < hand.size():
+			var cd: Dictionary = hand[idx]
+			var card_visual = card_script_class.create_card_visual(cd, mini_size, loc)
+			var panel = Panel.new()
+			panel.custom_minimum_size = mini_size
+			panel.clip_contents = true
+			panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var ps = StyleBoxFlat.new()
+			ps.bg_color = Color(0, 0, 0, 0.01)
+			panel.add_theme_stylebox_override("panel", ps)
+			panel.add_child(card_visual)
+			_discard_selected_container.add_child(panel)
+
+func _update_discard_confirm_style() -> void:
+	if _discard_confirm_btn == null:
+		return
+	var ready: bool = _discard_selected_cards.size() >= _discard_required_count
+	if ready:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.15, 0.6, 0.2, 0.9)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
+		_discard_confirm_btn.add_theme_stylebox_override("normal", style)
+		var hover_style = style.duplicate() as StyleBoxFlat
+		hover_style.bg_color = Color(0.2, 0.7, 0.25, 0.95)
+		_discard_confirm_btn.add_theme_stylebox_override("hover", hover_style)
+		_discard_confirm_btn.disabled = false
+	else:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
+		_discard_confirm_btn.add_theme_stylebox_override("normal", style)
+		_discard_confirm_btn.add_theme_stylebox_override("hover", style)
+		_discard_confirm_btn.disabled = true
+	_discard_confirm_btn.text = "确认弃牌 (%d/%d)" % [_discard_selected_cards.size(), _discard_required_count]
+
+func _on_discard_confirm() -> void:
+	if _discard_selected_cards.size() < _discard_required_count:
+		return
+	# Sort indices descending so we can remove from hand without index shifting
+	var sorted_indices = _discard_selected_cards.duplicate()
+	sorted_indices.sort()
+	sorted_indices.reverse()
+	for idx in sorted_indices:
+		if idx < hand.size():
+			var card_data = hand[idx]
+			discard_pile.append(card_data)
+			hand.remove_at(idx)
+	# Rebuild hand display
+	if card_hand:
+		card_hand.clear_hand()
+		for c in hand:
+			card_hand.add_card(c)
+	_discard_selected_cards.clear()
+	_discard_card_nodes.clear()
+	_discard_overlay.visible = false
+	_update_pile_labels()
+	if _discard_callback.is_valid():
+		_discard_callback.call()
+
+func _on_discard_complete() -> void:
+	# Called after discard selection finishes
+	_check_battle_end()
+
+func _auto_discard(count: int) -> void:
+	# Fallback: discard random cards from hand
+	for _i in range(count):
+		if hand.is_empty():
+			break
+		var idx = randi() % hand.size()
+		var card_data = hand[idx]
+		discard_pile.append(card_data)
+		hand.remove_at(idx)
+	if card_hand:
+		card_hand.clear_hand()
+		for c in hand:
+			card_hand.add_card(c)
+	_update_pile_labels()

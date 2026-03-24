@@ -136,6 +136,36 @@ func apply_status(status_type: String, stacks: int) -> void:
 	status_changed.emit(status_type, status_effects[status_type])
 	_update_status_display()
 
+func tick_poison() -> void:
+	## Tick poison: deal poison damage (bypass block), reduce by 1, show float
+	if not alive:
+		return
+	if not status_effects.has("poison") or status_effects["poison"] <= 0:
+		return
+	var poison_dmg: int = status_effects["poison"]
+	# Deal damage bypassing block
+	current_hp -= poison_dmg
+	# Show floating poison damage (green)
+	_flash_poison_damage(poison_dmg)
+	if current_hp <= 0:
+		current_hp = 0
+		alive = false
+		hp_changed.emit(current_hp, max_hp)
+		_update_hp_bar()
+		_play_death()
+		died.emit()
+	else:
+		hp_changed.emit(current_hp, max_hp)
+		_update_hp_bar()
+	# Reduce poison by 1
+	status_effects["poison"] -= 1
+	if status_effects["poison"] <= 0:
+		status_effects.erase("poison")
+		status_changed.emit("poison", 0)
+	else:
+		status_changed.emit("poison", status_effects["poison"])
+	_update_status_display()
+
 func tick_status_effects() -> void:
 	var to_remove: Array = []
 	for status_type in status_effects:
@@ -231,7 +261,10 @@ func _update_status_display() -> void:
 		var lbl = Label.new()
 		lbl.text = str(status_effects[status_type])
 		lbl.add_theme_font_size_override("font_size", 14)
-		lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.7))
+		if status_type == "poison":
+			lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		else:
+			lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.7))
 		container.add_child(lbl)
 		status_container.add_child(container)
 
@@ -266,6 +299,31 @@ func _flash_damage(damage_amount: int = 0) -> void:
 	dmg_label.text = "-" + str(damage_amount)
 	dmg_label.add_theme_font_size_override("font_size", 36)
 	dmg_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+	dmg_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	dmg_label.add_theme_constant_override("shadow_offset_x", 1)
+	dmg_label.add_theme_constant_override("shadow_offset_y", 2)
+	dmg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	dmg_label.position = Vector2(-40, -100)
+	add_child(dmg_label)
+	var float_tween = create_tween()
+	float_tween.set_parallel(true)
+	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 0.8)
+	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 0.8).set_delay(0.3)
+	float_tween.set_parallel(false)
+	float_tween.tween_callback(dmg_label.queue_free)
+
+func _flash_poison_damage(damage_amount: int) -> void:
+	if sprite_node == null:
+		return
+	var tween = create_tween()
+	tween.tween_property(sprite_node, "modulate", Color(0.3, 1.0, 0.3), 0.1)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	if damage_amount <= 0:
+		return
+	var dmg_label = Label.new()
+	dmg_label.text = "-" + str(damage_amount)
+	dmg_label.add_theme_font_size_override("font_size", 36)
+	dmg_label.add_theme_color_override("font_color", Color(0.2, 0.9, 0.2))
 	dmg_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	dmg_label.add_theme_constant_override("shadow_offset_x", 1)
 	dmg_label.add_theme_constant_override("shadow_offset_y", 2)
