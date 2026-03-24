@@ -120,6 +120,154 @@ static func _get_sts_card_path(card_id: String) -> String:
 		return _sts_card_map[card_id]
 	return ""
 
+## Creates a reusable card visual Control at the given size.
+## This is the SINGLE source of truth for card rendering.
+## Pass a Loc node if available for localized text; null otherwise.
+static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null) -> Control:
+	var BASE_W: float = 320.0
+	var BASE_H: float = 430.0
+	var sx: float = size.x / BASE_W
+	var sy: float = size.y / BASE_H
+
+	var card_type: int = card.get("type", 0)
+	var frame_path: String
+	var type_name: String
+	match card_type:
+		0:  frame_path = "res://assets/img/card_frame_attack_sts.png"; type_name = "攻击"
+		1:  frame_path = "res://assets/img/card_frame_skill_sts.png"; type_name = "技能"
+		2:  frame_path = "res://assets/img/card_frame_power_sts.png"; type_name = "能力"
+		_:  frame_path = "res://assets/img/card_frame_skill_sts.png"; type_name = "状态"
+
+	var root = Control.new()
+	root.name = "CardVisualRoot"
+	root.size = size
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Dark background
+	var bg = ColorRect.new()
+	bg.name = "CardBG"
+	bg.size = size
+	bg.color = Color(0.08, 0.06, 0.04, 1.0)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(bg)
+
+	# Frame texture
+	if ResourceLoader.exists(frame_path):
+		var frame_img = TextureRect.new()
+		frame_img.name = "CardFrame"
+		frame_img.size = size
+		frame_img.texture = load(frame_path)
+		frame_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		frame_img.stretch_mode = TextureRect.STRETCH_SCALE
+		frame_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(frame_img)
+
+	# Art image (clipped inside frame)
+	var card_id: String = card.get("id", "")
+	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
+	if ResourceLoader.exists(art_path):
+		var art_clip = Control.new()
+		art_clip.name = "ArtClip"
+		art_clip.position = Vector2(35.0 * sx, 80.0 * sy)
+		art_clip.size = Vector2(246.0 * sx, 180.0 * sy)
+		art_clip.clip_contents = true
+		art_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(art_clip)
+		var art_img = TextureRect.new()
+		art_img.size = Vector2(246.0 * sx, 180.0 * sy)
+		art_img.texture = load(art_path)
+		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art_clip.add_child(art_img)
+
+	# Cost orb — solid yellow circle with green number, centered at (56,51)
+	var cost_val: int = card.get("cost", 0)
+	var orb_cx: float = 56.0 * sx
+	var orb_cy: float = 51.0 * sy
+	var orb_r: float = 24.0 * sx  # Radius (20% smaller)
+	# Solid yellow circle background (Panel with round corners)
+	var orb_bg = Panel.new()
+	orb_bg.name = "CostOrbBG"
+	orb_bg.position = Vector2(orb_cx - orb_r, orb_cy - orb_r)
+	orb_bg.size = Vector2(orb_r * 2, orb_r * 2)
+	var orb_style = StyleBoxFlat.new()
+	orb_style.bg_color = Color(0.85, 0.7, 0.15, 1.0)  # Solid golden yellow
+	orb_style.corner_radius_top_left = int(orb_r)
+	orb_style.corner_radius_top_right = int(orb_r)
+	orb_style.corner_radius_bottom_left = int(orb_r)
+	orb_style.corner_radius_bottom_right = int(orb_r)
+	orb_bg.add_theme_stylebox_override("panel", orb_style)
+	orb_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	orb_bg.z_index = 10
+	root.add_child(orb_bg)
+	# Cost number on top of the solid circle
+	var cost_lbl = Label.new()
+	cost_lbl.name = "CostLabel"
+	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	cost_lbl.position = Vector2(orb_cx - orb_r, orb_cy - orb_r)
+	cost_lbl.size = Vector2(orb_r * 2, orb_r * 2)
+	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_lbl.add_theme_font_size_override("font_size", int(32 * sx))
+	cost_lbl.add_theme_color_override("font_color", Color(0.1, 0.6, 0.15))
+	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_lbl.z_index = 11
+	root.add_child(cost_lbl)
+
+	# Name bar — banner at (63,24)-(250,50), centered
+	var card_name: String = card.get("name", "???")
+	if loc and loc.has_method("card_name"):
+		card_name = loc.card_name(card)
+	var name_lbl = Label.new()
+	name_lbl.name = "NameLabel"
+	name_lbl.text = card_name
+	# Name moved down to reduce gap with art (gap halved)
+	name_lbl.position = Vector2(63.0 * sx, 35.0 * sy)
+	name_lbl.size = Vector2(187.0 * sx, 35.0 * sy)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", int(17 * sx))
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.z_index = 8
+	root.add_child(name_lbl)
+
+	# Type tag — oval centered at (161,261)
+	var type_lbl = Label.new()
+	type_lbl.name = "TypeLabel"
+	type_lbl.text = type_name
+	type_lbl.position = Vector2(80.0 * sx, 273.0 * sy)
+	type_lbl.size = Vector2(160.0 * sx, 22.0 * sy)
+	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	type_lbl.add_theme_font_size_override("font_size", int(13 * sx))
+	type_lbl.add_theme_color_override("font_color", Color(0.85, 0.8, 0.65))
+	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_lbl.z_index = 8
+	root.add_child(type_lbl)
+
+	# Description — area roughly (30,292)-(253,407)
+	var desc: String = card.get("description", "")
+	if loc and loc.has_method("card_desc"):
+		desc = loc.card_desc(card)
+	if desc != "":
+		var desc_lbl = Label.new()
+		desc_lbl.name = "DescLabel"
+		desc_lbl.text = desc
+		desc_lbl.position = Vector2(35.0 * sx, 300.0 * sy)
+		desc_lbl.size = Vector2(250.0 * sx, 105.0 * sy)
+		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.add_theme_font_size_override("font_size", int(16 * sx))
+		desc_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
+		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		desc_lbl.z_index = 8
+		root.add_child(desc_lbl)
+
+	return root
+
 func _ready() -> void:
 	# If no children exist yet, build them (for runtime instantiation)
 	if get_child_count() == 0:
@@ -197,136 +345,22 @@ func _apply_card_data() -> void:
 	_apply_fallback_texture()
 
 func _apply_fallback_texture() -> void:
-	## STS card: frame texture + art overlay + text labels
+	## Delegates to the shared create_card_visual() static method
 	if card_visual == null:
 		return
 	if sts_card_image:
 		sts_card_image.visible = false
 
-	var card_type: int = card_data.get("type", 0)
-	var frame_path: String
-	var border_color: Color
-	var type_name: String
-	match card_type:
-		0:  frame_path = "res://assets/img/card_frame_attack_sts.png"; border_color = Color(0.8, 0.2, 0.2); type_name = "攻击"
-		1:  frame_path = "res://assets/img/card_frame_skill_sts.png"; border_color = Color(0.2, 0.7, 0.3); type_name = "技能"
-		2:  frame_path = "res://assets/img/card_frame_power_sts.png"; border_color = Color(0.5, 0.3, 0.9); type_name = "能力"
-		_:  frame_path = "res://assets/img/card_frame_skill_sts.png"; border_color = Color(0.5, 0.5, 0.5); type_name = "状态"
-
-	var W: float = CARD_SIZE.x  # 320
-	var H: float = CARD_SIZE.y  # 430
-
-	# Dark background behind frame (hides white frame edges)
-	var card_bg = card_visual.get_node_or_null("CardBackground") as ColorRect
-	if card_bg:
-		card_bg.color = Color(0.08, 0.06, 0.04, 1.0)
-
-	# === FRAME TEXTURE (full card size, decorative border) ===
-	if ResourceLoader.exists(frame_path):
-		var frame_img = TextureRect.new()
-		frame_img.name = "CardFrame"
-		frame_img.size = CARD_SIZE
-		frame_img.texture = load(frame_path)
-		frame_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		frame_img.stretch_mode = TextureRect.STRETCH_SCALE
-		frame_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_visual.add_child(frame_img)
-
-	# === ART IMAGE (inside gold inner border, scaled from 256→320 frame) ===
-	# Frame 256px scaled to 320: gold at 28-225 → 35-281 after scaling
-	var art_x: float = 35.0
-	var art_y: float = 80.0
-	var art_w: float = 246.0
-	var art_h: float = 180.0
-	var card_id: String = card_data.get("id", "")
-	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
-	if ResourceLoader.exists(art_path):
-		# Clip container to prevent overflow
-		var art_clip = Control.new()
-		art_clip.name = "ArtClip"
-		art_clip.position = Vector2(art_x, art_y)
-		art_clip.size = Vector2(art_w, art_h)
-		art_clip.clip_contents = true
-		art_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_visual.add_child(art_clip)
-		# Art image fills the clip area
-		var art_img = TextureRect.new()
-		art_img.name = "CardArt"
-		art_img.position = Vector2.ZERO
-		art_img.size = Vector2(art_w, art_h)
-		art_img.texture = load(art_path)
-		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		art_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		art_clip.add_child(art_img)
-
-	# === COST (top-left, on the energy gem) ===
-	var cost_val: int = card_data.get("cost", 0)
-	var cost_lbl = Label.new()
-	cost_lbl.name = "FallbackCost"
-	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
-	cost_lbl.position = Vector2(2, 2)
-	cost_lbl.size = Vector2(50, 50)
-	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_lbl.add_theme_font_size_override("font_size", 24)
-	cost_lbl.add_theme_color_override("font_color", Color(0.1, 0.05, 0.0))
-	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cost_lbl.z_index = 5
-	card_visual.add_child(cost_lbl)
-
-	# === NAME (on the banner scroll at top) ===
 	var loc = _get_loc()
-	var card_name: String = card_data.get("name", "???")
-	if loc and loc.has_method("card_name"):
-		card_name = loc.card_name(card_data)
-	var name_lbl = Label.new()
-	name_lbl.name = "FallbackName"
-	name_lbl.text = card_name
-	name_lbl.position = Vector2(55, 10)
-	name_lbl.size = Vector2(210, 40)
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 17)
-	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_lbl.z_index = 5
-	card_visual.add_child(name_lbl)
-
-	# === TYPE TAG (below art, on the type divider) ===
-	var type_lbl = Label.new()
-	type_lbl.name = "FallbackType"
-	type_lbl.text = type_name
-	type_lbl.position = Vector2(35, 265)
-	type_lbl.size = Vector2(250, 20)
-	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_lbl.add_theme_font_size_override("font_size", 13)
-	type_lbl.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
-	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	type_lbl.z_index = 5
-	card_visual.add_child(type_lbl)
-
-	# === DESCRIPTION (inside bottom gold frame: y:258-410) ===
-	# Description area in frame: x:28-292, y:258-410
-
-	# Description text — centered in bottom frame area (y:258-410)
-	var desc: String = card_data.get("description", "")
-	if loc and loc.has_method("card_desc"):
-		desc = loc.card_desc(card_data)
-	if desc != "":
-		var desc_lbl = Label.new()
-		desc_lbl.name = "FallbackDesc"
-		desc_lbl.text = desc
-		desc_lbl.position = Vector2(40, 290)
-		desc_lbl.size = Vector2(240, 120)
-		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.add_theme_font_size_override("font_size", 16)
-		desc_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
-		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		desc_lbl.z_index = 5
-		card_visual.add_child(desc_lbl)
+	var visual = create_card_visual(card_data, CARD_SIZE, loc)
+	# Reparent all children from the generated visual into card_visual
+	var children_to_move: Array = []
+	for child in visual.get_children():
+		children_to_move.append(child)
+	for child in children_to_move:
+		visual.remove_child(child)
+		card_visual.add_child(child)
+	visual.queue_free()
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
