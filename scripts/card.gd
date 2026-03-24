@@ -180,7 +180,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	root.add_child(card_body)
 
 	# --- Layer 2: Name banner (grey strip near top, above art) ---
-	var banner_y: float = 8.0 * sy
+	var banner_y: float = 18.0 * sy
 	var banner_h: float = 30.0 * sy
 	var banner_margin: float = 8.0 * sx
 	var banner_bg = Panel.new()
@@ -262,7 +262,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	var type_badge_w: float = 52.0 * sx
 	var type_badge_h: float = 20.0 * sy
 	var type_badge_x: float = size.x - art_margin - type_badge_w - 4.0 * sx
-	var type_badge_y: float = art_top + art_h - type_badge_h - 4.0 * sy
+	var type_badge_y: float = art_top + art_h + 3.0 * sy  # Below art, moved down 7px
 	var type_badge = Panel.new()
 	type_badge.name = "TypeBadge"
 	type_badge.position = Vector2(type_badge_x, type_badge_y)
