@@ -15,10 +15,10 @@ var corruption_active: bool = false
 
 var card_script: GDScript = null
 
-# STS2-style layout — matching card.gd CARD_SIZE (256x430)
-const CARD_WIDTH: float = 256.0
+# STS-style layout — matching card.gd CARD_SIZE (320x430)
+const CARD_WIDTH: float = 320.0
 const CARD_HEIGHT: float = 430.0
-const CARD_OVERLAP: float = 60.0  # Overlap for 5+ cards
+const CARD_OVERLAP: float = 80.0  # More overlap so 5+ cards fit better
 const HOVER_LIFT: float = -140.0  # Card lifts well above hand
 const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
 const MAX_ROTATION: float = 8.0  # Fan arc

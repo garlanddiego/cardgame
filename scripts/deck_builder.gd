@@ -108,10 +108,117 @@ func _create_card_entry(card: Dictionary) -> Control:
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
 	select_highlights[card_id] = card_root
 
-	# Use the shared card visual builder from Card script
+	# Card with STS-style frame + AI art + text (same as battle cards)
+	var card_type: int = card.get("type", 0)
+	var frame_path: String
+	var type_name: String
+	match card_type:
+		0:  frame_path = "res://assets/img/card_frame_attack_sts.png"; type_name = "攻击"
+		1:  frame_path = "res://assets/img/card_frame_skill_sts.png"; type_name = "技能"
+		2:  frame_path = "res://assets/img/card_frame_power_sts.png"; type_name = "能力"
+		_:  frame_path = "res://assets/img/card_frame_skill_sts.png"; type_name = "状态"
+
+	# Scale factors from card.gd (320x430) to deck builder (360x485)
+	var sx: float = CARD_W / 320.0  # 1.125
+	var sy: float = CARD_H / 430.0  # 1.128
+
+	# Dark background
+	var bg = ColorRect.new()
+	bg.name = "CardBG"
+	bg.size = Vector2(CARD_W, CARD_H)
+	bg.color = Color(0.08, 0.06, 0.04, 1.0)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_root.add_child(bg)
+
+	# Frame texture
+	if ResourceLoader.exists(frame_path):
+		var frame_img = TextureRect.new()
+		frame_img.name = "CardFrame"
+		frame_img.size = Vector2(CARD_W, CARD_H)
+		frame_img.texture = load(frame_path)
+		frame_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		frame_img.stretch_mode = TextureRect.STRETCH_SCALE
+		frame_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_root.add_child(frame_img)
+
+	# Art image (clipped inside frame)
+	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
+	if ResourceLoader.exists(art_path):
+		var art_clip = Control.new()
+		art_clip.name = "ArtClip"
+		art_clip.position = Vector2(30 * sx, 52 * sy)
+		art_clip.size = Vector2(260 * sx, 172 * sy)
+		art_clip.clip_contents = true
+		art_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_root.add_child(art_clip)
+		var art_img = TextureRect.new()
+		art_img.size = Vector2(260 * sx, 172 * sy)
+		art_img.texture = load(art_path)
+		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art_clip.add_child(art_img)
+
+	# Cost on blue gem
+	var cost_val: int = card.get("cost", 0)
+	var cost_lbl = Label.new()
+	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	cost_lbl.position = Vector2(5 * sx, 4 * sy)
+	cost_lbl.size = Vector2(34 * sx, 34 * sy)
+	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_lbl.add_theme_font_size_override("font_size", 20)
+	cost_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_lbl.z_index = 5
+	card_root.add_child(cost_lbl)
+
+	# Name on scroll banner
 	var loc = _get_loc()
-	var card_visual = _CardScript.create_card_visual(card, Vector2(CARD_W, CARD_H), loc)
-	card_root.add_child(card_visual)
+	var card_name: String = card.get("name", "???")
+	if loc and loc.has_method("card_name"):
+		card_name = loc.card_name(card)
+	var name_lbl = Label.new()
+	name_lbl.text = card_name
+	name_lbl.position = Vector2(38 * sx, 6 * sy)
+	name_lbl.size = Vector2(250 * sx, 30 * sy)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 16)
+	name_lbl.add_theme_color_override("font_color", Color(0.15, 0.1, 0.05))
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.z_index = 5
+	card_root.add_child(name_lbl)
+
+	# Type tag
+	var type_lbl = Label.new()
+	type_lbl.text = type_name
+	type_lbl.position = Vector2(28 * sx, 232 * sy)
+	type_lbl.size = Vector2(264 * sx, 18 * sy)
+	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_lbl.add_theme_font_size_override("font_size", 12)
+	type_lbl.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
+	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_lbl.z_index = 5
+	card_root.add_child(type_lbl)
+
+	# Description in bottom frame area
+	var desc: String = card.get("description", "")
+	if loc and loc.has_method("card_desc"):
+		desc = loc.card_desc(card)
+	if desc != "":
+		var desc_lbl = Label.new()
+		desc_lbl.text = desc
+		desc_lbl.position = Vector2(30 * sx, 260 * sy)
+		desc_lbl.size = Vector2(260 * sx, 148 * sy)
+		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.add_theme_font_size_override("font_size", 14)
+		desc_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
+		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		desc_lbl.z_index = 5
+		card_root.add_child(desc_lbl)
 
 	# Connect tap
 	card_root.gui_input.connect(_on_card_tap.bind(card_id, card_root))

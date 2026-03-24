@@ -20,7 +20,7 @@ enum CardState {
 	MOVING_TO_CONTAINER
 }
 
-const CARD_SIZE := Vector2(256, 430)
+const CARD_SIZE := Vector2(320, 430)
 
 var card_data: Dictionary = {}
 var card_state: int = CardState.IN_HAND
@@ -120,259 +120,6 @@ static func _get_sts_card_path(card_id: String) -> String:
 		return _sts_card_map[card_id]
 	return ""
 
-## Creates a reusable card visual Control at the given size.
-## This is the SINGLE source of truth for card rendering.
-## STS2-style: clean, minimal, programmatic — no frame images.
-## Pass a Loc node if available for localized text; null otherwise.
-static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null) -> Control:
-	var BASE_W: float = 320.0
-	var BASE_H: float = 430.0
-	var sx: float = size.x / BASE_W
-	var sy: float = size.y / BASE_H
-
-	# Character-based colors (STS2 style)
-	var character: String = card.get("character", "ironclad")
-	var bg_color: Color
-	var border_color: Color
-	match character:
-		"silent":
-			bg_color = Color(0.1, 0.22, 0.12, 1.0)    # Dark green
-			border_color = Color(0.2, 0.75, 0.25, 1.0)  # Bright green
-		_:  # ironclad / default
-			bg_color = Color(0.28, 0.08, 0.08, 1.0)     # Dark red/maroon
-			border_color = Color(0.85, 0.15, 0.15, 1.0)  # Bright red
-
-	# Card type info
-	var card_type: int = card.get("type", 0)
-	var type_name: String
-	var type_color: Color
-	match card_type:
-		0:  type_name = "攻击"; type_color = Color(0.85, 0.2, 0.2, 1.0)   # Red
-		1:  type_name = "技能"; type_color = Color(0.25, 0.45, 0.85, 1.0)  # Blue
-		2:  type_name = "能力"; type_color = Color(0.85, 0.7, 0.15, 1.0)   # Gold
-		_:  type_name = "状态"; type_color = Color(0.5, 0.5, 0.5, 1.0)     # Grey
-
-	var root = Control.new()
-	root.name = "CardVisualRoot"
-	root.size = size
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# --- Layer 1: Card body with colored background + thick border + rounded corners ---
-	var card_body = Panel.new()
-	card_body.name = "CardBody"
-	card_body.position = Vector2.ZERO
-	card_body.size = size
-	var body_style = StyleBoxFlat.new()
-	body_style.bg_color = bg_color
-	var corner_r: int = int(12.0 * sx)
-	body_style.corner_radius_top_left = corner_r
-	body_style.corner_radius_top_right = corner_r
-	body_style.corner_radius_bottom_left = corner_r
-	body_style.corner_radius_bottom_right = corner_r
-	var border_w: int = int(4.0 * sx)
-	body_style.border_width_left = border_w
-	body_style.border_width_right = border_w
-	body_style.border_width_top = border_w
-	body_style.border_width_bottom = border_w
-	body_style.border_color = border_color
-	card_body.add_theme_stylebox_override("panel", body_style)
-	card_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(card_body)
-
-	# --- Layer 2: Name banner (grey strip near top, above art) ---
-	var banner_y: float = 8.0 * sy
-	var banner_h: float = 30.0 * sy
-	var banner_margin: float = 8.0 * sx
-	var banner_bg = Panel.new()
-	banner_bg.name = "NameBanner"
-	banner_bg.position = Vector2(banner_margin, banner_y)
-	banner_bg.size = Vector2(size.x - banner_margin * 2.0, banner_h)
-	var banner_style = StyleBoxFlat.new()
-	banner_style.bg_color = Color(0.55, 0.55, 0.58, 0.9)  # Silver/grey
-	var banner_cr: int = int(4.0 * sx)
-	banner_style.corner_radius_top_left = banner_cr
-	banner_style.corner_radius_top_right = banner_cr
-	banner_style.corner_radius_bottom_left = banner_cr
-	banner_style.corner_radius_bottom_right = banner_cr
-	banner_bg.add_theme_stylebox_override("panel", banner_style)
-	banner_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner_bg.z_index = 5
-	root.add_child(banner_bg)
-
-	var card_name: String = card.get("name", "???")
-	if loc and loc.has_method("card_name"):
-		card_name = loc.card_name(card)
-	var name_lbl = Label.new()
-	name_lbl.name = "NameLabel"
-	name_lbl.text = card_name
-	name_lbl.position = Vector2(banner_margin + 24.0 * sx, banner_y)
-	name_lbl.size = Vector2(size.x - banner_margin * 2.0 - 24.0 * sx, banner_h)
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", int(16 * sx))
-	name_lbl.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))  # Dark text
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_lbl.z_index = 6
-	root.add_child(name_lbl)
-
-	# --- Layer 3: Art area (top 55%, below banner) ---
-	var art_margin: float = 8.0 * sx
-	var art_top: float = banner_y + banner_h + 4.0 * sy
-	var art_h: float = size.y * 0.55 - art_top + 8.0 * sy  # Fill to ~55%
-	var art_w: float = size.x - art_margin * 2.0
-
-	# Dark art placeholder area
-	var art_bg = Panel.new()
-	art_bg.name = "ArtBG"
-	art_bg.position = Vector2(art_margin, art_top)
-	art_bg.size = Vector2(art_w, art_h)
-	var art_bg_style = StyleBoxFlat.new()
-	art_bg_style.bg_color = Color(0.05, 0.05, 0.07, 1.0)  # Near-black
-	var art_cr: int = int(6.0 * sx)
-	art_bg_style.corner_radius_top_left = art_cr
-	art_bg_style.corner_radius_top_right = art_cr
-	art_bg_style.corner_radius_bottom_left = art_cr
-	art_bg_style.corner_radius_bottom_right = art_cr
-	art_bg.add_theme_stylebox_override("panel", art_bg_style)
-	art_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	art_bg.z_index = 2
-	root.add_child(art_bg)
-
-	# Load art image if available
-	var card_id: String = card.get("id", "")
-	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
-	if ResourceLoader.exists(art_path):
-		var art_clip = Control.new()
-		art_clip.name = "ArtClip"
-		art_clip.position = Vector2(art_margin, art_top)
-		art_clip.size = Vector2(art_w, art_h)
-		art_clip.clip_contents = true
-		art_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		art_clip.z_index = 3
-		root.add_child(art_clip)
-		var art_img = TextureRect.new()
-		art_img.size = Vector2(art_w, art_h)
-		art_img.texture = load(art_path)
-		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		art_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		art_clip.add_child(art_img)
-
-	# --- Layer 4: Type badge (small rounded rect, right side below art) ---
-	var type_badge_w: float = 52.0 * sx
-	var type_badge_h: float = 20.0 * sy
-	var type_badge_x: float = size.x - art_margin - type_badge_w - 4.0 * sx
-	var type_badge_y: float = art_top + art_h - type_badge_h - 4.0 * sy
-	var type_badge = Panel.new()
-	type_badge.name = "TypeBadge"
-	type_badge.position = Vector2(type_badge_x, type_badge_y)
-	type_badge.size = Vector2(type_badge_w, type_badge_h)
-	var type_style = StyleBoxFlat.new()
-	type_style.bg_color = type_color
-	var type_cr: int = int(4.0 * sx)
-	type_style.corner_radius_top_left = type_cr
-	type_style.corner_radius_top_right = type_cr
-	type_style.corner_radius_bottom_left = type_cr
-	type_style.corner_radius_bottom_right = type_cr
-	type_badge.add_theme_stylebox_override("panel", type_style)
-	type_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	type_badge.z_index = 7
-	root.add_child(type_badge)
-
-	var type_lbl = Label.new()
-	type_lbl.name = "TypeLabel"
-	type_lbl.text = type_name
-	type_lbl.position = Vector2(type_badge_x, type_badge_y)
-	type_lbl.size = Vector2(type_badge_w, type_badge_h)
-	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_lbl.add_theme_font_size_override("font_size", int(11 * sx))
-	type_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	type_lbl.z_index = 8
-	root.add_child(type_lbl)
-
-	# --- Layer 5: Description area (bottom ~35%) ---
-	var desc_top: float = size.y * 0.62
-	var desc_margin: float = 10.0 * sx
-	var desc_w: float = size.x - desc_margin * 2.0
-	var desc_h: float = size.y - desc_top - 10.0 * sy
-
-	var desc_bg = Panel.new()
-	desc_bg.name = "DescBG"
-	desc_bg.position = Vector2(desc_margin, desc_top)
-	desc_bg.size = Vector2(desc_w, desc_h)
-	var desc_style = StyleBoxFlat.new()
-	desc_style.bg_color = Color(0.0, 0.0, 0.0, 0.6)  # Semi-transparent dark
-	var desc_cr: int = int(6.0 * sx)
-	desc_style.corner_radius_top_left = desc_cr
-	desc_style.corner_radius_top_right = desc_cr
-	desc_style.corner_radius_bottom_left = desc_cr
-	desc_style.corner_radius_bottom_right = desc_cr
-	desc_bg.add_theme_stylebox_override("panel", desc_style)
-	desc_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	desc_bg.z_index = 4
-	root.add_child(desc_bg)
-
-	var desc: String = card.get("description", "")
-	if loc and loc.has_method("card_desc"):
-		desc = loc.card_desc(card)
-	if desc != "":
-		var desc_lbl = Label.new()
-		desc_lbl.name = "DescLabel"
-		desc_lbl.text = desc
-		desc_lbl.position = Vector2(desc_margin + 6.0 * sx, desc_top + 4.0 * sy)
-		desc_lbl.size = Vector2(desc_w - 12.0 * sx, desc_h - 8.0 * sy)
-		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.add_theme_font_size_override("font_size", int(15 * sx))
-		desc_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		desc_lbl.z_index = 5
-		root.add_child(desc_lbl)
-
-	# --- Layer 6: Cost circle (top-left, overlapping border) ---
-	var cost_val: int = card.get("cost", 0)
-	var orb_r: float = 18.0 * sx
-	var orb_cx: float = 6.0 * sx + orb_r  # Slightly inside left border
-	var orb_cy: float = 6.0 * sy + orb_r  # Slightly inside top border
-
-	var orb_bg = Panel.new()
-	orb_bg.name = "CostOrbBG"
-	orb_bg.position = Vector2(orb_cx - orb_r, orb_cy - orb_r)
-	orb_bg.size = Vector2(orb_r * 2, orb_r * 2)
-	var orb_style = StyleBoxFlat.new()
-	orb_style.bg_color = Color(0.08, 0.08, 0.1, 0.85)  # Dark semi-transparent
-	orb_style.corner_radius_top_left = int(orb_r)
-	orb_style.corner_radius_top_right = int(orb_r)
-	orb_style.corner_radius_bottom_left = int(orb_r)
-	orb_style.corner_radius_bottom_right = int(orb_r)
-	orb_style.border_width_left = int(2.0 * sx)
-	orb_style.border_width_right = int(2.0 * sx)
-	orb_style.border_width_top = int(2.0 * sx)
-	orb_style.border_width_bottom = int(2.0 * sx)
-	orb_style.border_color = border_color
-	orb_bg.add_theme_stylebox_override("panel", orb_style)
-	orb_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	orb_bg.z_index = 10
-	root.add_child(orb_bg)
-
-	var cost_lbl = Label.new()
-	cost_lbl.name = "CostLabel"
-	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
-	cost_lbl.position = Vector2(orb_cx - orb_r, orb_cy - orb_r)
-	cost_lbl.size = Vector2(orb_r * 2, orb_r * 2)
-	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_lbl.add_theme_font_size_override("font_size", int(22 * sx))
-	cost_lbl.add_theme_color_override("font_color", Color(0.2, 0.85, 0.3))  # Green number
-	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cost_lbl.z_index = 11
-	root.add_child(cost_lbl)
-
-	return root
-
 func _ready() -> void:
 	# If no children exist yet, build them (for runtime instantiation)
 	if get_child_count() == 0:
@@ -446,26 +193,140 @@ func _apply_card_data() -> void:
 	if card_data.is_empty():
 		return
 
-	# Build STS2-style programmatic card visual
+	# Always use AI-generated frame + art
 	_apply_fallback_texture()
 
 func _apply_fallback_texture() -> void:
-	## Delegates to the shared create_card_visual() static method
+	## STS card: frame texture + art overlay + text labels
 	if card_visual == null:
 		return
 	if sts_card_image:
 		sts_card_image.visible = false
 
+	var card_type: int = card_data.get("type", 0)
+	var frame_path: String
+	var border_color: Color
+	var type_name: String
+	match card_type:
+		0:  frame_path = "res://assets/img/card_frame_attack_sts.png"; border_color = Color(0.8, 0.2, 0.2); type_name = "攻击"
+		1:  frame_path = "res://assets/img/card_frame_skill_sts.png"; border_color = Color(0.2, 0.7, 0.3); type_name = "技能"
+		2:  frame_path = "res://assets/img/card_frame_power_sts.png"; border_color = Color(0.5, 0.3, 0.9); type_name = "能力"
+		_:  frame_path = "res://assets/img/card_frame_skill_sts.png"; border_color = Color(0.5, 0.5, 0.5); type_name = "状态"
+
+	var W: float = CARD_SIZE.x  # 320
+	var H: float = CARD_SIZE.y  # 430
+
+	# Dark background behind frame (hides white frame edges)
+	var card_bg = card_visual.get_node_or_null("CardBackground") as ColorRect
+	if card_bg:
+		card_bg.color = Color(0.08, 0.06, 0.04, 1.0)
+
+	# === FRAME TEXTURE (full card size, decorative border) ===
+	if ResourceLoader.exists(frame_path):
+		var frame_img = TextureRect.new()
+		frame_img.name = "CardFrame"
+		frame_img.size = CARD_SIZE
+		frame_img.texture = load(frame_path)
+		frame_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		frame_img.stretch_mode = TextureRect.STRETCH_SCALE
+		frame_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.add_child(frame_img)
+
+	# === ART IMAGE (inside gold inner border, scaled from 256→320 frame) ===
+	# Frame 256px scaled to 320: gold at 28-225 → 35-281 after scaling
+	var art_x: float = 35.0
+	var art_y: float = 80.0
+	var art_w: float = 246.0
+	var art_h: float = 180.0
+	var card_id: String = card_data.get("id", "")
+	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
+	if ResourceLoader.exists(art_path):
+		# Clip container to prevent overflow
+		var art_clip = Control.new()
+		art_clip.name = "ArtClip"
+		art_clip.position = Vector2(art_x, art_y)
+		art_clip.size = Vector2(art_w, art_h)
+		art_clip.clip_contents = true
+		art_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.add_child(art_clip)
+		# Art image fills the clip area
+		var art_img = TextureRect.new()
+		art_img.name = "CardArt"
+		art_img.position = Vector2.ZERO
+		art_img.size = Vector2(art_w, art_h)
+		art_img.texture = load(art_path)
+		art_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art_clip.add_child(art_img)
+
+	# === COST (top-left, on the energy gem) ===
+	var cost_val: int = card_data.get("cost", 0)
+	var cost_lbl = Label.new()
+	cost_lbl.name = "FallbackCost"
+	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	cost_lbl.position = Vector2(2, 2)
+	cost_lbl.size = Vector2(50, 50)
+	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_lbl.add_theme_font_size_override("font_size", 24)
+	cost_lbl.add_theme_color_override("font_color", Color(0.1, 0.05, 0.0))
+	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_lbl.z_index = 5
+	card_visual.add_child(cost_lbl)
+
+	# === NAME (on the banner scroll at top) ===
 	var loc = _get_loc()
-	var visual = create_card_visual(card_data, CARD_SIZE, loc)
-	# Reparent all children from the generated visual into card_visual
-	var children_to_move: Array = []
-	for child in visual.get_children():
-		children_to_move.append(child)
-	for child in children_to_move:
-		visual.remove_child(child)
-		card_visual.add_child(child)
-	visual.queue_free()
+	var card_name: String = card_data.get("name", "???")
+	if loc and loc.has_method("card_name"):
+		card_name = loc.card_name(card_data)
+	var name_lbl = Label.new()
+	name_lbl.name = "FallbackName"
+	name_lbl.text = card_name
+	name_lbl.position = Vector2(55, 10)
+	name_lbl.size = Vector2(210, 40)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 17)
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.z_index = 5
+	card_visual.add_child(name_lbl)
+
+	# === TYPE TAG (below art, on the type divider) ===
+	var type_lbl = Label.new()
+	type_lbl.name = "FallbackType"
+	type_lbl.text = type_name
+	type_lbl.position = Vector2(35, 265)
+	type_lbl.size = Vector2(250, 20)
+	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_lbl.add_theme_font_size_override("font_size", 13)
+	type_lbl.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
+	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_lbl.z_index = 5
+	card_visual.add_child(type_lbl)
+
+	# === DESCRIPTION (inside bottom gold frame: y:258-410) ===
+	# Description area in frame: x:28-292, y:258-410
+
+	# Description text — centered in bottom frame area (y:258-410)
+	var desc: String = card_data.get("description", "")
+	if loc and loc.has_method("card_desc"):
+		desc = loc.card_desc(card_data)
+	if desc != "":
+		var desc_lbl = Label.new()
+		desc_lbl.name = "FallbackDesc"
+		desc_lbl.text = desc
+		desc_lbl.position = Vector2(40, 290)
+		desc_lbl.size = Vector2(240, 120)
+		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.add_theme_font_size_override("font_size", 16)
+		desc_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
+		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		desc_lbl.z_index = 5
+		card_visual.add_child(desc_lbl)
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected

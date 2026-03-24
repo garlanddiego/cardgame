@@ -11,8 +11,6 @@ signal battle_won
 @export var max_energy: int = 3
 @export var cards_per_draw: int = 5
 
-var _CardScript = preload("res://scripts/card.gd")
-
 var current_energy: int = 3
 var draw_pile: Array = []
 var discard_pile: Array = []
@@ -1565,8 +1563,116 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 	var loc = _get_loc()
 	var mini_size := Vector2(200, 270)
 
-	# Add each card as a mini card visual in the grid using shared renderer
+	# Add each card as a mini card visual in the grid
 	for cd in sorted_pile:
-		var card_visual = _CardScript.create_card_visual(cd, mini_size, loc)
-		card_visual.custom_minimum_size = mini_size
-		grid.add_child(card_visual)
+		var card_panel = Panel.new()
+		card_panel.custom_minimum_size = mini_size
+		card_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+		var card_type: int = cd.get("type", 0)
+		var bg_color: Color
+		var border_color: Color
+		var type_name: String
+		match card_type:
+			0:
+				bg_color = Color(0.25, 0.08, 0.08, 0.95)
+				border_color = Color(0.8, 0.2, 0.2, 1.0)
+				type_name = "攻击"
+			1:
+				bg_color = Color(0.08, 0.18, 0.08, 0.95)
+				border_color = Color(0.2, 0.7, 0.3, 1.0)
+				type_name = "技能"
+			2:
+				bg_color = Color(0.12, 0.08, 0.22, 0.95)
+				border_color = Color(0.4, 0.3, 0.9, 1.0)
+				type_name = "能力"
+			_:
+				bg_color = Color(0.15, 0.15, 0.15, 0.95)
+				border_color = Color(0.5, 0.5, 0.5, 1.0)
+				type_name = "状态"
+
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = bg_color
+		sb.border_color = border_color
+		sb.border_width_left = 3
+		sb.border_width_right = 3
+		sb.border_width_top = 3
+		sb.border_width_bottom = 3
+		sb.corner_radius_top_left = 8
+		sb.corner_radius_top_right = 8
+		sb.corner_radius_bottom_left = 8
+		sb.corner_radius_bottom_right = 8
+		card_panel.add_theme_stylebox_override("panel", sb)
+
+		# Cost (top-left)
+		var cost_val: int = cd.get("cost", 0)
+		var cost_lbl = Label.new()
+		cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+		cost_lbl.position = Vector2(8, 4)
+		cost_lbl.add_theme_font_size_override("font_size", 20)
+		cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+		cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_panel.add_child(cost_lbl)
+
+		# Name (centered)
+		var card_name: String = cd.get("name", "?")
+		if loc and loc.has_method("card_name"):
+			card_name = loc.card_name(cd)
+		var name_lbl = Label.new()
+		name_lbl.text = card_name
+		name_lbl.position = Vector2(6, 30)
+		name_lbl.size = Vector2(mini_size.x - 12, 28)
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.add_theme_font_size_override("font_size", 15)
+		name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
+		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_panel.add_child(name_lbl)
+
+		# Type label
+		var type_lbl = Label.new()
+		type_lbl.text = type_name
+		type_lbl.position = Vector2(6, 58)
+		type_lbl.size = Vector2(mini_size.x - 12, 18)
+		type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		type_lbl.add_theme_font_size_override("font_size", 11)
+		type_lbl.add_theme_color_override("font_color", border_color)
+		type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_panel.add_child(type_lbl)
+
+		# Stats
+		var dmg: int = cd.get("damage", 0)
+		var blk: int = cd.get("block", 0)
+		var stat_text: String = ""
+		if dmg > 0 and blk > 0:
+			stat_text = "⚔ %d   🛡 %d" % [dmg, blk]
+		elif dmg > 0:
+			stat_text = "⚔ %d" % dmg
+		elif blk > 0:
+			stat_text = "🛡 %d" % blk
+		if stat_text != "":
+			var stat_lbl = Label.new()
+			stat_lbl.text = stat_text
+			stat_lbl.position = Vector2(6, 85)
+			stat_lbl.size = Vector2(mini_size.x - 12, 30)
+			stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			stat_lbl.add_theme_font_size_override("font_size", 20)
+			stat_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+			stat_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card_panel.add_child(stat_lbl)
+
+		# Description (bottom half, short)
+		var desc: String = cd.get("description", "")
+		if loc and loc.has_method("card_desc"):
+			desc = loc.card_desc(cd)
+		if desc != "":
+			var desc_lbl = Label.new()
+			desc_lbl.text = desc
+			desc_lbl.position = Vector2(8, 125)
+			desc_lbl.size = Vector2(mini_size.x - 16, mini_size.y - 135)
+			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc_lbl.add_theme_font_size_override("font_size", 11)
+			desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.8))
+			desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card_panel.add_child(desc_lbl)
+
+		grid.add_child(card_panel)
