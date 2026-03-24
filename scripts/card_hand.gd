@@ -170,9 +170,13 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	var card_data_val: Dictionary = card_node.card_data
 	var target_type: String = card_data_val.get("target", "enemy")
 
-	# If a different card is already selected, ignore this click
+	# If a different card is already selected, switch to this card
 	if selected_card != null and selected_card != card_node and is_instance_valid(selected_card):
-		return
+		selected_card.set_selected(false)
+		selected_card = null
+		focused_card = null
+		targeting_mode = false
+		# Fall through to select the new card
 
 	# If THIS card is already selected (3rd tap), deselect it (cancel targeting)
 	if selected_card == card_node:

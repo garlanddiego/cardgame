@@ -209,8 +209,8 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	name_lbl.size = Vector2(size.x - banner_margin * 2.0 - 24.0 * sx, banner_h)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", int(16 * sx))
-	name_lbl.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))  # Dark text
+	name_lbl.add_theme_font_size_override("font_size", int(20 * sx))  # Bigger name
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))  # White text
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_lbl.z_index = 6
 	root.add_child(name_lbl)
@@ -261,7 +261,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	# --- Layer 4: Type badge (small rounded rect, right side below art) ---
 	var type_badge_w: float = 52.0 * sx
 	var type_badge_h: float = 20.0 * sy
-	var type_badge_x: float = size.x - art_margin - type_badge_w - 4.0 * sx
+	var type_badge_x: float = (size.x - type_badge_w) / 2.0  # Centered
 	var type_badge_y: float = art_top + art_h + 3.0 * sy  # Below art, moved down 7px
 	var type_badge = Panel.new()
 	type_badge.name = "TypeBadge"
