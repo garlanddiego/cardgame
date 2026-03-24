@@ -509,6 +509,15 @@ func _build_deck(character_id: String, gm: Node) -> void:
 			draw_pile.append(data)
 	# Shuffle
 	draw_pile.shuffle()
+	# Move innate cards to top of draw pile so they're drawn first
+	var innate_cards: Array = []
+	var non_innate: Array = []
+	for card in draw_pile:
+		if card.get("innate", false):
+			innate_cards.append(card)
+		else:
+			non_innate.append(card)
+	draw_pile = non_innate + innate_cards  # Innate at end = drawn first (pop_back)
 	_update_pile_labels()
 
 func start_player_turn() -> void:
@@ -717,6 +726,24 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 		"whirlwind":
 			# Deal damage X times where X = energy spent
 			times = energy_spent
+		"skewer":
+			# Deal damage X times where X = energy spent
+			times = energy_spent
+		"malaise":
+			# Apply X Weak and lose X Strength to target (upgraded: X+1)
+			var malaise_x: int = energy_spent
+			if card_data.get("upgraded", false):
+				malaise_x += 1
+			if target and target.alive and malaise_x > 0:
+				target.apply_status("weak", malaise_x)
+				# Reduce strength
+				var current_str: int = target.get_status_stacks("strength")
+				var new_str: int = maxi(0, current_str - malaise_x)
+				target.status_effects["strength"] = new_str
+				target.status_changed.emit("strength", new_str)
+				target._update_status_display()
+			_apply_block_and_draw(block_val, draw_count, card_data)
+			return
 		"dropkick":
 			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
 				current_energy += 1

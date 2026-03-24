@@ -17,6 +17,7 @@ var intent: Dictionary = {}
 var alive: bool = true
 var power_effects: Array = []
 var active_powers: Dictionary = {}  # power_id -> stack count
+var _previous_block: int = 0  # Track previous block value for break detection
 
 # Node references
 var sprite_node: Sprite2D = null
@@ -213,6 +214,7 @@ func tick_status_effects() -> void:
 
 func reset_block() -> void:
 	block = 0
+	_previous_block = 0  # Skip shatter effect on turn-start reset
 	block_changed.emit(block)
 	_update_block_display()
 
@@ -265,7 +267,12 @@ func _update_block_display() -> void:
 			block_bg.content_margin_top = 2
 			block_bg.content_margin_bottom = 2
 			block_label.add_theme_stylebox_override("normal", block_bg)
+		_previous_block = block
 	else:
+		# Block just broke — trigger shatter effect if it was > 0 before
+		if _previous_block > 0:
+			_flash_block_break()
+		_previous_block = 0
 		block_label.visible = false
 
 func _update_status_display() -> void:
@@ -440,6 +447,51 @@ func _flash_block() -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1)
 	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+
+func _flash_block_break() -> void:
+	## Brief orange flash + shake when block breaks (goes to 0)
+	if block_label == null:
+		return
+	# Briefly show the label with orange flash before hiding
+	block_label.text = " 0 "
+	block_label.visible = true
+	var break_bg = StyleBoxFlat.new()
+	break_bg.bg_color = Color(1.0, 0.5, 0.1, 0.95)
+	break_bg.border_color = Color(1.0, 0.8, 0.3, 1.0)
+	break_bg.border_width_left = 2
+	break_bg.border_width_right = 2
+	break_bg.border_width_top = 2
+	break_bg.border_width_bottom = 2
+	break_bg.corner_radius_top_left = 6
+	break_bg.corner_radius_top_right = 6
+	break_bg.corner_radius_bottom_left = 6
+	break_bg.corner_radius_bottom_right = 6
+	break_bg.content_margin_left = 4
+	break_bg.content_margin_right = 4
+	break_bg.content_margin_top = 2
+	break_bg.content_margin_bottom = 2
+	block_label.add_theme_stylebox_override("normal", break_bg)
+	# Shake + fade out
+	var orig_pos: Vector2 = block_label.position
+	var tween = create_tween()
+	tween.tween_property(block_label, "position", orig_pos + Vector2(4, 0), 0.04)
+	tween.tween_property(block_label, "position", orig_pos + Vector2(-4, 0), 0.04)
+	tween.tween_property(block_label, "position", orig_pos + Vector2(3, 0), 0.04)
+	tween.tween_property(block_label, "position", orig_pos + Vector2(-2, 0), 0.04)
+	tween.tween_property(block_label, "position", orig_pos, 0.04)
+	tween.tween_property(block_label, "modulate:a", 0.0, 0.15)
+	tween.tween_callback(func():
+		block_label.visible = false
+		block_label.modulate.a = 1.0
+		block_label.position = orig_pos
+		# Remove the orange override so blue returns next time block is gained
+		block_label.remove_theme_stylebox_override("normal")
+	)
+	# Also flash the sprite orange briefly
+	if sprite_node:
+		var sprite_tween = create_tween()
+		sprite_tween.tween_property(sprite_node, "modulate", Color(1.0, 0.6, 0.2), 0.1)
+		sprite_tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
 
 func show_speech(text: String, duration: float = 1.5) -> void:
 	## Show a temporary speech bubble above the entity
