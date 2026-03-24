@@ -694,7 +694,151 @@ func _get_alive_enemies() -> Array:
 			alive.append(e)
 	return alive
 
+# ==========================================================================
+# Data-driven action executor — cards with "actions" array use this path
+# ==========================================================================
+func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, energy_spent: int) -> void:
+	var target_type: String = card_data.get("target", "enemy")
+
+	for action in actions:
+		var atype: String = action.get("type", "")
+		match atype:
+			# ---- Damage (single target or multi-hit) ----
+			"damage":
+				var base_dmg: int = action.get("value", card_data.get("damage", 0))
+				var times: int = action.get("times", card_data.get("times", 1))
+				var use_strength: bool = action.get("use_strength", true)
+				var actual_dmg: int = base_dmg
+				if use_strength and player:
+					actual_dmg = player.get_attack_damage(base_dmg)
+				if actual_dmg > 0:
+					if times > 1:
+						_apply_multi_hit_damage(actual_dmg, times, target, target_type)
+					else:
+						_apply_single_hit_damage(actual_dmg, target, target_type)
+
+			# ---- Damage all enemies ----
+			"damage_all":
+				var base_dmg: int = action.get("value", card_data.get("damage", 0))
+				var times: int = action.get("times", 1)
+				var actual_dmg: int = base_dmg
+				if player:
+					actual_dmg = player.get_attack_damage(base_dmg)
+				if actual_dmg > 0:
+					if times > 1:
+						_apply_multi_hit_damage(actual_dmg, times, target, "all_enemies")
+					else:
+						_apply_single_hit_damage(actual_dmg, target, "all_enemies")
+
+			# ---- Block ----
+			"block":
+				var blk: int = action.get("value", card_data.get("block", 0))
+				if blk > 0 and player:
+					player.add_block(blk)
+					_trigger_juggernaut()
+
+			# ---- Draw cards ----
+			"draw":
+				var count: int = action.get("value", card_data.get("draw", 1))
+				if count > 0:
+					draw_cards(count)
+
+			# ---- Apply status to target (enemy) ----
+			"apply_status":
+				# If action specifies "source" key (e.g. "apply_status" or "apply_status_2"),
+				# read status/stacks from card_data[source] so upgrades propagate.
+				var source_key: String = action.get("source", "")
+				var status_type: String = action.get("status", "")
+				var stacks: int = action.get("stacks", 1)
+				if source_key != "" and card_data.has(source_key):
+					var src = card_data[source_key]
+					status_type = src.get("type", status_type)
+					stacks = src.get("stacks", stacks)
+				if status_type != "":
+					if target_type == "all_enemies":
+						for enemy in enemies:
+							if enemy.alive:
+								enemy.apply_status(status_type, stacks)
+					elif target != null and target.alive:
+						target.apply_status(status_type, stacks)
+
+			# ---- Apply status to self ----
+			"apply_self_status":
+				var status_type: String = action.get("status", "")
+				var stacks: int = action.get("stacks", 1)
+				if status_type != "" and player:
+					player.apply_status(status_type, stacks)
+
+			# ---- Gain energy ----
+			"gain_energy":
+				var amount: int = action.get("value", 1)
+				current_energy += amount
+				_update_energy_label()
+				if card_hand:
+					card_hand.current_battle_energy = current_energy
+					card_hand.update_card_playability(current_energy)
+
+			# ---- Heal ----
+			"heal":
+				var amount: int = action.get("value", 0)
+				if amount > 0 and player:
+					player.heal(amount)
+
+			# ---- Add shiv cards to hand ----
+			"add_shiv":
+				var count: int = action.get("value", 1)
+				_add_shiv_to_hand(count)
+
+			# ---- Add copy of card to discard (e.g. Anger) ----
+			"copy_to_discard":
+				var card_id: String = action.get("card_id", card_data.get("id", ""))
+				var gm = _get_game_manager()
+				if gm:
+					var copy = gm.get_card_data(card_id)
+					if not copy.is_empty():
+						discard_pile.append(copy)
+
+			# ---- Add status card to draw pile ----
+			"add_card_to_draw":
+				var card_id: String = action.get("card_id", "")
+				if card_id != "":
+					_add_status_card_to_draw(card_id)
+
+			# ---- Add status card to discard pile ----
+			"add_card_to_discard":
+				var card_id: String = action.get("card_id", "")
+				if card_id != "":
+					_add_status_card_to_discard(card_id)
+
+			# ---- Add status card to hand ----
+			"add_card_to_hand":
+				var card_id: String = action.get("card_id", "")
+				var count: int = action.get("count", 1)
+				for _i in range(count):
+					if card_id != "":
+						_add_status_card_to_hand(card_id)
+
+			# ---- Self damage (e.g. Hemokinesis) ----
+			"self_damage":
+				var amount: int = action.get("value", 0)
+				if amount > 0 and player:
+					player.take_damage_direct(amount)
+
+			# ---- Power effect activation ----
+			"power_effect":
+				var power_name: String = action.get("power", "")
+				if power_name != "":
+					_activate_power(power_name)
+
+	_update_pile_labels()
+
 func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0) -> void:
+	# ---- Data-driven path: cards with "actions" array ----
+	if card_data.has("actions"):
+		_execute_actions(card_data["actions"], card_data, target, energy_spent)
+		return
+
+	# ---- Legacy path: match-based special handling ----
 	var damage: int = card_data.get("damage", 0)
 	var block_val: int = card_data.get("block", 0)
 	var draw_count: int = card_data.get("draw", 0)

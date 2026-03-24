@@ -66,10 +66,10 @@ func _init_card_database() -> void:
 	# =========================================================================
 
 	# 1. Strike
-	card_database["ic_strike"] = {"id": "ic_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": _ic_art(0), "target": "enemy"}
+	card_database["ic_strike"] = {"id": "ic_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": _ic_art(0), "target": "enemy", "actions": [{"type": "damage"}]}
 
 	# 2. Bash
-	card_database["ic_bash"] = {"id": "ic_bash", "name": "Bash", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage.\nApply 2 Vulnerable.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 2}}
+	card_database["ic_bash"] = {"id": "ic_bash", "name": "Bash", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage.\nApply 2 Vulnerable.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 2}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 
 	# 3. Iron Wave
 	card_database["ic_iron_wave"] = {"id": "ic_iron_wave", "name": "Iron Wave", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 5, "description": "Deal 5 damage.\nGain 5 Block.", "art": _ic_art(2), "target": "enemy"}
@@ -78,10 +78,10 @@ func _init_card_database() -> void:
 	card_database["ic_body_slam"] = {"id": "ic_body_slam", "name": "Body Slam", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 0, "block": 0, "description": "Deal damage equal\nto your Block.", "art": _ic_art(3), "target": "enemy", "special": "body_slam"}
 
 	# 5. Anger
-	card_database["ic_anger"] = {"id": "ic_anger", "name": "Anger", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.\nAdd a copy to\nyour discard pile.", "art": _ic_art(0), "target": "enemy", "special": "anger"}
+	card_database["ic_anger"] = {"id": "ic_anger", "name": "Anger", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.\nAdd a copy to\nyour discard pile.", "art": _ic_art(0), "target": "enemy", "actions": [{"type": "damage"}, {"type": "copy_to_discard", "card_id": "ic_anger"}]}
 
 	# 6. Cleave
-	card_database["ic_cleave"] = {"id": "ic_cleave", "name": "Cleave", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage to\nALL enemies.", "art": _ic_art(7), "target": "all_enemies"}
+	card_database["ic_cleave"] = {"id": "ic_cleave", "name": "Cleave", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage to\nALL enemies.", "art": _ic_art(7), "target": "all_enemies", "actions": [{"type": "damage_all"}]}
 
 	# 7. Twin Strike
 	card_database["ic_twin_strike"] = {"id": "ic_twin_strike", "name": "Twin Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage twice.", "art": _ic_art(0), "target": "enemy", "times": 2}
@@ -163,7 +163,7 @@ func _init_card_database() -> void:
 	# =========================================================================
 
 	# 27. Defend
-	card_database["ic_defend"] = {"id": "ic_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": _ic_art(8), "target": "self"}
+	card_database["ic_defend"] = {"id": "ic_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": _ic_art(8), "target": "self", "actions": [{"type": "block"}]}
 
 	# 28. Shrug It Off
 	card_database["ic_shrug_it_off"] = {"id": "ic_shrug_it_off", "name": "Shrug It Off", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDraw 1 card.", "art": _ic_art(8), "target": "self", "draw": 1}
@@ -312,17 +312,17 @@ func _init_card_database() -> void:
 
 	# --- Basic Cards ---
 	# 1. Strike
-	card_database["si_strike"] = {"id": "si_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy"}
+	card_database["si_strike"] = {"id": "si_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy", "actions": [{"type": "damage"}]}
 	# 2. Defend
-	card_database["si_defend"] = {"id": "si_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self"}
+	card_database["si_defend"] = {"id": "si_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "actions": [{"type": "block"}]}
 	# 3. Neutralize
-	card_database["si_neutralize"] = {"id": "si_neutralize", "name": "Neutralize", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}}
+	card_database["si_neutralize"] = {"id": "si_neutralize", "name": "Neutralize", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	# 4. Survivor
 	card_database["si_survivor"] = {"id": "si_survivor", "name": "Survivor", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDiscard 1 card.", "art": "", "target": "self", "special": "survivor"}
 
 	# --- Common Attacks ---
 	# 5. Slice
-	card_database["si_slice"] = {"id": "si_slice", "name": "Slice", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy"}
+	card_database["si_slice"] = {"id": "si_slice", "name": "Slice", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy", "actions": [{"type": "damage"}]}
 	# 6. Dagger Spray
 	card_database["si_dagger_spray"] = {"id": "si_dagger_spray", "name": "Dagger Spray", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage to ALL\nenemies twice.", "art": "", "target": "all_enemies", "times": 2}
 	# 7. Dagger Throw
@@ -332,7 +332,7 @@ func _init_card_database() -> void:
 	# 9. Leading Strike
 	card_database["si_leading_strike"] = {"id": "si_leading_strike", "name": "Leading Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage.\nAdd 1 Shiv to hand.", "art": "", "target": "enemy", "special": "leading_strike"}
 	# 10. Poisoned Stab
-	card_database["si_poisoned_stab"] = {"id": "si_poisoned_stab", "name": "Poisoned Stab", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.\nApply 3 Poison.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 3}}
+	card_database["si_poisoned_stab"] = {"id": "si_poisoned_stab", "name": "Poisoned Stab", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.\nApply 3 Poison.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 3}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	# 11. Sucker Punch
 	card_database["si_sucker_punch"] = {"id": "si_sucker_punch", "name": "Sucker Punch", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}}
 	# 12. Ricochet
