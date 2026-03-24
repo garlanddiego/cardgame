@@ -442,12 +442,49 @@ func show_speech(text: String, duration: float = 1.5) -> void:
 	tween.tween_callback(panel.queue_free)
 
 func add_power(power_id: String, stacks: int = 1) -> void:
-	## Add a power effect with stack count for visual display
 	if active_powers.has(power_id):
 		active_powers[power_id] += stacks
 	else:
 		active_powers[power_id] = stacks
 	_update_status_display()
+	_update_power_display()
+
+func _update_power_display() -> void:
+	if status_container == null:
+		return
+	# Remove old power icons (they have "PowerIcon_" prefix)
+	for child in status_container.get_children():
+		if child.name.begins_with("PowerIcon_"):
+			child.queue_free()
+	# Add power icons
+	for power_id in active_powers:
+		var stacks: int = active_powers[power_id]
+		if stacks <= 0:
+			continue
+		var container = HBoxContainer.new()
+		container.name = "PowerIcon_" + power_id
+		# Try loading power-specific icon
+		var icon_path: String = "res://assets/img/power_icons/" + power_id + ".png"
+		var tex = load(icon_path) if ResourceLoader.exists(icon_path) else null
+		if tex:
+			var icon = TextureRect.new()
+			icon.texture = tex
+			icon.custom_minimum_size = Vector2(28, 28)
+			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			container.add_child(icon)
+		else:
+			# Fallback: purple square
+			var fallback = ColorRect.new()
+			fallback.custom_minimum_size = Vector2(28, 28)
+			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
+			container.add_child(fallback)
+		var lbl = Label.new()
+		lbl.text = str(stacks)
+		lbl.add_theme_font_size_override("font_size", 16)
+		lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+		container.add_child(lbl)
+		status_container.add_child(container)
 
 func _play_death() -> void:
 	if sprite_node == null:
