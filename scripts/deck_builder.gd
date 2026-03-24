@@ -380,7 +380,12 @@ func _create_browse_card(card: Dictionary, card_size: Vector2, loc: Node) -> Con
 
 	var card_root = _CardScript.create_card_visual(card, card_size, loc)
 	card_root.name = "Browse_" + card_id
+	card_root.custom_minimum_size = card_size
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
+	# Make sure child panels don't block clicks
+	for child in card_root.get_children():
+		if child is Panel or child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Connect tap to add to cart
 	card_root.gui_input.connect(_on_browse_card_tap.bind(card_id))
