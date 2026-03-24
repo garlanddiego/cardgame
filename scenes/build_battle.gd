@@ -105,13 +105,13 @@ func _initialize() -> void:
 	energy_label.add_theme_color_override("font_color", Color(0.200, 0.600, 1.0, 1.0))  # energy_blue
 	energy_container.add_child(energy_label)
 
-	# Draw pile label (bottom left)
+	# Draw pile label (bottom left) — styled by battle_manager at runtime
 	var draw_pile_label = Label.new()
 	draw_pile_label.name = "DrawPileLabel"
-	draw_pile_label.text = "Draw: 0"
+	draw_pile_label.text = "抽牌: 0"
 	draw_pile_label.position = Vector2(60, 900)
 	draw_pile_label.add_theme_font_size_override("font_size", 18)
-	draw_pile_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+	draw_pile_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
 	hud.add_child(draw_pile_label)
 
 	# Discard pile (bottom right)

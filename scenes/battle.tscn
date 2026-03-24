@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_xwaxp"]
-[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg_sts.png" id="2_vscbj"]
-[ext_resource type="Script" path="res://scripts/card_hand.gd" id="3_b43c6"]
-[ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="4_tw3hr"]
+[ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_v34f3"]
+[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg_sts.png" id="2_50jjt"]
+[ext_resource type="Script" path="res://scripts/card_hand.gd" id="3_6n3u1"]
+[ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="4_qcpra"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m7psc"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tuubs"]
 content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 12.0
@@ -21,7 +21,7 @@ corner_radius_top_right = 36
 corner_radius_bottom_right = 36
 corner_radius_bottom_left = 36
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yqo82"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irbq5"]
 content_margin_left = 12.0
 content_margin_top = 4.0
 content_margin_right = 12.0
@@ -38,7 +38,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="Battle" type="Node2D"]
-script = ExtResource("1_xwaxp")
+script = ExtResource("1_v34f3")
 max_energy = 3
 cards_per_draw = 10
 
@@ -47,7 +47,7 @@ z_index = -10
 offset_right = 2560.0
 offset_bottom = 1080.0
 mouse_filter = 2
-texture = ExtResource("2_vscbj")
+texture = ExtResource("2_50jjt")
 expand_mode = 1
 
 [node name="PlayerArea" type="Node2D" parent="."]
@@ -58,7 +58,7 @@ position = Vector2(1200, 480)
 
 [node name="CardHand" type="Node2D" parent="."]
 position = Vector2(0, 700)
-script = ExtResource("3_b43c6")
+script = ExtResource("3_6n3u1")
 
 [node name="HUDLayer" type="CanvasLayer" parent="."]
 
@@ -82,7 +82,7 @@ offset_left = 24.0
 offset_top = 822.0
 offset_right = 24.0
 offset_bottom = 822.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_m7psc")
+theme_override_styles/panel = SubResource("StyleBoxFlat_tuubs")
 
 [node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel"]
 layout_mode = 2
@@ -91,7 +91,7 @@ alignment = 1
 [node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-texture = ExtResource("4_tw3hr")
+texture = ExtResource("4_qcpra")
 expand_mode = 3
 stretch_mode = 5
 
@@ -107,9 +107,9 @@ offset_left = 60.0
 offset_top = 900.0
 offset_right = 60.0
 offset_bottom = 900.0
-theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 18
-text = "Draw: 0"
+text = "抽牌: 0"
 
 [node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD"]
 layout_mode = 0
@@ -137,7 +137,7 @@ offset_left = 830.0
 offset_top = 10.0
 offset_right = 830.0
 offset_bottom = 10.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_yqo82")
+theme_override_styles/panel = SubResource("StyleBoxFlat_irbq5")
 
 [node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel"]
 layout_mode = 2

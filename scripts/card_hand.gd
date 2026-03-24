@@ -313,13 +313,25 @@ func update_card_playability(current_energy: int) -> void:
 			# Always keep full color (no grey dimming)
 			if not card.is_selected:
 				card.card_visual.modulate = Color(1, 1, 1, 1)
-			# Update cost label color: red if unaffordable, gold if affordable
-			var cost_lbl = card.card_visual.get_node_or_null("FallbackCost") as Label
+			# Find cost label: try CostLabel first (STS2 card visual), then FallbackCost
+			var cost_lbl: Label = null
+			cost_lbl = card.card_visual.get_node_or_null("CostLabel") as Label
+			if cost_lbl == null:
+				cost_lbl = card.card_visual.get_node_or_null("FallbackCost") as Label
+			# Determine affordable color
+			var affordable: bool = cost <= current_energy
+			var cost_color: Color = Color(0.2, 0.85, 0.3) if affordable else Color(1.0, 0.2, 0.2)
 			if cost_lbl:
-				if cost > current_energy:
-					cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
-				else:
-					cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+				cost_lbl.add_theme_color_override("font_color", cost_color)
+			# Update the cost orb background border color to match
+			var orb_bg: Panel = card.card_visual.get_node_or_null("CostOrbBG") as Panel
+			if orb_bg:
+				var orb_style = orb_bg.get_theme_stylebox("panel") as StyleBoxFlat
+				if orb_style:
+					# Duplicate to avoid shared resource issues
+					var new_style = orb_style.duplicate() as StyleBoxFlat
+					new_style.border_color = cost_color
+					orb_bg.add_theme_stylebox_override("panel", new_style)
 
 func get_selected_card_data() -> Dictionary:
 	if selected_card != null:

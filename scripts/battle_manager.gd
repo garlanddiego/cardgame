@@ -115,9 +115,42 @@ func _ready() -> void:
 	if energy_label:
 		energy_label.add_theme_font_size_override("font_size", 32)
 	if draw_pile_label:
-		draw_pile_label.add_theme_font_size_override("font_size", 18)
-		draw_pile_label.mouse_filter = Control.MOUSE_FILTER_STOP
-		draw_pile_label.gui_input.connect(_on_draw_pile_clicked)
+		# Wrap draw pile label with a prominent styled panel (mirrors discard panel)
+		var draw_panel = Panel.new()
+		draw_panel.name = "DrawPanel"
+		draw_panel.custom_minimum_size = Vector2(180, 50)
+		draw_panel.size = Vector2(180, 50)
+		draw_panel.position = Vector2(60, 890)
+		var drp_style = StyleBoxFlat.new()
+		drp_style.bg_color = Color(0.08, 0.15, 0.25, 0.9)
+		drp_style.border_color = Color(0.3, 0.55, 0.8, 0.9)
+		drp_style.border_width_left = 2
+		drp_style.border_width_right = 2
+		drp_style.border_width_top = 2
+		drp_style.border_width_bottom = 2
+		drp_style.corner_radius_top_left = 8
+		drp_style.corner_radius_top_right = 8
+		drp_style.corner_radius_bottom_left = 8
+		drp_style.corner_radius_bottom_right = 8
+		drp_style.content_margin_left = 8
+		drp_style.content_margin_right = 8
+		drp_style.content_margin_top = 4
+		drp_style.content_margin_bottom = 4
+		draw_panel.add_theme_stylebox_override("panel", drp_style)
+		draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+		draw_panel.gui_input.connect(_on_draw_pile_clicked)
+		var hud_draw = draw_pile_label.get_parent()
+		if hud_draw:
+			hud_draw.add_child(draw_panel)
+		# Reparent draw pile label into the panel
+		draw_pile_label.reparent(draw_panel)
+		draw_pile_label.position = Vector2.ZERO
+		draw_pile_label.size = Vector2(180, 50)
+		draw_pile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		draw_pile_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		draw_pile_label.add_theme_font_size_override("font_size", 22)
+		draw_pile_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
+		draw_pile_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if discard_label:
 		# Wrap discard label with a prominent styled panel
 		var discard_panel = Panel.new()
@@ -688,12 +721,18 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
 				current_energy += 1
 				_update_energy_label()
+				if card_hand:
+					card_hand.current_battle_energy = current_energy
+					card_hand.update_card_playability(current_energy)
 				draw_count += 1
 		"bloodletting":
 			if player:
 				player.take_damage_direct(3)
 				current_energy += 2
 				_update_energy_label()
+				if card_hand:
+					card_hand.current_battle_energy = current_energy
+					card_hand.update_card_playability(current_energy)
 		"flex":
 			if player:
 				player.apply_status("strength", 2)
@@ -713,6 +752,9 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 				player.take_damage_direct(6)
 				current_energy += 2
 				_update_energy_label()
+				if card_hand:
+					card_hand.current_battle_energy = current_energy
+					card_hand.update_card_playability(current_energy)
 				draw_count = 3
 		"second_wind":
 			if player:
@@ -896,6 +938,9 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 	if card_data.has("energy_gain"):
 		current_energy += card_data["energy_gain"]
 		_update_energy_label()
+		if card_hand:
+			card_hand.current_battle_energy = current_energy
+			card_hand.update_card_playability(current_energy)
 
 	# Power effects
 	if card_data.has("power_effect"):
@@ -1248,7 +1293,7 @@ func _update_pile_labels() -> void:
 		if loc:
 			draw_pile_label.text = loc.tf("draw_pile", [draw_pile.size()])
 		else:
-			draw_pile_label.text = "Draw: " + str(draw_pile.size())
+			draw_pile_label.text = "抽牌: " + str(draw_pile.size())
 	if discard_label:
 		if loc:
 			discard_label.text = loc.tf("discard_pile", [discard_pile.size()])
