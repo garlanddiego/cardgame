@@ -50,9 +50,9 @@ func _init_character_data() -> void:
 		},
 		"silent": {
 			"name": "Silent",
-			"max_hp": 70,
+			"max_hp": 1000,
 			"color": Color(0.2, 0.7, 0.3),
-			"sprite": "res://assets/img/silent.png",
+			"sprite": "res://assets/img/ironclad_sts.png",
 			"description": "A deadly hunter who uses agility and poison."
 		}
 	}

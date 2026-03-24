@@ -9,7 +9,7 @@ signal player_died
 signal battle_won
 
 @export var max_energy: int = 3
-@export var cards_per_draw: int = 5
+@export var cards_per_draw: int = 10
 
 var current_energy: int = 3
 var draw_pile: Array = []
