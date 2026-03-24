@@ -378,17 +378,126 @@ func _populate_browse() -> void:
 func _create_browse_card(card: Dictionary, card_size: Vector2, loc: Node) -> Control:
 	var card_id: String = card["id"]
 
-	var card_root = Control.new()
+	var card_root = _create_lightweight_card(card, card_size, loc)
 	card_root.name = "Browse_" + card_id
-	card_root.custom_minimum_size = card_size
 	card_root.mouse_filter = Control.MOUSE_FILTER_PASS
-
-	var visual = _CardScript.create_card_visual(card, card_size, loc)
-	card_root.add_child(visual)
 
 	# Connect tap to add to cart
 	card_root.gui_input.connect(_on_browse_card_tap.bind(card_id))
 	return card_root
+
+func _create_lightweight_card(card: Dictionary, size: Vector2, loc: Node) -> Control:
+	## Lightweight card visual: Panel + 3 labels + optional art thumbnail
+	## Much fewer nodes than create_card_visual (~5 vs ~10+)
+	var sx: float = size.x / 320.0
+	var sy: float = size.y / 430.0
+
+	var character: String = card.get("character", "ironclad")
+	var bg_color: Color
+	var border_color: Color
+	match character:
+		"silent":
+			bg_color = Color(0.1, 0.22, 0.12, 1.0)
+			border_color = Color(0.2, 0.75, 0.25, 1.0)
+		_:
+			bg_color = Color(0.28, 0.08, 0.08, 1.0)
+			border_color = Color(0.85, 0.15, 0.15, 1.0)
+
+	var card_type: int = card.get("type", 0)
+	var type_name: String
+	var type_color: Color
+	match card_type:
+		0: type_name = "攻击"; type_color = Color(0.85, 0.2, 0.2, 1.0)
+		1: type_name = "技能"; type_color = Color(0.25, 0.45, 0.85, 1.0)
+		2: type_name = "能力"; type_color = Color(0.85, 0.7, 0.15, 1.0)
+		_: type_name = "状态"; type_color = Color(0.5, 0.5, 0.5, 1.0)
+
+	# Root panel with colored border
+	var root = Panel.new()
+	root.custom_minimum_size = size
+	root.size = size
+	var body_style = StyleBoxFlat.new()
+	body_style.bg_color = bg_color
+	var corner_r: int = int(12.0 * sx)
+	body_style.corner_radius_top_left = corner_r
+	body_style.corner_radius_top_right = corner_r
+	body_style.corner_radius_bottom_left = corner_r
+	body_style.corner_radius_bottom_right = corner_r
+	var border_w: int = int(4.0 * sx)
+	body_style.border_width_left = border_w
+	body_style.border_width_right = border_w
+	body_style.border_width_top = border_w
+	body_style.border_width_bottom = border_w
+	body_style.border_color = border_color
+	root.add_theme_stylebox_override("panel", body_style)
+
+	# Cost label (top-left circle area)
+	var cost_val: int = card.get("cost", 0)
+	var cost_lbl = Label.new()
+	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	cost_lbl.position = Vector2(6 * sx, 4 * sy)
+	cost_lbl.size = Vector2(32 * sx, 32 * sy)
+	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_lbl.add_theme_font_size_override("font_size", int(22 * sx))
+	cost_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(cost_lbl)
+
+	# Card name (centered, near top)
+	var card_name: String = card.get("name", "???")
+	if loc and loc.has_method("card_name"):
+		card_name = loc.card_name(card)
+	var name_lbl = Label.new()
+	name_lbl.text = card_name
+	name_lbl.position = Vector2(8 * sx, 34 * sy)
+	name_lbl.size = Vector2(size.x - 16 * sx, 30 * sy)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", int(15 * sx))
+	name_lbl.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(name_lbl)
+
+	# Art thumbnail (if available)
+	var card_id: String = card.get("id", "")
+	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
+	if ResourceLoader.exists(art_path):
+		var art_rect = TextureRect.new()
+		art_rect.texture = load(art_path)
+		var art_margin: float = 10 * sx
+		var art_top: float = 66 * sy
+		var art_w: float = size.x - art_margin * 2
+		var art_h: float = size.y * 0.45
+		art_rect.position = Vector2(art_margin, art_top)
+		art_rect.size = Vector2(art_w, art_h)
+		art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(art_rect)
+
+	# Type + stats line (bottom area)
+	var dmg: int = card.get("damage", 0)
+	var blk: int = card.get("block", 0)
+	var stat_text: String = type_name
+	if dmg > 0 and blk > 0:
+		stat_text += "  %d/%d" % [dmg, blk]
+	elif dmg > 0:
+		stat_text += "  %d" % dmg
+	elif blk > 0:
+		stat_text += "  %d" % blk
+	var stat_lbl = Label.new()
+	stat_lbl.text = stat_text
+	stat_lbl.position = Vector2(6 * sx, size.y - 30 * sy)
+	stat_lbl.size = Vector2(size.x - 12 * sx, 26 * sy)
+	stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stat_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	stat_lbl.add_theme_font_size_override("font_size", int(13 * sx))
+	stat_lbl.add_theme_color_override("font_color", type_color)
+	stat_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(stat_lbl)
+
+	return root
 
 func _on_browse_card_tap(event: InputEvent, card_id: String) -> void:
 	if not (event is InputEventMouseButton):

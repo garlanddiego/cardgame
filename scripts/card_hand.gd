@@ -84,8 +84,14 @@ func update_layout() -> void:
 	# Cards overlap: each card takes CARD_WIDTH - CARD_OVERLAP horizontal space
 	var step: float = CARD_WIDTH - CARD_OVERLAP
 	var total_width: float = step * (card_count - 1) + CARD_WIDTH
-	var start_x: float = (1920.0 - total_width) / 2.0
+	var vw: float = get_viewport_rect().size.x
+	var start_x: float = (vw - total_width) / 2.0
 	var base_y: float = HAND_Y  # Cards positioned relative to this Node2D
+
+	# Shrink cards when hand has 7+
+	var base_scale: float = 1.0
+	if card_count >= 7:
+		base_scale = 0.9
 
 	var hovered_index: int = -1
 	if hovered_card != null and hovered_card in cards:
@@ -113,7 +119,7 @@ func update_layout() -> void:
 
 		var target_pos := Vector2(x_pos, base_y + y_offset)
 		var target_rot := rot
-		var target_scale := Vector2.ONE
+		var target_scale := Vector2(base_scale, base_scale)
 
 		if card == selected_card:
 			target_pos.y += HOVER_LIFT - 30  # Selected card lifts even higher

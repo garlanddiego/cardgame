@@ -108,9 +108,42 @@ func _ready() -> void:
 		draw_pile_label.mouse_filter = Control.MOUSE_FILTER_STOP
 		draw_pile_label.gui_input.connect(_on_draw_pile_clicked)
 	if discard_label:
-		discard_label.add_theme_font_size_override("font_size", 18)
-		discard_label.mouse_filter = Control.MOUSE_FILTER_STOP
-		discard_label.gui_input.connect(_on_discard_pile_clicked)
+		# Wrap discard label with a prominent styled panel
+		var discard_panel = Panel.new()
+		discard_panel.name = "DiscardPanel"
+		discard_panel.custom_minimum_size = Vector2(180, 50)
+		discard_panel.size = Vector2(180, 50)
+		discard_panel.position = Vector2(1700, 890)
+		var dp_style = StyleBoxFlat.new()
+		dp_style.bg_color = Color(0.25, 0.08, 0.08, 0.9)
+		dp_style.border_color = Color(0.8, 0.3, 0.3, 0.9)
+		dp_style.border_width_left = 2
+		dp_style.border_width_right = 2
+		dp_style.border_width_top = 2
+		dp_style.border_width_bottom = 2
+		dp_style.corner_radius_top_left = 8
+		dp_style.corner_radius_top_right = 8
+		dp_style.corner_radius_bottom_left = 8
+		dp_style.corner_radius_bottom_right = 8
+		dp_style.content_margin_left = 8
+		dp_style.content_margin_right = 8
+		dp_style.content_margin_top = 4
+		dp_style.content_margin_bottom = 4
+		discard_panel.add_theme_stylebox_override("panel", dp_style)
+		discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+		discard_panel.gui_input.connect(_on_discard_pile_clicked)
+		var hud_node = discard_label.get_parent()
+		if hud_node:
+			hud_node.add_child(discard_panel)
+		# Reparent discard label into the panel
+		discard_label.reparent(discard_panel)
+		discard_label.position = Vector2.ZERO
+		discard_label.size = Vector2(180, 50)
+		discard_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		discard_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		discard_label.add_theme_font_size_override("font_size", 22)
+		discard_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.75))
+		discard_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Pile viewer overlay
 	_setup_pile_viewer()
@@ -1144,7 +1177,7 @@ func _update_pile_labels() -> void:
 		if loc:
 			discard_label.text = loc.tf("discard_pile", [discard_pile.size()])
 		else:
-			discard_label.text = "Discard: " + str(discard_pile.size())
+			discard_label.text = "弃牌: " + str(discard_pile.size())
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)
@@ -1213,6 +1246,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			_clear_damage_previews()
 			_hovered_enemy = null
 			card_hand.update_layout()
+	# Left click on background: play non-targeted card (self/all_enemies)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if card_hand and card_hand.is_targeting() and card_hand.selected_card:
+			var card_data: Dictionary = card_hand.get_selected_card_data()
+			var target_type: String = card_data.get("target", "enemy")
+			if target_type == "self" and player:
+				_clear_damage_previews()
+				card_hand.play_selected_on(player)
+			elif target_type == "all_enemies" and not enemies.is_empty():
+				_clear_damage_previews()
+				_clear_all_enemy_highlights()
+				_hovered_enemy = null
+				card_hand.play_selected_on(enemies[0])
 	if event is InputEventKey and event.pressed and event.keycode == KEY_E:
 		_on_end_turn()
 
