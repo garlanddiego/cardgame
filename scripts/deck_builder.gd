@@ -26,6 +26,11 @@ var filter_silent_btn: Button = null
 var browse_scroll: ScrollContainer = null
 var cart_scroll: ScrollContainer = null
 
+# Scroll vs tap detection
+var _press_start_pos: Vector2 = Vector2.ZERO
+var _press_active: bool = false
+const TAP_MOVE_THRESHOLD: float = 20.0  # Max px movement to count as tap (not scroll)
+
 # Constants
 const SCREEN_W: float = 1920.0
 const SCREEN_H: float = 1080.0
@@ -493,14 +498,27 @@ func _on_browse_card_tap(event: InputEvent, card_id: String) -> void:
 	if not (event is InputEventMouseButton):
 		return
 	var mb: InputEventMouseButton = event as InputEventMouseButton
-	if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+	if mb.button_index != MOUSE_BUTTON_LEFT:
 		return
+
+	if mb.pressed:
+		# Track press start position for scroll detection
+		_press_start_pos = mb.global_position
+		_press_active = true
+		return
+
+	# On release: only trigger if finger didn't move much (tap, not scroll)
+	if not _press_active:
+		return
+	_press_active = false
+	var dist: float = _press_start_pos.distance_to(mb.global_position)
+	if dist > TAP_MOVE_THRESHOLD:
+		return  # Was a scroll, not a tap
 
 	# Add to cart
 	if not all_card_data.has(card_id):
 		return
 	selected_card_ids[card_id] = all_card_data[card_id]
-	# Refresh browse (removes this card) and cart
 	_populate_browse()
 	_rebuild_cart_list()
 	_update_cart_ui()
@@ -633,7 +651,19 @@ func _on_cart_item_tap(event: InputEvent, card_id: String) -> void:
 	if not (event is InputEventMouseButton):
 		return
 	var mb: InputEventMouseButton = event as InputEventMouseButton
-	if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+	if mb.button_index != MOUSE_BUTTON_LEFT:
+		return
+
+	if mb.pressed:
+		_press_start_pos = mb.global_position
+		_press_active = true
+		return
+
+	if not _press_active:
+		return
+	_press_active = false
+	var dist: float = _press_start_pos.distance_to(mb.global_position)
+	if dist > TAP_MOVE_THRESHOLD:
 		return
 
 	# Remove from cart, return to browse
