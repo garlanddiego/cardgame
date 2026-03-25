@@ -75,7 +75,7 @@ func _init_card_database() -> void:
 	card_database["ic_iron_wave"] = {"id": "ic_iron_wave", "name": "Iron Wave", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 5, "description": "Deal 5 damage.\nGain 5 Block.", "art": _ic_art(2), "target": "enemy", "actions": [{"type": "damage"}, {"type": "block"}]}
 
 	# 4. Body Slam
-	card_database["ic_body_slam"] = {"id": "ic_body_slam", "name": "Body Slam", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 0, "block": 0, "description": "Deal damage equal\nto your Block.", "art": _ic_art(3), "target": "enemy", "special": "body_slam"}
+	card_database["ic_body_slam"] = {"id": "ic_body_slam", "name": "Body Slam", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 0, "block": 0, "description": "Deal damage equal\nto your Block.", "art": _ic_art(3), "target": "enemy", "actions": [{"type": "call", "fn": "body_slam"}]}
 
 	# 5. Anger
 	card_database["ic_anger"] = {"id": "ic_anger", "name": "Anger", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.\nAdd a copy to\nyour discard pile.", "art": _ic_art(0), "target": "enemy", "actions": [{"type": "damage"}, {"type": "copy_to_discard", "card_id": "ic_anger"}]}
@@ -87,7 +87,7 @@ func _init_card_database() -> void:
 	card_database["ic_twin_strike"] = {"id": "ic_twin_strike", "name": "Twin Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage twice.", "art": _ic_art(0), "target": "enemy", "times": 2, "actions": [{"type": "damage"}]}
 
 	# 8. Wild Strike
-	card_database["ic_wild_strike"] = {"id": "ic_wild_strike", "name": "Wild Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 12, "block": 0, "description": "Deal 12 damage.\nShuffle a Wound into\nyour draw pile.", "art": _ic_art(6), "target": "enemy", "special": "wild_strike"}
+	card_database["ic_wild_strike"] = {"id": "ic_wild_strike", "name": "Wild Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 12, "block": 0, "description": "Deal 12 damage.\nShuffle a Wound into\nyour draw pile.", "art": _ic_art(6), "target": "enemy", "actions": [{"type": "damage"}, {"type": "add_card_to_draw", "card_id": "status_wound"}]}
 
 	# 9. Pommel Strike
 	card_database["ic_pommel_strike"] = {"id": "ic_pommel_strike", "name": "Pommel Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 9, "block": 0, "description": "Deal 9 damage.\nDraw 1 card.", "art": _ic_art(0), "target": "enemy", "draw": 1, "actions": [{"type": "damage"}, {"type": "draw"}]}
@@ -102,31 +102,31 @@ func _init_card_database() -> void:
 	card_database["ic_uppercut"] = {"id": "ic_uppercut", "name": "Uppercut", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 13, "block": 0, "description": "Deal 13 damage.\nApply 1 Weak.\nApply 1 Vulnerable.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 1}, "apply_status_2": {"type": "weak", "stacks": 1}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}, {"type": "apply_status", "source": "apply_status_2"}]}
 
 	# 13. Immolate
-	card_database["ic_immolate"] = {"id": "ic_immolate", "name": "Immolate", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 21, "block": 0, "description": "Deal 21 damage to\nALL enemies.\nAdd a Burn to discard.", "art": _ic_art(9), "target": "all_enemies", "special": "immolate"}
+	card_database["ic_immolate"] = {"id": "ic_immolate", "name": "Immolate", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 21, "block": 0, "description": "Deal 21 damage to\nALL enemies.\nAdd a Burn to discard.", "art": _ic_art(9), "target": "all_enemies", "actions": [{"type": "damage_all"}, {"type": "add_card_to_discard", "card_id": "status_burn"}]}
 
 	# 14. Fiend Fire
-	card_database["ic_fiend_fire"] = {"id": "ic_fiend_fire", "name": "Fiend Fire", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 7, "block": 0, "description": "Exhaust your hand.\nDeal 7 damage for\neach card exhausted.", "art": _ic_art(11), "target": "enemy", "special": "fiend_fire", "exhaust": true}
+	card_database["ic_fiend_fire"] = {"id": "ic_fiend_fire", "name": "Fiend Fire", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 7, "block": 0, "description": "Exhaust your hand.\nDeal 7 damage for\neach card exhausted.", "art": _ic_art(11), "target": "enemy", "exhaust": true, "actions": [{"type": "call", "fn": "fiend_fire"}]}
 
 	# 15. Reaper
-	card_database["ic_reaper"] = {"id": "ic_reaper", "name": "Reaper", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 4, "block": 0, "description": "Deal 4 damage to\nALL enemies.\nHeal for unblocked damage.", "art": _ic_art(11), "target": "all_enemies", "special": "reaper", "exhaust": true}
+	card_database["ic_reaper"] = {"id": "ic_reaper", "name": "Reaper", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 4, "block": 0, "description": "Deal 4 damage to\nALL enemies.\nHeal for unblocked damage.", "art": _ic_art(11), "target": "all_enemies", "exhaust": true, "actions": [{"type": "call", "fn": "reaper"}]}
 
 	# 16. Heavy Blade
-	card_database["ic_heavy_blade"] = {"id": "ic_heavy_blade", "name": "Heavy Blade", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 14, "block": 0, "description": "Deal 14 damage.\nStrength applies x3.", "art": _ic_art(1), "target": "enemy", "special": "heavy_blade"}
+	card_database["ic_heavy_blade"] = {"id": "ic_heavy_blade", "name": "Heavy Blade", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 14, "block": 0, "description": "Deal 14 damage.\nStrength applies x3.", "art": _ic_art(1), "target": "enemy", "str_mult": 3, "actions": [{"type": "call", "fn": "heavy_blade"}]}
 
 	# 17. Thunderclap
 	card_database["ic_thunderclap"] = {"id": "ic_thunderclap", "name": "Thunderclap", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 4, "block": 0, "description": "Deal 4 damage to\nALL enemies.\nApply 1 Vulnerable.", "art": _ic_art(7), "target": "all_enemies", "apply_status": {"type": "vulnerable", "stacks": 1}, "actions": [{"type": "damage_all"}, {"type": "apply_status", "source": "apply_status"}]}
 
 	# 18. Hemokinesis
-	card_database["ic_hemokinesis"] = {"id": "ic_hemokinesis", "name": "Hemokinesis", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 15, "block": 0, "description": "Lose 2 HP.\nDeal 15 damage.", "art": _ic_art(6), "target": "enemy", "special": "hemokinesis"}
+	card_database["ic_hemokinesis"] = {"id": "ic_hemokinesis", "name": "Hemokinesis", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 15, "block": 0, "description": "Lose 2 HP.\nDeal 15 damage.", "art": _ic_art(6), "target": "enemy", "actions": [{"type": "self_damage", "value": 2}, {"type": "damage"}]}
 
 	# 19. Reckless Charge
-	card_database["ic_reckless_charge"] = {"id": "ic_reckless_charge", "name": "Reckless Charge", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 7, "block": 0, "description": "Deal 7 damage.\nShuffle a Dazed into\nyour draw pile.", "art": _ic_art(6), "target": "enemy", "special": "reckless_charge"}
+	card_database["ic_reckless_charge"] = {"id": "ic_reckless_charge", "name": "Reckless Charge", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 7, "block": 0, "description": "Deal 7 damage.\nShuffle a Dazed into\nyour draw pile.", "art": _ic_art(6), "target": "enemy", "actions": [{"type": "damage"}, {"type": "add_card_to_draw", "card_id": "status_dazed"}]}
 
 	# 20. Clash
-	card_database["ic_clash"] = {"id": "ic_clash", "name": "Clash", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 14, "block": 0, "description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 14 damage.", "art": _ic_art(0), "target": "enemy", "special": "clash"}
+	card_database["ic_clash"] = {"id": "ic_clash", "name": "Clash", "cost": 0, "type": CardType.ATTACK, "character": "ironclad", "damage": 14, "block": 0, "description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 14 damage.", "art": _ic_art(0), "target": "enemy", "special": "clash", "actions": [{"type": "damage"}]}
 
 	# 21. Perfected Strike
-	card_database["ic_perfected_strike"] = {"id": "ic_perfected_strike", "name": "Perfected Strike", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage. Deals\n2 additional damage\nfor each \"Strike\" card\nin your deck.", "art": _ic_art(0), "target": "enemy", "special": "perfected_strike"}
+	card_database["ic_perfected_strike"] = {"id": "ic_perfected_strike", "name": "Perfected Strike", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage. Deals\n2 additional damage\nfor each \"Strike\" card\nin your deck.", "art": _ic_art(0), "target": "enemy", "strike_bonus": 2, "actions": [{"type": "call", "fn": "perfected_strike"}]}
 
 	# 22. Bludgeon
 	card_database["ic_bludgeon"] = {"id": "ic_bludgeon", "name": "Bludgeon", "cost": 3, "type": CardType.ATTACK, "character": "ironclad", "damage": 32, "block": 0, "description": "Deal 32 damage.", "art": _ic_art(12), "target": "enemy", "actions": [{"type": "damage"}]}
@@ -138,10 +138,10 @@ func _init_card_database() -> void:
 	card_database["ic_searing_blow"] = {"id": "ic_searing_blow", "name": "Searing Blow", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 12, "block": 0, "description": "Deal 12 damage.", "art": _ic_art(4), "target": "enemy", "actions": [{"type": "damage"}]}
 
 	# 25. Whirlwind
-	card_database["ic_whirlwind"] = {"id": "ic_whirlwind", "name": "Whirlwind", "cost": -1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage to ALL\nenemies X times.\n(X = current Energy)", "art": _ic_art(7), "target": "all_enemies", "special": "whirlwind"}
+	card_database["ic_whirlwind"] = {"id": "ic_whirlwind", "name": "Whirlwind", "cost": -1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage to ALL\nenemies X times.\n(X = current Energy)", "art": _ic_art(7), "target": "all_enemies", "actions": [{"type": "call", "fn": "whirlwind"}]}
 
 	# 26. Dropkick
-	card_database["ic_dropkick"] = {"id": "ic_dropkick", "name": "Dropkick", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1.", "art": _ic_art(5), "target": "enemy", "special": "dropkick"}
+	card_database["ic_dropkick"] = {"id": "ic_dropkick", "name": "Dropkick", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1.", "art": _ic_art(5), "target": "enemy", "actions": [{"type": "call", "fn": "dropkick"}]}
 
 	# 27a. Carnage
 	card_database["ic_carnage"] = {"id": "ic_carnage", "name": "Carnage", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 20, "block": 0, "description": "Ethereal.\nDeal 20 damage.", "art": _ic_art(6), "target": "enemy", "ethereal": true, "actions": [{"type": "damage"}]}
@@ -150,13 +150,13 @@ func _init_card_database() -> void:
 	card_database["ic_clothesline"] = {"id": "ic_clothesline", "name": "Clothesline", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 12, "block": 0, "description": "Deal 12 damage.\nApply 2 Weak.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "weak", "stacks": 2}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 
 	# 27c. Feed
-	card_database["ic_feed"] = {"id": "ic_feed", "name": "Feed", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 10, "block": 0, "description": "Deal 10 damage.\nIf this kills, gain\n3 Max HP. Exhaust.", "art": _ic_art(6), "target": "enemy", "special": "feed", "exhaust": true}
+	card_database["ic_feed"] = {"id": "ic_feed", "name": "Feed", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 10, "block": 0, "description": "Deal 10 damage.\nIf this kills, gain\n3 Max HP. Exhaust.", "art": _ic_art(6), "target": "enemy", "exhaust": true, "max_hp_gain": 3, "actions": [{"type": "call", "fn": "feed"}]}
 
 	# 27d. Rampage
-	card_database["ic_rampage"] = {"id": "ic_rampage", "name": "Rampage", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage.\nIncreases by 5\neach time played.", "art": _ic_art(0), "target": "enemy", "special": "rampage"}
+	card_database["ic_rampage"] = {"id": "ic_rampage", "name": "Rampage", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage.\nIncreases by 5\neach time played.", "art": _ic_art(0), "target": "enemy", "rampage_inc": 5, "actions": [{"type": "call", "fn": "rampage"}]}
 
 	# 27e. Sever Soul
-	card_database["ic_sever_soul"] = {"id": "ic_sever_soul", "name": "Sever Soul", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 16, "block": 0, "description": "Exhaust all non-Attack\ncards in hand.\nDeal 16 damage.", "art": _ic_art(0), "target": "enemy", "special": "sever_soul"}
+	card_database["ic_sever_soul"] = {"id": "ic_sever_soul", "name": "Sever Soul", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 16, "block": 0, "description": "Exhaust all non-Attack\ncards in hand.\nDeal 16 damage.", "art": _ic_art(0), "target": "enemy", "actions": [{"type": "call", "fn": "sever_soul"}]}
 
 	# =========================================================================
 	# IRONCLAD SKILLS (27 cards)
@@ -175,16 +175,16 @@ func _init_card_database() -> void:
 	card_database["ic_battle_trance"] = {"id": "ic_battle_trance", "name": "Battle Trance", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Draw 3 cards.", "art": _ic_art(10), "target": "self", "draw": 3, "actions": [{"type": "draw"}]}
 
 	# 31. Bloodletting
-	card_database["ic_bloodletting"] = {"id": "ic_bloodletting", "name": "Bloodletting", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Lose 3 HP.\nGain 2 Energy.", "art": _ic_art(6), "target": "self", "special": "bloodletting"}
+	card_database["ic_bloodletting"] = {"id": "ic_bloodletting", "name": "Bloodletting", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Lose 3 HP.\nGain 2 Energy.", "art": _ic_art(6), "target": "self", "actions": [{"type": "self_damage", "value": 3}, {"type": "gain_energy", "value": 2}]}
 
 	# 32. Flex
-	card_database["ic_flex"] = {"id": "ic_flex", "name": "Flex", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Gain 2 Strength.\nAt end of turn,\nlose 2 Strength.", "art": _ic_art(1), "target": "self", "special": "flex"}
+	card_database["ic_flex"] = {"id": "ic_flex", "name": "Flex", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Gain 2 Strength.\nAt end of turn,\nlose 2 Strength.", "art": _ic_art(1), "target": "self", "flex_stacks": 2, "actions": [{"type": "call", "fn": "flex"}]}
 
 	# 33. Limit Break
-	card_database["ic_limit_break"] = {"id": "ic_limit_break", "name": "Limit Break", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Strength.\nExhaust.", "art": _ic_art(1), "target": "self", "special": "limit_break", "exhaust": true}
+	card_database["ic_limit_break"] = {"id": "ic_limit_break", "name": "Limit Break", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Strength.\nExhaust.", "art": _ic_art(1), "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "limit_break"}]}
 
 	# 34. Entrench
-	card_database["ic_entrench"] = {"id": "ic_entrench", "name": "Entrench", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Block.", "art": _ic_art(8), "target": "self", "special": "entrench"}
+	card_database["ic_entrench"] = {"id": "ic_entrench", "name": "Entrench", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Block.", "art": _ic_art(8), "target": "self", "actions": [{"type": "call", "fn": "entrench"}]}
 
 	# 35. Shockwave
 	card_database["ic_shockwave"] = {"id": "ic_shockwave", "name": "Shockwave", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Apply 3 Weak and\n3 Vulnerable to\nALL enemies. Exhaust.", "art": _ic_art(7), "target": "all_enemies", "apply_status": {"type": "weak", "stacks": 3}, "apply_status_2": {"type": "vulnerable", "stacks": 3}, "exhaust": true, "actions": [{"type": "apply_status", "source": "apply_status"}, {"type": "apply_status", "source": "apply_status_2"}]}
@@ -193,52 +193,52 @@ func _init_card_database() -> void:
 	card_database["ic_armaments"] = {"id": "ic_armaments", "name": "Armaments", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": _ic_art(8), "target": "self", "actions": [{"type": "block"}]}
 
 	# 37. Power Through
-	card_database["ic_power_through"] = {"id": "ic_power_through", "name": "Power Through", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 15, "description": "Gain 15 Block.\nAdd 2 Wounds to\nyour hand.", "art": _ic_art(8), "target": "self", "special": "power_through"}
+	card_database["ic_power_through"] = {"id": "ic_power_through", "name": "Power Through", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 15, "description": "Gain 15 Block.\nAdd 2 Wounds to\nyour hand.", "art": _ic_art(8), "target": "self", "actions": [{"type": "block"}, {"type": "add_card_to_hand", "card_id": "status_wound", "count": 2}]}
 
 	# 38. Offering
-	card_database["ic_offering"] = {"id": "ic_offering", "name": "Offering", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Lose 6 HP.\nGain 2 Energy.\nDraw 3 cards.\nExhaust.", "art": _ic_art(11), "target": "self", "special": "offering", "exhaust": true}
+	card_database["ic_offering"] = {"id": "ic_offering", "name": "Offering", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Lose 6 HP.\nGain 2 Energy.\nDraw 3 cards.\nExhaust.", "art": _ic_art(11), "target": "self", "exhaust": true, "actions": [{"type": "self_damage", "value": 6}, {"type": "gain_energy", "value": 2}, {"type": "draw", "value": 3}]}
 
 	# 39. War Cry
 	card_database["ic_war_cry"] = {"id": "ic_war_cry", "name": "War Cry", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Draw 1 card.\nExhaust.", "art": _ic_art(15), "target": "self", "draw": 1, "exhaust": true, "actions": [{"type": "draw"}]}
 
 	# 40. Burning Pact
-	card_database["ic_burning_pact"] = {"id": "ic_burning_pact", "name": "Burning Pact", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Exhaust 1 card.\nDraw 2 cards.", "art": _ic_art(9), "target": "self", "draw": 2, "special": "burning_pact"}
+	card_database["ic_burning_pact"] = {"id": "ic_burning_pact", "name": "Burning Pact", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Exhaust 1 card.\nDraw 2 cards.", "art": _ic_art(9), "target": "self", "draw": 2, "actions": [{"type": "call", "fn": "burning_pact"}]}
 
 	# 41. Seeing Red
 	card_database["ic_seeing_red"] = {"id": "ic_seeing_red", "name": "Seeing Red", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Gain 2 Energy.\nExhaust.", "art": _ic_art(6), "target": "self", "energy_gain": 2, "exhaust": true, "actions": [{"type": "gain_energy", "value": 2}]}
 
 	# 42. Second Wind
-	card_database["ic_second_wind"] = {"id": "ic_second_wind", "name": "Second Wind", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Exhaust all non-Attack\ncards in hand. Gain\n5 Block for each.", "art": _ic_art(8), "target": "self", "special": "second_wind"}
+	card_database["ic_second_wind"] = {"id": "ic_second_wind", "name": "Second Wind", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Exhaust all non-Attack\ncards in hand. Gain\n5 Block for each.", "art": _ic_art(8), "target": "self", "block_per": 5, "actions": [{"type": "call", "fn": "second_wind"}]}
 
 	# 43. Intimidate
 	card_database["ic_intimidate"] = {"id": "ic_intimidate", "name": "Intimidate", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Apply 1 Weak to\nALL enemies. Exhaust.", "art": _ic_art(14), "target": "all_enemies", "apply_status": {"type": "weak", "stacks": 1}, "exhaust": true, "actions": [{"type": "apply_status", "source": "apply_status"}]}
 
 	# 44. Infernal Blade
-	card_database["ic_infernal_blade"] = {"id": "ic_infernal_blade", "name": "Infernal Blade", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust.", "art": _ic_art(9), "target": "self", "special": "infernal_blade", "exhaust": true}
+	card_database["ic_infernal_blade"] = {"id": "ic_infernal_blade", "name": "Infernal Blade", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust.", "art": _ic_art(9), "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "infernal_blade"}]}
 
 	# 45. Dual Wield
-	card_database["ic_dual_wield"] = {"id": "ic_dual_wield", "name": "Dual Wield", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Copy an Attack or\nPower card in hand.", "art": _ic_art(0), "target": "self", "special": "dual_wield"}
+	card_database["ic_dual_wield"] = {"id": "ic_dual_wield", "name": "Dual Wield", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Copy an Attack or\nPower card in hand.", "art": _ic_art(0), "target": "self", "copies": 1, "actions": [{"type": "call", "fn": "dual_wield"}]}
 
 	# 45a. Ghostly Armor
 	card_database["ic_ghostly_armor"] = {"id": "ic_ghostly_armor", "name": "Ghostly Armor", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 10, "description": "Ethereal.\nGain 10 Block.", "art": _ic_art(8), "target": "self", "ethereal": true, "actions": [{"type": "block"}]}
 
 	# 45b. Havoc
-	card_database["ic_havoc"] = {"id": "ic_havoc", "name": "Havoc", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it.", "art": _ic_art(6), "target": "self", "special": "havoc", "exhaust": true}
+	card_database["ic_havoc"] = {"id": "ic_havoc", "name": "Havoc", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it.", "art": _ic_art(6), "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "havoc"}]}
 
 	# 45c. Impervious
 	card_database["ic_impervious"] = {"id": "ic_impervious", "name": "Impervious", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 30, "description": "Gain 30 Block.\nExhaust.", "art": _ic_art(8), "target": "self", "exhaust": true, "actions": [{"type": "block"}]}
 
 	# 45d. Exhume
-	card_database["ic_exhume"] = {"id": "ic_exhume", "name": "Exhume", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust.", "art": _ic_art(11), "target": "self", "special": "exhume", "exhaust": true}
+	card_database["ic_exhume"] = {"id": "ic_exhume", "name": "Exhume", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust.", "art": _ic_art(11), "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "exhume"}]}
 
 	# 45e. Sentinel
-	card_database["ic_sentinel"] = {"id": "ic_sentinel", "name": "Sentinel", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.\nIf this card is\nExhausted, gain\n2 Energy.", "art": _ic_art(8), "target": "self", "special": "sentinel"}
+	card_database["ic_sentinel"] = {"id": "ic_sentinel", "name": "Sentinel", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.\nIf this card is\nExhausted, gain\n2 Energy.", "art": _ic_art(8), "target": "self", "actions": [{"type": "block"}]}
 
 	# 45f. Spot Weakness
-	card_database["ic_spot_weakness"] = {"id": "ic_spot_weakness", "name": "Spot Weakness", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "If the enemy intends\nto attack, gain\n3 Strength.", "art": _ic_art(1), "target": "enemy", "special": "spot_weakness"}
+	card_database["ic_spot_weakness"] = {"id": "ic_spot_weakness", "name": "Spot Weakness", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "If the enemy intends\nto attack, gain\n3 Strength.", "art": _ic_art(1), "target": "enemy", "spot_str": 3, "actions": [{"type": "call", "fn": "spot_weakness"}]}
 
 	# 45g. True Grit
-	card_database["ic_true_grit"] = {"id": "ic_true_grit", "name": "True Grit", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 7, "description": "Gain 7 Block.\nExhaust a random\ncard in your hand.", "art": _ic_art(8), "target": "self", "special": "true_grit"}
+	card_database["ic_true_grit"] = {"id": "ic_true_grit", "name": "True Grit", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 7, "description": "Gain 7 Block.\nExhaust a random\ncard in your hand.", "art": _ic_art(8), "target": "self", "actions": [{"type": "block"}, {"type": "call", "fn": "true_grit"}]}
 
 	# 45h. Disarm
 	card_database["ic_disarm"] = {"id": "ic_disarm", "name": "Disarm", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Enemy loses 2\nStrength. Exhaust.", "art": _ic_art(1), "target": "enemy", "apply_status": {"type": "strength", "stacks": -2}, "exhaust": true, "actions": [{"type": "apply_status", "source": "apply_status"}]}
@@ -290,7 +290,7 @@ func _init_card_database() -> void:
 	card_database["ic_rupture"] = {"id": "ic_rupture", "name": "Rupture", "cost": 1, "type": CardType.POWER, "character": "ironclad", "damage": 0, "block": 0, "description": "Whenever you lose HP\nfrom a card, gain\n1 Strength.", "art": _ic_art(11), "target": "self", "power_effect": "rupture", "actions": [{"type": "power_effect", "power": "rupture"}]}
 
 	# 60. Blood for Blood
-	card_database["ic_blood_for_blood"] = {"id": "ic_blood_for_blood", "name": "Blood for Blood", "cost": 4, "type": CardType.ATTACK, "character": "ironclad", "damage": 18, "block": 0, "description": "Costs 1 less for each\ntime you lose HP this\ncombat. Deal 18 dmg.", "art": _ic_art(5), "target": "enemy", "special": "blood_for_blood"}
+	card_database["ic_blood_for_blood"] = {"id": "ic_blood_for_blood", "name": "Blood for Blood", "cost": 4, "type": CardType.ATTACK, "character": "ironclad", "damage": 18, "block": 0, "description": "Costs 1 less for each\ntime you lose HP this\ncombat. Deal 18 dmg.", "art": _ic_art(5), "target": "enemy", "actions": [{"type": "call", "fn": "blood_for_blood"}]}
 	# 61. Double Tap
 	card_database["ic_double_tap"] = {"id": "ic_double_tap", "name": "Double Tap", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "This turn, your next\nAttack is played twice.", "art": _ic_art(13), "target": "self", "power_effect": "double_tap", "actions": [{"type": "power_effect", "power": "double_tap"}]}
 	# 62. Fire Breathing
@@ -318,7 +318,7 @@ func _init_card_database() -> void:
 	# 3. Neutralize
 	card_database["si_neutralize"] = {"id": "si_neutralize", "name": "Neutralize", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	# 4. Survivor
-	card_database["si_survivor"] = {"id": "si_survivor", "name": "Survivor", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDiscard 1 card.", "art": "", "target": "self", "special": "survivor"}
+	card_database["si_survivor"] = {"id": "si_survivor", "name": "Survivor", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDiscard 1 card.", "art": "", "target": "self", "discard": 1, "actions": [{"type": "block"}]}
 
 	# --- Common Attacks ---
 	# 5. Slice
@@ -328,21 +328,21 @@ func _init_card_database() -> void:
 	# 7. Dagger Throw
 	card_database["si_dagger_throw"] = {"id": "si_dagger_throw", "name": "Dagger Throw", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 9, "block": 0, "description": "Deal 9 damage.\nDraw 1, Discard 1.", "art": "", "target": "enemy", "draw": 1, "discard": 1, "actions": [{"type": "damage"}, {"type": "draw"}]}
 	# 8. Flick-Flack
-	card_database["si_flick_flack"] = {"id": "si_flick_flack", "name": "Flick-Flack", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Sly. Deal 7 damage\nto ALL enemies.", "art": "", "target": "all_enemies", "special": "sly"}
+	card_database["si_flick_flack"] = {"id": "si_flick_flack", "name": "Flick-Flack", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Sly. Deal 7 damage\nto ALL enemies.", "art": "", "target": "all_enemies", "special": "sly", "actions": [{"type": "damage_all"}]}
 	# 9. Leading Strike
-	card_database["si_leading_strike"] = {"id": "si_leading_strike", "name": "Leading Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage.\nAdd 1 Shiv to hand.", "art": "", "target": "enemy", "special": "leading_strike"}
+	card_database["si_leading_strike"] = {"id": "si_leading_strike", "name": "Leading Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage.\nAdd 1 Shiv to hand.", "art": "", "target": "enemy", "actions": [{"type": "damage"}, {"type": "add_shiv", "value": 1}]}
 	# 10. Poisoned Stab
 	card_database["si_poisoned_stab"] = {"id": "si_poisoned_stab", "name": "Poisoned Stab", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.\nApply 3 Poison.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 3}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	# 11. Sucker Punch
 	card_database["si_sucker_punch"] = {"id": "si_sucker_punch", "name": "Sucker Punch", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	# 12. Ricochet
-	card_database["si_ricochet"] = {"id": "si_ricochet", "name": "Ricochet", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Sly. Deal 3 damage\nto random enemy 4x.", "art": "", "target": "random_enemy", "times": 4, "special": "sly"}
+	card_database["si_ricochet"] = {"id": "si_ricochet", "name": "Ricochet", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Sly. Deal 3 damage\nto random enemy 4x.", "art": "", "target": "random_enemy", "times": 4, "special": "sly", "actions": [{"type": "damage"}]}
 	# 13. Quick Slash
 	card_database["si_quick_slash"] = {"id": "si_quick_slash", "name": "Quick Slash", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nDraw 1 card.", "art": "", "target": "enemy", "draw": 1, "actions": [{"type": "damage"}, {"type": "draw"}]}
 
 	# --- Common Skills ---
 	# 14. Anticipate
-	card_database["si_anticipate"] = {"id": "si_anticipate", "name": "Anticipate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 3 Dexterity\nthis turn.", "art": "", "target": "self", "special": "anticipate"}
+	card_database["si_anticipate"] = {"id": "si_anticipate", "name": "Anticipate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 3 Dexterity\nthis turn.", "art": "", "target": "self", "temp_dex": 3, "actions": [{"type": "call", "fn": "anticipate"}]}
 	# 15. Deflect
 	card_database["si_deflect"] = {"id": "si_deflect", "name": "Deflect", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block.", "art": "", "target": "self", "actions": [{"type": "block"}]}
 	# 16. Prepared
@@ -350,21 +350,21 @@ func _init_card_database() -> void:
 	# 17. Backflip
 	card_database["si_backflip"] = {"id": "si_backflip", "name": "Backflip", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nDraw 2 cards.", "art": "", "target": "self", "draw": 2, "actions": [{"type": "block"}, {"type": "draw"}]}
 	# 18. Dodge and Roll
-	card_database["si_dodge_and_roll"] = {"id": "si_dodge_and_roll", "name": "Dodge and Roll", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block this\nturn and next.", "art": "", "target": "self", "special": "dodge_and_roll"}
+	card_database["si_dodge_and_roll"] = {"id": "si_dodge_and_roll", "name": "Dodge and Roll", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block this\nturn and next.", "art": "", "target": "self", "actions": [{"type": "block"}]}
 	# 19. Cloak and Dagger
-	card_database["si_cloak_and_dagger"] = {"id": "si_cloak_and_dagger", "name": "Cloak and Dagger", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 6, "description": "Gain 6 Block.\nAdd 1 Shiv to hand.", "art": "", "target": "self", "special": "cloak_and_dagger"}
+	card_database["si_cloak_and_dagger"] = {"id": "si_cloak_and_dagger", "name": "Cloak and Dagger", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 6, "description": "Gain 6 Block.\nAdd 1 Shiv to hand.", "art": "", "target": "self", "actions": [{"type": "block"}, {"type": "add_shiv", "value": 1}]}
 	# 20. Outmaneuver
-	card_database["si_outmaneuver"] = {"id": "si_outmaneuver", "name": "Outmaneuver", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Energy\nnext turn.", "art": "", "target": "self", "special": "outmaneuver"}
+	card_database["si_outmaneuver"] = {"id": "si_outmaneuver", "name": "Outmaneuver", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Energy\nnext turn.", "art": "", "target": "self", "actions": [{"type": "gain_energy", "value": 2}]}
 	# 21. Acrobatics
 	card_database["si_acrobatics"] = {"id": "si_acrobatics", "name": "Acrobatics", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 3 cards.\nDiscard 1.", "art": "", "target": "self", "draw": 3, "discard": 1, "actions": [{"type": "draw"}]}
 	# 22. Blade Dance
-	card_database["si_blade_dance"] = {"id": "si_blade_dance", "name": "Blade Dance", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add 3 Shivs to\nyour hand.", "art": "", "target": "self", "special": "blade_dance"}
+	card_database["si_blade_dance"] = {"id": "si_blade_dance", "name": "Blade Dance", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add 3 Shivs to\nyour hand.", "art": "", "target": "self", "actions": [{"type": "add_shiv", "value": 3}]}
 	# 23. Escape Plan
-	card_database["si_escape_plan"] = {"id": "si_escape_plan", "name": "Escape Plan", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 1 card. If it\nis a Skill, gain\n3 Block.", "art": "", "target": "self", "draw": 1, "special": "escape_plan"}
+	card_database["si_escape_plan"] = {"id": "si_escape_plan", "name": "Escape Plan", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 1 card. If it\nis a Skill, gain\n3 Block.", "art": "", "target": "self", "escape_block": 3, "actions": [{"type": "call", "fn": "escape_plan"}]}
 	# 24. Calculated Gamble
-	card_database["si_calculated_gamble"] = {"id": "si_calculated_gamble", "name": "Calculated Gamble", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard your hand.\nDraw that many cards.", "art": "", "target": "self", "special": "calculated_gamble"}
+	card_database["si_calculated_gamble"] = {"id": "si_calculated_gamble", "name": "Calculated Gamble", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard your hand.\nDraw that many cards.", "art": "", "target": "self", "actions": [{"type": "call", "fn": "calculated_gamble"}]}
 	# 25. Concentrate
-	card_database["si_concentrate"] = {"id": "si_concentrate", "name": "Concentrate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard 3 cards.\nGain 2 Energy.", "art": "", "target": "self", "special": "concentrate"}
+	card_database["si_concentrate"] = {"id": "si_concentrate", "name": "Concentrate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard 3 cards.\nGain 2 Energy.", "art": "", "target": "self", "discard_count": 3, "energy_gain_val": 2, "actions": [{"type": "call", "fn": "concentrate"}]}
 
 	# --- Uncommon Attacks ---
 	# 26. Predator
@@ -372,51 +372,51 @@ func _init_card_database() -> void:
 	# 27. Masterful Stab
 	card_database["si_masterful_stab"] = {"id": "si_masterful_stab", "name": "Masterful Stab", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 12, "block": 0, "description": "Innate.\nDeal 12 damage.", "art": "", "target": "enemy", "innate": true, "actions": [{"type": "damage"}]}
 	# 28. Skewer
-	card_database["si_skewer"] = {"id": "si_skewer", "name": "Skewer", "cost": -1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage X times.\n(X = current Energy)", "art": "", "target": "enemy", "special": "skewer"}
+	card_database["si_skewer"] = {"id": "si_skewer", "name": "Skewer", "cost": -1, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage X times.\n(X = current Energy)", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "skewer"}]}
 	# 29. Die Die Die
 	card_database["si_die_die_die"] = {"id": "si_die_die_die", "name": "Die Die Die", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 13, "block": 0, "description": "Deal 13 damage to\nALL enemies. Exhaust.", "art": "", "target": "all_enemies", "exhaust": true, "actions": [{"type": "damage_all"}]}
 	# 30. Endless Agony
-	card_database["si_endless_agony"] = {"id": "si_endless_agony", "name": "Endless Agony", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage.\nExhaust. When drawn,\nadd copy to hand.", "art": "", "target": "enemy", "exhaust": true, "special": "endless_agony"}
+	card_database["si_endless_agony"] = {"id": "si_endless_agony", "name": "Endless Agony", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 4, "block": 0, "description": "Deal 4 damage.\nExhaust. When drawn,\nadd copy to hand.", "art": "", "target": "enemy", "exhaust": true, "actions": [{"type": "damage"}]}
 	# 31. Eviscerate
 	card_database["si_eviscerate"] = {"id": "si_eviscerate", "name": "Eviscerate", "cost": 3, "type": CardType.ATTACK, "character": "silent", "damage": 7, "block": 0, "description": "Deal 7 damage\n3 times.", "art": "", "target": "enemy", "times": 3, "actions": [{"type": "damage"}]}
 	# 32. Finisher
-	card_database["si_finisher"] = {"id": "si_finisher", "name": "Finisher", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage for\neach Attack played\nthis turn.", "art": "", "target": "enemy", "special": "finisher"}
+	card_database["si_finisher"] = {"id": "si_finisher", "name": "Finisher", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage for\neach Attack played\nthis turn.", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "finisher"}]}
 	# 33. Flying Knee
-	card_database["si_flying_knee"] = {"id": "si_flying_knee", "name": "Flying Knee", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nGain 1 Energy\nnext turn.", "art": "", "target": "enemy", "special": "flying_knee"}
+	card_database["si_flying_knee"] = {"id": "si_flying_knee", "name": "Flying Knee", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nGain 1 Energy\nnext turn.", "art": "", "target": "enemy", "actions": [{"type": "damage"}, {"type": "gain_energy", "value": 1}]}
 	# 34. Heel Hook
-	card_database["si_heel_hook"] = {"id": "si_heel_hook", "name": "Heel Hook", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1.", "art": "", "target": "enemy", "special": "heel_hook"}
+	card_database["si_heel_hook"] = {"id": "si_heel_hook", "name": "Heel Hook", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1.", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "heel_hook"}]}
 	# 35. Glass Knife
-	card_database["si_glass_knife"] = {"id": "si_glass_knife", "name": "Glass Knife", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage twice.\nDamage decreases by 2\neach use.", "art": "", "target": "enemy", "times": 2, "special": "glass_knife"}
+	card_database["si_glass_knife"] = {"id": "si_glass_knife", "name": "Glass Knife", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage twice.\nDamage decreases by 2\neach use.", "art": "", "target": "enemy", "times": 2, "actions": [{"type": "call", "fn": "glass_knife"}]}
 	# 36. Choke
-	card_database["si_choke"] = {"id": "si_choke", "name": "Choke", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 12, "block": 0, "description": "Deal 12 damage.\nWhenever enemy plays\na card, take 3 damage.", "art": "", "target": "enemy", "special": "choke"}
+	card_database["si_choke"] = {"id": "si_choke", "name": "Choke", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 12, "block": 0, "description": "Deal 12 damage.\nWhenever enemy plays\na card, take 3 damage.", "art": "", "target": "enemy", "choke_stacks": 3, "actions": [{"type": "call", "fn": "choke"}]}
 	# 37. Riddle with Holes
 	card_database["si_riddle_with_holes"] = {"id": "si_riddle_with_holes", "name": "Riddle with Holes", "cost": 2, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage\n5 times.", "art": "", "target": "enemy", "times": 5, "actions": [{"type": "damage"}]}
 
 	# --- Uncommon Skills ---
 	# 38. Blur
-	card_database["si_blur"] = {"id": "si_blur", "name": "Blur", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nBlock not removed\nnext turn.", "art": "", "target": "self", "special": "blur"}
+	card_database["si_blur"] = {"id": "si_blur", "name": "Blur", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nBlock not removed\nnext turn.", "art": "", "target": "self", "actions": [{"type": "block"}]}
 	# 39. Dash
 	card_database["si_dash"] = {"id": "si_dash", "name": "Dash", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 10, "block": 10, "description": "Gain 10 Block.\nDeal 10 damage.", "art": "", "target": "enemy", "actions": [{"type": "block"}, {"type": "damage"}]}
 	# 40. Terror
 	card_database["si_terror"] = {"id": "si_terror", "name": "Terror", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 99 Vulnerable.\nExhaust.", "art": "", "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 99}, "exhaust": true, "actions": [{"type": "apply_status", "source": "apply_status"}]}
 	# 41. Distraction
-	card_database["si_distraction"] = {"id": "si_distraction", "name": "Distraction", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add a random Skill\nto your hand.\nExhaust.", "art": "", "target": "self", "special": "distraction", "exhaust": true}
+	card_database["si_distraction"] = {"id": "si_distraction", "name": "Distraction", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Add a random Skill\nto your hand.\nExhaust.", "art": "", "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "distraction"}]}
 	# 42. Expertise
-	card_database["si_expertise"] = {"id": "si_expertise", "name": "Expertise", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw cards until you\nhave 6 in hand.", "art": "", "target": "self", "special": "expertise"}
+	card_database["si_expertise"] = {"id": "si_expertise", "name": "Expertise", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw cards until you\nhave 6 in hand.", "art": "", "target": "self", "target_hand_size": 6, "actions": [{"type": "call", "fn": "expertise"}]}
 	# 43. Infinite Blades
-	card_database["si_infinite_blades"] = {"id": "si_infinite_blades", "name": "Infinite Blades", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "At start of turn,\nadd a Shiv to hand.", "art": "", "target": "self", "special": "infinite_blades"}
+	card_database["si_infinite_blades"] = {"id": "si_infinite_blades", "name": "Infinite Blades", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "At start of turn,\nadd a Shiv to hand.", "art": "", "target": "self", "power_effect": "infinite_blades", "actions": [{"type": "power_effect", "power": "infinite_blades"}]}
 	# 44. Leg Sweep
 	card_database["si_leg_sweep"] = {"id": "si_leg_sweep", "name": "Leg Sweep", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 11, "description": "Apply 2 Weak.\nGain 11 Block.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 2}, "actions": [{"type": "apply_status", "source": "apply_status"}, {"type": "block"}]}
 	# 45. Reflex
-	card_database["si_reflex"] = {"id": "si_reflex", "name": "Reflex", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Unplayable.\nWhen discarded,\ndraw 2 cards.", "art": "", "target": "self", "unplayable": true, "special": "reflex"}
+	card_database["si_reflex"] = {"id": "si_reflex", "name": "Reflex", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Unplayable.\nWhen discarded,\ndraw 2 cards.", "art": "", "target": "self", "unplayable": true, "special": "reflex", "actions": []}
 	# 46. Setup
-	card_database["si_setup"] = {"id": "si_setup", "name": "Setup", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Put a card from hand\non top of draw pile.", "art": "", "target": "self", "special": "setup"}
+	card_database["si_setup"] = {"id": "si_setup", "name": "Setup", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Put a card from hand\non top of draw pile.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
 	# 47. Tactician
-	card_database["si_tactician"] = {"id": "si_tactician", "name": "Tactician", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Unplayable.\nWhen discarded,\ngain 1 Energy.", "art": "", "target": "self", "unplayable": true, "special": "tactician"}
+	card_database["si_tactician"] = {"id": "si_tactician", "name": "Tactician", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Unplayable.\nWhen discarded,\ngain 1 Energy.", "art": "", "target": "self", "unplayable": true, "special": "tactician", "actions": []}
 	# 48. Bouncing Flask
 	card_database["si_bouncing_flask"] = {"id": "si_bouncing_flask", "name": "Bouncing Flask", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 3 Poison to\nrandom enemies 3x.", "art": "", "target": "random_enemy", "apply_status": {"type": "poison", "stacks": 3}, "times": 3, "actions": [{"type": "apply_status", "source": "apply_status"}]}
 	# 49. Catalyst
-	card_database["si_catalyst"] = {"id": "si_catalyst", "name": "Catalyst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Double a target's\nPoison. Exhaust.", "art": "", "target": "enemy", "special": "catalyst", "exhaust": true}
+	card_database["si_catalyst"] = {"id": "si_catalyst", "name": "Catalyst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Double a target's\nPoison. Exhaust.", "art": "", "target": "enemy", "exhaust": true, "poison_mult": 2, "actions": [{"type": "call", "fn": "catalyst"}]}
 	# 50. Crippling Cloud
 	card_database["si_crippling_cloud"] = {"id": "si_crippling_cloud", "name": "Crippling Cloud", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 4 Poison and\n2 Weak to ALL enemies.", "art": "", "target": "all_enemies", "apply_status": {"type": "poison", "stacks": 4}, "apply_status_2": {"type": "weak", "stacks": 2}, "actions": [{"type": "apply_status", "source": "apply_status"}, {"type": "apply_status", "source": "apply_status_2"}]}
 	# 51. Deadly Poison
@@ -442,33 +442,33 @@ func _init_card_database() -> void:
 	# 59. Backstab
 	card_database["si_backstab"] = {"id": "si_backstab", "name": "Backstab", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 11, "block": 0, "description": "Deal 11 damage.\nInnate. Exhaust.", "art": "", "target": "enemy", "innate": true, "exhaust": true, "actions": [{"type": "damage"}]}
 	# 60. Grand Finale
-	card_database["si_grand_finale"] = {"id": "si_grand_finale", "name": "Grand Finale", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 50, "block": 0, "description": "Can only play if draw\npile is empty.\nDeal 50 damage.", "art": "", "target": "enemy", "special": "grand_finale"}
+	card_database["si_grand_finale"] = {"id": "si_grand_finale", "name": "Grand Finale", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 50, "block": 0, "description": "Can only play if draw\npile is empty.\nDeal 50 damage.", "art": "", "target": "enemy", "special": "grand_finale", "actions": [{"type": "call", "fn": "grand_finale"}]}
 	# 61. Unload
-	card_database["si_unload"] = {"id": "si_unload", "name": "Unload", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 14, "block": 0, "description": "Deal 14 damage.\nDiscard all non-Attack\ncards in hand.", "art": "", "target": "enemy", "special": "unload"}
+	card_database["si_unload"] = {"id": "si_unload", "name": "Unload", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 14, "block": 0, "description": "Deal 14 damage.\nDiscard all non-Attack\ncards in hand.", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "unload"}]}
 
 	# --- Rare Skills ---
 	# 62. Adrenaline
 	card_database["si_adrenaline"] = {"id": "si_adrenaline", "name": "Adrenaline", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 1 Energy.\nDraw 2 cards.\nExhaust.", "art": "", "target": "self", "draw": 2, "energy_gain": 1, "exhaust": true, "actions": [{"type": "gain_energy", "value": 1}, {"type": "draw"}]}
 	# 63. Alchemize
-	card_database["si_alchemize"] = {"id": "si_alchemize", "name": "Alchemize", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Obtain a random\npotion. Exhaust.", "art": "", "target": "self", "special": "alchemize", "exhaust": true}
+	card_database["si_alchemize"] = {"id": "si_alchemize", "name": "Alchemize", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Obtain a random\npotion. Exhaust.", "art": "", "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "alchemize"}]}
 	# 64. Bullet Time
-	card_database["si_bullet_time"] = {"id": "si_bullet_time", "name": "Bullet Time", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Cards cost 0 this\nturn. No draw\nnext turn.", "art": "", "target": "self", "special": "bullet_time"}
+	card_database["si_bullet_time"] = {"id": "si_bullet_time", "name": "Bullet Time", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Cards cost 0 this\nturn. No draw\nnext turn.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
 	# 65. Burst
-	card_database["si_burst"] = {"id": "si_burst", "name": "Burst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next Skill is played\ntwice.", "art": "", "target": "self", "special": "burst"}
+	card_database["si_burst"] = {"id": "si_burst", "name": "Burst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next Skill is played\ntwice.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
 	# 66. Corpse Explosion
-	card_database["si_corpse_explosion"] = {"id": "si_corpse_explosion", "name": "Corpse Explosion", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 6 Poison.\nWhen enemy dies, deal\ndamage to ALL.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 6}, "special": "corpse_explosion"}
+	card_database["si_corpse_explosion"] = {"id": "si_corpse_explosion", "name": "Corpse Explosion", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 6 Poison.\nWhen enemy dies, deal\ndamage to ALL.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 6}, "actions": [{"type": "apply_status", "source": "apply_status"}, {"type": "call", "fn": "corpse_explosion"}]}
 	# 67. Malaise
-	card_database["si_malaise"] = {"id": "si_malaise", "name": "Malaise", "cost": -1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Enemy loses X Strength.\nApply X Weak.", "art": "", "target": "enemy", "special": "malaise"}
+	card_database["si_malaise"] = {"id": "si_malaise", "name": "Malaise", "cost": -1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Enemy loses X Strength.\nApply X Weak.", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "malaise"}]}
 	# 68. Nightmare
-	card_database["si_nightmare"] = {"id": "si_nightmare", "name": "Nightmare", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Choose a card. Add\n3 copies to hand\nnext turn.", "art": "", "target": "self", "special": "nightmare"}
+	card_database["si_nightmare"] = {"id": "si_nightmare", "name": "Nightmare", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Choose a card. Add\n3 copies to hand\nnext turn.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
 	# 69. Phantasmal Killer
-	card_database["si_phantasmal_killer"] = {"id": "si_phantasmal_killer", "name": "Phantasmal Killer", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next turn, deal\ndouble damage.", "art": "", "target": "self", "special": "phantasmal_killer"}
+	card_database["si_phantasmal_killer"] = {"id": "si_phantasmal_killer", "name": "Phantasmal Killer", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next turn, deal\ndouble damage.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
 
 	# --- Rare Powers ---
 	# 70. After Image
 	card_database["si_after_image"] = {"id": "si_after_image", "name": "After Image", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Whenever you play a\ncard, gain 1 Block.", "art": "", "target": "self", "power_effect": "after_image", "actions": [{"type": "power_effect", "power": "after_image"}]}
 	# 71. Storm of Steel
-	card_database["si_storm_of_steel"] = {"id": "si_storm_of_steel", "name": "Storm of Steel", "cost": 0, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "Discard your hand.\nAdd a Shiv per card\ndiscarded.", "art": "", "target": "self", "special": "storm_of_steel"}
+	card_database["si_storm_of_steel"] = {"id": "si_storm_of_steel", "name": "Storm of Steel", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Discard your hand.\nAdd a Shiv per card\ndiscarded.", "art": "", "target": "self", "actions": [{"type": "call", "fn": "storm_of_steel"}]}
 	# 72. Well-Laid Plans
 	card_database["si_well_laid_plans"] = {"id": "si_well_laid_plans", "name": "Well-Laid Plans", "cost": 1, "type": CardType.POWER, "character": "silent", "damage": 0, "block": 0, "description": "At end of turn,\nRetain up to 1 card.", "art": "", "target": "self", "power_effect": "well_laid_plans", "actions": [{"type": "power_effect", "power": "well_laid_plans"}]}
 	# 73. Wraith Form
@@ -551,12 +551,12 @@ func _get_upgrade_overrides() -> Dictionary:
 		"ic_immolate": {"damage": 28, "description": "Deal 28 damage to\nALL enemies.\nAdd a Burn to discard."},
 		"ic_fiend_fire": {"damage": 10, "description": "Exhaust your hand.\nDeal 10 damage for\neach card exhausted."},
 		"ic_reaper": {"damage": 5, "description": "Deal 5 damage to\nALL enemies.\nHeal for unblocked damage."},
-		"ic_heavy_blade": {"damage": 18, "description": "Deal 18 damage.\nStrength applies x5.", "special": "heavy_blade_plus"},
+		"ic_heavy_blade": {"damage": 18, "str_mult": 5, "description": "Deal 18 damage.\nStrength applies x5."},
 		"ic_thunderclap": {"damage": 7, "description": "Deal 7 damage to\nALL enemies.\nApply 1 Vulnerable."},
 		"ic_hemokinesis": {"damage": 20, "description": "Lose 2 HP.\nDeal 20 damage."},
 		"ic_reckless_charge": {"damage": 10, "description": "Deal 10 damage.\nShuffle a Dazed into\nyour draw pile."},
 		"ic_clash": {"damage": 18, "description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 18 damage."},
-		"ic_perfected_strike": {"damage": 6, "description": "Deal 6 damage. Deals\n3 additional damage\nfor each \"Strike\" card\nin your deck.", "special": "perfected_strike_plus"},
+		"ic_perfected_strike": {"damage": 6, "strike_bonus": 3, "description": "Deal 6 damage. Deals\n3 additional damage\nfor each \"Strike\" card\nin your deck."},
 		"ic_bludgeon": {"damage": 42, "description": "Deal 42 damage."},
 		"ic_sword_boomerang": {"times": 4, "description": "Deal 3 damage to a\nrandom enemy 4 times."},
 		"ic_searing_blow": {"damage": 16, "description": "Deal 16 damage."},
@@ -564,8 +564,8 @@ func _get_upgrade_overrides() -> Dictionary:
 		"ic_dropkick": {"damage": 8, "description": "Deal 8 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1."},
 		"ic_carnage": {"damage": 28, "description": "Ethereal.\nDeal 28 damage."},
 		"ic_clothesline": {"damage": 14, "apply_status": {"type": "weak", "stacks": 3}, "description": "Deal 14 damage.\nApply 3 Weak."},
-		"ic_feed": {"damage": 12, "description": "Deal 12 damage.\nIf this kills, gain\n4 Max HP. Exhaust.", "special": "feed_plus"},
-		"ic_rampage": {"damage": 8, "description": "Deal 8 damage.\nIncreases by 8\neach time played.", "special": "rampage_plus"},
+		"ic_feed": {"damage": 12, "max_hp_gain": 4, "description": "Deal 12 damage.\nIf this kills, gain\n4 Max HP. Exhaust."},
+		"ic_rampage": {"damage": 8, "rampage_inc": 8, "description": "Deal 8 damage.\nIncreases by 8\neach time played."},
 		"ic_sever_soul": {"damage": 22, "description": "Exhaust all non-Attack\ncards in hand.\nDeal 22 damage."},
 
 		# =====================================================================
@@ -575,28 +575,28 @@ func _get_upgrade_overrides() -> Dictionary:
 		"ic_shrug_it_off": {"block": 11, "description": "Gain 11 Block.\nDraw 1 card."},
 		"ic_flame_barrier": {"block": 16, "description": "Gain 16 Block.\nWhen attacked this turn,\ndeal 6 damage back."},
 		"ic_battle_trance": {"draw": 4, "description": "Draw 4 cards."},
-		"ic_bloodletting": {"description": "Lose 3 HP.\nGain 3 Energy."},
-		"ic_flex": {"description": "Gain 4 Strength.\nAt end of turn,\nlose 4 Strength."},
+		"ic_bloodletting": {"actions": [{"type": "self_damage", "value": 3}, {"type": "gain_energy", "value": 3}], "description": "Lose 3 HP.\nGain 3 Energy."},
+		"ic_flex": {"flex_stacks": 4, "description": "Gain 4 Strength.\nAt end of turn,\nlose 4 Strength."},
 		"ic_limit_break": {"exhaust": false, "description": "Double your Strength."},
 		"ic_entrench": {"cost": 1, "description": "Double your Block."},
 		"ic_shockwave": {"apply_status": {"type": "weak", "stacks": 5}, "apply_status_2": {"type": "vulnerable", "stacks": 5}, "description": "Apply 5 Weak and\n5 Vulnerable to\nALL enemies. Exhaust."},
-		"ic_armaments": {"block": 5, "description": "Gain 5 Block.\nUpgrade ALL cards\nin hand.", "special": "armaments_plus"},
+		"ic_armaments": {"block": 5, "description": "Gain 5 Block.\nUpgrade ALL cards\nin hand."},
 		"ic_power_through": {"block": 20, "description": "Gain 20 Block.\nAdd 2 Wounds to\nyour hand."},
-		"ic_offering": {"draw": 5, "description": "Lose 6 HP.\nGain 2 Energy.\nDraw 5 cards.\nExhaust."},
+		"ic_offering": {"actions": [{"type": "self_damage", "value": 6}, {"type": "gain_energy", "value": 2}, {"type": "draw", "value": 5}], "description": "Lose 6 HP.\nGain 2 Energy.\nDraw 5 cards.\nExhaust."},
 		"ic_war_cry": {"draw": 2, "description": "Draw 2 cards.\nExhaust."},
 		"ic_burning_pact": {"draw": 3, "description": "Exhaust 1 card.\nDraw 3 cards."},
 		"ic_seeing_red": {"cost": 0, "description": "Gain 2 Energy.\nExhaust."},
-		"ic_second_wind": {"description": "Exhaust all non-Attack\ncards in hand. Gain\n7 Block for each."},
+		"ic_second_wind": {"block_per": 7, "description": "Exhaust all non-Attack\ncards in hand. Gain\n7 Block for each."},
 		"ic_intimidate": {"apply_status": {"type": "weak", "stacks": 2}, "description": "Apply 2 Weak to\nALL enemies. Exhaust."},
 		"ic_infernal_blade": {"cost": 0, "description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust."},
-		"ic_dual_wield": {"description": "Copy an Attack or\nPower card in hand\n2 times.", "special": "dual_wield_plus"},
+		"ic_dual_wield": {"copies": 2, "description": "Copy an Attack or\nPower card in hand\n2 times."},
 		"ic_ghostly_armor": {"block": 13, "description": "Ethereal.\nGain 13 Block."},
 		"ic_havoc": {"cost": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it."},
 		"ic_impervious": {"block": 40, "description": "Gain 40 Block.\nExhaust."},
 		"ic_exhume": {"cost": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust."},
 		"ic_sentinel": {"block": 8, "description": "Gain 8 Block.\nIf this card is\nExhausted, gain\n3 Energy."},
-		"ic_spot_weakness": {"description": "If the enemy intends\nto attack, gain\n4 Strength."},
-		"ic_true_grit": {"block": 9, "description": "Gain 9 Block.\nExhaust a card in\nyour hand.", "special": "true_grit_plus"},
+		"ic_spot_weakness": {"spot_str": 4, "description": "If the enemy intends\nto attack, gain\n4 Strength."},
+		"ic_true_grit": {"block": 9, "description": "Gain 9 Block.\nExhaust a card in\nyour hand."},
 		"ic_disarm": {"apply_status": {"type": "strength", "stacks": -3}, "description": "Enemy loses 3\nStrength. Exhaust."},
 
 		# =====================================================================
@@ -649,10 +649,10 @@ func _get_upgrade_overrides() -> Dictionary:
 		"si_prepared": {"draw": 2, "description": "Draw 2, Discard 1."},
 		"si_backflip": {"block": 8, "description": "Gain 8 Block.\nDraw 2 cards."},
 		"si_dodge_and_roll": {"block": 6, "description": "Gain 6 Block this\nturn and next."},
-		"si_cloak_and_dagger": {"block": 6, "description": "Gain 6 Block.\nAdd 2 Shivs to hand.", "special": "cloak_and_dagger_plus"},
+		"si_cloak_and_dagger": {"block": 6, "description": "Gain 6 Block.\nAdd 2 Shivs to hand.", "actions": [{"type": "block"}, {"type": "add_shiv", "value": 2}]},
 		"si_outmaneuver": {"description": "Gain 3 Energy\nnext turn."},
 		"si_acrobatics": {"draw": 4, "description": "Draw 4 cards.\nDiscard 1."},
-		"si_blade_dance": {"description": "Add 4 Shivs to\nyour hand.", "special": "blade_dance_plus"},
+		"si_blade_dance": {"description": "Add 4 Shivs to\nyour hand.", "actions": [{"type": "add_shiv", "value": 4}]},
 		"si_escape_plan": {"block": 5, "description": "Draw 1 card. If it\nis a Skill, gain\n5 Block."},
 		"si_calculated_gamble": {"description": "Discard your hand.\nDraw that many +1."},
 		"si_concentrate": {"description": "Discard 2 cards.\nGain 2 Energy."},
@@ -687,7 +687,7 @@ func _get_upgrade_overrides() -> Dictionary:
 		"si_setup": {"cost": 0, "description": "Put a card from hand\non top of draw pile."},
 		"si_tactician": {"description": "Unplayable.\nWhen discarded,\ngain 2 Energy."},
 		"si_bouncing_flask": {"apply_status": {"type": "poison", "stacks": 4}, "description": "Apply 4 Poison to\nrandom enemies 3x."},
-		"si_catalyst": {"description": "Triple a target's\nPoison. Exhaust.", "special": "catalyst_plus"},
+		"si_catalyst": {"poison_mult": 3, "description": "Triple a target's\nPoison. Exhaust."},
 		"si_crippling_cloud": {"apply_status": {"type": "poison", "stacks": 7}, "apply_status_2": {"type": "weak", "stacks": 3}, "description": "Apply 7 Poison and\n3 Weak to ALL enemies."},
 		"si_deadly_poison": {"apply_status": {"type": "poison", "stacks": 7}, "description": "Apply 7 Poison."},
 		"si_noxious_fumes": {"description": "At start of turn,\napply 3 Poison to\nALL enemies.", "power_effect": "noxious_fumes_plus"},
@@ -715,7 +715,7 @@ func _get_upgrade_overrides() -> Dictionary:
 		"si_adrenaline": {"draw": 3, "description": "Gain 2 Energy.\nDraw 3 cards.\nExhaust.", "energy_gain": 2},
 		"si_alchemize": {"cost": 0, "description": "Obtain a random\npotion. Exhaust."},
 		"si_bullet_time": {"cost": 2, "description": "Cards cost 0 this\nturn. No draw\nnext turn."},
-		"si_burst": {"description": "Next 2 Skills are\nplayed twice.", "special": "burst_plus"},
+		"si_burst": {"description": "Next 2 Skills are\nplayed twice."},
 		"si_corpse_explosion": {"apply_status": {"type": "poison", "stacks": 9}, "description": "Apply 9 Poison.\nWhen enemy dies, deal\ndamage to ALL."},
 		"si_malaise": {"description": "Enemy loses X+1\nStrength. Apply X+1\nWeak."},
 		"si_nightmare": {"cost": 2, "description": "Choose a card. Add\n3 copies to hand\nnext turn."},

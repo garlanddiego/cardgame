@@ -41,9 +41,12 @@ var rage_block: int = 3
 var barricade_active: bool = false
 var metallicize_active: bool = false
 var metallicize_block: int = 3
+var infinite_blades_active: bool = false
 
 # Temp effects (reset at end of turn)
 var flex_strength_to_remove: int = 0
+var anticipate_dex_to_remove: int = 0
+var attacks_played_this_turn: int = 0
 
 # Node refs
 var card_hand: Node2D = null
@@ -526,6 +529,12 @@ func start_player_turn() -> void:
 	is_player_turn = true
 	turn_number += 1
 	current_energy = max_energy
+	attacks_played_this_turn = 0
+
+	# Remove Anticipate temp dexterity from previous turn
+	if anticipate_dex_to_remove > 0 and player:
+		player.apply_status("dexterity", -anticipate_dex_to_remove)
+		anticipate_dex_to_remove = 0
 
 	# Berserk: +1 energy per turn
 	if berserk_active:
@@ -534,6 +543,8 @@ func start_player_turn() -> void:
 	# Power effects at start of turn
 	if demon_form_active and player and player.alive:
 		player.apply_status("strength", 2)
+	if infinite_blades_active:
+		_add_shiv_to_hand(1)
 
 	# Reset player block (unless Barricade is active)
 	if player and not barricade_active:
@@ -592,11 +603,16 @@ func _can_play_card(card_data: Dictionary) -> bool:
 	# Unplayable cards (status cards)
 	if card_data.get("unplayable", false):
 		return false
+	var special: String = card_data.get("special", "")
 	# Clash: only playable if all cards in hand are attacks
-	if card_data.get("special", "") == "clash":
+	if special == "clash":
 		for c in hand:
 			if c.get("type", 0) != 0:  # Not ATTACK
 				return false
+	# Grand Finale: only playable if draw pile is empty
+	if special == "grand_finale":
+		if not draw_pile.is_empty():
+			return false
 	return true
 
 func play_card(card_data: Dictionary, target: Node2D) -> void:
@@ -636,6 +652,10 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 
 	# Execute card effect (pass energy spent for X-cost cards)
 	_execute_card(card_data, target, cost)
+
+	# Track attacks played this turn (for Finisher)
+	if card_data.get("type", 0) == 0:  # ATTACK
+		attacks_played_this_turn += 1
 
 	# Rage: gain block when playing attacks
 	if rage_active and card_data.get("type", 0) == 0 and player:  # ATTACK
@@ -830,84 +850,89 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				if power_name != "":
 					_activate_power(power_name)
 
+			# ---- Call named action function (for complex card behaviors) ----
+			"call":
+				var fn_name: String = action.get("fn", "")
+				if fn_name != "":
+					_call_action(fn_name, card_data, target, energy_spent)
+
 	_update_pile_labels()
 
 func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0) -> void:
-	# ---- Data-driven path: cards with "actions" array ----
 	if card_data.has("actions"):
 		_execute_actions(card_data["actions"], card_data, target, energy_spent)
-		return
 
-	# ---- Legacy path: match-based special handling ----
-	var damage: int = card_data.get("damage", 0)
-	var block_val: int = card_data.get("block", 0)
-	var draw_count: int = card_data.get("draw", 0)
+func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy_spent: int) -> void:
 	var target_type: String = card_data.get("target", "enemy")
-	var special: String = card_data.get("special", "")
-	var times: int = card_data.get("times", 1)
-
-	# ---- Handle specials that modify damage or have unique behavior ----
-
-	match special:
+	match fn_name:
 		"body_slam":
 			if player:
-				damage = player.block
+				var dmg: int = player.block
+				if dmg > 0:
+					_apply_single_hit_damage(dmg, target, target_type)
 		"heavy_blade":
-			# Strength applies x3 instead of x1
 			if player:
 				var str_val: int = player.get_status_stacks("strength")
-				# Base damage + strength * 3 (instead of normal +strength)
-				damage = card_data.get("damage", 14) + str_val * 3
-				# Skip normal strength application below
-				times = 1
-				_deal_damage_to_target(damage, target, target_type, false)
-				# Handle block/draw/status after
-				_apply_block_and_draw(block_val, draw_count, card_data)
-				return
-		"hemokinesis":
-			if player:
-				player.take_damage_direct(2)
+				var mult: int = card_data.get("str_mult", 3)
+				var dmg: int = card_data.get("damage", 14) + str_val * mult
+				_apply_single_hit_damage(dmg, target, target_type)
 		"whirlwind":
-			# Deal damage X times where X = energy spent
-			times = energy_spent
+			var base_dmg: int = card_data.get("damage", 5)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			if energy_spent > 0 and base_dmg > 0:
+				_apply_multi_hit_damage(base_dmg, energy_spent, target, "all_enemies")
 		"skewer":
-			# Deal damage X times where X = energy spent
-			times = energy_spent
+			var base_dmg: int = card_data.get("damage", 7)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			if energy_spent > 0 and base_dmg > 0:
+				_apply_multi_hit_damage(base_dmg, energy_spent, target, target_type)
 		"malaise":
-			# Apply X Weak and lose X Strength to target (upgraded: X+1)
-			var malaise_x: int = energy_spent
+			var x: int = energy_spent
 			if card_data.get("upgraded", false):
-				malaise_x += 1
-			if target and target.alive and malaise_x > 0:
-				target.apply_status("weak", malaise_x)
-				# Reduce strength
+				x += 1
+			if target and target.alive and x > 0:
+				target.apply_status("weak", x)
 				var current_str: int = target.get_status_stacks("strength")
-				var new_str: int = maxi(0, current_str - malaise_x)
+				var new_str: int = maxi(0, current_str - x)
 				target.status_effects["strength"] = new_str
 				target.status_changed.emit("strength", new_str)
 				target._update_status_display()
-			_apply_block_and_draw(block_val, draw_count, card_data)
-			return
 		"dropkick":
+			var base_dmg: int = card_data.get("damage", 5)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
 			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
 				current_energy += 1
 				_update_energy_label()
 				if card_hand:
 					card_hand.current_battle_energy = current_energy
 					card_hand.update_card_playability(current_energy)
-				draw_count += 1
-		"bloodletting":
+				draw_cards(1)
+		"heel_hook":
+			var base_dmg: int = card_data.get("damage", 5)
 			if player:
-				player.take_damage_direct(3)
-				current_energy += 2
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			if target and target.alive and target.get_status_stacks("weak") > 0:
+				current_energy += 1
 				_update_energy_label()
 				if card_hand:
 					card_hand.current_battle_energy = current_energy
 					card_hand.update_card_playability(current_energy)
+				draw_cards(1)
 		"flex":
+			var stacks: int = card_data.get("flex_stacks", 2)
 			if player:
-				player.apply_status("strength", 2)
-				flex_strength_to_remove += 2
+				player.apply_status("strength", stacks)
+				flex_strength_to_remove += stacks
+		"anticipate":
+			if player:
+				var stacks: int = card_data.get("temp_dex", 3)
+				player.apply_status("dexterity", stacks)
+				anticipate_dex_to_remove += stacks
 		"limit_break":
 			if player:
 				var str_val: int = player.get_status_stacks("strength")
@@ -918,34 +943,23 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 				var current_block: int = player.block
 				player.add_block(current_block)
 				_trigger_juggernaut()
-		"offering":
-			if player:
-				player.take_damage_direct(6)
-				current_energy += 2
-				_update_energy_label()
-				if card_hand:
-					card_hand.current_battle_energy = current_energy
-					card_hand.update_card_playability(current_energy)
-				draw_count = 3
 		"second_wind":
 			if player:
+				var blk_per: int = card_data.get("block_per", 5)
 				var cards_to_exhaust: Array = []
 				for c in hand:
-					if c.get("type", 0) != 0:  # Not ATTACK
+					if c.get("type", 0) != 0:
 						cards_to_exhaust.append(c)
 				for c in cards_to_exhaust:
 					hand.erase(c)
 					_exhaust_card(c)
-					player.add_block(5)
+					player.add_block(blk_per)
 					_trigger_juggernaut()
 				if card_hand:
 					card_hand.clear_hand()
 					for c in hand:
 						card_hand.add_card(c)
-		"clash":
-			pass  # Playability check already handled in _can_play_card
 		"perfected_strike":
-			# Count all "Strike" cards in draw + discard + hand + exhaust
 			var strike_count: int = 0
 			for c in draw_pile:
 				if "Strike" in c.get("name", ""):
@@ -959,10 +973,13 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 			for c in exhaust_pile:
 				if "Strike" in c.get("name", ""):
 					strike_count += 1
-			# +1 for the Perfected Strike itself (already counted if name contains Strike)
-			damage = card_data.get("damage", 6) + strike_count * 2
+			var bonus_per: int = card_data.get("strike_bonus", 2)
+			var base_dmg: int = card_data.get("damage", 6) + strike_count * bonus_per
+			if player:
+				var str_val: int = player.get_status_stacks("strength")
+				base_dmg += str_val
+			_apply_single_hit_damage(base_dmg, target, target_type)
 		"fiend_fire":
-			# Exhaust entire hand, deal 7 per card
 			var cards_in_hand: int = hand.size()
 			var cards_to_exhaust: Array = hand.duplicate()
 			for c in cards_to_exhaust:
@@ -970,12 +987,13 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 				_exhaust_card(c)
 			if card_hand:
 				card_hand.clear_hand()
-			damage = card_data.get("damage", 7) * cards_in_hand
-			times = 1  # All damage in one hit
+			var dmg: int = card_data.get("damage", 7) * cards_in_hand
+			if dmg > 0:
+				_apply_single_hit_damage(dmg, target, target_type)
 		"reaper":
-			# Deal damage to all, heal for unblocked
 			if player:
-				var actual_dmg: int = player.get_attack_damage(damage)
+				var base_dmg: int = card_data.get("damage", 4)
+				var actual_dmg: int = player.get_attack_damage(base_dmg)
 				var total_healed: int = 0
 				for enemy in enemies:
 					if enemy.alive:
@@ -987,36 +1005,25 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 							total_healed += damage_dealt
 				if total_healed > 0:
 					player.heal(total_healed)
-			_apply_block_and_draw(block_val, draw_count, card_data)
-			return
-		"anger":
-			# Add a copy of Anger to discard pile
-			var gm = _get_game_manager()
-			if gm:
-				var anger_copy = gm.get_card_data("ic_anger")
-				if not anger_copy.is_empty():
-					discard_pile.append(anger_copy)
-		"wild_strike":
-			# Shuffle a Wound into draw pile
-			_add_status_card_to_draw("status_wound")
-		"reckless_charge":
-			# Shuffle a Dazed into draw pile
-			_add_status_card_to_draw("status_dazed")
-		"immolate":
-			# Add a Burn to discard pile
-			_add_status_card_to_discard("status_burn")
-		"power_through":
-			# Add 2 Wounds to hand
-			_add_status_card_to_hand("status_wound")
-			_add_status_card_to_hand("status_wound")
+		"burning_pact":
+			if not hand.is_empty():
+				var idx: int = randi() % hand.size()
+				var exhausted = hand[idx]
+				hand.remove_at(idx)
+				_exhaust_card(exhausted)
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c)
+			draw_cards(card_data.get("draw", 2))
 		"infernal_blade":
-			# Add a random Attack card to hand, cost 0
 			var gm = _get_game_manager()
 			if gm:
+				var char_id: String = card_data.get("character", "ironclad")
 				var attack_ids: Array = []
 				for key in gm.card_database:
 					var c = gm.card_database[key]
-					if c.get("character", "") == "ironclad" and c.get("type", 0) == 0:  # ATTACK
+					if c.get("character", "") == char_id and c.get("type", 0) == 0:
 						attack_ids.append(key)
 				if not attack_ids.is_empty():
 					var rand_id = attack_ids[randi() % attack_ids.size()]
@@ -1025,39 +1032,34 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 					hand.append(new_card)
 					if card_hand:
 						card_hand.add_card(new_card)
-		"dual_wield":
-			# Copy first Attack or Power in hand
-			for c in hand:
-				var ctype = c.get("type", 0)
-				if ctype == 0 or ctype == 2:  # ATTACK or POWER
-					var copy = c.duplicate()
-					hand.append(copy)
+		"distraction":
+			var gm = _get_game_manager()
+			if gm:
+				var char_id: String = card_data.get("character", "silent")
+				var skill_ids: Array = []
+				for key in gm.card_database:
+					var c = gm.card_database[key]
+					if c.get("character", "") == char_id and c.get("type", 0) == 1:
+						skill_ids.append(key)
+				if not skill_ids.is_empty():
+					var rand_id = skill_ids[randi() % skill_ids.size()]
+					var new_card = gm.get_card_data(rand_id)
+					new_card["cost"] = 0
+					hand.append(new_card)
 					if card_hand:
-						card_hand.add_card(copy)
-					break
-		"burning_pact":
-			# Exhaust a random non-this card from hand (simplified)
-			if not hand.is_empty():
-				var idx = randi() % hand.size()
-				var exhausted = hand[idx]
-				hand.remove_at(idx)
-				_exhaust_card(exhausted)
-				if card_hand:
-					card_hand.clear_hand()
-					for c in hand:
-						card_hand.add_card(c)
-		"blade_dance":
-			_add_shiv_to_hand(3)
-		"blade_dance_plus":
-			_add_shiv_to_hand(4)
-		"cloak_and_dagger":
-			_add_shiv_to_hand(1)
-		"cloak_and_dagger_plus":
-			_add_shiv_to_hand(2)
-		"leading_strike":
-			pass  # Shiv added after damage below
+						card_hand.add_card(new_card)
+		"dual_wield":
+			var copies: int = card_data.get("copies", 1)
+			for _i in range(copies):
+				for c in hand:
+					var ctype = c.get("type", 0)
+					if ctype == 0 or ctype == 2:
+						var copy = c.duplicate()
+						hand.append(copy)
+						if card_hand:
+							card_hand.add_card(copy)
+						break
 		"calculated_gamble":
-			# Discard entire hand, then draw the same number of cards
 			var gamble_count: int = hand.size()
 			for c in hand:
 				discard_pile.append(c)
@@ -1067,66 +1069,177 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 				card_hand.clear_hand()
 			_update_pile_labels()
 			draw_cards(gamble_count)
-
-	# Apply damage with multi-hit support
-	if damage > 0 and special != "reaper" and special != "heavy_blade":
-		var actual_dmg: int = damage
-		if player and special != "fiend_fire" and special != "perfected_strike":
-			actual_dmg = player.get_attack_damage(damage)
-		elif player and (special == "perfected_strike"):
-			# Perfected Strike: add strength once to total
-			var str_val: int = player.get_status_stacks("strength")
-			actual_dmg = damage + str_val
-
-		if times > 1:
-			# Multi-hit: use tween delays so each damage number appears separately
-			_apply_multi_hit_damage(actual_dmg, times, target, target_type)
-		else:
-			_apply_single_hit_damage(actual_dmg, target, target_type)
-
-	# Leading Strike: add shiv after dealing damage
-	if special == "leading_strike":
-		_add_shiv_to_hand(1)
-
-	# Apply block and draw
-	_apply_block_and_draw(block_val, draw_count, card_data)
-
-	# Apply status to target
-	if card_data.has("apply_status"):
-		var status_info = card_data["apply_status"]
-		if target_type == "all_enemies":
-			for enemy in enemies:
-				if enemy.alive:
-					enemy.apply_status(status_info["type"], status_info["stacks"])
-		elif target != null and target.alive:
-			target.apply_status(status_info["type"], status_info["stacks"])
-
-	# Apply second status (e.g., Uppercut applies both Weak + Vulnerable)
-	if card_data.has("apply_status_2"):
-		var status_info = card_data["apply_status_2"]
-		if target_type == "all_enemies":
-			for enemy in enemies:
-				if enemy.alive:
-					enemy.apply_status(status_info["type"], status_info["stacks"])
-		elif target != null and target.alive:
-			target.apply_status(status_info["type"], status_info["stacks"])
-
-	# Apply status to self
-	if card_data.has("apply_self_status") and player:
-		var status_info = card_data["apply_self_status"]
-		player.apply_status(status_info["type"], status_info["stacks"])
-
-	# Energy gain
-	if card_data.has("energy_gain"):
-		current_energy += card_data["energy_gain"]
-		_update_energy_label()
-		if card_hand:
-			card_hand.current_battle_energy = current_energy
-			card_hand.update_card_playability(current_energy)
-
-	# Power effects
-	if card_data.has("power_effect"):
-		_activate_power(card_data["power_effect"])
+		"feed":
+			var base_dmg: int = card_data.get("damage", 10)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			if target and target.alive:
+				var before_hp: int = target.current_hp
+				target.take_damage(base_dmg)
+				if not target.alive and player:
+					var hp_gain: int = card_data.get("max_hp_gain", 3)
+					player.max_hp += hp_gain
+					player.heal(hp_gain)
+		"rampage":
+			var rampage_bonus: int = card_data.get("_rampage_bonus", 0)
+			var base_dmg: int = card_data.get("damage", 8) + rampage_bonus
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			card_data["_rampage_bonus"] = rampage_bonus + card_data.get("rampage_inc", 5)
+		"sever_soul":
+			var cards_to_exhaust: Array = []
+			for c in hand:
+				if c.get("type", 0) != 0:
+					cards_to_exhaust.append(c)
+			for c in cards_to_exhaust:
+				hand.erase(c)
+				_exhaust_card(c)
+			if card_hand:
+				card_hand.clear_hand()
+				for c in hand:
+					card_hand.add_card(c)
+			var base_dmg: int = card_data.get("damage", 16)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+		"havoc":
+			if not draw_pile.is_empty():
+				var top_card = draw_pile.pop_front()
+				_execute_card(top_card, target, 0)
+				_exhaust_card(top_card)
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c)
+				_update_pile_labels()
+		"exhume":
+			if not exhaust_pile.is_empty():
+				var retrieved = exhaust_pile.pop_back()
+				hand.append(retrieved)
+				if card_hand:
+					card_hand.add_card(retrieved)
+		"spot_weakness":
+			if target and target.alive and player:
+				var enemy_intent: String = target.intent.get("intent", "")
+				if enemy_intent == "attack" or enemy_intent == "attack_buff" or enemy_intent == "attack_debuff":
+					var str_gain: int = card_data.get("spot_str", 3)
+					player.apply_status("strength", str_gain)
+		"true_grit":
+			if not hand.is_empty():
+				var idx: int = randi() % hand.size()
+				var exhausted = hand[idx]
+				hand.remove_at(idx)
+				_exhaust_card(exhausted)
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c)
+		"escape_plan":
+			if not draw_pile.is_empty():
+				var drawn = draw_pile.pop_front()
+				hand.append(drawn)
+				if card_hand:
+					card_hand.add_card(drawn)
+				if drawn.get("type", 0) == 1 and player:
+					player.add_block(card_data.get("escape_block", 3))
+					_trigger_juggernaut()
+				_update_pile_labels()
+		"concentrate":
+			var to_discard_count: int = mini(card_data.get("discard_count", 3), hand.size())
+			for _i in range(to_discard_count):
+				if not hand.is_empty():
+					var idx: int = randi() % hand.size()
+					var disc = hand[idx]
+					hand.remove_at(idx)
+					discard_pile.append(disc)
+					_check_sly_on_discard(disc)
+			if card_hand:
+				card_hand.clear_hand()
+				for c in hand:
+					card_hand.add_card(c)
+			current_energy += card_data.get("energy_gain_val", 2)
+			_update_energy_label()
+			if card_hand:
+				card_hand.current_battle_energy = current_energy
+				card_hand.update_card_playability(current_energy)
+			_update_pile_labels()
+		"finisher":
+			var base_dmg: int = card_data.get("damage", 6) * attacks_played_this_turn
+			if player and base_dmg > 0:
+				base_dmg = player.get_attack_damage(base_dmg)
+				_apply_single_hit_damage(base_dmg, target, target_type)
+		"glass_knife":
+			var base_dmg: int = card_data.get("damage", 8)
+			var times_val: int = card_data.get("times", 2)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			if base_dmg > 0:
+				_apply_multi_hit_damage(base_dmg, times_val, target, target_type)
+			card_data["damage"] = maxi(0, card_data.get("damage", 8) - 2)
+		"choke":
+			var base_dmg: int = card_data.get("damage", 12)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			if target and target.alive:
+				target.apply_status("choke", card_data.get("choke_stacks", 3))
+		"catalyst":
+			if target and target.alive:
+				var poison: int = target.get_status_stacks("poison")
+				if poison > 0:
+					var mult: int = card_data.get("poison_mult", 2)
+					target.apply_status("poison", poison * (mult - 1))
+		"corpse_explosion":
+			if target and target.alive:
+				target.set_meta("corpse_explosion", true)
+		"grand_finale":
+			var base_dmg: int = card_data.get("damage", 50)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+		"unload":
+			var base_dmg: int = card_data.get("damage", 14)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			var to_discard: Array = []
+			for c in hand:
+				if c.get("type", 0) != 0:
+					to_discard.append(c)
+			for c in to_discard:
+				hand.erase(c)
+				discard_pile.append(c)
+				_check_sly_on_discard(c)
+			if card_hand:
+				card_hand.clear_hand()
+				for c in hand:
+					card_hand.add_card(c)
+			_update_pile_labels()
+		"storm_of_steel":
+			var shiv_count: int = hand.size()
+			for c in hand:
+				discard_pile.append(c)
+				_check_sly_on_discard(c)
+			hand.clear()
+			if card_hand:
+				card_hand.clear_hand()
+			_update_pile_labels()
+			_add_shiv_to_hand(shiv_count)
+		"expertise":
+			var target_hand_size: int = card_data.get("target_hand_size", 6)
+			var to_draw: int = maxi(0, target_hand_size - hand.size())
+			if to_draw > 0:
+				draw_cards(to_draw)
+		"alchemize":
+			if player:
+				player.heal(5)
+		"blood_for_blood":
+			var base_dmg: int = card_data.get("damage", 18)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+	_update_pile_labels()
 
 func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> void:
 	if target_type == "all_enemies":
@@ -1192,6 +1305,8 @@ func _activate_power(power_name: String) -> void:
 			barricade_active = true
 		"metallicize":
 			metallicize_active = true
+		"infinite_blades":
+			infinite_blades_active = true
 
 func _add_status_card_to_draw(card_id: String) -> void:
 	var gm = _get_game_manager()
