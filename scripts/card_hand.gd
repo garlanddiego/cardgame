@@ -260,17 +260,30 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 	selected_card = null
 	focused_card = null
 	targeting_mode = false
-	# Animate card: exhaust = burn/shrink, normal = fly to discard
+	# Animate card: fly to center → pause → then to final destination
 	if card_node and is_instance_valid(card_node):
-		var should_exhaust: bool = data.get("exhaust", false) or data.get("type", 0) == 2  # Power = type 2
-		if should_exhaust:
-			# Exhaust animation: shrink + fade + slight rotation (card destroyed)
-			card_node.move_to(card_node.position + Vector2(0, -30), 15.0, Vector2(0.1, 0.1), 0.3)
-		else:
-			# Normal: fly toward discard pile
-			var discard_global := Vector2(1700, 890)
-			var fly_pos: Vector2 = to_local(discard_global)
-			card_node.move_to(fly_pos, 0.0, Vector2(0.3, 0.3), 0.2)
+		var should_exhaust: bool = data.get("exhaust", false) or data.get("type", 0) == 2
+		# Step 1: Fly to screen center
+		var center_pos: Vector2 = to_local(Vector2(960, 400))
+		card_node.move_to(center_pos, 0.0, Vector2(1.2, 1.2), 0.2)
+		# Step 2: After pause, fly to final destination
+		var anim_tween = create_tween()
+		anim_tween.tween_interval(0.7)  # 0.2s fly + 0.5s pause
+		anim_tween.tween_callback(func():
+			if not is_instance_valid(card_node):
+				return
+			if should_exhaust:
+				# Exhaust: shrink + rotate + fade (destroyed)
+				card_node.move_to(center_pos + Vector2(0, -40), 20.0, Vector2(0.05, 0.05), 0.3)
+			elif data.get("type", 0) == 2:
+				# Power: fly toward player character
+				var player_pos: Vector2 = to_local(Vector2(370, 460))
+				card_node.move_to(player_pos, 0.0, Vector2(0.3, 0.3), 0.25)
+			else:
+				# Normal: fly toward discard pile
+				var discard_pos: Vector2 = to_local(Vector2(1700, 700))
+				card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
+		)
 		cards.erase(card_node)
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
@@ -285,9 +298,9 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 			card_node.card_drag_started.disconnect(_on_card_drag_started)
 		if card_node.card_drag_ended.is_connected(_on_card_drag_ended):
 			card_node.card_drag_ended.disconnect(_on_card_drag_ended)
-		# Remove after fly animation completes
+		# Remove after full animation completes (0.7 center + 0.3 final)
 		var tween = create_tween()
-		tween.tween_interval(0.2)
+		tween.tween_interval(1.1)
 		tween.tween_callback(func():
 			if is_instance_valid(card_node):
 				card_node.queue_free()
