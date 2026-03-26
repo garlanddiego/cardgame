@@ -3,19 +3,18 @@ extends Node2D
 
 var battle_scene: PackedScene = null
 var deck_builder_scene: PackedScene = null
-var current_character: String = "silent"
+var current_character: String = "ironclad"
 
 func _ready() -> void:
 	battle_scene = load("res://scenes/battle.tscn")
 	deck_builder_scene = load("res://scenes/deck_builder.tscn")
-	# Remove old character select if exists
-	var char_select = get_node_or_null("CharacterSelect")
-	if char_select:
-		char_select.queue_free()
-	# Set default character and go directly to deck builder
+	# Use character from GameManager if already selected (from main menu)
 	var gm = _get_gm()
-	if gm:
+	if gm and gm.current_character != "":
+		current_character = gm.current_character
+	elif gm:
 		gm.select_character(current_character)
+	# Go directly to deck builder (no character select)
 	call_deferred("_load_deck_builder")
 
 func _load_deck_builder() -> void:
