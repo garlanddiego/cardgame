@@ -452,9 +452,9 @@ func _init_card_database() -> void:
 	# 63. Alchemize
 	card_database["si_alchemize"] = {"id": "si_alchemize", "name": "Alchemize", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Obtain a random\npotion. Exhaust.", "art": "", "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "alchemize"}]}
 	# 64. Bullet Time
-	card_database["si_bullet_time"] = {"id": "si_bullet_time", "name": "Bullet Time", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Cards cost 0 this\nturn. No draw\nnext turn.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
+	card_database["si_bullet_time"] = {"id": "si_bullet_time", "name": "Bullet Time", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Cards cost 0 this\nturn. No draw\nnext turn.", "art": "", "target": "self", "actions": [{"type": "bullet_time"}]}
 	# 65. Burst
-	card_database["si_burst"] = {"id": "si_burst", "name": "Burst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next Skill is played\ntwice.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
+	card_database["si_burst"] = {"id": "si_burst", "name": "Burst", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next Skill is played\ntwice.", "art": "", "target": "self", "actions": [{"type": "burst"}]}
 	# 66. Corpse Explosion
 	card_database["si_corpse_explosion"] = {"id": "si_corpse_explosion", "name": "Corpse Explosion", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Apply 6 Poison.\nWhen enemy dies, deal\ndamage to ALL.", "art": "", "target": "enemy", "apply_status": {"type": "poison", "stacks": 6}, "actions": [{"type": "apply_status", "source": "apply_status"}, {"type": "call", "fn": "corpse_explosion"}]}
 	# 67. Malaise
@@ -462,7 +462,7 @@ func _init_card_database() -> void:
 	# 68. Nightmare
 	card_database["si_nightmare"] = {"id": "si_nightmare", "name": "Nightmare", "cost": 3, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Choose a card. Add\n3 copies to hand\nnext turn.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
 	# 69. Phantasmal Killer
-	card_database["si_phantasmal_killer"] = {"id": "si_phantasmal_killer", "name": "Phantasmal Killer", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next turn, deal\ndouble damage.", "art": "", "target": "self", "actions": [{"type": "draw", "value": 0}]}
+	card_database["si_phantasmal_killer"] = {"id": "si_phantasmal_killer", "name": "Phantasmal Killer", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Next turn, deal\ndouble damage.", "art": "", "target": "self", "actions": [{"type": "phantasmal_killer"}]}
 
 	# --- Rare Powers ---
 	# 70. After Image

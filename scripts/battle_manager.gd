@@ -51,6 +51,11 @@ var attacks_played_this_turn: int = 0
 # Next-turn effect queue — processed at start of next player turn
 var _next_turn_effects: Array = []  # List of dicts: {"type": "block", "value": 4}, etc.
 var _blur_active: bool = false  # Block is not removed next turn
+var _double_damage_next_turn: bool = false  # Phantasmal Killer
+var _double_damage_this_turn: bool = false
+var _burst_active: bool = false  # Next skill played twice
+var _no_draw_next_turn: bool = false  # Bullet Time
+var _bullet_time_this_turn: bool = false  # All cards cost 0 this turn
 
 # Node refs
 var card_hand: Node2D = null
@@ -295,6 +300,11 @@ func _reset_all_powers() -> void:
 	flex_strength_to_remove = 0
 	_next_turn_effects.clear()
 	_blur_active = false
+	_double_damage_next_turn = false
+	_double_damage_this_turn = false
+	_burst_active = false
+	_no_draw_next_turn = false
+	_bullet_time_this_turn = false
 
 func _get_game_manager() -> Node:
 	# Autoloads are siblings in the scene tree root
@@ -570,8 +580,22 @@ func start_player_turn() -> void:
 	# Process queued next-turn effects
 	_process_next_turn_effects()
 
+	# Phantasmal Killer: double damage this turn
+	if _double_damage_next_turn:
+		_double_damage_this_turn = true
+		_double_damage_next_turn = false
+	else:
+		_double_damage_this_turn = false
+
+	# Bullet Time: no draw if flagged
+	var draw_count: int = cards_per_draw
+	if _no_draw_next_turn:
+		draw_count = 0
+		_no_draw_next_turn = false
+	_bullet_time_this_turn = false
+
 	# Draw cards
-	draw_cards(cards_per_draw)
+	draw_cards(draw_count)
 	_update_energy_label()
 	_update_pile_labels()
 	if turn_label:
@@ -667,6 +691,11 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	# Execute card effect (pass energy spent for X-cost cards)
 	_execute_card(card_data, target, cost)
 
+	# Burst: if active and this is a Skill, play it again
+	if _burst_active and card_data.get("type", 0) == 1:  # SKILL
+		_burst_active = false
+		_execute_card(card_data, target, cost)
+
 	# Track attacks played this turn (for Finisher)
 	if card_data.get("type", 0) == 0:  # ATTACK
 		attacks_played_this_turn += 1
@@ -745,6 +774,9 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var actual_dmg: int = base_dmg
 				if use_strength and player:
 					actual_dmg = player.get_attack_damage(base_dmg)
+				# Phantasmal Killer: double damage this turn
+				if _double_damage_this_turn:
+					actual_dmg *= 2
 				if actual_dmg > 0:
 					if times > 1:
 						_apply_multi_hit_damage(actual_dmg, times, target, target_type)
@@ -758,6 +790,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var actual_dmg: int = base_dmg
 				if player:
 					actual_dmg = player.get_attack_damage(base_dmg)
+				if _double_damage_this_turn:
+					actual_dmg *= 2
 				if actual_dmg > 0:
 					if times > 1:
 						_apply_multi_hit_damage(actual_dmg, times, target, "all_enemies")
@@ -821,6 +855,22 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			# ---- Blur: block is not removed next turn ----
 			"blur":
 				_blur_active = true
+
+			# ---- Phantasmal Killer: double damage next turn ----
+			"phantasmal_killer":
+				_double_damage_next_turn = true
+
+			# ---- Burst: next skill played twice ----
+			"burst":
+				_burst_active = true
+
+			# ---- Bullet Time: cards cost 0 this turn, no draw next turn ----
+			"bullet_time":
+				_bullet_time_this_turn = true
+				_no_draw_next_turn = true
+				# Set all hand cards cost to 0 for this turn
+				if card_hand:
+					card_hand.update_card_playability(current_energy)
 
 			# ---- Heal ----
 			"heal":
