@@ -334,10 +334,10 @@ func _setup_player(character_id: String, gm: Node) -> void:
 		var tex = load(char_data["sprite"])
 		if tex:
 			sprite.texture = tex
-			# Scale to ~600px tall (large STS-like proportions)
+			# Scale to ~400px tall (STS-like proportions)
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
-				var scale_factor: float = 600.0 / tex_height
+				var scale_factor: float = 400.0 / tex_height
 				sprite.scale = Vector2(scale_factor, scale_factor)
 	var nlabel = player.get_node_or_null("NameLabel") as Label
 	if nlabel:
