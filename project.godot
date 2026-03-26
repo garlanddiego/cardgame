@@ -4,7 +4,7 @@
 [application]
 
 config/name="Card Roguelike"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/main_menu.tscn"
 
 [display]
 
