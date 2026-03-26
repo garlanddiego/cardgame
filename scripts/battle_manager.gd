@@ -48,6 +48,10 @@ var flex_strength_to_remove: int = 0
 var anticipate_dex_to_remove: int = 0
 var attacks_played_this_turn: int = 0
 
+# Next-turn effect queue — processed at start of next player turn
+var _next_turn_effects: Array = []  # List of dicts: {"type": "block", "value": 4}, etc.
+var _blur_active: bool = false  # Block is not removed next turn
+
 # Node refs
 var card_hand: Node2D = null
 var energy_label: Label = null
@@ -289,6 +293,8 @@ func _reset_all_powers() -> void:
 	barricade_active = false
 	metallicize_active = false
 	flex_strength_to_remove = 0
+	_next_turn_effects.clear()
+	_blur_active = false
 
 func _get_game_manager() -> Node:
 	# Autoloads are siblings in the scene tree root
@@ -548,15 +554,21 @@ func start_player_turn() -> void:
 	if infinite_blades_active:
 		_add_shiv_to_hand(1)
 
-	# Reset player block (unless Barricade is active)
-	if player and not barricade_active:
+	# Reset player block (unless Barricade or Blur is active)
+	if player and not barricade_active and not _blur_active:
 		player.reset_block()
+	# Blur only lasts one turn — reset after preserving block
+	if _blur_active:
+		_blur_active = false
 
 	# Reset flame barrier each turn (it's per-turn)
 	flame_barrier_active = false
 
 	# Reset rage each turn
 	rage_active = false
+
+	# Process queued next-turn effects
+	_process_next_turn_effects()
 
 	# Draw cards
 	draw_cards(cards_per_draw)
@@ -799,6 +811,16 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				if card_hand:
 					card_hand.current_battle_energy = current_energy
 					card_hand.update_card_playability(current_energy)
+
+			# ---- Queue effect for next turn ----
+			"next_turn":
+				var next_effect: Dictionary = action.get("effect", {})
+				if not next_effect.is_empty():
+					_next_turn_effects.append(next_effect)
+
+			# ---- Blur: block is not removed next turn ----
+			"blur":
+				_blur_active = true
 
 			# ---- Heal ----
 			"heal":
@@ -1309,6 +1331,24 @@ func _activate_power(power_name: String) -> void:
 			metallicize_active = true
 		"infinite_blades":
 			infinite_blades_active = true
+
+func _process_next_turn_effects() -> void:
+	for effect in _next_turn_effects:
+		var etype: String = effect.get("type", "")
+		var value: int = effect.get("value", 0)
+		match etype:
+			"block":
+				if value > 0 and player and player.alive:
+					player.add_block(value)
+					_trigger_juggernaut()
+			"gain_energy":
+				if value > 0:
+					current_energy += value
+					_update_energy_label()
+					if card_hand:
+						card_hand.current_battle_energy = current_energy
+						card_hand.update_card_playability(current_energy)
+	_next_turn_effects.clear()
 
 func _add_status_card_to_draw(card_id: String) -> void:
 	var gm = _get_game_manager()
@@ -2006,9 +2046,9 @@ func _setup_pile_viewer() -> void:
 
 	var grid = GridContainer.new()
 	grid.name = "CardGrid"
-	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 20)
-	grid.add_theme_constant_override("v_separation", 20)
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 16)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(grid)
 
@@ -2050,9 +2090,9 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 	)
 
 	var loc = _get_loc()
-	var mini_size := Vector2(160, 215)
+	var mini_size := Vector2(220, 300)
 
-	# Use Card.create_card_visual() for complete card visuals
+	# Use Card.create_card_visual() for complete card visuals (larger for readability)
 	var card_script_class_pv = load("res://scripts/card.gd")
 
 	for cd in sorted_pile:

@@ -57,7 +57,7 @@ position = Vector2(370, 460)
 position = Vector2(1320, 490)
 
 [node name="CardHand" type="Node2D" parent="."]
-position = Vector2(0, 780)
+position = Vector2(0, 740)
 script = ExtResource("3_13mar")
 
 [node name="HUDLayer" type="CanvasLayer" parent="."]
