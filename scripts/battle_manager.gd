@@ -1972,9 +1972,9 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 	)
 
 	var loc = _get_loc()
-	var mini_size := Vector2(220, 300)
+	var mini_size := Vector2(256, 350)
 
-	# Use Card.create_card_visual() for complete card visuals (larger for readability)
+	# Use Card.create_card_visual() — sized for readability in pile viewer
 	var card_script_class_pv = load("res://scripts/card.gd")
 
 	for cd in sorted_pile:

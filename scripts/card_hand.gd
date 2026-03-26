@@ -168,36 +168,27 @@ func _can_afford_card(card_data_check: Dictionary) -> bool:
 	return cost <= current_battle_energy
 
 func _on_card_clicked(card_node: Area2D) -> void:
+	## Single-click card selection:
+	## - Click card → select it (lift up, show targeting)
+	## - Click different card → switch selection
+	## - Click same card → deselect
+	## - Targeted cards: click enemy after selecting to play
+	## - Non-targeted: click background after selecting to play
 	if _any_card_dragging:
 		return
 	var card_data_val: Dictionary = card_node.card_data
 	var target_type: String = card_data_val.get("target", "enemy")
 
-	# If a different card is already selected, deselect it and directly select new card
+	# If a different card is already selected → switch to this card
 	if selected_card != null and selected_card != card_node and is_instance_valid(selected_card):
 		selected_card.set_selected(false)
 		selected_card = null
 		focused_card = null
 		targeting_mode = false
-		# Energy check for new card
-		if not _can_afford_card(card_data_val):
-			update_layout()
-			return
-		# Directly select the new card (skip focus step)
-		if target_type == "self" or target_type == "all_enemies":
-			selected_card = card_node
-			targeting_mode = true
-			card_played_tap.emit(card_node)
-			return
-		selected_card = card_node
-		card_node.set_selected(true)
-		targeting_mode = true
-		focused_card = null
-		update_layout()
-		return
+		# Fall through to select the new card below
 
-	# If THIS card is already selected (tap again to deselect/cancel targeting)
-	if selected_card == card_node:
+	# If THIS card is already selected → deselect (cancel)
+	elif selected_card == card_node:
 		card_node.set_selected(false)
 		selected_card = null
 		focused_card = null
@@ -205,37 +196,17 @@ func _on_card_clicked(card_node: Area2D) -> void:
 		update_layout()
 		return
 
-	# Energy check before allowing focus/selection
+	# Energy check
 	if not _can_afford_card(card_data_val):
-		return
-
-	# If a DIFFERENT card is focused, switch focus to this card
-	if focused_card != null and focused_card != card_node:
-		focused_card = card_node
 		update_layout()
 		return
 
-	# If NO card is focused: FOCUS this card (1st tap — zoom preview)
-	if focused_card != card_node:
-		focused_card = card_node
-		update_layout()
-		return
-
-	# This card IS focused (2nd tap) — SELECT it for play
-
-	# Self/all_enemies: auto-play immediately
-	if target_type == "self" or target_type == "all_enemies":
-		selected_card = card_node
-		targeting_mode = true
-		focused_card = null
-		card_played_tap.emit(card_node)
-		return
-
-	# Enemy-targeted cards: enter targeting mode (click enemy to play)
+	# SELECT this card on single click
 	selected_card = card_node
 	card_node.set_selected(true)
 	targeting_mode = true
 	focused_card = null
+	hovered_card = null
 	update_layout()
 
 func _on_card_long_pressed(card_node: Area2D) -> void:
