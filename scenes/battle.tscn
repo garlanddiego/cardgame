@@ -226,9 +226,9 @@ vertical_alignment = 1
 [node name="EndTurnButton" type="Button" parent="HUDLayer/HUD"]
 custom_minimum_size = Vector2(240, 70)
 layout_mode = 0
-offset_left = 1670.0
+offset_left = 1620.0
 offset_top = 590.0
-offset_right = 1910.0
+offset_right = 1860.0
 offset_bottom = 660.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.478, 0.447, 0.376, 0.8)

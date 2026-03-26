@@ -123,9 +123,11 @@ func update_layout() -> void:
 		var target_scale := Vector2(base_scale, base_scale)
 
 		if card == selected_card:
-			target_pos.y += hover_lift - 30  # Selected card lifts even higher
+			# Selected card: slight lift only (not too high, avoid blocking enemies)
+			# Full lift happens on hover, not on targeting selection
+			target_pos.y += -40  # Small lift to indicate selection
 			target_rot = 0.0
-			target_scale = Vector2(1.4, 1.4)
+			target_scale = Vector2(1.1, 1.1)  # Slight scale for visual feedback
 		elif card == focused_card:
 			target_pos.y += hover_lift - 10  # Focused card lifts up for preview
 			target_rot = 0.0
