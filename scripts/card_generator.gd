@@ -251,6 +251,7 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 	# Define all effects: [key, label, has_spinbox, default_value, min_val, max_val]
 	var effects_def: Array = [
 		["damage", "伤害", true, 6, 1, 999],
+		["damage_all", "全体伤害", false, 0, 0, 0],
 		["block", "格挡", true, 5, 1, 999],
 		["draw", "抽牌", true, 1, 1, 10],
 		["vulnerable", "施加易伤", true, 1, 1, 10],
@@ -449,6 +450,7 @@ func _build_card_data() -> Dictionary:
 	var actions: Array = []
 	var desc_parts: Array = []
 	var has_damage: bool = false
+	var is_aoe: bool = false
 	var target_enemy: bool = false
 
 	for row in effect_rows:
@@ -462,8 +464,10 @@ func _build_card_data() -> Dictionary:
 				data["damage"] = value
 				has_damage = true
 				target_enemy = true
-				# Damage action is added after checking multi_hit
 				desc_parts.append("造成 %d 伤害。" % value)
+			"damage_all":
+				is_aoe = true
+				desc_parts.append("（全体）")
 
 			"block":
 				data["block"] = value
@@ -559,10 +563,14 @@ func _build_card_data() -> Dictionary:
 
 	# Add damage action at the beginning if damage is enabled
 	if has_damage:
-		actions.insert(0, {"type": "damage"})
+		if is_aoe:
+			actions.insert(0, {"type": "damage_all"})
+			data["target"] = "all_enemies"
+		else:
+			actions.insert(0, {"type": "damage"})
 
 	# Set target based on effects
-	if target_enemy:
+	if target_enemy and not is_aoe:
 		data["target"] = "enemy"
 
 	data["actions"] = actions
