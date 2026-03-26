@@ -241,6 +241,16 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_endTurnPressed")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_endTurnDisabled")
 text = "End Turn"
 
+[node name="ExitButton" type="Button" parent="HUDLayer/HUD"]
+custom_minimum_size = Vector2(80, 40)
+layout_mode = 0
+offset_left = 1820.0
+offset_top = 10.0
+offset_right = 1900.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 18
+text = "Exit"
+
 [node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD"]
 custom_minimum_size = Vector2(260, 50)
 layout_mode = 0

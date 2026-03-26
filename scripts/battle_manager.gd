@@ -128,6 +128,11 @@ func _ready() -> void:
 	if discard_panel:
 		discard_panel.gui_input.connect(_on_discard_pile_clicked)
 
+	# Exit button — return to character select / deck builder
+	var exit_btn = get_node_or_null("HUDLayer/HUD/ExitButton")
+	if exit_btn:
+		exit_btn.pressed.connect(_on_exit_battle)
+
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
 		card_hand.card_played_tap.connect(_on_card_tap_play)
@@ -1468,6 +1473,11 @@ func _on_card_played(card_data: Dictionary, target: Node2D) -> void:
 
 func _on_end_turn() -> void:
 	end_player_turn()
+
+func _on_exit_battle() -> void:
+	## Return to character select screen
+	battle_active = false
+	get_tree().change_scene_to_file("res://scenes/character_select.tscn")
 
 func _on_entity_died(entity: Node2D) -> void:
 	for i in range(enemies.size()):
