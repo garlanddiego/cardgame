@@ -1472,6 +1472,16 @@ func _process_enemy_actions(index: int) -> void:
 	var timer = get_tree().create_timer(0.6)
 	timer.timeout.connect(_process_enemy_actions.bind(index + 1))
 
+func _enemy_lunge(enemy: Node2D) -> void:
+	## Enemy lunge animation toward player (STS-style)
+	if enemy == null or not enemy.alive:
+		return
+	var orig_pos: Vector2 = enemy.position
+	var lunge_offset := Vector2(-60, 0)  # Lunge toward player (left)
+	var tween = create_tween()
+	tween.tween_property(enemy, "position", orig_pos + lunge_offset, 0.1).set_ease(Tween.EASE_OUT)
+	tween.tween_property(enemy, "position", orig_pos, 0.15).set_ease(Tween.EASE_IN)
+
 func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 	if player == null or not player.alive:
 		return
@@ -1481,6 +1491,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var value: int = action.get("value", 5)
 			var times: int = action.get("times", 1)
 			var actual_dmg: int = enemy.get_attack_damage(value)
+			_enemy_lunge(enemy)
 			for _i in range(times):
 				if player.alive:
 					player.take_damage(actual_dmg)
@@ -1502,6 +1513,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var dmg: int = action.get("damage", 5)
 			var blk: int = action.get("block_val", 5)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
+			_enemy_lunge(enemy)
 			player.take_damage(actual_dmg)
 			_screen_shake()
 			enemy.add_block(blk)
@@ -1517,6 +1529,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var status_name: String = action.get("status", "vulnerable")
 			var stacks: int = action.get("stacks", 1)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
+			_enemy_lunge(enemy)
 			player.take_damage(actual_dmg)
 			_screen_shake()
 			player.apply_status(status_name, stacks)

@@ -167,6 +167,8 @@ func apply_status(status_type: String, stacks: int) -> void:
 		status_effects[status_type] = stacks
 	status_changed.emit(status_type, status_effects[status_type])
 	_update_status_display()
+	# Floating status text animation (like STS "Vulnerable" text)
+	_show_status_float(status_type, stacks)
 
 func tick_poison() -> void:
 	## Tick poison: deal poison damage (bypass block), reduce by 1, show float
@@ -210,6 +212,7 @@ func tick_status_effects() -> void:
 	for s in to_remove:
 		status_effects.erase(s)
 		status_changed.emit(s, 0)
+		_show_status_wear_off(s)
 	_update_status_display()
 
 func reset_block() -> void:
@@ -492,6 +495,56 @@ func _flash_block_break() -> void:
 		var sprite_tween = create_tween()
 		sprite_tween.tween_property(sprite_node, "modulate", Color(1.0, 0.6, 0.2), 0.1)
 		sprite_tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+
+func _show_status_float(status_type: String, stacks: int) -> void:
+	## Show floating status name when applied (STS-style "Vulnerable" text)
+	var display_name: String = STATUS_NAMES.get(status_type, status_type)
+	var color: Color
+	match status_type:
+		"vulnerable": color = Color(0.2, 0.9, 0.3)
+		"weak": color = Color(0.2, 0.9, 0.3)
+		"strength": color = Color(1.0, 0.4, 0.2)
+		"dexterity": color = Color(0.3, 0.6, 1.0)
+		"poison": color = Color(0.2, 0.85, 0.2)
+		_: color = Color(0.8, 0.8, 0.3)
+	var lbl = Label.new()
+	lbl.text = display_name
+	if stacks > 1:
+		lbl.text += " " + str(stacks)
+	lbl.add_theme_font_size_override("font_size", 28)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	lbl.add_theme_constant_override("shadow_offset_x", 1)
+	lbl.add_theme_constant_override("shadow_offset_y", 2)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.position = Vector2(-60, -160)
+	add_child(lbl)
+	var t = create_tween()
+	t.set_parallel(true)
+	t.tween_property(lbl, "position:y", lbl.position.y - 60, 1.0)
+	t.tween_property(lbl, "modulate:a", 0.0, 1.0).set_delay(0.4)
+	t.set_parallel(false)
+	t.tween_callback(lbl.queue_free)
+
+func _show_status_wear_off(status_type: String) -> void:
+	## Show "X Wears Off" text when status expires
+	var display_name: String = STATUS_NAMES.get(status_type, status_type)
+	var lbl = Label.new()
+	lbl.text = display_name + "\nWears Off"
+	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_color_override("font_color", Color(0.9, 0.3, 0.5))
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	lbl.add_theme_constant_override("shadow_offset_x", 1)
+	lbl.add_theme_constant_override("shadow_offset_y", 2)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.position = Vector2(-50, -140)
+	add_child(lbl)
+	var t = create_tween()
+	t.set_parallel(true)
+	t.tween_property(lbl, "position:y", lbl.position.y - 50, 1.2)
+	t.tween_property(lbl, "modulate:a", 0.0, 1.2).set_delay(0.5)
+	t.set_parallel(false)
+	t.tween_callback(lbl.queue_free)
 
 func show_speech(text: String, duration: float = 1.5) -> void:
 	## Show a temporary speech bubble above the entity
