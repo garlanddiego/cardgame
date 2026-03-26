@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_mde1h"]
-[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg_sts.png" id="2_xhd83"]
-[ext_resource type="Script" path="res://scripts/card_hand.gd" id="3_kxvct"]
-[ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="4_js3pp"]
+[ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_ye0qd"]
+[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg_sts.png" id="2_ag6gd"]
+[ext_resource type="Script" path="res://scripts/card_hand.gd" id="3_13mar"]
+[ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="4_xsn5l"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6wqad"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ebak3"]
 content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 12.0
@@ -21,7 +21,7 @@ corner_radius_top_right = 36
 corner_radius_bottom_right = 36
 corner_radius_bottom_left = 36
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6ldr0"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t8hxn"]
 content_margin_left = 12.0
 content_margin_top = 4.0
 content_margin_right = 12.0
@@ -38,7 +38,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="Battle" type="Node2D"]
-script = ExtResource("1_mde1h")
+script = ExtResource("1_ye0qd")
 max_energy = 3
 cards_per_draw = 10
 
@@ -47,18 +47,18 @@ z_index = -10
 offset_right = 2560.0
 offset_bottom = 1080.0
 mouse_filter = 2
-texture = ExtResource("2_xhd83")
+texture = ExtResource("2_ag6gd")
 expand_mode = 1
 
 [node name="PlayerArea" type="Node2D" parent="."]
-position = Vector2(480, 480)
+position = Vector2(370, 460)
 
 [node name="EnemyArea" type="Node2D" parent="."]
-position = Vector2(1200, 480)
+position = Vector2(1320, 490)
 
 [node name="CardHand" type="Node2D" parent="."]
-position = Vector2(0, 700)
-script = ExtResource("3_kxvct")
+position = Vector2(0, 780)
+script = ExtResource("3_13mar")
 
 [node name="HUDLayer" type="CanvasLayer" parent="."]
 
@@ -78,11 +78,11 @@ mouse_filter = 2
 [node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD"]
 custom_minimum_size = Vector2(120, 72)
 layout_mode = 0
-offset_left = 24.0
-offset_top = 822.0
-offset_right = 24.0
-offset_bottom = 822.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_6wqad")
+offset_left = 41.0
+offset_top = 820.0
+offset_right = 41.0
+offset_bottom = 820.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ebak3")
 
 [node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel"]
 layout_mode = 2
@@ -91,7 +91,7 @@ alignment = 1
 [node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-texture = ExtResource("4_js3pp")
+texture = ExtResource("4_xsn5l")
 expand_mode = 3
 stretch_mode = 5
 
@@ -122,12 +122,12 @@ theme_override_font_sizes/font_size = 18
 text = "Discard: 0"
 
 [node name="EndTurnButton" type="Button" parent="HUDLayer/HUD"]
-custom_minimum_size = Vector2(240, 70)
+custom_minimum_size = Vector2(131, 52)
 layout_mode = 0
-offset_left = 1640.0
-offset_top = 400.0
-offset_right = 1640.0
-offset_bottom = 400.0
+offset_left = 1682.0
+offset_top = 830.0
+offset_right = 1682.0
+offset_bottom = 830.0
 text = "End Turn"
 
 [node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD"]
@@ -137,7 +137,7 @@ offset_left = 830.0
 offset_top = 10.0
 offset_right = 830.0
 offset_bottom = 10.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_6ldr0")
+theme_override_styles/panel = SubResource("StyleBoxFlat_t8hxn")
 
 [node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel"]
 layout_mode = 2

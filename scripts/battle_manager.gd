@@ -123,7 +123,7 @@ func _ready() -> void:
 		draw_panel.name = "DrawPanel"
 		draw_panel.custom_minimum_size = Vector2(180, 50)
 		draw_panel.size = Vector2(180, 50)
-		draw_panel.position = Vector2(60, 890)
+		draw_panel.position = Vector2(131, 860)
 		var drp_style = StyleBoxFlat.new()
 		drp_style.bg_color = Color(0.08, 0.15, 0.25, 0.9)
 		drp_style.border_color = Color(0.3, 0.55, 0.8, 0.9)
@@ -160,7 +160,7 @@ func _ready() -> void:
 		discard_panel.name = "DiscardPanel"
 		discard_panel.custom_minimum_size = Vector2(180, 50)
 		discard_panel.size = Vector2(180, 50)
-		discard_panel.position = Vector2(1700, 890)
+		discard_panel.position = Vector2(1740, 860)
 		var dp_style = StyleBoxFlat.new()
 		dp_style.bg_color = Color(0.25, 0.08, 0.08, 0.9)
 		dp_style.border_color = Color(0.8, 0.3, 0.3, 0.9)
@@ -199,9 +199,11 @@ func _ready() -> void:
 	if turn_label:
 		turn_label.add_theme_font_size_override("font_size", 24)
 
-	# Reposition end turn button to right-center
+	# Reposition end turn button (Figma: 结束回合按钮)
 	if end_turn_btn:
-		end_turn_btn.position = Vector2(1920 - 280, 400)
+		end_turn_btn.position = Vector2(1682, 830)
+		end_turn_btn.custom_minimum_size = Vector2(131, 52)
+		end_turn_btn.size = Vector2(131, 52)
 
 func _exit_tree() -> void:
 	if end_turn_btn and end_turn_btn.pressed.is_connected(_on_end_turn):
