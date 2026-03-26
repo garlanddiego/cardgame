@@ -10,9 +10,14 @@ var name_edit: LineEdit
 var cost_buttons: Array[Button] = []
 var type_buttons: Array[Button] = []
 var char_buttons: Array[Button] = []
+var trigger_buttons: Array[Button] = []
 var preview_container: Control
 var save_button: Button
 var back_button: Button
+
+# Power trigger UI
+var trigger_section_label: Label = null
+var trigger_row: HBoxContainer = null
 
 # Effect rows: {checkbox: CheckBox, spinbox: SpinBox or null, key: String, label: String}
 var effect_rows: Array[Dictionary] = []
@@ -21,6 +26,7 @@ var effect_rows: Array[Dictionary] = []
 var selected_cost: int = 1
 var selected_type: int = 0  # 0=Attack, 1=Skill, 2=Power
 var selected_character: String = "ironclad"
+var selected_power_trigger: String = "turn_end"  # "turn_start", "turn_end", "permanent"
 
 # Colors matching the STS dark theme
 const BG_COLOR := Color(0.08, 0.06, 0.05, 1.0)
@@ -170,14 +176,35 @@ func _build_left_panel() -> PanelContainer:
 	vbox.add_child(type_row)
 	_highlight_button_group(type_buttons, 0)
 
+	# Power Trigger Timing (hidden by default, shown when type=Power)
+	trigger_section_label = Label.new()
+	trigger_section_label.text = "触发时机"
+	trigger_section_label.add_theme_font_size_override("font_size", 18)
+	trigger_section_label.add_theme_color_override("font_color", ACCENT_GOLD)
+	trigger_section_label.visible = false
+	vbox.add_child(trigger_section_label)
+
+	trigger_row = HBoxContainer.new()
+	trigger_row.add_theme_constant_override("separation", 8)
+	trigger_row.visible = false
+	var trigger_names = ["回合开始时", "回合结束时", "长期作用"]
+	var trigger_ids = ["turn_start", "turn_end", "permanent"]
+	for i in range(trigger_names.size()):
+		var btn = _create_toggle_button(trigger_names[i], 120, 40)
+		btn.pressed.connect(_on_trigger_selected.bind(trigger_ids[i], i))
+		trigger_row.add_child(btn)
+		trigger_buttons.append(btn)
+	vbox.add_child(trigger_row)
+	_highlight_button_group(trigger_buttons, 1)  # Default: turn_end
+
 	_add_separator(vbox)
 
 	# Character Selector
 	_add_section_label(vbox, "角色")
 	var char_row = HBoxContainer.new()
 	char_row.add_theme_constant_override("separation", 8)
-	var char_names = ["铁甲战士", "沉默猎手"]
-	var char_ids = ["ironclad", "silent"]
+	var char_names = ["铁甲战士", "沉默猎手", "无色"]
+	var char_ids = ["ironclad", "silent", "neutral"]
 	for i in range(char_names.size()):
 		var btn = _create_toggle_button(char_names[i], 140, 40)
 		btn.pressed.connect(_on_char_selected.bind(char_ids[i], i))
@@ -414,7 +441,40 @@ func _on_cost_selected(cost_value: int, index: int) -> void:
 func _on_type_selected(type_index: int) -> void:
 	selected_type = type_index
 	_highlight_button_group(type_buttons, type_index)
+	# Show/hide power trigger timing UI
+	var is_power: bool = (type_index == 2)
+	if trigger_section_label:
+		trigger_section_label.visible = is_power
+	if trigger_row:
+		trigger_row.visible = is_power
+	# Update effect row visibility based on type and trigger
+	_update_effect_visibility()
 	_update_preview()
+
+func _on_trigger_selected(trigger_id: String, index: int) -> void:
+	selected_power_trigger = trigger_id
+	_highlight_button_group(trigger_buttons, index)
+	_update_effect_visibility()
+	_update_preview()
+
+## Permanent power effects: only strength, dexterity, extra_draw
+## turn_start/turn_end: show same effects as Attack/Skill
+const PERMANENT_ONLY_KEYS: Array = ["strength", "dexterity", "gain_energy"]
+
+func _update_effect_visibility() -> void:
+	var is_permanent_power: bool = (selected_type == 2 and selected_power_trigger == "permanent")
+	for row in effect_rows:
+		var key: String = row["key"]
+		if is_permanent_power:
+			# Only show strength, dexterity, gain_energy (extra draw mapped to gain_energy),
+			# plus draw for extra_draw
+			var visible_keys: Array = ["strength", "dexterity", "draw"]
+			var visible: bool = key in visible_keys
+			row["checkbox"].get_parent().visible = visible
+			if not visible:
+				row["checkbox"].button_pressed = false
+		else:
+			row["checkbox"].get_parent().visible = true
 
 func _on_char_selected(char_id: String, index: int) -> void:
 	selected_character = char_id
@@ -446,6 +506,10 @@ func _build_card_data() -> Dictionary:
 		"target": "self",
 		"actions": [],
 	}
+
+	# Add power_trigger field for Power cards
+	if selected_type == 2:
+		data["power_trigger"] = selected_power_trigger
 
 	var actions: Array = []
 	var desc_parts: Array = []

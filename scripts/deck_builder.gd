@@ -10,7 +10,8 @@ var selected_card_ids: Dictionary = {}  # card_id -> card data
 
 # Card data tracking
 var all_card_data: Dictionary = {}
-var current_filter: String = ""  # "" = all, "ironclad", "silent"
+var current_filter: String = ""  # "" = all, "ironclad", "silent", "neutral"
+var current_type_filter: int = -1  # -1 = all, 0=Attack, 1=Skill, 2=Power
 
 # STS card image mapping: delegated to Card script (single source of truth)
 var _CardScript = preload("res://scripts/card.gd")
@@ -23,6 +24,10 @@ var confirm_btn: Button = null
 var filter_all_btn: Button = null
 var filter_ironclad_btn: Button = null
 var filter_silent_btn: Button = null
+var type_filter_all_btn: Button = null
+var type_filter_attack_btn: Button = null
+var type_filter_skill_btn: Button = null
+var type_filter_power_btn: Button = null
 var browse_scroll: ScrollContainer = null
 var cart_scroll: ScrollContainer = null
 
@@ -54,6 +59,7 @@ func setup(char_id: String) -> void:
 	selected_card_ids.clear()
 	all_card_data.clear()
 	current_filter = ""
+	current_type_filter = -1
 	if is_inside_tree() and browse_grid != null:
 		_populate_browse()
 		_update_cart_ui()
@@ -128,6 +134,21 @@ func _build_browse_area(browse_w: float) -> void:
 	filter_bar.add_child(filter_ironclad_btn)
 	filter_silent_btn = _make_filter_button("静默猎手", "silent")
 	filter_bar.add_child(filter_silent_btn)
+
+	# Separator between character and type filters
+	var filter_sep = VSeparator.new()
+	filter_sep.custom_minimum_size = Vector2(2, 30)
+	filter_bar.add_child(filter_sep)
+
+	# Card type filter buttons
+	type_filter_all_btn = _make_type_filter_button("全部", -1)
+	filter_bar.add_child(type_filter_all_btn)
+	type_filter_attack_btn = _make_type_filter_button("攻击", 0)
+	filter_bar.add_child(type_filter_attack_btn)
+	type_filter_skill_btn = _make_type_filter_button("技能", 1)
+	filter_bar.add_child(type_filter_skill_btn)
+	type_filter_power_btn = _make_type_filter_button("能力", 2)
+	filter_bar.add_child(type_filter_power_btn)
 
 	# Language buttons on right side of filter bar
 	var spacer = Control.new()
@@ -306,8 +327,37 @@ func _on_filter(filter_value: String) -> void:
 	_update_filter_button_styles()
 	_populate_browse()
 
+func _on_type_filter(type_value: int) -> void:
+	current_type_filter = type_value
+	_update_filter_button_styles()
+	_populate_browse()
+
+func _make_type_filter_button(text: String, type_value: int) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(80, 40)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.25, 0.25, 0.35, 0.8)
+	style.border_color = Color(0.5, 0.5, 0.7, 0.7)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	btn.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.35, 0.35, 0.5, 0.9)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
+	btn.pressed.connect(_on_type_filter.bind(type_value))
+	return btn
+
 func _update_filter_button_styles() -> void:
-	# Highlight active filter button
+	# Highlight active character filter button
 	var buttons := {
 		"": filter_all_btn,
 		"ironclad": filter_ironclad_btn,
@@ -321,6 +371,36 @@ func _update_filter_button_styles() -> void:
 		if style:
 			var new_style = style.duplicate() as StyleBoxFlat
 			if key == current_filter:
+				new_style.bg_color = Color(0.4, 0.35, 0.15, 0.9)
+				new_style.border_color = Color(0.9, 0.75, 0.3, 0.9)
+				new_style.border_width_left = 2
+				new_style.border_width_right = 2
+				new_style.border_width_top = 2
+				new_style.border_width_bottom = 2
+			else:
+				new_style.bg_color = Color(0.25, 0.25, 0.35, 0.8)
+				new_style.border_color = Color(0.5, 0.5, 0.7, 0.7)
+				new_style.border_width_left = 1
+				new_style.border_width_right = 1
+				new_style.border_width_top = 1
+				new_style.border_width_bottom = 1
+			btn.add_theme_stylebox_override("normal", new_style)
+
+	# Highlight active type filter button
+	var type_buttons := {
+		-1: type_filter_all_btn,
+		0: type_filter_attack_btn,
+		1: type_filter_skill_btn,
+		2: type_filter_power_btn,
+	}
+	for key in type_buttons:
+		var btn: Button = type_buttons[key]
+		if btn == null:
+			continue
+		var style = btn.get_theme_stylebox("normal") as StyleBoxFlat
+		if style:
+			var new_style = style.duplicate() as StyleBoxFlat
+			if key == current_type_filter:
 				new_style.bg_color = Color(0.4, 0.35, 0.15, 0.9)
 				new_style.border_color = Color(0.9, 0.75, 0.3, 0.9)
 				new_style.border_width_left = 2
@@ -359,6 +439,9 @@ func _populate_browse() -> void:
 			continue
 		# Apply character filter
 		if current_filter != "" and card["character"] != current_filter:
+			continue
+		# Apply card type filter
+		if current_type_filter >= 0 and card["type"] != current_type_filter:
 			continue
 		# Skip cards already in cart
 		if selected_card_ids.has(card_id):
@@ -409,6 +492,9 @@ func _create_lightweight_card(card: Dictionary, size: Vector2, loc: Node) -> Con
 		"silent":
 			bg_color = Color(0.1, 0.22, 0.12, 1.0)
 			border_color = Color(0.2, 0.75, 0.25, 1.0)
+		"neutral", "colorless":
+			bg_color = Color(0.18, 0.18, 0.2, 1.0)
+			border_color = Color(0.5, 0.5, 0.55, 1.0)
 		_:
 			bg_color = Color(0.28, 0.08, 0.08, 1.0)
 			border_color = Color(0.85, 0.15, 0.15, 1.0)
@@ -564,6 +650,9 @@ func _create_cart_item(card: Dictionary, loc: Node) -> Control:
 		"silent":
 			bg_color = Color(0.08, 0.18, 0.1, 0.85)
 			border_color = Color(0.2, 0.6, 0.2, 0.6)
+		"neutral", "colorless":
+			bg_color = Color(0.15, 0.15, 0.17, 0.85)
+			border_color = Color(0.45, 0.45, 0.5, 0.6)
 		_:
 			bg_color = Color(0.2, 0.06, 0.06, 0.85)
 			border_color = Color(0.7, 0.15, 0.15, 0.6)
