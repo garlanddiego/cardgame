@@ -469,6 +469,9 @@ func _apply_fallback_texture() -> void:
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
+	# Disable input_pickable when selected to prevent jitter from mouse exit/enter loop
+	# (card lifts → mouse exits Area2D → card drops → mouse enters → repeat)
+	input_pickable = not selected
 	if card_visual:
 		if selected:
 			# Slight golden tint when selected — no border overlay
@@ -519,7 +522,7 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
 	is_hovered = false
-	if not _is_pressed:
+	if not _is_pressed and not is_selected:
 		card_unfocused.emit(self)
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:

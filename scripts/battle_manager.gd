@@ -463,6 +463,8 @@ func _reshuffle_discard() -> void:
 	draw_pile = discard_pile.duplicate()
 	discard_pile.clear()
 	draw_pile.shuffle()
+	# Show brief visual feedback using the turn banner
+	_show_turn_banner("Reshuffling...", Color(0.7, 0.85, 1.0))
 
 func _can_play_card(card_data: Dictionary) -> bool:
 	# Unplayable cards (status cards)
@@ -1555,15 +1557,12 @@ func _process(_delta: float) -> void:
 	if card_hand and card_hand.is_targeting() and card_hand.selected_card:
 		var card_data: Dictionary = card_hand.get_selected_card_data()
 		var target_type: String = card_data.get("target", "enemy")
-		# Draw chain-style targeting arrow from card to mouse
-		if _targeting_arrow and target_type == "enemy":
+		# Draw chain-style targeting arrow from card to mouse for all targeting modes
+		if _targeting_arrow:
 			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(160, 215)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
 			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow)
 			_targeting_arrow.visible = true
-		elif _targeting_arrow and target_type != "enemy":
-			_targeting_arrow.hide_arrow()
-			_targeting_arrow.visible = false
 		if target_type == "enemy":
 			var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 			var hover_enemy = _get_enemy_at(mouse_pos)
@@ -2169,9 +2168,16 @@ func _on_discard_card_toggled(card_index: int) -> void:
 		btn.modulate = Color.WHITE
 		_discard_selected_cards.erase(card_index)
 	else:
-		# Select (only if we haven't reached the limit)
+		# If at max selections, replace the last selected card with this one
 		if _discard_selected_cards.size() >= _discard_required_count:
-			return
+			var last_index: int = _discard_selected_cards.back()
+			_discard_selected_cards.erase(last_index)
+			# Deselect the replaced card's button
+			for node in _discard_card_nodes:
+				if node.get_meta("card_index") == last_index:
+					node.set_meta("selected", false)
+					node.modulate = Color.WHITE
+					break
 		btn.set_meta("selected", true)
 		btn.modulate = Color(1.0, 0.6, 0.2, 1.0)  # Orange highlight for selected
 		_discard_selected_cards.append(card_index)
