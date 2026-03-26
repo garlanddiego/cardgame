@@ -262,8 +262,11 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 		["exhaust", "消耗", false, 0, 0, 0],
 		["ethereal", "虚无", false, 0, 0, 0],
 		["innate", "天生", false, 0, 0, 0],
+		["sly", "奇巧 (Sly)", false, 0, 0, 0],
 		["self_damage", "自伤", true, 2, 1, 99],
 		["gain_energy", "获得能量", true, 1, 1, 5],
+		["next_turn_energy", "下回合+能量", true, 1, 1, 5],
+		["next_turn_block", "下回合+格挡", true, 5, 1, 99],
 		["heal", "治疗", true, 5, 1, 99],
 		["add_shiv", "添加小刀", true, 1, 1, 5],
 	]
@@ -526,6 +529,10 @@ func _build_card_data() -> Dictionary:
 				data["innate"] = true
 				desc_parts.append("天生。")
 
+			"sly":
+				data["special"] = "sly"
+				desc_parts.append("奇巧。")
+
 			"self_damage":
 				actions.append({"type": "self_damage", "value": value})
 				desc_parts.append("失去 %d HP。" % value)
@@ -533,6 +540,14 @@ func _build_card_data() -> Dictionary:
 			"gain_energy":
 				actions.append({"type": "gain_energy", "value": value})
 				desc_parts.append("获得 %d 能量。" % value)
+
+			"next_turn_energy":
+				actions.append({"type": "gain_energy", "value": value, "next_turn": true})
+				desc_parts.append("下回合获得 %d 能量。" % value)
+
+			"next_turn_block":
+				actions.append({"type": "block", "value": value, "next_turn": true})
+				desc_parts.append("下回合获得 %d 格挡。" % value)
 
 			"heal":
 				actions.append({"type": "heal", "value": value})

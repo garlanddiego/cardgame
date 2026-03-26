@@ -25,6 +25,7 @@ var _previous_block: int = 0  # Track previous block value for break detection
 var sprite_node: Sprite2D = null
 var hp_bar_bg: ColorRect = null
 var hp_bar_fill: ColorRect = null
+var poison_preview: ColorRect = null
 var hp_label: Label = null
 var block_label: Label = null
 var intent_icon: TextureRect = null
@@ -70,6 +71,7 @@ func _setup_visuals() -> void:
 	sprite_node = get_node_or_null("Sprite") as Sprite2D
 	hp_bar_bg = get_node_or_null("HPBarBG") as ColorRect
 	hp_bar_fill = get_node_or_null("HPBarBG/HPBarFill") as ColorRect
+	poison_preview = get_node_or_null("HPBarBG/PoisonPreview") as ColorRect
 	hp_label = get_node_or_null("HPLabel") as Label
 	block_label = get_node_or_null("BlockLabel") as Label
 	intent_icon = get_node_or_null("IntentIcon") as TextureRect
@@ -247,6 +249,27 @@ func _update_hp_bar() -> void:
 		hp_bar_fill.color = Color(1.0, 0.4, 0.1, 1.0)  # Orange-red critical per spec
 	if hp_label:
 		hp_label.text = str(current_hp) + "/" + str(max_hp)
+	_update_poison_preview()
+
+func _update_poison_preview() -> void:
+	if poison_preview == null or hp_bar_bg == null:
+		return
+	var poison_stacks: int = status_effects.get("poison", 0)
+	if poison_stacks <= 0 or current_hp <= 0:
+		poison_preview.visible = false
+		return
+	poison_preview.visible = true
+	var preview_hp: int = mini(poison_stacks, current_hp)
+	var bar_width: float = hp_bar_bg.size.x
+	var hp_ratio: float = float(current_hp) / float(max_hp) if max_hp > 0 else 0.0
+	var preview_ratio: float = float(preview_hp) / float(max_hp) if max_hp > 0 else 0.0
+	# Green bar starts at the LEFT edge of current HP fill and extends inward (right-to-left from fill end)
+	# It shows the portion of HP that poison will remove
+	var fill_width: float = bar_width * hp_ratio
+	var preview_width: float = bar_width * preview_ratio
+	# Position: starts where HP fill would be after poison damage
+	poison_preview.position.x = fill_width - preview_width
+	poison_preview.size.x = preview_width
 
 func _update_block_display() -> void:
 	if block_label == null:
@@ -281,6 +304,7 @@ func _update_block_display() -> void:
 		block_label.visible = false
 
 func _update_status_display() -> void:
+	_update_poison_preview()
 	if status_container == null:
 		return
 	# Clear existing
