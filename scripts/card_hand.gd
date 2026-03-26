@@ -244,13 +244,16 @@ func _on_card_long_pressed(card_node: Area2D) -> void:
 func _on_card_hovered(card_node: Area2D) -> void:
 	if _any_card_dragging:
 		return
+	# Don't change hover during selection/targeting
+	if selected_card != null:
+		return
 	hovered_card = card_node
 	update_layout()
 
 func _on_card_unhovered(card_node: Area2D) -> void:
 	if hovered_card == card_node:
 		hovered_card = null
-	update_layout()
+		update_layout()
 
 func try_play_card_on_target(target: Node2D) -> bool:
 	if not targeting_mode or selected_card == null:
@@ -359,6 +362,8 @@ func is_targeting() -> bool:
 
 func _on_card_drag_started(card_node: Area2D) -> void:
 	_any_card_dragging = true
+	hovered_card = null  # Clear hover when drag starts
+	focused_card = null  # Clear focus too
 	# Energy check before allowing drag
 	if not _can_afford_card(card_node.card_data):
 		# Cancel the drag and snap card back
