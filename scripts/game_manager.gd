@@ -350,11 +350,11 @@ func _init_card_database() -> void:
 	# 17. Backflip
 	card_database["si_backflip"] = {"id": "si_backflip", "name": "Backflip", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nDraw 2 cards.", "art": "", "target": "self", "draw": 2, "actions": [{"type": "block"}, {"type": "draw"}]}
 	# 18. Dodge and Roll
-	card_database["si_dodge_and_roll"] = {"id": "si_dodge_and_roll", "name": "Dodge and Roll", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block this\nturn and next.", "art": "", "target": "self", "actions": [{"type": "block"}]}
+	card_database["si_dodge_and_roll"] = {"id": "si_dodge_and_roll", "name": "Dodge and Roll", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block this\nturn and next.", "art": "", "target": "self", "actions": [{"type": "block"}, {"type": "next_turn", "effect": {"type": "block", "value": 4}}]}
 	# 19. Cloak and Dagger
 	card_database["si_cloak_and_dagger"] = {"id": "si_cloak_and_dagger", "name": "Cloak and Dagger", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 6, "description": "Gain 6 Block.\nAdd 1 Shiv to hand.", "art": "", "target": "self", "actions": [{"type": "block"}, {"type": "add_shiv", "value": 1}]}
 	# 20. Outmaneuver
-	card_database["si_outmaneuver"] = {"id": "si_outmaneuver", "name": "Outmaneuver", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Energy\nnext turn.", "art": "", "target": "self", "actions": [{"type": "gain_energy", "value": 2}]}
+	card_database["si_outmaneuver"] = {"id": "si_outmaneuver", "name": "Outmaneuver", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 2 Energy\nnext turn.", "art": "", "target": "self", "actions": [{"type": "next_turn", "effect": {"type": "gain_energy", "value": 2}}]}
 	# 21. Acrobatics
 	card_database["si_acrobatics"] = {"id": "si_acrobatics", "name": "Acrobatics", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 3 cards.\nDiscard 1.", "art": "", "target": "self", "draw": 3, "discard": 1, "actions": [{"type": "draw"}]}
 	# 22. Blade Dance
@@ -382,7 +382,7 @@ func _init_card_database() -> void:
 	# 32. Finisher
 	card_database["si_finisher"] = {"id": "si_finisher", "name": "Finisher", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage for\neach Attack played\nthis turn.", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "finisher"}]}
 	# 33. Flying Knee
-	card_database["si_flying_knee"] = {"id": "si_flying_knee", "name": "Flying Knee", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nGain 1 Energy\nnext turn.", "art": "", "target": "enemy", "actions": [{"type": "damage"}, {"type": "gain_energy", "value": 1}]}
+	card_database["si_flying_knee"] = {"id": "si_flying_knee", "name": "Flying Knee", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 8, "block": 0, "description": "Deal 8 damage.\nGain 1 Energy\nnext turn.", "art": "", "target": "enemy", "actions": [{"type": "damage"}, {"type": "next_turn", "effect": {"type": "gain_energy", "value": 1}}]}
 	# 34. Heel Hook
 	card_database["si_heel_hook"] = {"id": "si_heel_hook", "name": "Heel Hook", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 5, "block": 0, "description": "Deal 5 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1.", "art": "", "target": "enemy", "actions": [{"type": "call", "fn": "heel_hook"}]}
 	# 35. Glass Knife
@@ -394,7 +394,7 @@ func _init_card_database() -> void:
 
 	# --- Uncommon Skills ---
 	# 38. Blur
-	card_database["si_blur"] = {"id": "si_blur", "name": "Blur", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nBlock not removed\nnext turn.", "art": "", "target": "self", "actions": [{"type": "block"}]}
+	card_database["si_blur"] = {"id": "si_blur", "name": "Blur", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nBlock not removed\nnext turn.", "art": "", "target": "self", "actions": [{"type": "block"}, {"type": "blur"}]}
 	# 39. Dash
 	card_database["si_dash"] = {"id": "si_dash", "name": "Dash", "cost": 2, "type": CardType.SKILL, "character": "silent", "damage": 10, "block": 10, "description": "Gain 10 Block.\nDeal 10 damage.", "art": "", "target": "enemy", "actions": [{"type": "block"}, {"type": "damage"}]}
 	# 40. Terror
@@ -648,9 +648,9 @@ func _get_upgrade_overrides() -> Dictionary:
 		"si_deflect": {"block": 7, "description": "Gain 7 Block."},
 		"si_prepared": {"draw": 2, "description": "Draw 2, Discard 1."},
 		"si_backflip": {"block": 8, "description": "Gain 8 Block.\nDraw 2 cards."},
-		"si_dodge_and_roll": {"block": 6, "description": "Gain 6 Block this\nturn and next."},
+		"si_dodge_and_roll": {"block": 6, "description": "Gain 6 Block this\nturn and next.", "actions": [{"type": "block"}, {"type": "next_turn", "effect": {"type": "block", "value": 6}}]},
 		"si_cloak_and_dagger": {"block": 6, "description": "Gain 6 Block.\nAdd 2 Shivs to hand.", "actions": [{"type": "block"}, {"type": "add_shiv", "value": 2}]},
-		"si_outmaneuver": {"description": "Gain 3 Energy\nnext turn."},
+		"si_outmaneuver": {"description": "Gain 3 Energy\nnext turn.", "actions": [{"type": "next_turn", "effect": {"type": "gain_energy", "value": 3}}]},
 		"si_acrobatics": {"draw": 4, "description": "Draw 4 cards.\nDiscard 1."},
 		"si_blade_dance": {"description": "Add 4 Shivs to\nyour hand.", "actions": [{"type": "add_shiv", "value": 4}]},
 		"si_escape_plan": {"block": 5, "description": "Draw 1 card. If it\nis a Skill, gain\n5 Block."},
