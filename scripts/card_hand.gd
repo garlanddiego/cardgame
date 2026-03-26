@@ -258,12 +258,17 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 	selected_card = null
 	focused_card = null
 	targeting_mode = false
-	# Animate card flying toward the discard pile (bottom-right) before removing
+	# Animate card: exhaust = burn/shrink, normal = fly to discard
 	if card_node and is_instance_valid(card_node):
-		# Discard pile is at approximately (1700, 890) in screen coordinates
-		var discard_global := Vector2(1700, 890)
-		var fly_pos: Vector2 = to_local(discard_global)
-		card_node.move_to(fly_pos, 0.0, Vector2(0.3, 0.3), 0.2)
+		var should_exhaust: bool = data.get("exhaust", false) or data.get("type", 0) == 2  # Power = type 2
+		if should_exhaust:
+			# Exhaust animation: shrink + fade + slight rotation (card destroyed)
+			card_node.move_to(card_node.position + Vector2(0, -30), 15.0, Vector2(0.1, 0.1), 0.3)
+		else:
+			# Normal: fly toward discard pile
+			var discard_global := Vector2(1700, 890)
+			var fly_pos: Vector2 = to_local(discard_global)
+			card_node.move_to(fly_pos, 0.0, Vector2(0.3, 0.3), 0.2)
 		cards.erase(card_node)
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
