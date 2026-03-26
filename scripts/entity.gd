@@ -8,6 +8,8 @@ signal died
 
 @export var max_hp: int = 80
 @export var is_enemy: bool = false
+@export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
+@export var status_float_font_size: int = 28  ## Font size for floating status text
 
 var current_hp: int = 80
 var block: int = 0
@@ -404,7 +406,7 @@ func _flash_damage(damage_amount: int = 0) -> void:
 		return
 	var dmg_label = Label.new()
 	dmg_label.text = "-" + str(damage_amount)
-	dmg_label.add_theme_font_size_override("font_size", 36)
+	dmg_label.add_theme_font_size_override("font_size", damage_number_font_size)
 	dmg_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 	dmg_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	dmg_label.add_theme_constant_override("shadow_offset_x", 1)
@@ -429,7 +431,7 @@ func _flash_poison_damage(damage_amount: int) -> void:
 		return
 	var dmg_label = Label.new()
 	dmg_label.text = "-" + str(damage_amount)
-	dmg_label.add_theme_font_size_override("font_size", 36)
+	dmg_label.add_theme_font_size_override("font_size", damage_number_font_size)
 	dmg_label.add_theme_color_override("font_color", Color(0.2, 0.9, 0.2))
 	dmg_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	dmg_label.add_theme_constant_override("shadow_offset_x", 1)
@@ -511,7 +513,7 @@ func _show_status_float(status_type: String, stacks: int) -> void:
 	lbl.text = display_name
 	if stacks > 1:
 		lbl.text += " " + str(stacks)
-	lbl.add_theme_font_size_override("font_size", 28)
+	lbl.add_theme_font_size_override("font_size", status_float_font_size)
 	lbl.add_theme_color_override("font_color", color)
 	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	lbl.add_theme_constant_override("shadow_offset_x", 1)

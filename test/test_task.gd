@@ -119,10 +119,10 @@ func _verify_final() -> void:
 		if turn_label:
 			print("ASSERT PASS: Turn label: " + turn_label.text)
 		# Verify draw/discard pile labels
-		var draw_label = _battle_node.get_node_or_null("HUDLayer/HUD/DrawPileLabel")
+		var draw_label = _battle_node.get_node_or_null("HUDLayer/HUD/DrawPanel/DrawPileLabel")
 		if draw_label:
 			print("ASSERT PASS: Draw pile: " + draw_label.text)
-		var discard_label = _battle_node.get_node_or_null("HUDLayer/HUD/DiscardPileLabel")
+		var discard_label = _battle_node.get_node_or_null("HUDLayer/HUD/DiscardPanel/DiscardPileLabel")
 		if discard_label:
 			print("ASSERT PASS: Discard pile: " + discard_label.text)
 	print("TEST: All checks complete")

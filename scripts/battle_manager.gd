@@ -10,6 +10,13 @@ signal battle_won
 
 @export var max_energy: int = 3
 @export var cards_per_draw: int = 10
+@export var player_sprite_scale_height: float = 400.0  ## Target height in pixels for player sprite
+@export var enemy_sprite_scale_height: float = 350.0  ## Target height in pixels for enemy sprite
+@export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
+@export var hp_bar_width: float = 180.0  ## Width of entity HP bars
+
+# Entity template scene
+var _entity_template: PackedScene = null
 
 var current_energy: int = 3
 var draw_pile: Array = []
@@ -66,6 +73,8 @@ var end_turn_btn: Button = null
 var turn_label: Label = null
 var player_area: Node2D = null
 var enemy_area: Node2D = null
+var draw_panel: Panel = null
+var discard_panel: Panel = null
 
 # Card detail overlay
 var _card_detail_overlay: Control = null
@@ -91,20 +100,34 @@ var _damage_preview_labels: Array = []
 var _turn_banner: Label = null
 
 func _ready() -> void:
+	# Preload entity template scene
+	_entity_template = preload("res://scenes/entity_template.tscn")
+
 	card_hand = get_node_or_null("CardHand")
 	energy_label = get_node_or_null("HUDLayer/HUD/EnergyPanel/EnergyContainer/EnergyLabel")
-	draw_pile_label = get_node_or_null("HUDLayer/HUD/DrawPileLabel")
-	discard_label = get_node_or_null("HUDLayer/HUD/DiscardPileLabel")
+	# Labels are now children of their Panel containers in the scene
+	draw_panel = get_node_or_null("HUDLayer/HUD/DrawPanel") as Panel
+	discard_panel = get_node_or_null("HUDLayer/HUD/DiscardPanel") as Panel
+	draw_pile_label = get_node_or_null("HUDLayer/HUD/DrawPanel/DrawPileLabel")
+	discard_label = get_node_or_null("HUDLayer/HUD/DiscardPanel/DiscardPileLabel")
 	end_turn_btn = get_node_or_null("HUDLayer/HUD/EndTurnButton")
 	turn_label = get_node_or_null("HUDLayer/HUD/TurnPanel/TurnLabel")
 	player_area = get_node_or_null("PlayerArea")
 	enemy_area = get_node_or_null("EnemyArea")
+
+	# EndTurnButton — styling is now in the scene; just connect signal and set localized text
 	if end_turn_btn:
 		end_turn_btn.pressed.connect(_on_end_turn)
-		_style_end_turn_button()
 		var loc = _get_loc()
 		if loc:
 			end_turn_btn.text = loc.t("end_turn")
+
+	# Connect draw/discard panel click signals (panels are pre-styled in scene)
+	if draw_panel:
+		draw_panel.gui_input.connect(_on_draw_pile_clicked)
+	if discard_panel:
+		discard_panel.gui_input.connect(_on_discard_pile_clicked)
+
 	if card_hand:
 		card_hand.card_played.connect(_on_card_played)
 		card_hand.card_played_tap.connect(_on_card_tap_play)
@@ -123,100 +146,18 @@ func _ready() -> void:
 	# Turn banner
 	_setup_turn_banner()
 
-	# HUD font size improvements
-	if energy_label:
-		energy_label.add_theme_font_size_override("font_size", 32)
-	if draw_pile_label:
-		# Wrap draw pile label with a prominent styled panel (mirrors discard panel)
-		var draw_panel = Panel.new()
-		draw_panel.name = "DrawPanel"
-		draw_panel.custom_minimum_size = Vector2(180, 50)
-		draw_panel.size = Vector2(180, 50)
-		draw_panel.position = Vector2(131, 860)
-		var drp_style = StyleBoxFlat.new()
-		drp_style.bg_color = Color(0.08, 0.15, 0.25, 0.9)
-		drp_style.border_color = Color(0.3, 0.55, 0.8, 0.9)
-		drp_style.border_width_left = 2
-		drp_style.border_width_right = 2
-		drp_style.border_width_top = 2
-		drp_style.border_width_bottom = 2
-		drp_style.corner_radius_top_left = 8
-		drp_style.corner_radius_top_right = 8
-		drp_style.corner_radius_bottom_left = 8
-		drp_style.corner_radius_bottom_right = 8
-		drp_style.content_margin_left = 8
-		drp_style.content_margin_right = 8
-		drp_style.content_margin_top = 4
-		drp_style.content_margin_bottom = 4
-		draw_panel.add_theme_stylebox_override("panel", drp_style)
-		draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-		draw_panel.gui_input.connect(_on_draw_pile_clicked)
-		var hud_draw = draw_pile_label.get_parent()
-		if hud_draw:
-			hud_draw.add_child(draw_panel)
-		# Reparent draw pile label into the panel
-		draw_pile_label.reparent(draw_panel)
-		draw_pile_label.position = Vector2.ZERO
-		draw_pile_label.size = Vector2(180, 50)
-		draw_pile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		draw_pile_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		draw_pile_label.add_theme_font_size_override("font_size", 22)
-		draw_pile_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
-		draw_pile_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if discard_label:
-		# Wrap discard label with a prominent styled panel
-		var discard_panel = Panel.new()
-		discard_panel.name = "DiscardPanel"
-		discard_panel.custom_minimum_size = Vector2(180, 50)
-		discard_panel.size = Vector2(180, 50)
-		discard_panel.position = Vector2(1740, 860)
-		var dp_style = StyleBoxFlat.new()
-		dp_style.bg_color = Color(0.25, 0.08, 0.08, 0.9)
-		dp_style.border_color = Color(0.8, 0.3, 0.3, 0.9)
-		dp_style.border_width_left = 2
-		dp_style.border_width_right = 2
-		dp_style.border_width_top = 2
-		dp_style.border_width_bottom = 2
-		dp_style.corner_radius_top_left = 8
-		dp_style.corner_radius_top_right = 8
-		dp_style.corner_radius_bottom_left = 8
-		dp_style.corner_radius_bottom_right = 8
-		dp_style.content_margin_left = 8
-		dp_style.content_margin_right = 8
-		dp_style.content_margin_top = 4
-		dp_style.content_margin_bottom = 4
-		discard_panel.add_theme_stylebox_override("panel", dp_style)
-		discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-		discard_panel.gui_input.connect(_on_discard_pile_clicked)
-		var hud_node = discard_label.get_parent()
-		if hud_node:
-			hud_node.add_child(discard_panel)
-		# Reparent discard label into the panel
-		discard_label.reparent(discard_panel)
-		discard_label.position = Vector2.ZERO
-		discard_label.size = Vector2(180, 50)
-		discard_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		discard_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		discard_label.add_theme_font_size_override("font_size", 22)
-		discard_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.75))
-		discard_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
 	# Pile viewer overlay
 	_setup_pile_viewer()
 	# Discard selection overlay
 	_setup_discard_overlay()
-	if turn_label:
-		turn_label.add_theme_font_size_override("font_size", 24)
-
-	# Reposition end turn button (Figma: 结束回合按钮)
-	if end_turn_btn:
-		end_turn_btn.position = Vector2(1682, 830)
-		end_turn_btn.custom_minimum_size = Vector2(131, 52)
-		end_turn_btn.size = Vector2(131, 52)
 
 func _exit_tree() -> void:
 	if end_turn_btn and end_turn_btn.pressed.is_connected(_on_end_turn):
 		end_turn_btn.pressed.disconnect(_on_end_turn)
+	if draw_panel and draw_panel.gui_input.is_connected(_on_draw_pile_clicked):
+		draw_panel.gui_input.disconnect(_on_draw_pile_clicked)
+	if discard_panel and discard_panel.gui_input.is_connected(_on_discard_pile_clicked):
+		discard_panel.gui_input.disconnect(_on_discard_pile_clicked)
 	if card_hand:
 		if card_hand.card_played.is_connected(_on_card_played):
 			card_hand.card_played.disconnect(_on_card_played)
@@ -227,42 +168,7 @@ func _exit_tree() -> void:
 		if card_hand.card_drag_released.is_connected(_on_card_drag_released):
 			card_hand.card_drag_released.disconnect(_on_card_drag_released)
 
-func _style_end_turn_button() -> void:
-	# Per VISUAL_DESIGN_SPEC section 4.6: 220x56, warm orange, gold border
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.600, 0.298, 0.102, 0.851)
-	style.border_color = Color(0.902, 0.722, 0.290, 1.0)  # border_gold
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	end_turn_btn.add_theme_stylebox_override("normal", style)
-
-	var hover_style = style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = Color(0.702, 0.361, 0.133, 0.902)
-	end_turn_btn.add_theme_stylebox_override("hover", hover_style)
-
-	var pressed_style = style.duplicate() as StyleBoxFlat
-	pressed_style.bg_color = Color(0.478, 0.239, 0.078, 1.0)
-	end_turn_btn.add_theme_stylebox_override("pressed", pressed_style)
-
-	var disabled_style = style.duplicate() as StyleBoxFlat
-	disabled_style.bg_color = Color(0.200, 0.133, 0.067, 0.60)
-	disabled_style.border_color = Color(0.902, 0.722, 0.290, 0.5)  # border_gold_dim
-	end_turn_btn.add_theme_stylebox_override("disabled", disabled_style)
-
-	end_turn_btn.add_theme_font_size_override("font_size", 26)
-	end_turn_btn.custom_minimum_size = Vector2(240, 70)
-	end_turn_btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-	end_turn_btn.add_theme_color_override("font_disabled_color", Color(0.478, 0.447, 0.376, 0.80))
-	# Drop shadow for button text
-	end_turn_btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
-	end_turn_btn.add_theme_constant_override("shadow_offset_x", 0)
-	end_turn_btn.add_theme_constant_override("shadow_offset_y", 2)
+## _style_end_turn_button() — REMOVED: styling is now in battle.tscn scene file
 
 func start_battle(character_id: String) -> void:
 	battle_active = true
@@ -334,10 +240,10 @@ func _setup_player(character_id: String, gm: Node) -> void:
 		var tex = load(char_data["sprite"])
 		if tex:
 			sprite.texture = tex
-			# Scale to ~400px tall (STS-like proportions)
+			# Scale to target height (adjustable via @export player_sprite_scale_height)
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
-				var scale_factor: float = 400.0 / tex_height
+				var scale_factor: float = player_sprite_scale_height / tex_height
 				sprite.scale = Vector2(scale_factor, scale_factor)
 	var nlabel = player.get_node_or_null("NameLabel") as Label
 	if nlabel:
@@ -394,122 +300,38 @@ func _setup_enemies() -> void:
 		player.died.connect(func(): _on_player_died())
 
 func _create_entity_node(is_enemy_entity: bool) -> Node2D:
-	var entity = Node2D.new()
-	entity.name = "Entity"
-	entity.set_script(load("res://scripts/entity.gd"))
-
-	# Sprite
-	var sprite = Sprite2D.new()
-	sprite.name = "Sprite"
-	entity.add_child(sprite)
-
-	# Name label BELOW sprite
-	var name_lbl = Label.new()
-	name_lbl.name = "NameLabel"
-	name_lbl.text = ""
-	name_lbl.position = Vector2(-90, 100)
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.custom_minimum_size = Vector2(180, 24)
-	name_lbl.add_theme_font_size_override("font_size", 18)
-	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.9))
-	var name_bg = StyleBoxFlat.new()
-	name_bg.bg_color = Color(0.1, 0.07, 0.03, 0.8)
-	name_bg.corner_radius_top_left = 4
-	name_bg.corner_radius_top_right = 4
-	name_bg.corner_radius_bottom_left = 4
-	name_bg.corner_radius_bottom_right = 4
-	name_lbl.add_theme_stylebox_override("normal", name_bg)
-	entity.add_child(name_lbl)
-
-	# HP bar BELOW name — wider (180px), dark red bg, rounded feel
-	var hp_bar_width: float = 180.0
-	var hp_bg = ColorRect.new()
-	hp_bg.name = "HPBarBG"
-	hp_bg.color = Color(0.200, 0.059, 0.059, 1.0)  # hp_bar_bg per spec
-	hp_bg.size = Vector2(hp_bar_width, 12)
-	hp_bg.position = Vector2(-hp_bar_width / 2.0, 130)
-	entity.add_child(hp_bg)
-
-	# HP bar fill — red per spec, gradient handled in entity.gd
-	var hp_fill = ColorRect.new()
-	hp_fill.name = "HPBarFill"
-	hp_fill.color = Color(0.800, 0.133, 0.133, 1.0)  # hp_bar_fill per spec
-	hp_fill.size = Vector2(hp_bar_width, 12)
-	hp_fill.position = Vector2(0, 0)
-	hp_bg.add_child(hp_fill)
-
-	# HP label ON TOP of HP bar (centered vertically and horizontally)
-	var hp_lbl = Label.new()
-	hp_lbl.name = "HPLabel"
-	hp_lbl.text = "80/80"
-	hp_lbl.position = Vector2(-hp_bar_width / 2.0, 130 - 3)  # Center 18px label on 12px bar
-	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hp_lbl.custom_minimum_size = Vector2(hp_bar_width, 18)
-	hp_lbl.add_theme_font_size_override("font_size", 14)
-	hp_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-	hp_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	hp_lbl.add_theme_constant_override("shadow_offset_x", 1)
-	hp_lbl.add_theme_constant_override("shadow_offset_y", 1)
-	hp_lbl.z_index = 5
-	entity.add_child(hp_lbl)
-
-	# Block label — STS style: grey shield badge left of HP bar
-	var block_lbl = Label.new()
-	block_lbl.name = "BlockLabel"
-	block_lbl.text = "0"
-	block_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	block_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	block_lbl.position = Vector2(-hp_bar_width - 8, 130)  # Left of HP bar
-	block_lbl.size = Vector2(40, 32)
-	block_lbl.add_theme_font_size_override("font_size", 18)
-	block_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	block_lbl.visible = false
-	entity.add_child(block_lbl)
-
-	# Status container BELOW HP bar
-	var status_cont = HBoxContainer.new()
-	status_cont.name = "StatusContainer"
-	status_cont.position = Vector2(-50, 150)
-	entity.add_child(status_cont)
+	## Instantiate entity from the scene template (scenes/entity_template.tscn).
+	## For player entities, intent/click nodes are hidden or removed.
+	var entity: Node2D
+	if _entity_template:
+		entity = _entity_template.instantiate()
+	else:
+		# Fallback if template not loaded
+		entity = Node2D.new()
+		entity.name = "Entity"
+		entity.set_script(load("res://scripts/entity.gd"))
+		return entity
 
 	if is_enemy_entity:
-		# Intent icon above enemy
-		var intent_icon = TextureRect.new()
-		intent_icon.name = "IntentIcon"
-		intent_icon.custom_minimum_size = Vector2(64, 64)
-		intent_icon.position = Vector2(-32, -200)
-		intent_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		intent_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		intent_icon.visible = false
-		entity.add_child(intent_icon)
-
-		# Intent description — larger text, positioned above intent icon
-		var intent_lbl = Label.new()
-		intent_lbl.name = "IntentLabel"
-		intent_lbl.text = ""
-		intent_lbl.position = Vector2(-90, -245)
-		intent_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		intent_lbl.custom_minimum_size = Vector2(180, 28)
-		intent_lbl.add_theme_font_size_override("font_size", 18)
-		intent_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.6))
-		intent_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-		intent_lbl.add_theme_constant_override("shadow_offset_x", 1)
-		intent_lbl.add_theme_constant_override("shadow_offset_y", 1)
-		intent_lbl.visible = false
-		entity.add_child(intent_lbl)
-
-		# Click area for enemy targeting (invisible clickable region)
-		var click_area = Area2D.new()
-		click_area.name = "ClickArea"
-		click_area.input_pickable = true
-		var click_shape = CollisionShape2D.new()
-		var rect_shape = RectangleShape2D.new()
-		rect_shape.size = Vector2(240, 400)
-		click_shape.shape = rect_shape
-		click_area.add_child(click_shape)
-		click_area.input_event.connect(_on_enemy_click_area_input.bind(entity))
-		entity.add_child(click_area)
+		# Connect click area for enemy targeting
+		var click_area = entity.get_node_or_null("ClickArea") as Area2D
+		if click_area:
+			click_area.input_event.connect(_on_enemy_click_area_input.bind(entity))
+	else:
+		# Player doesn't need intent or click area — remove them immediately
+		# (before entity enters tree, so _setup_visuals won't find dangling refs)
+		var intent_icon_node = entity.get_node_or_null("IntentIcon")
+		if intent_icon_node:
+			entity.remove_child(intent_icon_node)
+			intent_icon_node.queue_free()
+		var intent_label_node = entity.get_node_or_null("IntentLabel")
+		if intent_label_node:
+			entity.remove_child(intent_label_node)
+			intent_label_node.queue_free()
+		var click_area_node = entity.get_node_or_null("ClickArea")
+		if click_area_node:
+			entity.remove_child(click_area_node)
+			click_area_node.queue_free()
 
 	return entity
 
@@ -1702,15 +1524,13 @@ func _update_pile_labels() -> void:
 			discard_label.text = loc.tf("discard_pile", [discard_pile.size()])
 		else:
 			discard_label.text = "弃牌: " + str(discard_pile.size())
-	# Move pile labels up when hand is full (7+ cards) to prevent overlap
+	# Move pile panels up when hand is full (7+ cards) to prevent overlap
 	var hand_count: int = hand.size()
 	var y_offset: float = -60.0 if hand_count >= 7 else 0.0
-	var draw_panel = draw_pile_label.get_parent() if draw_pile_label else null
-	if draw_panel and draw_panel is Panel:
-		draw_panel.position.y = 890 + y_offset
-	var discard_panel_node = discard_label.get_parent() if discard_label else null
-	if discard_panel_node and discard_panel_node is Panel:
-		discard_panel_node.position.y = 890 + y_offset
+	if draw_panel:
+		draw_panel.position.y = 860 + y_offset
+	if discard_panel:
+		discard_panel.position.y = 860 + y_offset
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)

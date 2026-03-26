@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle_manager.gd" id="1_ye0qd"]
 [ext_resource type="Texture2D" path="res://assets/img/dungeon_bg_sts.png" id="2_ag6gd"]
@@ -36,6 +36,86 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_drawPanel"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.08, 0.15, 0.25, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.55, 0.8, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discardPanel"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.25, 0.08, 0.08, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.3, 0.3, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnNormal"]
+bg_color = Color(0.6, 0.298, 0.102, 0.851)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnHover"]
+bg_color = Color(0.702, 0.361, 0.133, 0.902)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnPressed"]
+bg_color = Color(0.478, 0.239, 0.078, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnDisabled"]
+bg_color = Color(0.2, 0.133, 0.067, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="Battle" type="Node2D"]
 script = ExtResource("1_ye0qd")
@@ -98,36 +178,67 @@ stretch_mode = 5
 [node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.6, 1, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 text = "3/3"
 
-[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD"]
+[node name="DrawPanel" type="Panel" parent="HUDLayer/HUD"]
+custom_minimum_size = Vector2(180, 50)
 layout_mode = 0
-offset_left = 60.0
-offset_top = 900.0
-offset_right = 60.0
-offset_bottom = 900.0
-theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 18
-text = "抽牌: 0"
+offset_left = 131.0
+offset_top = 860.0
+offset_right = 311.0
+offset_bottom = 910.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_drawPanel")
 
-[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD"]
+[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel"]
+layout_mode = 0
+offset_right = 180.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "Draw: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD"]
+custom_minimum_size = Vector2(180, 50)
 layout_mode = 0
 offset_left = 1740.0
-offset_top = 900.0
-offset_right = 1740.0
-offset_bottom = 900.0
-theme_override_colors/font_color = Color(0.9, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 18
+offset_top = 860.0
+offset_right = 1920.0
+offset_bottom = 910.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_discardPanel")
+
+[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel"]
+layout_mode = 0
+offset_right = 180.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.75, 1)
+theme_override_font_sizes/font_size = 22
 text = "Discard: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EndTurnButton" type="Button" parent="HUDLayer/HUD"]
-custom_minimum_size = Vector2(131, 52)
+custom_minimum_size = Vector2(240, 70)
 layout_mode = 0
 offset_left = 1682.0
 offset_top = 830.0
-offset_right = 1682.0
-offset_bottom = 830.0
+offset_right = 1922.0
+offset_bottom = 900.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.478, 0.447, 0.376, 0.8)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_endTurnNormal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_endTurnHover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_endTurnPressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_endTurnDisabled")
 text = "End Turn"
 
 [node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD"]
@@ -142,6 +253,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_t8hxn")
 [node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.27, 0.8, 0.4, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "Your Turn"
 horizontal_alignment = 1

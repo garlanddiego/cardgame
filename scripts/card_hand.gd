@@ -20,7 +20,7 @@ var _any_card_dragging: bool = false
 const CARD_WIDTH: float = 256.0
 const CARD_HEIGHT: float = 430.0
 const CARD_OVERLAP: float = 60.0  # Overlap for 5+ cards
-const HOVER_LIFT: float = -380.0  # Card lifts well above hand (card bottom at ~360 absolute)
+@export var hover_lift: float = -380.0  ## Card lifts well above hand (card bottom at ~360 absolute)
 const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
 const MAX_ROTATION: float = 8.0  # Fan arc
 const ARC_HEIGHT: float = 15.0  # Gentle curve
@@ -123,15 +123,15 @@ func update_layout() -> void:
 		var target_scale := Vector2(base_scale, base_scale)
 
 		if card == selected_card:
-			target_pos.y += HOVER_LIFT - 30  # Selected card lifts even higher
+			target_pos.y += hover_lift - 30  # Selected card lifts even higher
 			target_rot = 0.0
 			target_scale = Vector2(1.4, 1.4)
 		elif card == focused_card:
-			target_pos.y += HOVER_LIFT - 10  # Focused card lifts up for preview
+			target_pos.y += hover_lift - 10  # Focused card lifts up for preview
 			target_rot = 0.0
 			target_scale = Vector2(1.5, 1.5)
 		elif card == hovered_card:
-			target_pos.y += HOVER_LIFT
+			target_pos.y += hover_lift
 			target_rot = 0.0
 			target_scale = Vector2(1.4, 1.4)
 
