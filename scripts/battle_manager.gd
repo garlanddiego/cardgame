@@ -1779,7 +1779,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_clear_damage_previews()
 			_hovered_enemy = null
 			card_hand.update_layout()
-	# Left click on background: play non-targeted card (self/all_enemies)
+	# Left click during targeting: check target type and play
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if card_hand and card_hand.is_targeting() and card_hand.selected_card:
 			var card_data: Dictionary = card_hand.get_selected_card_data()
@@ -1792,6 +1792,18 @@ func _unhandled_input(event: InputEvent) -> void:
 				_clear_all_enemy_highlights()
 				_hovered_enemy = null
 				card_hand.play_selected_on(enemies[0])
+			elif target_type == "enemy":
+				# Click-to-target: check if click is on an enemy
+				var click_pos: Vector2 = event.global_position
+				var target_enemy = _get_enemy_at(click_pos)
+				if target_enemy and target_enemy.alive:
+					_clear_damage_previews()
+					_clear_all_enemy_highlights()
+					_hovered_enemy = null
+					if _targeting_arrow:
+						_targeting_arrow.hide_arrow()
+						_targeting_arrow.visible = false
+					card_hand.play_card_on(card_hand.selected_card, target_enemy)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_E:
 		_on_end_turn()
 
