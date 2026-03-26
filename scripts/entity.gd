@@ -277,8 +277,9 @@ func _update_block_display() -> void:
 	if block > 0:
 		block_label.text = " " + str(block) + " "
 		block_label.visible = true
-		# Ensure blue background panel is applied for visibility
-		if not block_label.has_theme_stylebox_override("normal"):
+		block_label.add_theme_color_override("font_color", Color.WHITE)
+		# Ensure blue background panel is applied
+		if true:  # Always refresh style when block > 0
 			var block_bg = StyleBoxFlat.new()
 			block_bg.bg_color = Color(0.15, 0.3, 0.7, 0.9)
 			block_bg.border_color = Color(0.4, 0.6, 1.0, 1.0)
@@ -297,11 +298,30 @@ func _update_block_display() -> void:
 			block_label.add_theme_stylebox_override("normal", block_bg)
 		_previous_block = block
 	else:
-		# Block just broke — trigger shatter effect if it was > 0 before
+		# Block is 0 — show broken/empty shield (always visible)
 		if _previous_block > 0:
 			_flash_block_break()
 		_previous_block = 0
-		block_label.visible = false
+		block_label.text = " 0 "
+		block_label.visible = true
+		# Grey/broken shield style
+		var broken_bg = StyleBoxFlat.new()
+		broken_bg.bg_color = Color(0.2, 0.2, 0.25, 0.5)
+		broken_bg.border_color = Color(0.4, 0.4, 0.45, 0.4)
+		broken_bg.border_width_left = 1
+		broken_bg.border_width_right = 1
+		broken_bg.border_width_top = 1
+		broken_bg.border_width_bottom = 1
+		broken_bg.corner_radius_top_left = 6
+		broken_bg.corner_radius_top_right = 6
+		broken_bg.corner_radius_bottom_left = 6
+		broken_bg.corner_radius_bottom_right = 6
+		broken_bg.content_margin_left = 4
+		broken_bg.content_margin_right = 4
+		broken_bg.content_margin_top = 2
+		broken_bg.content_margin_bottom = 2
+		block_label.add_theme_stylebox_override("normal", broken_bg)
+		block_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55, 0.6))
 
 func _update_status_display() -> void:
 	_update_poison_preview()
