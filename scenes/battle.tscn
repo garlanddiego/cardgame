@@ -187,7 +187,7 @@ theme_override_font_sizes/font_size = 32
 text = "3/3"
 
 [node name="DrawPanel" type="Panel" parent="HUDLayer/HUD"]
-custom_minimum_size = Vector2(180, 50)
+custom_minimum_size = Vector2(180, 35)
 layout_mode = 1
 anchors_preset = 0
 anchor_left = 0.0
@@ -195,16 +195,16 @@ anchor_top = 0.64
 anchor_right = 0.0
 anchor_bottom = 0.64
 offset_left = 30.0
-offset_top = -90.0
+offset_top = -170.0
 offset_right = 210.0
-offset_bottom = 10.0
+offset_bottom = -135.0
 mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_drawPanel")
 
 [node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel"]
 layout_mode = 0
 offset_right = 180.0
-offset_bottom = 50.0
+offset_bottom = 35.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 22
@@ -213,7 +213,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD"]
-custom_minimum_size = Vector2(180, 50)
+custom_minimum_size = Vector2(180, 35)
 layout_mode = 1
 anchors_preset = 0
 anchor_left = 1.0
@@ -221,16 +221,16 @@ anchor_top = 0.64
 anchor_right = 1.0
 anchor_bottom = 0.64
 offset_left = -210.0
-offset_top = -90.0
+offset_top = -170.0
 offset_right = -30.0
-offset_bottom = 10.0
+offset_bottom = -135.0
 mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_discardPanel")
 
 [node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel"]
 layout_mode = 0
 offset_right = 180.0
-offset_bottom = 50.0
+offset_bottom = 35.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 22
