@@ -20,7 +20,10 @@ var trigger_section_label: Label = null
 var trigger_row: HBoxContainer = null
 
 # Effect rows: {checkbox: CheckBox, spinbox: SpinBox or null, key: String, label: String}
+# For custom spinbox replacement: {checkbox, value_label, minus_btn, plus_btn, min_val, max_val, current_value}
 var effect_rows: Array[Dictionary] = []
+# Custom spinbox values keyed by effect name
+var _effect_values: Dictionary = {}
 
 # Current selections
 var selected_cost: int = 1
@@ -68,10 +71,10 @@ func _build_ui() -> void:
 	hsplit.add_theme_constant_override("separation", 0)
 	add_child(hsplit)
 
-	# Left panel (40% - input controls)
+	# Left panel (65% - input controls)
 	var left_panel = _build_left_panel()
 	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_panel.size_flags_stretch_ratio = 0.4
+	left_panel.size_flags_stretch_ratio = 0.65
 	hsplit.add_child(left_panel)
 
 	# Separator line
@@ -81,10 +84,10 @@ func _build_ui() -> void:
 	sep.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hsplit.add_child(sep)
 
-	# Right panel (60% - card preview)
+	# Right panel (35% - card preview)
 	var right_panel = _build_right_panel()
 	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_panel.size_flags_stretch_ratio = 0.6
+	right_panel.size_flags_stretch_ratio = 0.35
 	hsplit.add_child(right_panel)
 
 func _build_left_panel() -> PanelContainer:
@@ -179,7 +182,7 @@ func _build_left_panel() -> PanelContainer:
 	# Power Trigger Timing (hidden by default, shown when type=Power)
 	trigger_section_label = Label.new()
 	trigger_section_label.text = "触发时机"
-	trigger_section_label.add_theme_font_size_override("font_size", 18)
+	trigger_section_label.add_theme_font_size_override("font_size", 24)
 	trigger_section_label.add_theme_color_override("font_color", ACCENT_GOLD)
 	trigger_section_label.visible = false
 	vbox.add_child(trigger_section_label)
@@ -299,49 +302,100 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 		["add_shiv", "添加小刀", true, 1, 1, 5],
 	]
 
-	for def in effects_def:
+	# 2-column layout: use an HBoxContainer with two VBoxContainers
+	var columns_hbox = HBoxContainer.new()
+	columns_hbox.add_theme_constant_override("separation", 16)
+	columns_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(columns_hbox)
+
+	var col_left = VBoxContainer.new()
+	col_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col_left.add_theme_constant_override("separation", 6)
+	columns_hbox.add_child(col_left)
+
+	var col_right = VBoxContainer.new()
+	col_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col_right.add_theme_constant_override("separation", 6)
+	columns_hbox.add_child(col_right)
+
+	for i in range(effects_def.size()):
+		var def_item = effects_def[i]
+		var target_col = col_left if (i % 2 == 0) else col_right
+
 		var row = HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
+		row.add_theme_constant_override("separation", 6)
 
 		var cb = CheckBox.new()
-		cb.text = def[1]
-		cb.add_theme_font_size_override("font_size", 16)
+		cb.text = def_item[1]
+		cb.add_theme_font_size_override("font_size", 20)
 		cb.add_theme_color_override("font_color", TEXT_COLOR)
 		cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cb.toggled.connect(_on_any_input_changed_bool)
 		row.add_child(cb)
 
-		var spinbox: SpinBox = null
-		if def[2]:
-			spinbox = SpinBox.new()
-			spinbox.min_value = def[4]
-			spinbox.max_value = def[5]
-			spinbox.value = def[3]
-			spinbox.custom_minimum_size = Vector2(90, 0)
-			spinbox.add_theme_font_size_override("font_size", 16)
-			spinbox.value_changed.connect(_on_any_input_changed_float)
-			# Style the spinbox line edit
-			var sb_style = StyleBoxFlat.new()
-			sb_style.bg_color = INPUT_BG
-			sb_style.border_color = BORDER_COLOR
-			sb_style.border_width_left = 1
-			sb_style.border_width_right = 1
-			sb_style.border_width_top = 1
-			sb_style.border_width_bottom = 1
-			sb_style.corner_radius_top_left = 3
-			sb_style.corner_radius_top_right = 3
-			sb_style.corner_radius_bottom_left = 3
-			sb_style.corner_radius_bottom_right = 3
-			spinbox.get_line_edit().add_theme_stylebox_override("normal", sb_style)
-			row.add_child(spinbox)
+		var value_label: Label = null
+		var minus_btn: Button = null
+		var plus_btn: Button = null
+		if def_item[2]:
+			# Initialize value in dictionary
+			_effect_values[def_item[0]] = def_item[3]
 
-		parent.add_child(row)
+			# Custom spinbox: [- button] [value label] [+ button]
+			var spin_hbox = HBoxContainer.new()
+			spin_hbox.add_theme_constant_override("separation", 2)
+
+			minus_btn = Button.new()
+			minus_btn.text = "-"
+			minus_btn.custom_minimum_size = Vector2(40, 40)
+			minus_btn.add_theme_font_size_override("font_size", 24)
+			minus_btn.add_theme_color_override("font_color", TEXT_COLOR)
+			_style_spin_button(minus_btn)
+			minus_btn.pressed.connect(_on_spin_minus.bind(def_item[0], def_item[4], def_item[5]))
+			spin_hbox.add_child(minus_btn)
+
+			value_label = Label.new()
+			value_label.text = str(def_item[3])
+			value_label.custom_minimum_size = Vector2(50, 40)
+			value_label.add_theme_font_size_override("font_size", 22)
+			value_label.add_theme_color_override("font_color", TEXT_COLOR)
+			value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			# Background style for value label
+			var val_style = StyleBoxFlat.new()
+			val_style.bg_color = INPUT_BG
+			val_style.border_color = BORDER_COLOR
+			val_style.border_width_left = 1
+			val_style.border_width_right = 1
+			val_style.border_width_top = 1
+			val_style.border_width_bottom = 1
+			val_style.corner_radius_top_left = 3
+			val_style.corner_radius_top_right = 3
+			val_style.corner_radius_bottom_left = 3
+			val_style.corner_radius_bottom_right = 3
+			value_label.add_theme_stylebox_override("normal", val_style)
+			spin_hbox.add_child(value_label)
+
+			plus_btn = Button.new()
+			plus_btn.text = "+"
+			plus_btn.custom_minimum_size = Vector2(40, 40)
+			plus_btn.add_theme_font_size_override("font_size", 24)
+			plus_btn.add_theme_color_override("font_color", TEXT_COLOR)
+			_style_spin_button(plus_btn)
+			plus_btn.pressed.connect(_on_spin_plus.bind(def_item[0], def_item[4], def_item[5]))
+			spin_hbox.add_child(plus_btn)
+
+			row.add_child(spin_hbox)
+
+		target_col.add_child(row)
 
 		effect_rows.append({
-			"key": def[0],
-			"label": def[1],
+			"key": def_item[0],
+			"label": def_item[1],
 			"checkbox": cb,
-			"spinbox": spinbox,
+			"spinbox": null,
+			"value_label": value_label,
+			"minus_btn": minus_btn,
+			"plus_btn": plus_btn,
 		})
 
 # =============================================================================
@@ -351,7 +405,7 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 func _add_section_label(parent: VBoxContainer, text: String) -> void:
 	var lbl = Label.new()
 	lbl.text = text
-	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_font_size_override("font_size", 24)
 	lbl.add_theme_color_override("font_color", ACCENT_GOLD)
 	parent.add_child(lbl)
 
@@ -419,6 +473,44 @@ func _create_action_button(text: String, color: Color) -> Button:
 	hover.bg_color = Color(color.r, color.g, color.b, 0.7)
 	btn.add_theme_stylebox_override("hover", hover)
 	return btn
+
+func _style_spin_button(btn: Button) -> void:
+	var style = StyleBoxFlat.new()
+	style.bg_color = BUTTON_NORMAL
+	style.border_color = BORDER_COLOR
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	btn.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = BUTTON_HOVER
+	btn.add_theme_stylebox_override("hover", hover)
+	var pressed_style = style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = BUTTON_SELECTED
+	btn.add_theme_stylebox_override("pressed", pressed_style)
+
+func _on_spin_minus(effect_key: String, min_val: int, _max_val: int) -> void:
+	if _effect_values.has(effect_key):
+		_effect_values[effect_key] = maxi(min_val, _effect_values[effect_key] - 1)
+		_refresh_value_label(effect_key)
+		_update_preview()
+
+func _on_spin_plus(effect_key: String, _min_val: int, max_val: int) -> void:
+	if _effect_values.has(effect_key):
+		_effect_values[effect_key] = mini(max_val, _effect_values[effect_key] + 1)
+		_refresh_value_label(effect_key)
+		_update_preview()
+
+func _refresh_value_label(effect_key: String) -> void:
+	for row in effect_rows:
+		if row["key"] == effect_key and row["value_label"] != null:
+			row["value_label"].text = str(_effect_values[effect_key])
+			break
 
 # =============================================================================
 # INPUT HANDLERS
@@ -521,7 +613,7 @@ func _build_card_data() -> Dictionary:
 		if not row["checkbox"].button_pressed:
 			continue
 		var key: String = row["key"]
-		var value: int = int(row["spinbox"].value) if row["spinbox"] != null else 0
+		var value: int = _effect_values[key] if _effect_values.has(key) else 0
 
 		match key:
 			"damage":
