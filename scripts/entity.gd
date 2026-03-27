@@ -8,7 +8,7 @@ signal died
 
 @export var max_hp: int = 80
 @export var is_enemy: bool = false
-@export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
+@export var damage_number_font_size: int = 48  ## Font size for floating damage numbers
 @export var status_float_font_size: int = 28  ## Font size for floating status text
 
 var current_hp: int = 80
@@ -443,8 +443,8 @@ func _flash_damage(damage_amount: int = 0) -> void:
 	if sprite_node == null:
 		return
 	var tween = create_tween()
-	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.3, 0.3), 0.1)
-	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.3, 0.3), 0.15)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3)
 	# Floating damage number
 	if damage_amount <= 0:
 		return
@@ -460,8 +460,8 @@ func _flash_damage(damage_amount: int = 0) -> void:
 	add_child(dmg_label)
 	var float_tween = create_tween()
 	float_tween.set_parallel(true)
-	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 0.8)
-	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 0.8).set_delay(0.3)
+	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 1.2)
+	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.2).set_delay(0.3)
 	float_tween.set_parallel(false)
 	float_tween.tween_callback(dmg_label.queue_free)
 

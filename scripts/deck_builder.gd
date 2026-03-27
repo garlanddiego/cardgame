@@ -18,7 +18,7 @@ var _CardScript = preload("res://scripts/card.gd")
 
 # Layout refs — built programmatically
 var browse_grid: GridContainer = null
-var cart_list: VBoxContainer = null
+var cart_list: GridContainer = null
 var cart_count_label: Label = null
 var confirm_btn: Button = null
 var filter_all_btn: Button = null
@@ -41,8 +41,10 @@ const SCREEN_W: float = 1920.0
 const SCREEN_H: float = 1080.0
 const BROWSE_RATIO: float = 0.75
 const CART_RATIO: float = 0.25
-const BROWSE_CARD_W: float = 256.0 * 0.8
-const BROWSE_CARD_H: float = 430.0 * 0.8
+const BROWSE_CARD_W: float = 256.0 * 1.0
+const BROWSE_CARD_H: float = 430.0 * 1.0
+const CART_CARD_W: float = 180.0
+const CART_CARD_H: float = 302.0
 const TOP_BAR_H: float = 70.0
 const FILTER_BAR_H: float = 50.0
 const BOTTOM_BAR_H: float = 0.0  # No bottom bar — confirm is in cart
@@ -173,12 +175,8 @@ func _build_browse_area(browse_w: float) -> void:
 
 	browse_grid = GridContainer.new()
 	browse_grid.name = "BrowseGrid"
-	# Calculate columns based on available width
-	var card_with_gap: float = BROWSE_CARD_W + 16.0
-	var cols: int = int(floor((browse_w - 40.0) / card_with_gap))
-	if cols < 1:
-		cols = 1
-	browse_grid.columns = cols
+	# Fixed 4 columns for larger cards
+	browse_grid.columns = 4
 	browse_grid.add_theme_constant_override("h_separation", 16)
 	browse_grid.add_theme_constant_override("v_separation", 16)
 	browse_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -235,9 +233,11 @@ func _build_cart_area(x_offset: float, cart_w: float) -> void:
 	cart_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	add_child(cart_scroll)
 
-	cart_list = VBoxContainer.new()
+	cart_list = GridContainer.new()
 	cart_list.name = "CartList"
-	cart_list.add_theme_constant_override("separation", 6)
+	cart_list.columns = 2
+	cart_list.add_theme_constant_override("h_separation", 6)
+	cart_list.add_theme_constant_override("v_separation", 6)
 	cart_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cart_scroll.add_child(cart_list)
 
@@ -635,106 +635,18 @@ func _rebuild_cart_list() -> void:
 
 func _create_cart_item(card: Dictionary, loc: Node) -> Control:
 	var card_id: String = card["id"]
-	var cart_w: float = SCREEN_W * CART_RATIO - 20
+	var card_size = Vector2(CART_CARD_W, CART_CARD_H)
 
-	# Compact row: [cost circle] [name] [type badge]
-	var item = Panel.new()
-	item.name = "Cart_" + card_id
-	item.custom_minimum_size = Vector2(cart_w, 48)
-
-	# Determine colors based on character
-	var character: String = card.get("character", "ironclad")
-	var bg_color: Color
-	var border_color: Color
-	match character:
-		"silent":
-			bg_color = Color(0.08, 0.18, 0.1, 0.85)
-			border_color = Color(0.2, 0.6, 0.2, 0.6)
-		"neutral", "colorless":
-			bg_color = Color(0.15, 0.15, 0.17, 0.85)
-			border_color = Color(0.45, 0.45, 0.5, 0.6)
-		_:
-			bg_color = Color(0.2, 0.06, 0.06, 0.85)
-			border_color = Color(0.7, 0.15, 0.15, 0.6)
-
-	var item_style = StyleBoxFlat.new()
-	item_style.bg_color = bg_color
-	item_style.border_color = border_color
-	item_style.border_width_left = 1
-	item_style.border_width_right = 1
-	item_style.border_width_top = 1
-	item_style.border_width_bottom = 1
-	item_style.corner_radius_top_left = 6
-	item_style.corner_radius_top_right = 6
-	item_style.corner_radius_bottom_left = 6
-	item_style.corner_radius_bottom_right = 6
-	item.add_theme_stylebox_override("panel", item_style)
-
-	# Cost circle
-	var cost_val: int = card.get("cost", 0)
-	var cost_lbl = Label.new()
-	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
-	cost_lbl.position = Vector2(4, 0)
-	cost_lbl.size = Vector2(36, 48)
-	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_lbl.add_theme_font_size_override("font_size", 22)
-	cost_lbl.add_theme_color_override("font_color", Color(0.2, 0.85, 0.3))
-	cost_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	item.add_child(cost_lbl)
-
-	# Card name
-	var card_name: String = card.get("name", "???")
-	if loc and loc.has_method("card_name"):
-		card_name = loc.card_name(card)
-	var name_lbl = Label.new()
-	name_lbl.text = card_name
-	name_lbl.position = Vector2(42, 0)
-	name_lbl.size = Vector2(cart_w - 90, 48)
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 18)
-	name_lbl.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	item.add_child(name_lbl)
-
-	# Type indicator (small colored dot text)
-	var card_type: int = card.get("type", 0)
-	var type_char: String
-	var type_color: Color
-	match card_type:
-		0: type_char = "攻"; type_color = Color(0.85, 0.2, 0.2)
-		1: type_char = "技"; type_color = Color(0.25, 0.45, 0.85)
-		2: type_char = "能"; type_color = Color(0.85, 0.7, 0.15)
-		_: type_char = "状"; type_color = Color(0.5, 0.5, 0.5)
-	var type_lbl = Label.new()
-	type_lbl.text = type_char
-	type_lbl.position = Vector2(cart_w - 40, 0)
-	type_lbl.size = Vector2(36, 48)
-	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_lbl.add_theme_font_size_override("font_size", 16)
-	type_lbl.add_theme_color_override("font_color", type_color)
-	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	item.add_child(type_lbl)
-
-	# Remove "x" indicator (subtle)
-	var remove_hint = Label.new()
-	remove_hint.text = "×"
-	remove_hint.position = Vector2(cart_w - 18, 0)
-	remove_hint.size = Vector2(16, 48)
-	remove_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	remove_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	remove_hint.add_theme_font_size_override("font_size", 18)
-	remove_hint.add_theme_color_override("font_color", Color(0.6, 0.3, 0.3, 0.7))
-	remove_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	item.add_child(remove_hint)
+	# Full card visual at smaller size
+	var card_root = _CardScript.create_card_visual(card, card_size, loc)
+	card_root.name = "Cart_" + card_id
+	card_root.custom_minimum_size = card_size
 
 	# Connect tap to remove from cart
-	item.gui_input.connect(_on_cart_item_tap.bind(card_id))
-	item.mouse_filter = Control.MOUSE_FILTER_STOP
+	card_root.gui_input.connect(_on_cart_item_tap.bind(card_id))
+	card_root.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	return item
+	return card_root
 
 func _on_cart_item_tap(event: InputEvent, card_id: String) -> void:
 	if not (event is InputEventMouseButton):
