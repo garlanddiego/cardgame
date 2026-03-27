@@ -42,8 +42,8 @@ var _animation_in_progress: bool = false
 # Constants
 const SCREEN_W: float = 1920.0
 const SCREEN_H: float = 1080.0
-const BROWSE_RATIO: float = 0.75
-const CART_RATIO: float = 0.25
+const BROWSE_RATIO: float = 0.80
+const CART_RATIO: float = 0.20
 const BROWSE_CARD_W: float = 256.0 * 1.0
 const BROWSE_CARD_H: float = 430.0 * 1.0
 const CART_CARD_W: float = 180.0
@@ -179,7 +179,7 @@ func _build_browse_area(browse_w: float) -> void:
 	browse_grid = GridContainer.new()
 	browse_grid.name = "BrowseGrid"
 	# Fixed 4 columns for larger cards
-	browse_grid.columns = 4
+	browse_grid.columns = 5
 	browse_grid.add_theme_constant_override("h_separation", 16)
 	browse_grid.add_theme_constant_override("v_separation", 16)
 	browse_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
