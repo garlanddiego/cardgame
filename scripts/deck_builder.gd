@@ -649,8 +649,8 @@ func _animate_card_to_cart(card_id: String) -> void:
 	var target_scale: Vector2 = Vector2(CART_CARD_W / BROWSE_CARD_W, CART_CARD_H / BROWSE_CARD_H)
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(fly_card, "position", end_pos, 0.5).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	tween.tween_property(fly_card, "scale", target_scale, 0.5).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(fly_card, "position", end_pos, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(fly_card, "scale", target_scale, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	tween.set_parallel(false)
 	tween.tween_callback(_on_fly_animation_done.bind(card_id, fly_card))
 

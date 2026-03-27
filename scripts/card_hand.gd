@@ -273,7 +273,7 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 		card_node.move_to(center_pos, 0.0, Vector2(1.2, 1.2), 0.2)
 		# Step 2: After pause, fly to final destination
 		var anim_tween = create_tween()
-		anim_tween.tween_interval(0.35)  # 0.2s fly + 0.15s pause (1/4 second feel)
+		anim_tween.tween_interval(0.25)  # Pause at center for 0.25s
 		anim_tween.tween_callback(func():
 			if not is_instance_valid(card_node):
 				return
@@ -303,9 +303,9 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 			card_node.card_drag_started.disconnect(_on_card_drag_started)
 		if card_node.card_drag_ended.is_connected(_on_card_drag_ended):
 			card_node.card_drag_ended.disconnect(_on_card_drag_ended)
-		# Remove after full animation completes (0.35 center + 0.3 final)
+		# Remove after full animation completes (0.25 pause + 0.25 fly)
 		var tween = create_tween()
-		tween.tween_interval(0.75)
+		tween.tween_interval(0.6)
 		tween.tween_callback(func():
 			if is_instance_valid(card_node):
 				card_node.queue_free()
