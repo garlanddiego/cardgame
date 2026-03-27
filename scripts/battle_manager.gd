@@ -557,9 +557,13 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	# Handle discard requirement (e.g., Acrobatics: draw 3, discard 1)
 	var discard_count: int = card_data.get("discard", 0)
 	if discard_count > 0 and not hand.is_empty():
-		# Clamp to hand size
 		discard_count = mini(discard_count, hand.size())
-		_show_discard_selection(discard_count, _on_discard_complete)
+		if hand.size() <= discard_count:
+			# Auto-discard all remaining cards (no selection needed)
+			_auto_discard(hand.size())
+			_on_discard_complete()
+		else:
+			_show_discard_selection(discard_count, _on_discard_complete)
 		return  # Don't check battle end yet — wait for discard to finish
 
 	# Check win condition

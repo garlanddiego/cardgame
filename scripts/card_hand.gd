@@ -18,7 +18,7 @@ var _any_card_dragging: bool = false
 
 # STS2-style layout — matching card.gd CARD_SIZE (256x495)
 const CARD_WIDTH: float = 256.0
-const CARD_HEIGHT: float = 495.0
+const CARD_HEIGHT: float = 430.0
 const CARD_OVERLAP: float = 60.0  # Overlap for 5+ cards
 @export var hover_lift: float = -380.0  ## Card lifts well above hand (card bottom at ~360 absolute)
 const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
