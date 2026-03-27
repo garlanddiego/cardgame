@@ -19,6 +19,7 @@ var custom_desc_edit: TextEdit
 
 # Editing state — when non-empty, save overwrites this card instead of creating new
 var _editing_card_id: String = ""
+var _editing_art_path: String = ""
 # Card browser overlay node (full-screen)
 var _browser_overlay: Control = null
 
@@ -822,7 +823,7 @@ func _build_card_data() -> Dictionary:
 		"damage": 0,
 		"block": 0,
 		"description": "",
-		"art": "",
+		"art": _editing_art_path,
 		"target": "self",
 		"actions": [],
 	}
@@ -1168,6 +1169,7 @@ func _on_browser_card_clicked(event: InputEvent, card_id: String) -> void:
 
 func _load_card_for_edit(card_data: Dictionary) -> void:
 	_editing_card_id = card_data.get("id", "")
+	_editing_art_path = card_data.get("art", "")
 
 	# --- Name ---
 	name_edit.text = card_data.get("name", "")
@@ -1210,9 +1212,14 @@ func _load_card_for_edit(card_data: Dictionary) -> void:
 		char_idx = 0
 	_highlight_button_group(char_buttons, char_idx)
 
-	# --- Reset all effect checkboxes and values ---
+	# --- Reset all effect checkboxes and values to 0 ---
 	for row in effect_rows:
 		row["checkbox"].button_pressed = false
+		var key: String = row["key"]
+		if _effect_values.has(key):
+			_effect_values[key] = 0
+		if row["value_label"] != null:
+			row["value_label"].text = "0"
 
 	# --- Parse card data to set effects ---
 	# Damage
