@@ -13,6 +13,7 @@ var char_buttons: Array[Button] = []
 var trigger_buttons: Array[Button] = []
 var preview_container: Control
 var save_button: Button
+var save_as_new_button: Button
 var back_button: Button
 var edit_button: Button
 var custom_desc_edit: TextEdit
@@ -285,9 +286,14 @@ func _build_left_panel() -> PanelContainer:
 	back_button.pressed.connect(_on_back_pressed)
 	btn_row.add_child(back_button)
 
-	save_button = _create_action_button("保存卡牌", ACCENT_GOLD)
+	save_button = _create_action_button("创建卡牌", ACCENT_GOLD)
 	save_button.pressed.connect(_on_save_pressed)
 	btn_row.add_child(save_button)
+
+	save_as_new_button = _create_action_button("另存为新卡", Color(0.3, 0.55, 0.8))
+	save_as_new_button.pressed.connect(_on_save_as_new_pressed)
+	btn_row.add_child(save_as_new_button)
+	save_as_new_button.visible = false
 
 	vbox.add_child(btn_row)
 
@@ -997,6 +1003,10 @@ func _update_preview() -> void:
 	_preview_node = CardScript.create_card_visual(card_data, preview_size)
 	preview_container.add_child(_preview_node)
 
+	# Sync text parse area with current effects description
+	if _text_parse_edit != null:
+		_text_parse_edit.text = card_data["description"]
+
 # =============================================================================
 # SAVE / BACK
 # =============================================================================
@@ -1024,6 +1034,26 @@ func _on_save_pressed() -> void:
 		card_data["id"] = card_id
 		gm.card_database[card_id] = card_data
 		_flash_save_feedback()
+
+func _on_save_as_new_pressed() -> void:
+	var card_data = _build_card_data()
+
+	var gm = _get_game_manager()
+	if gm == null or not (gm.card_database is Dictionary):
+		return
+
+	# Always create a new card with a new unique ID
+	_card_counter += 1
+	var card_id = "custom_%04d_%s" % [_card_counter, card_data["name"].to_lower().replace(" ", "_")]
+	card_data["id"] = card_id
+	# Do not carry over art from original
+	card_data.erase("art")
+	gm.card_database[card_id] = card_data
+
+	# Switch to editing the newly created card
+	_editing_card_id = card_id
+	_editing_art_path = ""
+	_flash_save_feedback()
 
 func _flash_save_feedback() -> void:
 	var original_text = save_button.text
@@ -1322,6 +1352,10 @@ func _load_card_for_edit(card_data: Dictionary) -> void:
 	# --- Update visibility and preview ---
 	_update_effect_visibility()
 	_update_preview()
+
+	# --- Switch buttons to edit mode ---
+	save_button.text = "保存修改"
+	save_as_new_button.visible = true
 
 func _set_effect(key: String, enabled: bool, value: int = 0) -> void:
 	for row in effect_rows:
