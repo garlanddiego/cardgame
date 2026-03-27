@@ -458,6 +458,9 @@ func draw_cards(count: int) -> void:
 		if evolve_active and card_data.get("type", 0) == 3:  # STATUS type
 			draw_cards(1)
 	_update_pile_labels()
+	# Update cost colors for all cards (including newly drawn ones)
+	if card_hand:
+		card_hand.update_card_playability(current_energy)
 
 func _reshuffle_discard() -> void:
 	draw_pile = discard_pile.duplicate()
