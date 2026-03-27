@@ -56,6 +56,10 @@ var _preview_node: Control = null
 # Counter for unique card IDs
 var _card_counter: int = 0
 
+# Text-to-Card mode UI
+var _text_parse_edit: TextEdit = null
+var _text_parse_button: Button = null
+
 func _ready() -> void:
 	_build_ui()
 	_update_preview()
@@ -231,6 +235,11 @@ func _build_left_panel() -> PanelContainer:
 
 	_add_separator(vbox)
 
+	# Text-to-Card Mode (文本模式)
+	_build_text_parse_section(vbox)
+
+	_add_separator(vbox)
+
 	# Effects Section
 	_add_section_label(vbox, "效果")
 	_build_effect_rows(vbox)
@@ -318,6 +327,180 @@ func _build_right_panel() -> PanelContainer:
 	vbox.add_child(preview_container)
 
 	return panel_container
+
+func _build_text_parse_section(parent: VBoxContainer) -> void:
+	_add_section_label(parent, "文本模式")
+	var hint_label = Label.new()
+	hint_label.text = "输入效果文本，点击解析自动设置效果 (如：造成10点伤害 加2层易伤 5层中毒)"
+	hint_label.add_theme_font_size_override("font_size", 16)
+	hint_label.add_theme_color_override("font_color", DIM_TEXT)
+	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(hint_label)
+
+	_text_parse_edit = TextEdit.new()
+	_text_parse_edit.placeholder_text = "造成10点伤害 加2层易伤 5层中毒 获得8格挡 抽2张牌 消耗..."
+	_text_parse_edit.custom_minimum_size = Vector2(0, 60)
+	_text_parse_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_text_parse_edit.add_theme_font_size_override("font_size", 18)
+	_text_parse_edit.add_theme_color_override("font_color", TEXT_COLOR)
+	var parse_style = StyleBoxFlat.new()
+	parse_style.bg_color = INPUT_BG
+	parse_style.border_color = Color(0.3, 0.55, 0.8, 0.8)
+	parse_style.border_width_left = 1
+	parse_style.border_width_right = 1
+	parse_style.border_width_top = 1
+	parse_style.border_width_bottom = 1
+	parse_style.corner_radius_top_left = 4
+	parse_style.corner_radius_top_right = 4
+	parse_style.corner_radius_bottom_left = 4
+	parse_style.corner_radius_bottom_right = 4
+	parse_style.content_margin_left = 8
+	parse_style.content_margin_right = 8
+	parse_style.content_margin_top = 6
+	parse_style.content_margin_bottom = 6
+	_text_parse_edit.add_theme_stylebox_override("normal", parse_style)
+	parent.add_child(_text_parse_edit)
+
+	_text_parse_button = _create_action_button("解析", Color(0.3, 0.55, 0.8))
+	_text_parse_button.custom_minimum_size = Vector2(120, 44)
+	_text_parse_button.pressed.connect(_on_parse_text_pressed)
+	parent.add_child(_text_parse_button)
+
+func _on_parse_text_pressed() -> void:
+	if _text_parse_edit == null:
+		return
+	var text: String = _text_parse_edit.text.strip_edges()
+	if text.is_empty():
+		return
+	_parse_text_to_effects(text)
+
+func _parse_text_to_effects(text: String) -> void:
+	# Reset all effect checkboxes first
+	for row in effect_rows:
+		row["checkbox"].button_pressed = false
+
+	# Use regex for number extraction
+	var regex = RegEx.new()
+
+	# --- damage: "造成X点伤害" or "X伤害" ---
+	regex.compile("造成(\\d+)点伤害")
+	var result = regex.search(text)
+	if result:
+		_set_effect("damage", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)伤害")
+		result = regex.search(text)
+		if result:
+			_set_effect("damage", true, int(result.get_string(1)))
+
+	# --- vulnerable: "加X层易伤" or "X易伤" ---
+	regex.compile("加(\\d+)层易伤")
+	result = regex.search(text)
+	if result:
+		_set_effect("vulnerable", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)易伤")
+		result = regex.search(text)
+		if result:
+			_set_effect("vulnerable", true, int(result.get_string(1)))
+
+	# --- weak: "加X层虚弱" or "X虚弱" ---
+	regex.compile("加(\\d+)层虚弱")
+	result = regex.search(text)
+	if result:
+		_set_effect("weak", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)虚弱")
+		result = regex.search(text)
+		if result:
+			_set_effect("weak", true, int(result.get_string(1)))
+
+	# --- poison: "X层中毒" or "X中毒" ---
+	regex.compile("(\\d+)层中毒")
+	result = regex.search(text)
+	if result:
+		_set_effect("poison", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)中毒")
+		result = regex.search(text)
+		if result:
+			_set_effect("poison", true, int(result.get_string(1)))
+
+	# --- block: "获得X格挡" or "X格挡" ---
+	regex.compile("获得(\\d+)格挡")
+	result = regex.search(text)
+	if result:
+		_set_effect("block", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)格挡")
+		result = regex.search(text)
+		if result:
+			_set_effect("block", true, int(result.get_string(1)))
+
+	# --- draw: "抽X张牌" ---
+	regex.compile("抽(\\d+)张牌")
+	result = regex.search(text)
+	if result:
+		_set_effect("draw", true, int(result.get_string(1)))
+
+	# --- strength: "获得X力量" or "X力量" ---
+	regex.compile("获得(\\d+)力量")
+	result = regex.search(text)
+	if result:
+		_set_effect("strength", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)力量")
+		result = regex.search(text)
+		if result:
+			_set_effect("strength", true, int(result.get_string(1)))
+
+	# --- dexterity: "获得X敏捷" or "X敏捷" ---
+	regex.compile("获得(\\d+)敏捷")
+	result = regex.search(text)
+	if result:
+		_set_effect("dexterity", true, int(result.get_string(1)))
+	else:
+		regex.compile("(\\d+)敏捷")
+		result = regex.search(text)
+		if result:
+			_set_effect("dexterity", true, int(result.get_string(1)))
+
+	# --- exhaust: "消耗" ---
+	if "消耗" in text:
+		_set_effect("exhaust", true)
+
+	# --- ethereal: "虚无" ---
+	if "虚无" in text:
+		_set_effect("ethereal", true)
+
+	# --- self_damage: "自伤X" ---
+	regex.compile("自伤(\\d+)")
+	result = regex.search(text)
+	if result:
+		_set_effect("self_damage", true, int(result.get_string(1)))
+
+	# --- damage_all: "全体" ---
+	if "全体" in text:
+		_set_effect("damage_all", true)
+
+	# Flash feedback on the parse button
+	_flash_parse_feedback()
+
+	# Update preview
+	_update_preview()
+
+func _flash_parse_feedback() -> void:
+	if _text_parse_button == null:
+		return
+	var original_text = _text_parse_button.text
+	_text_parse_button.text = "已解析!"
+	_text_parse_button.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3))
+	var tween = create_tween()
+	tween.tween_interval(1.0)
+	tween.tween_callback(func():
+		_text_parse_button.text = original_text
+		_text_parse_button.add_theme_color_override("font_color", Color.WHITE)
+	)
 
 func _build_effect_rows(parent: VBoxContainer) -> void:
 	# Define all effects: [key, label, has_spinbox, default_value, min_val, max_val]
