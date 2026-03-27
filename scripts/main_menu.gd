@@ -103,10 +103,10 @@ func _create_menu_button(text: String, color: Color) -> Button:
 	return btn
 
 func _on_battle_pressed() -> void:
-	# Skip character selection — go directly to main scene with default character
+	# Skip character selection — go directly to deck builder with Silent
 	var gm = get_node_or_null("/root/GameManager")
 	if gm:
-		gm.select_character("ironclad")
+		gm.select_character("silent")
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 func _on_creator_pressed() -> void:

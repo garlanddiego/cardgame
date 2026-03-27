@@ -3,7 +3,7 @@ extends Node2D
 
 var battle_scene: PackedScene = null
 var deck_builder_scene: PackedScene = null
-var current_character: String = "ironclad"
+var current_character: String = "silent"
 
 func _ready() -> void:
 	battle_scene = load("res://scenes/battle.tscn")
