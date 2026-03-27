@@ -331,7 +331,7 @@ func _build_right_panel() -> PanelContainer:
 func _build_text_parse_section(parent: VBoxContainer) -> void:
 	_add_section_label(parent, "文本模式")
 	var hint_label = Label.new()
-	hint_label.text = "输入效果文本，点击解析自动设置效果 (如：造成10点伤害 加2层易伤 5层中毒)"
+	hint_label.text = "关键词模板：造成X伤害 | 全体 | 获得X格挡 | 抽X张牌 | 弃X张牌 | 失去X生命 | 施加X层易伤/虚弱/中毒 | 获得X力量/敏捷/能量 | 治疗X | 消耗 | 虚无 | 天赋 | 奇巧 | X段攻击 | 添加X飞刀"
 	hint_label.add_theme_font_size_override("font_size", 16)
 	hint_label.add_theme_color_override("font_color", DIM_TEXT)
 	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
