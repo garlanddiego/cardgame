@@ -14,6 +14,13 @@ var trigger_buttons: Array[Button] = []
 var preview_container: Control
 var save_button: Button
 var back_button: Button
+var edit_button: Button
+var custom_desc_edit: TextEdit
+
+# Editing state — when non-empty, save overwrites this card instead of creating new
+var _editing_card_id: String = ""
+# Card browser overlay node (full-screen)
+var _browser_overlay: Control = null
 
 # Power trigger UI
 var trigger_section_label: Label = null
@@ -119,6 +126,12 @@ func _build_left_panel() -> PanelContainer:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 
+	# "Select Card to Edit" button
+	edit_button = _create_action_button("选择卡牌编辑", Color(0.3, 0.55, 0.8))
+	edit_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	edit_button.pressed.connect(_show_card_browser)
+	vbox.add_child(edit_button)
+
 	_add_separator(vbox)
 
 	# Card Name
@@ -221,6 +234,35 @@ func _build_left_panel() -> PanelContainer:
 	# Effects Section
 	_add_section_label(vbox, "效果")
 	_build_effect_rows(vbox)
+
+	_add_separator(vbox)
+
+	# Custom Description Text Area
+	_add_section_label(vbox, "特有功能描述（自定义）")
+	custom_desc_edit = TextEdit.new()
+	custom_desc_edit.placeholder_text = "输入卡牌特有效果描述..."
+	custom_desc_edit.custom_minimum_size = Vector2(0, 80)
+	custom_desc_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	custom_desc_edit.add_theme_font_size_override("font_size", 18)
+	custom_desc_edit.add_theme_color_override("font_color", TEXT_COLOR)
+	var desc_style = StyleBoxFlat.new()
+	desc_style.bg_color = INPUT_BG
+	desc_style.border_color = BORDER_COLOR
+	desc_style.border_width_left = 1
+	desc_style.border_width_right = 1
+	desc_style.border_width_top = 1
+	desc_style.border_width_bottom = 1
+	desc_style.corner_radius_top_left = 4
+	desc_style.corner_radius_top_right = 4
+	desc_style.corner_radius_bottom_left = 4
+	desc_style.corner_radius_bottom_right = 4
+	desc_style.content_margin_left = 8
+	desc_style.content_margin_right = 8
+	desc_style.content_margin_top = 6
+	desc_style.content_margin_bottom = 6
+	custom_desc_edit.add_theme_stylebox_override("normal", desc_style)
+	custom_desc_edit.text_changed.connect(_on_custom_desc_changed)
+	vbox.add_child(custom_desc_edit)
 
 	_add_separator(vbox)
 
@@ -525,6 +567,9 @@ func _on_any_input_changed_bool(_val: bool) -> void:
 func _on_any_input_changed_float(_val: float) -> void:
 	_update_preview()
 
+func _on_custom_desc_changed() -> void:
+	_update_preview()
+
 func _on_cost_selected(cost_value: int, index: int) -> void:
 	selected_cost = cost_value
 	_highlight_button_group(cost_buttons, index)
@@ -732,6 +777,17 @@ func _build_card_data() -> Dictionary:
 	data["actions"] = actions
 	data["description"] = "\n".join(desc_parts)
 
+	# Append custom description text if provided
+	var custom_text: String = ""
+	if custom_desc_edit != null:
+		custom_text = custom_desc_edit.text.strip_edges()
+	if not custom_text.is_empty():
+		data["custom_description"] = custom_text
+		if data["description"].is_empty():
+			data["description"] = custom_text
+		else:
+			data["description"] += "\n" + custom_text
+
 	return data
 
 # =============================================================================
@@ -760,16 +816,25 @@ func _update_preview() -> void:
 func _on_save_pressed() -> void:
 	var card_data = _build_card_data()
 
-	# Generate unique ID with counter
-	_card_counter += 1
-	var card_id = "custom_%04d_%s" % [_card_counter, card_data["name"].to_lower().replace(" ", "_")]
-	card_data["id"] = card_id
-
-	# Add to GameManager's card_database
 	var gm = _get_game_manager()
-	if gm and gm.card_database is Dictionary:
+	if gm == null or not (gm.card_database is Dictionary):
+		return
+
+	if _editing_card_id != "":
+		# Overwrite existing card
+		var card_id = _editing_card_id
+		card_data["id"] = card_id
+		# Preserve art from original if present
+		if gm.card_database.has(card_id) and gm.card_database[card_id].has("art"):
+			card_data["art"] = gm.card_database[card_id]["art"]
 		gm.card_database[card_id] = card_data
-		# Visual feedback: flash the save button
+		_flash_save_feedback()
+	else:
+		# Generate unique ID with counter
+		_card_counter += 1
+		var card_id = "custom_%04d_%s" % [_card_counter, card_data["name"].to_lower().replace(" ", "_")]
+		card_data["id"] = card_id
+		gm.card_database[card_id] = card_data
 		_flash_save_feedback()
 
 func _flash_save_feedback() -> void:
@@ -786,6 +851,307 @@ func _flash_save_feedback() -> void:
 func _on_back_pressed() -> void:
 	# Navigate back to main menu
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+# =============================================================================
+# CARD BROWSER (Select existing card for editing)
+# =============================================================================
+
+func _show_card_browser() -> void:
+	if _browser_overlay != null:
+		_browser_overlay.queue_free()
+		_browser_overlay = null
+
+	var gm = _get_game_manager()
+	if gm == null or not (gm.card_database is Dictionary):
+		return
+
+	# Full-screen overlay
+	_browser_overlay = Control.new()
+	_browser_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_browser_overlay.z_index = 100
+	add_child(_browser_overlay)
+
+	# Dark background
+	var bg = ColorRect.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.0, 0.0, 0.0, 0.85)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	_browser_overlay.add_child(bg)
+
+	# Main VBox
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 8)
+	_browser_overlay.add_child(vbox)
+
+	# Top bar with title + close button
+	var top_bar = HBoxContainer.new()
+	top_bar.custom_minimum_size = Vector2(0, 60)
+	top_bar.add_theme_constant_override("separation", 16)
+	vbox.add_child(top_bar)
+
+	var spacer_left = Control.new()
+	spacer_left.custom_minimum_size = Vector2(20, 0)
+	top_bar.add_child(spacer_left)
+
+	var title_lbl = Label.new()
+	title_lbl.text = "选择卡牌编辑"
+	title_lbl.add_theme_font_size_override("font_size", 32)
+	title_lbl.add_theme_color_override("font_color", ACCENT_GOLD)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	top_bar.add_child(title_lbl)
+
+	var close_btn = _create_action_button("关闭", ACCENT_RED)
+	close_btn.custom_minimum_size = Vector2(100, 44)
+	close_btn.pressed.connect(_close_card_browser)
+	top_bar.add_child(close_btn)
+
+	var spacer_right = Control.new()
+	spacer_right.custom_minimum_size = Vector2(20, 0)
+	top_bar.add_child(spacer_right)
+
+	# Scroll container with card grid
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+
+	var grid = GridContainer.new()
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 16)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(grid)
+
+	# Collect and sort all cards
+	var cards: Array = []
+	for card_id in gm.card_database:
+		var card = gm.card_database[card_id]
+		# Skip status cards (type 3)
+		if card.get("type", 0) == 3:
+			continue
+		cards.append(card)
+
+	cards.sort_custom(func(a, b):
+		if a.get("character", "") != b.get("character", ""):
+			return a.get("character", "") < b.get("character", "")
+		if a.get("type", 0) != b.get("type", 0):
+			return a.get("type", 0) < b.get("type", 0)
+		return a.get("name", "") < b.get("name", "")
+	)
+
+	var card_size = Vector2(220, 296)
+	for card in cards:
+		var card_visual = CardScript.create_card_visual(card, card_size)
+		card_visual.custom_minimum_size = card_size
+		card_visual.mouse_filter = Control.MOUSE_FILTER_PASS
+		# Make child panels pass-through for clicks
+		for child in card_visual.get_children():
+			if child is Panel or child is Control:
+				child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var card_id: String = card.get("id", "")
+		card_visual.gui_input.connect(_on_browser_card_clicked.bind(card_id))
+		grid.add_child(card_visual)
+
+func _close_card_browser() -> void:
+	if _browser_overlay != null:
+		_browser_overlay.queue_free()
+		_browser_overlay = null
+
+func _on_browser_card_clicked(event: InputEvent, card_id: String) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mb := event as InputEventMouseButton
+	if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+		return
+
+	var gm = _get_game_manager()
+	if gm == null or not gm.card_database.has(card_id):
+		return
+
+	var card_data: Dictionary = gm.card_database[card_id]
+	_close_card_browser()
+	_load_card_for_edit(card_data)
+
+# =============================================================================
+# LOAD CARD FOR EDIT
+# =============================================================================
+
+func _load_card_for_edit(card_data: Dictionary) -> void:
+	_editing_card_id = card_data.get("id", "")
+
+	# --- Name ---
+	name_edit.text = card_data.get("name", "")
+
+	# --- Cost ---
+	var cost_val: int = card_data.get("cost", 1)
+	selected_cost = cost_val
+	var cost_values = [0, 1, 2, 3, -1]
+	var cost_idx: int = cost_values.find(cost_val)
+	if cost_idx < 0:
+		cost_idx = 1
+	_highlight_button_group(cost_buttons, cost_idx)
+
+	# --- Type ---
+	var type_val: int = card_data.get("type", 0)
+	selected_type = type_val
+	_highlight_button_group(type_buttons, type_val)
+	# Show/hide power trigger UI
+	var is_power: bool = (type_val == 2)
+	if trigger_section_label:
+		trigger_section_label.visible = is_power
+	if trigger_row:
+		trigger_row.visible = is_power
+
+	# --- Power Trigger ---
+	if is_power and card_data.has("power_trigger"):
+		var trigger_id: String = card_data["power_trigger"]
+		selected_power_trigger = trigger_id
+		var trigger_ids = ["turn_start", "turn_end", "permanent"]
+		var trigger_idx = trigger_ids.find(trigger_id)
+		if trigger_idx >= 0:
+			_highlight_button_group(trigger_buttons, trigger_idx)
+
+	# --- Character ---
+	var char_id: String = card_data.get("character", "ironclad")
+	selected_character = char_id
+	var char_ids = ["ironclad", "silent", "neutral"]
+	var char_idx = char_ids.find(char_id)
+	if char_idx < 0:
+		char_idx = 0
+	_highlight_button_group(char_buttons, char_idx)
+
+	# --- Reset all effect checkboxes and values ---
+	for row in effect_rows:
+		row["checkbox"].button_pressed = false
+
+	# --- Parse card data to set effects ---
+	# Damage
+	var damage_val: int = card_data.get("damage", 0)
+	if damage_val > 0:
+		_set_effect("damage", true, damage_val)
+
+	# AOE (damage_all)
+	var target: String = card_data.get("target", "self")
+	if target == "all_enemies":
+		_set_effect("damage_all", true)
+
+	# Block
+	var block_val: int = card_data.get("block", 0)
+	if block_val > 0:
+		_set_effect("block", true, block_val)
+
+	# Draw
+	var draw_val: int = card_data.get("draw", 0)
+	if draw_val > 0:
+		_set_effect("draw", true, draw_val)
+
+	# Multi-hit
+	var times_val: int = card_data.get("times", 0)
+	if times_val >= 2:
+		_set_effect("multi_hit", true, times_val)
+
+	# Exhaust, Ethereal, Innate
+	if card_data.get("exhaust", false):
+		_set_effect("exhaust", true)
+	if card_data.get("ethereal", false):
+		_set_effect("ethereal", true)
+	if card_data.get("innate", false):
+		_set_effect("innate", true)
+
+	# Sly
+	if card_data.get("special", "") == "sly":
+		_set_effect("sly", true)
+
+	# Apply status effects (vulnerable, weak, poison)
+	_parse_status_field(card_data, "apply_status")
+	_parse_status_field(card_data, "apply_status_2")
+
+	# Parse actions for self-applied statuses and other effects
+	var uncovered_actions: Array = []
+	var actions: Array = card_data.get("actions", [])
+	for action in actions:
+		var atype: String = action.get("type", "")
+		match atype:
+			"apply_self_status":
+				var status: String = action.get("status", "")
+				var stacks: int = action.get("stacks", 1)
+				if status == "strength":
+					_set_effect("strength", true, stacks)
+				elif status == "dexterity":
+					_set_effect("dexterity", true, stacks)
+				else:
+					uncovered_actions.append(action)
+			"self_damage":
+				_set_effect("self_damage", true, action.get("value", 2))
+			"gain_energy":
+				if action.get("next_turn", false):
+					_set_effect("next_turn_energy", true, action.get("value", 1))
+				else:
+					_set_effect("gain_energy", true, action.get("value", 1))
+			"heal":
+				_set_effect("heal", true, action.get("value", 5))
+			"add_shiv":
+				_set_effect("add_shiv", true, action.get("value", 1))
+			"block":
+				if action.get("next_turn", false):
+					_set_effect("next_turn_block", true, action.get("value", 5))
+				# Normal block is handled by card_data["block"] above
+			"damage", "damage_all", "draw", "apply_status":
+				pass  # Handled above via card_data fields
+			"call":
+				uncovered_actions.append(action)
+			_:
+				uncovered_actions.append(action)
+
+	# --- Custom description ---
+	# Check for custom_description field, or build from uncovered actions / special fields
+	var custom_text: String = card_data.get("custom_description", "")
+	if custom_text.is_empty():
+		# Detect special fields not covered by checkboxes
+		var special_parts: Array = []
+		var special: String = card_data.get("special", "")
+		if special != "" and special != "sly":
+			special_parts.append("special: %s" % special)
+		for action in uncovered_actions:
+			special_parts.append(str(action))
+		# Check for other exotic fields
+		for exotic_key in ["str_mult", "strike_bonus", "rampage_inc", "max_hp_gain", "unplayable"]:
+			if card_data.has(exotic_key):
+				special_parts.append("%s: %s" % [exotic_key, str(card_data[exotic_key])])
+		custom_text = "\n".join(special_parts)
+	if custom_desc_edit != null:
+		custom_desc_edit.text = custom_text
+
+	# --- Update visibility and preview ---
+	_update_effect_visibility()
+	_update_preview()
+
+func _set_effect(key: String, enabled: bool, value: int = 0) -> void:
+	for row in effect_rows:
+		if row["key"] == key:
+			row["checkbox"].button_pressed = enabled
+			if value > 0 and _effect_values.has(key):
+				_effect_values[key] = value
+				if row["value_label"] != null:
+					row["value_label"].text = str(value)
+			break
+
+func _parse_status_field(card_data: Dictionary, field_name: String) -> void:
+	if not card_data.has(field_name):
+		return
+	var status_data: Dictionary = card_data[field_name]
+	var status_type: String = status_data.get("type", "")
+	var stacks: int = status_data.get("stacks", 1)
+	match status_type:
+		"vulnerable":
+			_set_effect("vulnerable", true, stacks)
+		"weak":
+			_set_effect("weak", true, stacks)
+		"poison":
+			_set_effect("poison", true, stacks)
 
 func _get_game_manager() -> Node:
 	for child in get_tree().root.get_children():
