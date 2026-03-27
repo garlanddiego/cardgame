@@ -20,7 +20,7 @@ enum CardState {
 	MOVING_TO_CONTAINER
 }
 
-const CARD_SIZE := Vector2(256, 430)
+const CARD_SIZE := Vector2(256, 495)
 
 var card_data: Dictionary = {}
 var card_state: int = CardState.IN_HAND
@@ -126,7 +126,7 @@ static func _get_sts_card_path(card_id: String) -> String:
 ## Pass a Loc node if available for localized text; null otherwise.
 static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null) -> Control:
 	var BASE_W: float = 320.0
-	var BASE_H: float = 430.0
+	var BASE_H: float = 495.0
 	var sx: float = size.x / BASE_W
 	var sy: float = size.y / BASE_H
 
@@ -296,7 +296,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	root.add_child(type_lbl)
 
 	# --- Layer 5: Description area (bottom ~35%) ---
-	var desc_top: float = size.y * 0.62
+	var desc_top: float = size.y * 0.55
 	var desc_margin: float = 10.0 * sx
 	var desc_w: float = size.x - desc_margin * 2.0
 	var desc_h: float = size.y - desc_top - 10.0 * sy

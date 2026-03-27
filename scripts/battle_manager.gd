@@ -1480,9 +1480,9 @@ func _on_end_turn() -> void:
 	end_player_turn()
 
 func _on_exit_battle() -> void:
-	## Return to character select screen
+	## Return to main menu
 	battle_active = false
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _on_entity_died(entity: Node2D) -> void:
 	for i in range(enemies.size()):

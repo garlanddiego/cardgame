@@ -322,7 +322,7 @@ func _build_right_panel() -> PanelContainer:
 
 	# Container for the card visual — sized to hold a large card
 	preview_container = Control.new()
-	preview_container.custom_minimum_size = Vector2(384, 516)
+	preview_container.custom_minimum_size = Vector2(384, 594)
 	preview_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(preview_container)
 
@@ -987,7 +987,7 @@ func _update_preview() -> void:
 		_preview_node = null
 
 	var card_data = _build_card_data()
-	var preview_size = Vector2(384, 516)
+	var preview_size = Vector2(384, 594)
 
 	_preview_node = CardScript.create_card_visual(card_data, preview_size)
 	preview_container.add_child(_preview_node)
@@ -1125,7 +1125,7 @@ func _show_card_browser() -> void:
 		return a.get("name", "") < b.get("name", "")
 	)
 
-	var card_size = Vector2(220, 296)
+	var card_size = Vector2(220, 341)
 	for card in cards:
 		var card_visual = CardScript.create_card_visual(card, card_size)
 		card_visual.custom_minimum_size = card_size

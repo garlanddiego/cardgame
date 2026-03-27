@@ -45,9 +45,9 @@ const SCREEN_H: float = 1080.0
 const BROWSE_RATIO: float = 0.80
 const CART_RATIO: float = 0.20
 const BROWSE_CARD_W: float = 256.0 * 1.0
-const BROWSE_CARD_H: float = 430.0 * 1.0
+const BROWSE_CARD_H: float = 495.0 * 1.0
 const CART_CARD_W: float = 180.0
-const CART_CARD_H: float = 302.0
+const CART_CARD_H: float = 348.0
 const TOP_BAR_H: float = 70.0
 const FILTER_BAR_H: float = 50.0
 const BOTTOM_BAR_H: float = 0.0  # No bottom bar — confirm is in cart
@@ -486,7 +486,7 @@ func _create_lightweight_card(card: Dictionary, size: Vector2, loc: Node) -> Con
 	## Lightweight card visual: Panel + 3 labels + optional art thumbnail
 	## Much fewer nodes than create_card_visual (~5 vs ~10+)
 	var sx: float = size.x / 320.0
-	var sy: float = size.y / 430.0
+	var sy: float = size.y / 495.0
 
 	var character: String = card.get("character", "ironclad")
 	var bg_color: Color
