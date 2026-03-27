@@ -36,6 +36,9 @@ var _press_start_pos: Vector2 = Vector2.ZERO
 var _press_active: bool = false
 const TAP_MOVE_THRESHOLD: float = 20.0  # Max px movement to count as tap (not scroll)
 
+# Card selection animation
+var _animation_in_progress: bool = false
+
 # Constants
 const SCREEN_W: float = 1920.0
 const SCREEN_H: float = 1080.0
@@ -581,6 +584,8 @@ func _create_lightweight_card(card: Dictionary, size: Vector2, loc: Node) -> Con
 	return root
 
 func _on_browse_card_tap(event: InputEvent, card_id: String) -> void:
+	if _animation_in_progress:
+		return
 	if not (event is InputEventMouseButton):
 		return
 	var mb: InputEventMouseButton = event as InputEventMouseButton
@@ -601,13 +606,67 @@ func _on_browse_card_tap(event: InputEvent, card_id: String) -> void:
 	if dist > TAP_MOVE_THRESHOLD:
 		return  # Was a scroll, not a tap
 
-	# Add to cart
+	# Add to cart with fly animation
 	if not all_card_data.has(card_id):
 		return
-	selected_card_ids[card_id] = all_card_data[card_id]
+	_animate_card_to_cart(card_id)
+
+func _animate_card_to_cart(card_id: String) -> void:
+	_animation_in_progress = true
+
+	var card_data: Dictionary = all_card_data[card_id]
+
+	# Find the browse card node to get its screen position
+	var source_node: Control = null
+	if browse_grid:
+		for child in browse_grid.get_children():
+			if child.name == "Browse_" + card_id:
+				source_node = child
+				break
+
+	# Calculate start position (card's global position) and end position (cart area)
+	var start_pos: Vector2 = Vector2(SCREEN_W * 0.4, SCREEN_H * 0.4)  # fallback
+	if source_node:
+		start_pos = source_node.global_position
+
+	# Target: top of cart scroll area
+	var browse_w: float = SCREEN_W * BROWSE_RATIO
+	var end_pos: Vector2 = Vector2(browse_w + 20, 90)
+	if cart_scroll:
+		end_pos = cart_scroll.global_position + Vector2(10, 10)
+
+	# Create a temporary flying card visual
+	var loc = _get_loc()
+	var fly_size: Vector2 = Vector2(BROWSE_CARD_W, BROWSE_CARD_H)
+	var fly_card: Control = _CardScript.create_card_visual(card_data, fly_size, loc)
+	fly_card.name = "FlyCard_" + card_id
+	fly_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fly_card.position = start_pos
+	fly_card.z_index = 100  # On top of everything
+	add_child(fly_card)
+
+	# Animate: fly to cart position, scale down, and fade slightly
+	var target_scale: Vector2 = Vector2(CART_CARD_W / BROWSE_CARD_W, CART_CARD_H / BROWSE_CARD_H)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(fly_card, "position", end_pos, 0.5).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(fly_card, "scale", target_scale, 0.5).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.set_parallel(false)
+	tween.tween_callback(_on_fly_animation_done.bind(card_id, fly_card))
+
+func _on_fly_animation_done(card_id: String, fly_card: Control) -> void:
+	# Remove the temporary flying card
+	if is_instance_valid(fly_card):
+		fly_card.queue_free()
+
+	# Now actually add the card to cart
+	if all_card_data.has(card_id):
+		selected_card_ids[card_id] = all_card_data[card_id]
 	_populate_browse()
 	_rebuild_cart_list()
 	_update_cart_ui()
+
+	_animation_in_progress = false
 
 # ─── CART LIST ───────────────────────────────────────────────────────────────
 
