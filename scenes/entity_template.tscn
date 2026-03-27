@@ -77,10 +77,10 @@ vertical_alignment = 1
 
 [node name="BlockLabel" type="Label" parent="."]
 visible = false
-offset_left = -98.0
-offset_top = 130.0
-offset_right = -58.0
-offset_bottom = 162.0
+offset_left = -140.0
+offset_top = 125.0
+offset_right = -96.0
+offset_bottom = 157.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_blockLabel")

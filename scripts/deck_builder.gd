@@ -7,6 +7,7 @@ const MAX_DECK_SIZE: int = 20
 
 var character_id: String = ""
 var selected_card_ids: Dictionary = {}  # card_id -> card data
+var _cart_insertion_order: Array = []  # Track insertion order for cart display
 
 # Card data tracking
 var all_card_data: Dictionary = {}
@@ -662,6 +663,9 @@ func _on_fly_animation_done(card_id: String, fly_card: Control) -> void:
 	# Now actually add the card to cart
 	if all_card_data.has(card_id):
 		selected_card_ids[card_id] = all_card_data[card_id]
+		# Track insertion order — newest first
+		_cart_insertion_order.erase(card_id)
+		_cart_insertion_order.push_front(card_id)
 	_populate_browse()
 	_rebuild_cart_list()
 	_update_cart_ui()
@@ -680,15 +684,17 @@ func _rebuild_cart_list() -> void:
 
 	var loc = _get_loc()
 
-	# Sort selected cards by type then name
-	var sorted_cards: Array = selected_card_ids.values()
-	sorted_cards.sort_custom(func(a, b):
-		if a["type"] != b["type"]:
-			return a["type"] < b["type"]
-		return a["name"] < b["name"]
-	)
+	# Show cards in insertion order (newest first)
+	var ordered_cards: Array = []
+	for cid in _cart_insertion_order:
+		if selected_card_ids.has(cid):
+			ordered_cards.append(selected_card_ids[cid])
+	# Append any cards not in insertion order (e.g. pre-loaded cards)
+	for cid in selected_card_ids:
+		if cid not in _cart_insertion_order:
+			ordered_cards.append(selected_card_ids[cid])
 
-	for card in sorted_cards:
+	for card in ordered_cards:
 		var item = _create_cart_item(card, loc)
 		cart_list.add_child(item)
 
@@ -728,6 +734,7 @@ func _on_cart_item_tap(event: InputEvent, card_id: String) -> void:
 
 	# Remove from cart, return to browse
 	selected_card_ids.erase(card_id)
+	_cart_insertion_order.erase(card_id)
 	_populate_browse()
 	_rebuild_cart_list()
 	_update_cart_ui()

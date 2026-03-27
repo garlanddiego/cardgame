@@ -1057,23 +1057,22 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				_update_pile_labels()
 		"concentrate":
 			var to_discard_count: int = mini(card_data.get("discard_count", 3), hand.size())
-			for _i in range(to_discard_count):
-				if not hand.is_empty():
-					var idx: int = randi() % hand.size()
-					var disc = hand[idx]
-					hand.remove_at(idx)
-					discard_pile.append(disc)
-					_check_sly_on_discard(disc)
-			if card_hand:
-				card_hand.clear_hand()
-				for c in hand:
-					card_hand.add_card(c)
-			current_energy += card_data.get("energy_gain_val", 2)
-			_update_energy_label()
-			if card_hand:
-				card_hand.current_battle_energy = current_energy
-				card_hand.update_card_playability(current_energy)
-			_update_pile_labels()
+			if to_discard_count > 0 and not hand.is_empty():
+				var energy_gain_val: int = card_data.get("energy_gain_val", 2)
+				if hand.size() <= to_discard_count:
+					# Auto-discard all remaining cards (no selection needed)
+					_auto_discard(hand.size())
+					_on_concentrate_discard_done(energy_gain_val)
+				else:
+					_show_discard_selection(to_discard_count, _on_concentrate_discard_done.bind(energy_gain_val))
+			else:
+				# Nothing to discard, just gain energy
+				current_energy += card_data.get("energy_gain_val", 2)
+				_update_energy_label()
+				if card_hand:
+					card_hand.current_battle_energy = current_energy
+					card_hand.update_card_playability(current_energy)
+				_update_pile_labels()
 		"finisher":
 			var base_dmg: int = card_data.get("damage", 6) * attacks_played_this_turn
 			if player and base_dmg > 0:
@@ -2273,6 +2272,16 @@ func _on_discard_complete() -> void:
 	# Update card cost colors after discard changes hand
 	if card_hand:
 		card_hand.update_card_playability(current_energy)
+	_check_battle_end()
+
+func _on_concentrate_discard_done(energy_gain_val: int) -> void:
+	# Called after Concentrate discard selection completes — gain energy
+	current_energy += energy_gain_val
+	_update_energy_label()
+	if card_hand:
+		card_hand.current_battle_energy = current_energy
+		card_hand.update_card_playability(current_energy)
+	_update_pile_labels()
 	_check_battle_end()
 
 func _auto_discard(count: int) -> void:
