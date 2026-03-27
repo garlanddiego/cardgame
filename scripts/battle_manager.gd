@@ -2266,6 +2266,9 @@ func _on_discard_confirm() -> void:
 
 func _on_discard_complete() -> void:
 	# Called after discard selection finishes
+	# Update card cost colors after discard changes hand
+	if card_hand:
+		card_hand.update_card_playability(current_energy)
 	_check_battle_end()
 
 func _auto_discard(count: int) -> void:

@@ -267,7 +267,8 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 	targeting_mode = false
 	# Animate card: fly to center → pause → then to final destination
 	if card_node and is_instance_valid(card_node):
-		var should_exhaust: bool = data.get("exhaust", false) or data.get("type", 0) == 2
+		var is_power: bool = data.get("type", 0) == 2
+		var should_exhaust: bool = data.get("exhaust", false) and not is_power
 		# Step 1: Fly to screen center
 		var center_pos: Vector2 = to_local(Vector2(960, 400))
 		card_node.move_to(center_pos, 0.0, Vector2(1.2, 1.2), 0.2)
@@ -277,13 +278,13 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 		anim_tween.tween_callback(func():
 			if not is_instance_valid(card_node):
 				return
-			if should_exhaust:
-				# Exhaust: shatter into fragments that fly outward
-				_shatter_card(card_node)
-			elif data.get("type", 0) == 2:
-				# Power: fly toward player character
+			if is_power:
+				# Power: fly toward player character (absorbed by hero)
 				var player_pos: Vector2 = to_local(Vector2(370, 460))
 				card_node.move_to(player_pos, 0.0, Vector2(0.3, 0.3), 0.25)
+			elif should_exhaust:
+				# Exhaust: shatter into fragments
+				_shatter_card(card_node)
 			else:
 				# Normal: fly toward discard pile
 				var discard_pos: Vector2 = to_local(Vector2(1700, 700))
