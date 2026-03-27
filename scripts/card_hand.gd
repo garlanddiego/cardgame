@@ -278,8 +278,8 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 			if not is_instance_valid(card_node):
 				return
 			if should_exhaust:
-				# Exhaust: shrink + rotate + fade (destroyed)
-				card_node.move_to(center_pos + Vector2(0, -40), 20.0, Vector2(0.05, 0.05), 0.3)
+				# Exhaust: shatter into fragments that fly outward
+				_shatter_card(card_node)
 			elif data.get("type", 0) == 2:
 				# Power: fly toward player character
 				var player_pos: Vector2 = to_local(Vector2(370, 460))
@@ -314,6 +314,31 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 	else:
 		remove_card(card_node)
 	card_played.emit(data, target)
+
+func _shatter_card(card_node: Area2D) -> void:
+	## Create fragment particles that fly outward from the card position
+	var base_pos: Vector2 = card_node.position
+	var frag_count: int = 8
+	# Hide the original card immediately
+	card_node.visible = false
+	for i in range(frag_count):
+		var frag = ColorRect.new()
+		frag.size = Vector2(20 + randf() * 20, 15 + randf() * 15)
+		frag.color = Color(0.8, 0.3 + randf() * 0.3, 0.1, 0.9)
+		frag.position = base_pos + Vector2(randf_range(-30, 30), randf_range(-40, 40))
+		add_child(frag)
+		# Random outward direction
+		var angle: float = (float(i) / frag_count) * TAU + randf_range(-0.3, 0.3)
+		var dist: float = 80 + randf() * 120
+		var target_pos: Vector2 = frag.position + Vector2(cos(angle), sin(angle)) * dist
+		var t = create_tween()
+		t.set_parallel(true)
+		t.tween_property(frag, "position", target_pos, 0.4 + randf() * 0.2).set_ease(Tween.EASE_OUT)
+		t.tween_property(frag, "rotation", randf_range(-2.0, 2.0), 0.5)
+		t.tween_property(frag, "modulate:a", 0.0, 0.5).set_delay(0.1)
+		t.tween_property(frag, "scale", Vector2(0.2, 0.2), 0.5)
+		t.set_parallel(false)
+		t.tween_callback(frag.queue_free)
 
 func update_card_playability(current_energy: int) -> void:
 	for card in cards:
