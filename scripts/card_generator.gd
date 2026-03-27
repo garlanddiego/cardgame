@@ -563,7 +563,7 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 		var plus_btn: Button = null
 		if def_item[2]:
 			# Initialize value in dictionary
-			_effect_values[def_item[0]] = def_item[3]
+			_effect_values[def_item[0]] = 0  # Default to 0 = not set
 
 			# Custom spinbox: [- button] [value label] [+ button]
 			var spin_hbox = HBoxContainer.new()
@@ -579,7 +579,7 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 			spin_hbox.add_child(minus_btn)
 
 			value_label = Label.new()
-			value_label.text = str(def_item[3])
+			value_label.text = "0"
 			value_label.custom_minimum_size = Vector2(50, 40)
 			value_label.add_theme_font_size_override("font_size", 22)
 			value_label.add_theme_color_override("font_color", TEXT_COLOR)
@@ -842,6 +842,10 @@ func _build_card_data() -> Dictionary:
 			continue
 		var key: String = row["key"]
 		var value: int = _effect_values[key] if _effect_values.has(key) else 0
+		# Skip effects with value 0 (for effects that need a value)
+		var needs_value: bool = row.get("has_spinbox", false)
+		if needs_value and value <= 0:
+			continue
 
 		match key:
 			"damage":
