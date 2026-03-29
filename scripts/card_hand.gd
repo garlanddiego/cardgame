@@ -125,15 +125,32 @@ func update_layout() -> void:
 	if hovered_card != null and hovered_card in cards:
 		hovered_index = cards.find(hovered_card)
 
+	# Count visible cards (exclude those at center in discard mode)
+	var visible_count: int = card_count
+	if discard_mode:
+		visible_count -= _discard_selected_indices.size()
+	if visible_count > 0:
+		step = scaled_card_w - CARD_OVERLAP * base_scale
+		total_width = step * (visible_count - 1) + scaled_card_w
+		if total_width > available_width and visible_count > 1:
+			step = (available_width - scaled_card_w) / float(visible_count - 1)
+			total_width = step * (visible_count - 1) + scaled_card_w
+		start_x = margin + (available_width - total_width) / 2.0
+
+	var slot_index: int = 0  # Track position slot for visible cards
 	for i in range(card_count):
 		var card = cards[i]
 		if not is_instance_valid(card):
 			continue
-		var t: float = 0.5
-		if card_count > 1:
-			t = float(i) / float(card_count - 1)
+		# Skip cards that are at screen center (discard selection)
+		if discard_mode and i in _discard_selected_indices:
+			continue
 
-		var x_pos: float = start_x + i * step
+		var t: float = 0.5
+		if visible_count > 1:
+			t = float(slot_index) / float(visible_count - 1)
+
+		var x_pos: float = start_x + slot_index * step
 		var arc_t: float = (t - 0.5) * 2.0
 		var y_offset: float = ARC_HEIGHT * arc_t * arc_t
 		var rot: float = -MAX_ROTATION + t * MAX_ROTATION * 2.0
@@ -172,8 +189,9 @@ func update_layout() -> void:
 		else:
 			card.move_to(target_pos, target_rot, target_scale, 0.12)
 
-		card.z_index = i
-		card.base_z_index = i
+		card.z_index = slot_index
+		card.base_z_index = slot_index
+		slot_index += 1
 
 		if card == selected_card:
 			card.z_index = 150
@@ -250,26 +268,29 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	update_layout()
 
 func _toggle_discard_card(card_node: Area2D) -> void:
-	## Toggle a card's discard selection state
+	## Select a card for discard — move it to screen center, or deselect if already selected
 	var idx: int = cards.find(card_node)
 	if idx < 0:
 		return
 	if idx in _discard_selected_indices:
-		# Deselect
+		# Already selected → deselect, return card to hand
 		_discard_selected_indices.erase(idx)
-		if card_node.card_visual:
-			card_node.card_visual.modulate = Color(1, 1, 1, 1)
+		card_node.scale = Vector2(1.0, 1.0)
+		update_layout()  # Card snaps back to hand position
 	else:
-		# If already at max, replace the oldest selection
-		if _discard_selected_indices.size() >= _discard_max:
-			var old_idx: int = _discard_selected_indices[0]
-			_discard_selected_indices.remove_at(0)
+		# Deselect any previously selected card (one at a time selection)
+		for old_idx in _discard_selected_indices:
 			if old_idx < cards.size() and is_instance_valid(cards[old_idx]):
-				if cards[old_idx].card_visual:
-					cards[old_idx].card_visual.modulate = Color(1, 1, 1, 1)
+				cards[old_idx].scale = Vector2(1.0, 1.0)
+		_discard_selected_indices.clear()
+		# Select this card — move to screen center
 		_discard_selected_indices.append(idx)
-		if card_node.card_visual:
-			card_node.card_visual.modulate = Color(1.0, 0.5, 0.15, 1.0)  # Orange highlight
+		# Animate card to screen center
+		var center_pos: Vector2 = to_local(Vector2(960, 350))
+		card_node.move_to(center_pos, 0.0, Vector2(1.1, 1.1), 0.2)
+		card_node.z_index = 600
+		# Re-layout remaining cards (closes the gap)
+		update_layout()
 	discard_selection_changed.emit(_discard_selected_indices.size())
 
 func _on_card_long_pressed(card_node: Area2D) -> void:

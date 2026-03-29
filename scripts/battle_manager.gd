@@ -2500,21 +2500,11 @@ func _setup_discard_overlay() -> void:
 	_discard_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(_discard_title_label)
 
-	# Container for selected card previews — centered in the screen
-	var preview_container = HBoxContainer.new()
-	preview_container.name = "PreviewContainer"
-	preview_container.position = Vector2(660, 180)
-	preview_container.custom_minimum_size = Vector2(600, 450)
-	preview_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	preview_container.add_theme_constant_override("separation", 20)
-	preview_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_discard_overlay.add_child(preview_container)
-
-	# Confirm button — below the preview area, centered
+	# Confirm button — below where the selected card appears (screen center ~350 + card height ~420)
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
 	_discard_confirm_btn.text = "确认弃牌"
-	_discard_confirm_btn.position = Vector2(810, 650)
+	_discard_confirm_btn.position = Vector2(810, 580)
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
 	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
 	_discard_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -2555,7 +2545,6 @@ func _on_hand_discard_selection_changed(selected_count: int) -> void:
 	## Called when the player selects/deselects cards in the hand for discard
 	_discard_selected_cards = card_hand.get_discard_selected_indices()
 	_update_discard_confirm_style()
-	_update_discard_preview()
 
 func _update_discard_confirm_style() -> void:
 	if _discard_confirm_btn == null:
@@ -2585,32 +2574,6 @@ func _update_discard_confirm_style() -> void:
 		_discard_confirm_btn.disabled = true
 	_discard_confirm_btn.text = "确认弃牌 (%d/%d)" % [_discard_selected_cards.size(), _discard_required_count]
 
-func _update_discard_preview() -> void:
-	## Show selected discard cards as previews in the center of the overlay
-	if _discard_overlay == null:
-		return
-	var container = _discard_overlay.get_node_or_null("PreviewContainer")
-	if container == null:
-		return
-	# Clear old previews
-	for child in container.get_children():
-		child.queue_free()
-	# Add card previews for each selected card
-	if card_hand == null:
-		return
-	var card_script_res = load("res://scripts/card.gd")
-	for idx in _discard_selected_cards:
-		if idx < card_hand.cards.size() and is_instance_valid(card_hand.cards[idx]):
-			var card_data: Dictionary = card_hand.cards[idx].card_data
-			# Create a card preview using static method
-			var preview = card_script_res.create_card_visual(card_data, Vector2(200, 300))
-			if preview:
-				container.add_child(preview)
-	# Re-center the container based on number of previews
-	var count: int = _discard_selected_cards.size()
-	var total_w: float = count * 200 + maxf(0, count - 1) * 20
-	container.position.x = (1920.0 - total_w) / 2.0
-
 func _on_discard_confirm() -> void:
 	if _discard_selected_cards.size() < _discard_required_count:
 		return
@@ -2635,20 +2598,11 @@ func _on_discard_confirm() -> void:
 		for c in hand:
 			card_hand.add_card(c)
 	_discard_selected_cards.clear()
-	_clear_discard_preview()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	_update_pile_labels()
 	if _discard_callback.is_valid():
 		_discard_callback.call()
-
-func _clear_discard_preview() -> void:
-	if _discard_overlay == null:
-		return
-	var container = _discard_overlay.get_node_or_null("PreviewContainer")
-	if container:
-		for child in container.get_children():
-			child.queue_free()
 
 func _on_discard_cancel() -> void:
 	## Cancel the discard selection — close overlay without discarding
@@ -2657,7 +2611,6 @@ func _on_discard_cancel() -> void:
 			card_hand.discard_selection_changed.disconnect(_on_hand_discard_selection_changed)
 		card_hand.exit_discard_mode()
 	_discard_selected_cards.clear()
-	_clear_discard_preview()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	# Note: the card that required discarding was already played
