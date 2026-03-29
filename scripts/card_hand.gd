@@ -272,7 +272,7 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	update_layout()
 
 func _toggle_discard_card(card_node: Area2D) -> void:
-	## Select a card for discard — move it to screen center, or deselect if already selected
+	## Toggle a card for discard — supports multiple selections up to _discard_max
 	var idx: int = cards.find(card_node)
 	if idx < 0:
 		return
@@ -280,22 +280,32 @@ func _toggle_discard_card(card_node: Area2D) -> void:
 		# Already selected → deselect, return card to hand
 		_discard_selected_indices.erase(idx)
 		card_node.scale = Vector2(1.0, 1.0)
-		update_layout()  # Card snaps back to hand position
 	else:
-		# Deselect any previously selected card (one at a time selection)
-		for old_idx in _discard_selected_indices:
-			if old_idx < cards.size() and is_instance_valid(cards[old_idx]):
-				cards[old_idx].scale = Vector2(1.0, 1.0)
-		_discard_selected_indices.clear()
-		# Select this card — move to screen center (horizontally centered, between title and button)
+		if _discard_selected_indices.size() >= _discard_max:
+			return  # Already at max selections
 		_discard_selected_indices.append(idx)
-		var center_x: float = get_viewport_rect().size.x / 2.0 - CARD_WIDTH / 2.0
-		var center_pos: Vector2 = to_local(Vector2(center_x, 250))
-		card_node.move_to(center_pos, 0.0, Vector2(1.0, 1.0), 0.2)
 		card_node.z_index = 600
-		# Re-layout remaining cards (closes the gap)
-		update_layout()
+	# Reposition all selected cards in center
+	_reposition_discard_preview()
+	update_layout()
 	discard_selection_changed.emit(_discard_selected_indices.size())
+
+func _reposition_discard_preview() -> void:
+	## Arrange all selected discard cards side by side at screen center
+	var count: int = _discard_selected_indices.size()
+	if count == 0:
+		return
+	var vw: float = get_viewport_rect().size.x
+	var gap: float = 20.0
+	var total_w: float = count * CARD_WIDTH + (count - 1) * gap
+	var start_x: float = (vw - total_w) / 2.0
+	for i in range(count):
+		var card_idx: int = _discard_selected_indices[i]
+		if card_idx < cards.size() and is_instance_valid(cards[card_idx]):
+			var x: float = start_x + i * (CARD_WIDTH + gap)
+			var pos: Vector2 = to_local(Vector2(x, 250))
+			cards[card_idx].move_to(pos, 0.0, Vector2(1.0, 1.0), 0.2)
+			cards[card_idx].z_index = 600 + i
 
 func _on_card_long_pressed(card_node: Area2D) -> void:
 	card_long_press_detail.emit(card_node)

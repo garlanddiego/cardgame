@@ -2574,6 +2574,14 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 	if card_hand and card_hand._pending_card_node and is_instance_valid(card_hand._pending_card_node):
 		card_hand._pending_card_node.visible = false
 
+	# Disable end turn button and pile panels during discard
+	if end_turn_btn:
+		end_turn_btn.disabled = true
+	if draw_panel:
+		draw_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if discard_panel:
+		discard_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	# Enter discard selection mode on the hand
 	card_hand.enter_discard_mode(count)
 	# Connect the selection changed signal
@@ -2642,6 +2650,13 @@ func _on_discard_confirm() -> void:
 		_discard_overlay.visible = false
 	if _discard_hand_bg:
 		_discard_hand_bg.visible = false
+	# Re-enable buttons
+	if end_turn_btn:
+		end_turn_btn.disabled = false
+	if draw_panel:
+		draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	if discard_panel:
+		discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	# Show and complete the played card's fly-to-discard animation
 	if card_hand:
 		if card_hand._pending_card_node and is_instance_valid(card_hand._pending_card_node):
@@ -2662,8 +2677,13 @@ func _on_discard_cancel() -> void:
 		_discard_overlay.visible = false
 	if _discard_hand_bg:
 		_discard_hand_bg.visible = false
-	# Note: the card that required discarding was already played
-	# Canceling just skips the discard requirement
+	# Re-enable buttons
+	if end_turn_btn:
+		end_turn_btn.disabled = false
+	if draw_panel:
+		draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	if discard_panel:
+		discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 
 func _on_discard_complete() -> void:
 	# Called after discard selection finishes
