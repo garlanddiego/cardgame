@@ -175,6 +175,7 @@ func update_layout() -> void:
 			target_pos.y = (vh - 5.0) - hand_y - CARD_HEIGHT * fixed_scale
 			target_rot = 0.0
 			target_scale = Vector2(fixed_scale, fixed_scale)
+			print("[CardHand] Selected card pos: vh=%d, hand_y=%d, target_y=%.1f" % [int(vh), int(hand_y), target_pos.y])
 		elif card == focused_card:
 			target_pos.y += hover_lift - 10  # Focused card lifts up for preview
 			target_rot = 0.0
