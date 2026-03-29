@@ -134,7 +134,7 @@ expand_mode = 1
 position = Vector2(430, 510)
 
 [node name="EnemyArea" type="Node2D" parent="."]
-position = Vector2(1330, 510)
+position = Vector2(1180, 510)
 
 [node name="CardHand" type="Node2D" parent="."]
 position = Vector2(0, 773)

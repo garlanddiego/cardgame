@@ -284,8 +284,8 @@ func _setup_second_player(character_id: String, gm: Node) -> void:
 	var char_data = gm.character_data[character_id]
 	var hp: int = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
 	second_player.init_entity(hp, false)
-	# Back row: positioned to the left of front row (200px+ gap between sprites)
-	second_player.position = Vector2(-280, 0)
+	# Back row: positioned to the left of front row
+	second_player.position = Vector2(-230, 0)
 	var sprite = second_player.get_node_or_null("Sprite") as Sprite2D
 	if sprite:
 		var tex = load(char_data["sprite"])
@@ -668,6 +668,7 @@ func start_player_turn() -> void:
 	turn_started.emit(true)
 
 func draw_cards(count: int) -> void:
+	var drawn_count: int = 0
 	for i in range(count):
 		if hand.size() >= 10:
 			if player:
@@ -680,7 +681,19 @@ func draw_cards(count: int) -> void:
 		var card_data: Dictionary = draw_pile.pop_back()
 		hand.append(card_data)
 		if card_hand:
-			card_hand.add_card(card_data)
+			# Stagger draw animation: each card flies in with a slight delay
+			if drawn_count > 0:
+				var delay_tween = create_tween()
+				var idx = drawn_count
+				delay_tween.tween_interval(0.1 * idx)
+				delay_tween.tween_callback(func():
+					if card_hand and is_instance_valid(card_hand):
+						card_hand.add_card(card_data)
+						card_hand.update_card_playability(current_energy)
+				)
+			else:
+				card_hand.add_card(card_data)
+		drawn_count += 1
 		# Evolve: draw extra on Status draw
 		if evolve_active and card_data.get("type", 0) == 3:  # STATUS type
 			draw_cards(1)
