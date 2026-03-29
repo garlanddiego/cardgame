@@ -235,6 +235,7 @@ func _on_card_clicked(card_node: Area2D) -> void:
 
 	# Discard selection mode: toggle card for discard instead of playing
 	if discard_mode:
+		print("[CardHand] Discard mode click on card %s" % card_node.card_data.get("name", "?"))
 		_toggle_discard_card(card_node)
 		return
 
@@ -481,6 +482,10 @@ func update_card_playability(current_energy: int) -> void:
 
 func enter_discard_mode(max_count: int) -> void:
 	## Enter discard selection mode — cards are tapped to toggle for discard
+	print("[CardHand] Entering discard mode, max=%d, cards=%d" % [max_count, cards.size()])
+	for c in cards:
+		if is_instance_valid(c):
+			print("  Card '%s' input_pickable=%s" % [c.card_data.get("name", "?"), str(c.input_pickable)])
 	discard_mode = true
 	_discard_max = max_count
 	_discard_selected_indices.clear()
