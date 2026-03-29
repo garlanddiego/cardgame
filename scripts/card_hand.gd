@@ -287,11 +287,11 @@ func _toggle_discard_card(card_node: Area2D) -> void:
 			if old_idx < cards.size() and is_instance_valid(cards[old_idx]):
 				cards[old_idx].scale = Vector2(1.0, 1.0)
 		_discard_selected_indices.clear()
-		# Select this card — move to screen center
+		# Select this card — move to screen center (horizontally centered, between title and button)
 		_discard_selected_indices.append(idx)
-		# Animate card to screen center
-		var center_pos: Vector2 = to_local(Vector2(960, 350))
-		card_node.move_to(center_pos, 0.0, Vector2(1.1, 1.1), 0.2)
+		var center_x: float = get_viewport_rect().size.x / 2.0 - CARD_WIDTH / 2.0
+		var center_pos: Vector2 = to_local(Vector2(center_x, 250))
+		card_node.move_to(center_pos, 0.0, Vector2(1.0, 1.0), 0.2)
 		card_node.z_index = 600
 		# Re-layout remaining cards (closes the gap)
 		update_layout()
