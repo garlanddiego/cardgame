@@ -51,13 +51,14 @@ func add_card(card_data: Dictionary, animate_from_draw: bool = true, animate_fro
 	card.card_drag_ended.connect(_on_card_drag_ended)
 	# Start card at specified position and fly in
 	if animate_from_global.x >= 0:
-		# Animate from a specific global position (e.g. screen center for generated cards)
 		card.position = to_local(animate_from_global)
 		card.scale = Vector2(0.3, 0.3)
+		card.set_meta("fly_in", true)
 	elif animate_from_draw:
 		var draw_pile_pos: Vector2 = to_local(Vector2(60, 700))
 		card.position = draw_pile_pos
 		card.scale = Vector2(0.3, 0.3)
+		card.set_meta("fly_in", true)
 	update_layout()
 
 func remove_card(card_node: Area2D) -> void:
@@ -183,11 +184,14 @@ func update_layout() -> void:
 			target_rot = 0.0
 			target_scale = Vector2(1.4, 1.4)
 
-		# Selected card: animate directly to final position (single motion, no bounce)
+		# Determine animation speed
+		var anim_dur: float = 0.12  # Default for layout shifts
 		if card == selected_card:
-			card.move_to(target_pos, target_rot, target_scale, 0.1)
-		else:
-			card.move_to(target_pos, target_rot, target_scale, 0.12)
+			anim_dur = 0.1
+		elif card.has_meta("fly_in") and card.get_meta("fly_in"):
+			anim_dur = 0.5  # Slower fly-in for newly drawn/generated cards
+			card.set_meta("fly_in", false)
+		card.move_to(target_pos, target_rot, target_scale, anim_dur)
 
 		card.z_index = slot_index
 		card.base_z_index = slot_index
