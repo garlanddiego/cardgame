@@ -176,14 +176,13 @@ func update_layout() -> void:
 			target_rot = 0.0
 			target_scale = Vector2(fixed_scale, fixed_scale)
 			print("[CardHand] Selected card pos: vh=%d, hand_y=%d, target_y=%.1f" % [int(vh), int(hand_y), target_pos.y])
-		elif card == focused_card:
-			target_pos.y += hover_lift - 10  # Focused card lifts up for preview
+		elif card == focused_card or card == hovered_card:
+			# Hover/focus: same position and scale as selected card
+			var vh2: float = get_viewport_rect().size.y
+			var hand_y2: float = global_position.y
+			target_pos.y = (vh2 - 5.0) - hand_y2 - CARD_HEIGHT * 1.0
 			target_rot = 0.0
-			target_scale = Vector2(1.5, 1.5)
-		elif card == hovered_card:
-			target_pos.y += hover_lift
-			target_rot = 0.0
-			target_scale = Vector2(1.4, 1.4)
+			target_scale = Vector2(1.0, 1.0)
 
 		# Determine animation speed
 		var anim_dur: float = 0.12  # Default for layout shifts
