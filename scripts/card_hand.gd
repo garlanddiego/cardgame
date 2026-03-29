@@ -171,13 +171,12 @@ func update_layout() -> void:
 			# Selected card: fixed size (scale 1.0), bottom edge 5px from screen bottom
 			var vh: float = get_viewport_rect().size.y
 			var hand_y: float = global_position.y
-			var fixed_scale: float = 1.0  # No scaling for selected card
+			var fixed_scale: float = 1.0
 			target_pos.y = (vh - 5.0) - hand_y - CARD_HEIGHT * fixed_scale
 			target_rot = 0.0
 			target_scale = Vector2(fixed_scale, fixed_scale)
-			print("[CardHand] Selected card pos: vh=%d, hand_y=%d, target_y=%.1f" % [int(vh), int(hand_y), target_pos.y])
-		elif card == focused_card or card == hovered_card:
-			# Hover/focus: same position and scale as selected card
+		elif not discard_mode and (card == focused_card or card == hovered_card):
+			# Hover/focus (NOT in discard mode): lift card, same as selected
 			var vh2: float = get_viewport_rect().size.y
 			var hand_y2: float = global_position.y
 			target_pos.y = (vh2 - 5.0) - hand_y2 - CARD_HEIGHT * 1.0
