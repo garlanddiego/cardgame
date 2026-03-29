@@ -2476,10 +2476,14 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.z_index = 500
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Full-screen dark background
+	# Dark background covering everything below the top status bar (y=60+)
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.anchor_left = 0.0
+	bg.anchor_top = 0.0
+	bg.anchor_right = 1.0
+	bg.anchor_bottom = 1.0
+	bg.offset_top = 60.0  # Below the top status bar
 	bg.color = Color(0, 0, 0, 0.75)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_discard_overlay.add_child(bg)
