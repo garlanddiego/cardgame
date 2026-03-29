@@ -35,7 +35,7 @@ const HAND_Y: float = 0.0
 func _ready() -> void:
 	card_script = load("res://scripts/card.gd")
 
-func add_card(card_data: Dictionary, animate_from_draw: bool = true) -> void:
+func add_card(card_data: Dictionary, animate_from_draw: bool = true, animate_from_global: Vector2 = Vector2(-1, -1)) -> void:
 	if card_script == null:
 		return
 	var card = Area2D.new()
@@ -49,8 +49,12 @@ func add_card(card_data: Dictionary, animate_from_draw: bool = true) -> void:
 	card.card_long_pressed.connect(_on_card_long_pressed)
 	card.card_drag_started.connect(_on_card_drag_started)
 	card.card_drag_ended.connect(_on_card_drag_ended)
-	# Start card at draw pile position and fly in
-	if animate_from_draw:
+	# Start card at specified position and fly in
+	if animate_from_global.x >= 0:
+		# Animate from a specific global position (e.g. screen center for generated cards)
+		card.position = to_local(animate_from_global)
+		card.scale = Vector2(0.3, 0.3)
+	elif animate_from_draw:
 		var draw_pile_pos: Vector2 = to_local(Vector2(60, 700))
 		card.position = draw_pile_pos
 		card.scale = Vector2(0.3, 0.3)

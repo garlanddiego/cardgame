@@ -1527,7 +1527,8 @@ func _add_status_card_to_hand(card_id: String) -> void:
 		if not card.is_empty():
 			hand.append(card)
 			if card_hand:
-				card_hand.add_card(card)
+				# Animate from screen center (where played card paused)
+				card_hand.add_card(card, false, Vector2(960, 400))
 
 func _add_shiv_to_hand(count: int = 1) -> void:
 	var gm = _get_game_manager()
@@ -1541,7 +1542,17 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 			continue
 		hand.append(shiv)
 		if card_hand:
-			card_hand.add_card(shiv)
+			# Stagger shiv animation and fly from screen center
+			if i > 0:
+				var delay_tween = create_tween()
+				var shiv_copy = shiv
+				delay_tween.tween_interval(0.12 * i)
+				delay_tween.tween_callback(func():
+					if card_hand and is_instance_valid(card_hand):
+						card_hand.add_card(shiv_copy, false, Vector2(960, 400))
+				)
+			else:
+				card_hand.add_card(shiv, false, Vector2(960, 400))
 	_update_pile_labels()
 
 func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, use_strength: bool = true) -> void:
