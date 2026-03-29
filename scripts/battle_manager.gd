@@ -1909,6 +1909,9 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not battle_active or not is_player_turn:
 		return
+	# Don't process targeting during discard selection
+	if card_hand and card_hand.discard_mode:
+		return
 	# Right click to cancel any targeting
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if card_hand and card_hand.is_targeting():
@@ -2496,14 +2499,8 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_layer.add_child(_discard_overlay)
 
-	# Dark background covering y:60 to y:700 (above hand, below status bar)
-	var bg = ColorRect.new()
-	bg.name = "DarkBG"
-	bg.position = Vector2(0, 60)
-	bg.size = Vector2(1920, 640)
-	bg.color = Color(0, 0, 0, 0)  # Fully transparent — just blocks input, no visual change
-	bg.mouse_filter = Control.MOUSE_FILTER_STOP
-	_discard_overlay.add_child(bg)
+	# No dark background - overlay is purely for title and buttons
+	# Card click behavior changes via discard_mode flag in card_hand
 
 	# Title label — top center of the overlay
 	_discard_title_label = Label.new()
