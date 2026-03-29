@@ -2501,7 +2501,7 @@ func _setup_discard_overlay() -> void:
 	bg.name = "DarkBG"
 	bg.position = Vector2(0, 60)
 	bg.size = Vector2(1920, 640)
-	bg.color = Color(0, 0, 0, 0.75)
+	bg.color = Color(0, 0, 0, 0)  # Fully transparent — just blocks input, no visual change
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_discard_overlay.add_child(bg)
 
