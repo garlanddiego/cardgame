@@ -90,6 +90,7 @@ var _pile_viewer: Control = null
 
 # Discard selection (in-hand mode)
 var _discard_overlay: Control = null
+var _discard_hand_bg: ColorRect = null  # Dark rect behind hand cards during discard
 var _discard_selected_cards: Array = []  # indices into hand array
 var _discard_required_count: int = 0
 var _discard_callback: Callable
@@ -2499,8 +2500,14 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_layer.add_child(_discard_overlay)
 
-	# No dark background - overlay is purely for title and buttons
-	# Card click behavior changes via discard_mode flag in card_hand
+	# Dark background covering y:60-700 (above hand area)
+	var bg = ColorRect.new()
+	bg.name = "DarkBG"
+	bg.position = Vector2(0, 60)
+	bg.size = Vector2(1920, 640)
+	bg.color = Color(0, 0, 0, 0.6)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	_discard_overlay.add_child(bg)
 
 	# Title label — top center of the overlay
 	_discard_title_label = Label.new()
@@ -2530,8 +2537,16 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.add_child(_discard_confirm_btn)
 	_update_discard_confirm_style()
 
-	# No cancel button — user can tap the centered card to deselect it
-
+	# Dark rect behind hand cards (in main scene, below card z-index)
+	_discard_hand_bg = ColorRect.new()
+	_discard_hand_bg.name = "DiscardHandBG"
+	_discard_hand_bg.position = Vector2(0, 700)
+	_discard_hand_bg.size = Vector2(1920, 380)
+	_discard_hand_bg.color = Color(0, 0, 0, 0.6)
+	_discard_hand_bg.z_index = -1  # Below hand cards
+	_discard_hand_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Don't block card clicks
+	_discard_hand_bg.visible = false
+	add_child(_discard_hand_bg)
 
 func _show_discard_selection(count: int, callback: Callable) -> void:
 	if card_hand == null:
@@ -2552,6 +2567,8 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 	# Show the darkening overlay
 	if _discard_overlay:
 		_discard_overlay.visible = true
+	if _discard_hand_bg:
+		_discard_hand_bg.visible = true
 
 	# Hide the pending played card so it doesn't interfere during discard
 	if card_hand and card_hand._pending_card_node and is_instance_valid(card_hand._pending_card_node):
@@ -2623,6 +2640,8 @@ func _on_discard_confirm() -> void:
 	# Lower hand back to normal layer
 	if _discard_overlay:
 		_discard_overlay.visible = false
+	if _discard_hand_bg:
+		_discard_hand_bg.visible = false
 	# Show and complete the played card's fly-to-discard animation
 	if card_hand:
 		if card_hand._pending_card_node and is_instance_valid(card_hand._pending_card_node):
@@ -2641,6 +2660,8 @@ func _on_discard_cancel() -> void:
 	_discard_selected_cards.clear()
 	if _discard_overlay:
 		_discard_overlay.visible = false
+	if _discard_hand_bg:
+		_discard_hand_bg.visible = false
 	# Note: the card that required discarding was already played
 	# Canceling just skips the discard requirement
 
