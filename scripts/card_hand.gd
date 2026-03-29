@@ -168,11 +168,13 @@ func update_layout() -> void:
 		var target_scale := Vector2(base_scale, base_scale)
 
 		if card == selected_card:
-			# Selected card: rise just enough to be mostly visible, bottom near screen edge
+			# Selected card: bottom edge 5px from screen bottom
 			var vh: float = get_viewport_rect().size.y
 			var hand_y: float = global_position.y
 			var selected_scale: float = base_scale * 1.05
-			target_pos.y = vh - hand_y - CARD_HEIGHT * selected_scale + 50
+			# card_global_bottom = hand_y + target_pos.y + CARD_HEIGHT * selected_scale
+			# We want card_global_bottom = vh - 5
+			target_pos.y = (vh - 5.0) - hand_y - CARD_HEIGHT * selected_scale
 			target_rot = 0.0
 			target_scale = Vector2(selected_scale, selected_scale)
 		elif card == focused_card:
