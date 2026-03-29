@@ -299,6 +299,9 @@ func try_play_card_on_target(target: Node2D) -> bool:
 	elif card_target == "all_enemies":
 		_do_play(data, target)
 		return true
+	elif card_target == "all_heroes" and not target.is_enemy:
+		_do_play(data, target)
+		return true
 	return false
 
 func play_selected_on(target: Node2D) -> void:

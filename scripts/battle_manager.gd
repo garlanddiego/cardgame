@@ -867,11 +867,16 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			# ---- Block ----
 			"block":
 				var blk: int = action.get("value", card_data.get("block", 0))
-				# In dual hero mode, apply to targeted hero; otherwise player
-				var block_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
-				if blk > 0 and block_target:
-					block_target.add_block(blk)
-					_trigger_juggernaut()
+				if blk > 0:
+					if target_type == "all_heroes":
+						for hero in _get_all_alive_heroes():
+							hero.add_block(blk)
+							_trigger_juggernaut()
+					else:
+						var block_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+						if block_target:
+							block_target.add_block(blk)
+							_trigger_juggernaut()
 
 			# ---- Draw cards ----
 			"draw":
@@ -902,9 +907,14 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"apply_self_status":
 				var status_type: String = action.get("status", "")
 				var stacks: int = action.get("stacks", 1)
-				var self_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
-				if status_type != "" and self_target:
-					self_target.apply_status(status_type, stacks)
+				if target_type == "all_heroes":
+					for hero in _get_all_alive_heroes():
+						if status_type != "":
+							hero.apply_status(status_type, stacks)
+				else:
+					var self_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+					if status_type != "" and self_target:
+						self_target.apply_status(status_type, stacks)
 
 			# ---- Gain energy ----
 			"gain_energy":
@@ -1859,6 +1869,9 @@ func _process(_delta: float) -> void:
 			# Show damage previews
 			if _damage_preview_labels.is_empty():
 				_show_damage_previews()
+		elif target_type == "all_heroes":
+			# Highlight all heroes for all-heroes targeting
+			_highlight_heroes()
 	else:
 		if _hovered_enemy != null:
 			_clear_all_enemy_highlights()
@@ -1904,6 +1917,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_clear_all_enemy_highlights()
 				_hovered_enemy = null
 				card_hand.play_selected_on(enemies[0])
+			elif target_type == "all_heroes":
+				_clear_damage_previews()
+				_unhighlight_heroes()
+				if player:
+					card_hand.play_selected_on(player)
 			elif target_type == "enemy":
 				# Click-to-target: check if click is on an enemy
 				var click_pos: Vector2 = event.global_position
