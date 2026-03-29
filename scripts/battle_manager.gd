@@ -2575,7 +2575,10 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 	if _discard_overlay:
 		_discard_overlay.visible = true
 
-	# Raise card_hand above the overlay by reparenting to a high CanvasLayer
+	# Hide the pending played card so it doesn't interfere during discard
+	if card_hand and card_hand._pending_card_node and is_instance_valid(card_hand._pending_card_node):
+		card_hand._pending_card_node.visible = false
+
 	# Enter discard selection mode on the hand
 	card_hand.enter_discard_mode(count)
 	# Connect the selection changed signal
@@ -2642,8 +2645,10 @@ func _on_discard_confirm() -> void:
 	# Lower hand back to normal layer
 	if _discard_overlay:
 		_discard_overlay.visible = false
-	# Now complete the played card's fly-to-discard animation
+	# Show and complete the played card's fly-to-discard animation
 	if card_hand:
+		if card_hand._pending_card_node and is_instance_valid(card_hand._pending_card_node):
+			card_hand._pending_card_node.visible = true
 		card_hand.complete_pending_play()
 	_update_pile_labels()
 	if _discard_callback.is_valid():
