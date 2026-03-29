@@ -20,7 +20,7 @@ enum CardState {
 	MOVING_TO_CONTAINER
 }
 
-const CARD_SIZE := Vector2(256, 430)
+const CARD_SIZE := Vector2(296, 422)  # width 296, height reduced 15%
 
 var card_data: Dictionary = {}
 var card_state: int = CardState.IN_HAND
@@ -212,7 +212,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	name_lbl.size = Vector2(size.x - banner_margin * 2.0 - 24.0 * sx, banner_h)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", int(20 * sx))  # Bigger name
+	name_lbl.add_theme_font_size_override("font_size", int(26 * sx))  # Card name +2号
 	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))  # White text
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_lbl.z_index = 6
@@ -241,9 +241,11 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	art_bg.z_index = 2
 	root.add_child(art_bg)
 
-	# Load art image if available
+	# Load art image if available — check card["art"] field first, then fallback
 	var card_id: String = card.get("id", "")
-	var art_path: String = "res://assets/img/card_art/" + card_id + ".png"
+	var art_path: String = card.get("art", "")
+	if art_path.is_empty() or not ResourceLoader.exists(art_path):
+		art_path = "res://assets/img/card_art/" + card_id + ".png"
 	if ResourceLoader.exists(art_path):
 		var art_clip = Control.new()
 		art_clip.name = "ArtClip"
@@ -329,7 +331,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.add_theme_font_size_override("font_size", int(15 * sx))
+		desc_lbl.add_theme_font_size_override("font_size", int(20 * sx))  # Description text
 		desc_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		desc_lbl.z_index = 5
