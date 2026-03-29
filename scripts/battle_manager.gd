@@ -2476,10 +2476,12 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.z_index = 500
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Full-screen dark background
+	# Dark background covering everything ABOVE the hand area (y: 0 to ~700)
+	# Leave hand area (y ~700+) uncovered so cards remain clickable
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.position = Vector2(0, 0)
+	bg.size = Vector2(1920, 700)
 	bg.color = Color(0, 0, 0, 0.75)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_discard_overlay.add_child(bg)
