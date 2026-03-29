@@ -4,6 +4,7 @@ extends Node2D
 
 signal card_played(card_data: Dictionary, target: Node2D)
 signal card_drag_released(card_node: Area2D, release_position: Vector2)
+signal discard_selection_changed(selected_count: int)
 
 var cards: Array = []
 var selected_card: Area2D = null
@@ -12,6 +13,11 @@ var hovered_card: Area2D = null
 var targeting_mode: bool = false
 var current_battle_energy: int = 3
 var corruption_active: bool = false
+
+# Discard selection mode — cards are tapped to toggle discard selection
+var discard_mode: bool = false
+var _discard_max: int = 0  # Max cards to select for discard
+var _discard_selected_indices: Array = []  # Indices into cards array
 
 var card_script: GDScript = null
 var _any_card_dragging: bool = false
@@ -200,6 +206,12 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	## - Non-targeted: click background after selecting to play
 	if _any_card_dragging:
 		return
+
+	# Discard selection mode: toggle card for discard instead of playing
+	if discard_mode:
+		_toggle_discard_card(card_node)
+		return
+
 	var card_data_val: Dictionary = card_node.card_data
 	var target_type: String = card_data_val.get("target", "enemy")
 
@@ -232,6 +244,29 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	focused_card = null
 	hovered_card = null
 	update_layout()
+
+func _toggle_discard_card(card_node: Area2D) -> void:
+	## Toggle a card's discard selection state
+	var idx: int = cards.find(card_node)
+	if idx < 0:
+		return
+	if idx in _discard_selected_indices:
+		# Deselect
+		_discard_selected_indices.erase(idx)
+		if card_node.card_visual:
+			card_node.card_visual.modulate = Color(1, 1, 1, 1)
+	else:
+		# If already at max, replace the oldest selection
+		if _discard_selected_indices.size() >= _discard_max:
+			var old_idx: int = _discard_selected_indices[0]
+			_discard_selected_indices.remove_at(0)
+			if old_idx < cards.size() and is_instance_valid(cards[old_idx]):
+				if cards[old_idx].card_visual:
+					cards[old_idx].card_visual.modulate = Color(1, 1, 1, 1)
+		_discard_selected_indices.append(idx)
+		if card_node.card_visual:
+			card_node.card_visual.modulate = Color(1.0, 0.5, 0.15, 1.0)  # Orange highlight
+	discard_selection_changed.emit(_discard_selected_indices.size())
 
 func _on_card_long_pressed(card_node: Area2D) -> void:
 	card_long_press_detail.emit(card_node)
@@ -296,8 +331,8 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 			if not is_instance_valid(card_node):
 				return
 			if is_power:
-				# Power: fly toward player character (absorbed by hero)
-				var player_pos: Vector2 = to_local(Vector2(370, 460))
+				# Power: fly toward the actual target hero (absorbed by hero)
+				var player_pos: Vector2 = to_local(target.global_position) if target and is_instance_valid(target) else to_local(Vector2(370, 460))
 				card_node.move_to(player_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 			elif should_exhaust:
 				# Exhaust: shatter into fragments
@@ -389,6 +424,34 @@ func update_card_playability(current_energy: int) -> void:
 					new_style.border_color = cost_color
 					orb_bg.add_theme_stylebox_override("panel", new_style)
 
+func enter_discard_mode(max_count: int) -> void:
+	## Enter discard selection mode — cards are tapped to toggle for discard
+	discard_mode = true
+	_discard_max = max_count
+	_discard_selected_indices.clear()
+	# Deselect any currently selected/focused card
+	if selected_card and is_instance_valid(selected_card):
+		selected_card.set_selected(false)
+	selected_card = null
+	focused_card = null
+	hovered_card = null
+	targeting_mode = false
+	update_layout()
+
+func exit_discard_mode() -> void:
+	## Exit discard selection mode, reset card highlights
+	discard_mode = false
+	_discard_max = 0
+	for i in range(cards.size()):
+		var card = cards[i]
+		if is_instance_valid(card) and card.card_visual:
+			card.card_visual.modulate = Color(1, 1, 1, 1)
+	_discard_selected_indices.clear()
+	update_layout()
+
+func get_discard_selected_indices() -> Array:
+	return _discard_selected_indices.duplicate()
+
 func get_selected_card_data() -> Dictionary:
 	if selected_card != null:
 		return selected_card.card_data
@@ -400,6 +463,8 @@ func is_targeting() -> bool:
 # ---- Drag-to-play handlers ----
 
 func _on_card_drag_started(card_node: Area2D) -> void:
+	if discard_mode:
+		return  # No drag-to-play in discard selection mode
 	_any_card_dragging = true
 	hovered_card = null  # Clear hover when drag starts
 	focused_card = null  # Clear focus too
