@@ -168,15 +168,13 @@ func update_layout() -> void:
 		var target_scale := Vector2(base_scale, base_scale)
 
 		if card == selected_card:
-			# Selected card: bottom edge 5px from screen bottom
+			# Selected card: fixed size (scale 1.0), bottom edge 5px from screen bottom
 			var vh: float = get_viewport_rect().size.y
 			var hand_y: float = global_position.y
-			var selected_scale: float = base_scale * 1.05
-			# card_global_bottom = hand_y + target_pos.y + CARD_HEIGHT * selected_scale
-			# We want card_global_bottom = vh - 5
-			target_pos.y = (vh - 5.0) - hand_y - CARD_HEIGHT * selected_scale
+			var fixed_scale: float = 1.0  # No scaling for selected card
+			target_pos.y = (vh - 5.0) - hand_y - CARD_HEIGHT * fixed_scale
 			target_rot = 0.0
-			target_scale = Vector2(selected_scale, selected_scale)
+			target_scale = Vector2(fixed_scale, fixed_scale)
 		elif card == focused_card:
 			target_pos.y += hover_lift - 10  # Focused card lifts up for preview
 			target_rot = 0.0
