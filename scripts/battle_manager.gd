@@ -2624,6 +2624,9 @@ func _on_discard_confirm() -> void:
 	_discard_selected_cards.clear()
 	if _discard_overlay:
 		_discard_overlay.visible = false
+	# Now complete the played card's fly-to-discard animation
+	if card_hand:
+		card_hand.complete_pending_play()
 	_update_pile_labels()
 	if _discard_callback.is_valid():
 		_discard_callback.call()

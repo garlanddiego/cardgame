@@ -344,11 +344,15 @@ func play_card_on(card_node: Area2D, target: Node2D) -> void:
 	selected_card = card_node
 	_do_play(card_node.card_data, target)
 
+var _pending_card_node: Area2D = null  # Card waiting at center for delayed fly-away
+var _pending_card_target: Node2D = null
+
 func _do_play(data: Dictionary, target: Node2D) -> void:
 	var card_node = selected_card
 	selected_card = null
 	focused_card = null
 	targeting_mode = false
+	var has_discard: bool = data.get("discard", 0) > 0
 	# Animate card: fly to center → pause → then to final destination
 	if card_node and is_instance_valid(card_node):
 		var is_power: bool = data.get("type", 0) == 2
@@ -356,24 +360,26 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 		# Step 1: Fly to screen center
 		var center_pos: Vector2 = to_local(Vector2(960, 400))
 		card_node.move_to(center_pos, 0.0, Vector2(1.2, 1.2), 0.2)
-		# Step 2: After pause, fly to final destination
-		var anim_tween = create_tween()
-		anim_tween.tween_interval(0.25)  # Pause at center for 0.25s
-		anim_tween.tween_callback(func():
-			if not is_instance_valid(card_node):
-				return
-			if is_power:
-				# Power: fly toward the actual target hero (absorbed by hero)
-				var player_pos: Vector2 = to_local(target.global_position) if target and is_instance_valid(target) else to_local(Vector2(370, 460))
-				card_node.move_to(player_pos, 0.0, Vector2(0.3, 0.3), 0.25)
-			elif should_exhaust:
-				# Exhaust: shatter into fragments
-				_shatter_card(card_node)
-			else:
-				# Normal: fly toward discard pile
-				var discard_pos: Vector2 = to_local(Vector2(1700, 700))
-				card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
-		)
+		if has_discard and not is_power and not should_exhaust:
+			# Card has discard requirement: keep at center, fly away after discard completes
+			_pending_card_node = card_node
+			_pending_card_target = target
+		else:
+			# Step 2: After pause, fly to final destination
+			var anim_tween = create_tween()
+			anim_tween.tween_interval(0.25)
+			anim_tween.tween_callback(func():
+				if not is_instance_valid(card_node):
+					return
+				if is_power:
+					var player_pos: Vector2 = to_local(target.global_position) if target and is_instance_valid(target) else to_local(Vector2(370, 460))
+					card_node.move_to(player_pos, 0.0, Vector2(0.3, 0.3), 0.25)
+				elif should_exhaust:
+					_shatter_card(card_node)
+				else:
+					var discard_pos: Vector2 = to_local(Vector2(1700, 700))
+					card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
+			)
 		cards.erase(card_node)
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
@@ -389,16 +395,33 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 		if card_node.card_drag_ended.is_connected(_on_card_drag_ended):
 			card_node.card_drag_ended.disconnect(_on_card_drag_ended)
 		# Remove after full animation completes (0.25 pause + 0.25 fly)
-		var tween = create_tween()
-		tween.tween_interval(0.6)
-		tween.tween_callback(func():
-			if is_instance_valid(card_node):
-				card_node.queue_free()
-		)
+		if _pending_card_node != card_node:
+			var tween = create_tween()
+			tween.tween_interval(0.6)
+			tween.tween_callback(func():
+				if is_instance_valid(card_node):
+					card_node.queue_free()
+			)
+		# else: pending card stays at center until complete_pending_play() is called
 		update_layout()
 	else:
 		remove_card(card_node)
 	card_played.emit(data, target)
+
+func complete_pending_play() -> void:
+	## Called after discard flow completes — send the pending card to discard pile
+	if _pending_card_node and is_instance_valid(_pending_card_node):
+		var discard_pos: Vector2 = to_local(Vector2(1700, 700))
+		_pending_card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
+		var node = _pending_card_node
+		var tween = create_tween()
+		tween.tween_interval(0.3)
+		tween.tween_callback(func():
+			if is_instance_valid(node):
+				node.queue_free()
+		)
+	_pending_card_node = null
+	_pending_card_target = null
 
 func _shatter_card(card_node: Area2D) -> void:
 	## Create fragment particles that fly outward from the card position
