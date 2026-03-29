@@ -2513,6 +2513,28 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.add_child(_discard_confirm_btn)
 	_update_discard_confirm_style()
 
+	# Cancel button — to the right of confirm
+	var cancel_btn = Button.new()
+	cancel_btn.name = "CancelButton"
+	cancel_btn.text = "取消"
+	cancel_btn.position = Vector2(1120, 580)
+	cancel_btn.custom_minimum_size = Vector2(200, 55)
+	cancel_btn.add_theme_font_size_override("font_size", 28)
+	cancel_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	cancel_btn.z_index = 501
+	var cancel_style = StyleBoxFlat.new()
+	cancel_style.bg_color = Color(0.5, 0.2, 0.2, 0.9)
+	cancel_style.corner_radius_top_left = 10
+	cancel_style.corner_radius_top_right = 10
+	cancel_style.corner_radius_bottom_left = 10
+	cancel_style.corner_radius_bottom_right = 10
+	cancel_btn.add_theme_stylebox_override("normal", cancel_style)
+	var cancel_hover = cancel_style.duplicate() as StyleBoxFlat
+	cancel_hover.bg_color = Color(0.6, 0.25, 0.25, 0.95)
+	cancel_btn.add_theme_stylebox_override("hover", cancel_hover)
+	cancel_btn.pressed.connect(_on_discard_cancel)
+	_discard_overlay.add_child(cancel_btn)
+
 	hud_layer.add_child(_discard_overlay)
 
 func _show_discard_selection(count: int, callback: Callable) -> void:
