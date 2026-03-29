@@ -2464,8 +2464,8 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 # ---- Discard Selection (In-Hand Mode) ----
 
 func _setup_discard_overlay() -> void:
-	## Full-screen dark overlay with centered card preview and confirm button.
-	## Only the hand area at the bottom remains interactive for card selection.
+	## Discard overlay using CanvasLayer so it renders BETWEEN scene and hand cards.
+	## The hand cards get their own higher CanvasLayer during discard mode.
 	var hud_layer = get_node_or_null("HUDLayer")
 	if hud_layer == null:
 		return
@@ -2476,12 +2476,10 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.z_index = 500
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Dark background covering everything ABOVE the hand area (y: 0 to ~700)
-	# Leave hand area (y ~700+) uncovered so cards remain clickable
+	# Full-screen dark background
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
-	bg.position = Vector2(0, 0)
-	bg.size = Vector2(1920, 700)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.color = Color(0, 0, 0, 0.75)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_discard_overlay.add_child(bg)
@@ -2539,6 +2537,32 @@ func _setup_discard_overlay() -> void:
 
 	hud_layer.add_child(_discard_overlay)
 
+var _hand_canvas_layer: CanvasLayer = null  # Temporary layer to raise hand above overlay
+
+func _raise_hand_above_overlay() -> void:
+	## Move card_hand to a CanvasLayer above the HUD overlay so cards are clickable
+	if card_hand == null or _hand_canvas_layer != null:
+		return
+	_hand_canvas_layer = CanvasLayer.new()
+	_hand_canvas_layer.name = "HandOverlayLayer"
+	_hand_canvas_layer.layer = 2  # HUDLayer is layer 1, this is above it
+	add_child(_hand_canvas_layer)
+	var hand_pos = card_hand.global_position
+	card_hand.get_parent().remove_child(card_hand)
+	_hand_canvas_layer.add_child(card_hand)
+	card_hand.position = hand_pos
+
+func _lower_hand_from_overlay() -> void:
+	## Return card_hand to its original parent (the battle scene root)
+	if card_hand == null or _hand_canvas_layer == null:
+		return
+	var hand_pos = card_hand.position
+	_hand_canvas_layer.remove_child(card_hand)
+	add_child(card_hand)
+	card_hand.position = hand_pos
+	_hand_canvas_layer.queue_free()
+	_hand_canvas_layer = null
+
 func _show_discard_selection(count: int, callback: Callable) -> void:
 	if card_hand == null:
 		# Fallback: auto-discard random cards
@@ -2558,6 +2582,9 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 	# Show the darkening overlay
 	if _discard_overlay:
 		_discard_overlay.visible = true
+
+	# Raise card_hand above the overlay by reparenting to a high CanvasLayer
+	_raise_hand_above_overlay()
 
 	# Enter discard selection mode on the hand
 	card_hand.enter_discard_mode(count)
@@ -2622,6 +2649,8 @@ func _on_discard_confirm() -> void:
 		for c in hand:
 			card_hand.add_card(c)
 	_discard_selected_cards.clear()
+	# Lower hand back to normal layer
+	_lower_hand_from_overlay()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	# Now complete the played card's fly-to-discard animation
@@ -2638,6 +2667,7 @@ func _on_discard_cancel() -> void:
 			card_hand.discard_selection_changed.disconnect(_on_hand_discard_selection_changed)
 		card_hand.exit_discard_mode()
 	_discard_selected_cards.clear()
+	_lower_hand_from_overlay()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	# Note: the card that required discarding was already played
