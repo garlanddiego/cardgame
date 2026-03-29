@@ -706,8 +706,9 @@ func _reshuffle_discard() -> void:
 	draw_pile = discard_pile.duplicate()
 	discard_pile.clear()
 	draw_pile.shuffle()
-	# Show brief visual feedback using the turn banner
 	_show_turn_banner("Reshuffling...", Color(0.7, 0.85, 1.0))
+	# Visual: small card icon flies from discard pile to draw pile
+	_animate_reshuffle()
 
 func _can_play_card(card_data: Dictionary) -> bool:
 	# Unplayable cards (status cards)
@@ -2331,6 +2332,24 @@ func _show_turn_banner(text: String, color: Color) -> void:
 
 # ---- Screen Shake ----
 
+func _animate_reshuffle() -> void:
+	## Visual: small card-shaped rectangles fly from discard pile to draw pile
+	var discard_pos := Vector2(1860, 950)  # Discard pile position (bottom right)
+	var draw_pos := Vector2(60, 950)  # Draw pile position (bottom left)
+	var count: int = mini(5, draw_pile.size())  # Show max 5 card fragments
+	for i in range(count):
+		var frag = ColorRect.new()
+		frag.size = Vector2(30, 40)
+		frag.color = Color(0.7, 0.6, 0.4, 0.8)
+		frag.position = discard_pos + Vector2(randf_range(-10, 10), randf_range(-10, 10))
+		frag.z_index = 300
+		add_child(frag)
+		var t = create_tween()
+		t.tween_interval(0.08 * i)  # Stagger
+		t.tween_property(frag, "position", draw_pos + Vector2(randf_range(-15, 15), randf_range(-10, 10)), 0.35).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
+		t.tween_property(frag, "modulate:a", 0.0, 0.15)
+		t.tween_callback(frag.queue_free)
+
 func _screen_shake(intensity: float = 8.0, duration: float = 0.15) -> void:
 	var original_pos: Vector2 = position
 	var tween = create_tween()
@@ -2464,8 +2483,8 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 # ---- Discard Selection (In-Hand Mode) ----
 
 func _setup_discard_overlay() -> void:
-	## Discard overlay using CanvasLayer so it renders BETWEEN scene and hand cards.
-	## The hand cards get their own higher CanvasLayer during discard mode.
+	## Discard overlay in HUDLayer — darkens area above hand (y: 60-700).
+	## Hand cards below y:700 are NOT covered, so they remain clickable.
 	var hud_layer = get_node_or_null("HUDLayer")
 	if hud_layer == null:
 		return
@@ -2475,15 +2494,13 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.visible = false
 	_discard_overlay.z_index = 500
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud_layer.add_child(_discard_overlay)
 
-	# Dark background covering everything below the top status bar (y=60+)
+	# Dark background covering y:60 to y:700 (above hand, below status bar)
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
-	bg.anchor_left = 0.0
-	bg.anchor_top = 0.0
-	bg.anchor_right = 1.0
-	bg.anchor_bottom = 1.0
-	bg.offset_top = 60.0  # Below the top status bar
+	bg.position = Vector2(0, 60)
+	bg.size = Vector2(1920, 640)
 	bg.color = Color(0, 0, 0, 0.75)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_discard_overlay.add_child(bg)
@@ -2504,7 +2521,7 @@ func _setup_discard_overlay() -> void:
 	_discard_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(_discard_title_label)
 
-	# Confirm button — below where the selected card appears (screen center ~350 + card height ~420)
+	# Confirm button — below where the selected card appears
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
 	_discard_confirm_btn.text = "确认弃牌"
@@ -2512,7 +2529,6 @@ func _setup_discard_overlay() -> void:
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
 	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
 	_discard_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
-	_discard_confirm_btn.z_index = 501
 	_discard_confirm_btn.pressed.connect(_on_discard_confirm)
 	_discard_overlay.add_child(_discard_confirm_btn)
 	_update_discard_confirm_style()
@@ -2525,7 +2541,6 @@ func _setup_discard_overlay() -> void:
 	cancel_btn.custom_minimum_size = Vector2(200, 55)
 	cancel_btn.add_theme_font_size_override("font_size", 28)
 	cancel_btn.add_theme_color_override("font_color", Color(1, 1, 1))
-	cancel_btn.z_index = 501
 	var cancel_style = StyleBoxFlat.new()
 	cancel_style.bg_color = Color(0.5, 0.2, 0.2, 0.9)
 	cancel_style.corner_radius_top_left = 10
@@ -2539,33 +2554,6 @@ func _setup_discard_overlay() -> void:
 	cancel_btn.pressed.connect(_on_discard_cancel)
 	_discard_overlay.add_child(cancel_btn)
 
-	hud_layer.add_child(_discard_overlay)
-
-var _hand_canvas_layer: CanvasLayer = null  # Temporary layer to raise hand above overlay
-
-func _raise_hand_above_overlay() -> void:
-	## Move card_hand to a CanvasLayer above the HUD overlay so cards are clickable
-	if card_hand == null or _hand_canvas_layer != null:
-		return
-	_hand_canvas_layer = CanvasLayer.new()
-	_hand_canvas_layer.name = "HandOverlayLayer"
-	_hand_canvas_layer.layer = 2  # HUDLayer is layer 1, this is above it
-	add_child(_hand_canvas_layer)
-	var hand_pos = card_hand.global_position
-	card_hand.get_parent().remove_child(card_hand)
-	_hand_canvas_layer.add_child(card_hand)
-	card_hand.position = hand_pos
-
-func _lower_hand_from_overlay() -> void:
-	## Return card_hand to its original parent (the battle scene root)
-	if card_hand == null or _hand_canvas_layer == null:
-		return
-	var hand_pos = card_hand.position
-	_hand_canvas_layer.remove_child(card_hand)
-	add_child(card_hand)
-	card_hand.position = hand_pos
-	_hand_canvas_layer.queue_free()
-	_hand_canvas_layer = null
 
 func _show_discard_selection(count: int, callback: Callable) -> void:
 	if card_hand == null:
@@ -2588,8 +2576,6 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 		_discard_overlay.visible = true
 
 	# Raise card_hand above the overlay by reparenting to a high CanvasLayer
-	_raise_hand_above_overlay()
-
 	# Enter discard selection mode on the hand
 	card_hand.enter_discard_mode(count)
 	# Connect the selection changed signal
@@ -2654,7 +2640,6 @@ func _on_discard_confirm() -> void:
 			card_hand.add_card(c)
 	_discard_selected_cards.clear()
 	# Lower hand back to normal layer
-	_lower_hand_from_overlay()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	# Now complete the played card's fly-to-discard animation
@@ -2671,7 +2656,6 @@ func _on_discard_cancel() -> void:
 			card_hand.discard_selection_changed.disconnect(_on_hand_discard_selection_changed)
 		card_hand.exit_discard_mode()
 	_discard_selected_cards.clear()
-	_lower_hand_from_overlay()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	# Note: the card that required discarding was already played
