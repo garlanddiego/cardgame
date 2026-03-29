@@ -4,3 +4,7 @@ assets
 screenshots
 .godot
 *.import
+*.mp4
+reference.png
+visual-qa
+test
