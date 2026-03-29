@@ -17,8 +17,8 @@ var card_script: GDScript = null
 var _any_card_dragging: bool = false
 
 # STS2-style layout — matching card.gd CARD_SIZE (256x495)
-const CARD_WIDTH: float = 256.0
-const CARD_HEIGHT: float = 430.0
+const CARD_WIDTH: float = 296.0
+const CARD_HEIGHT: float = 422.0  # height reduced 15%
 const CARD_OVERLAP: float = 60.0  # Overlap for 5+ cards
 @export var hover_lift: float = -380.0  ## Card lifts well above hand (card bottom at ~360 absolute)
 const HOVER_SPREAD: float = 40.0  # Neighbors spread on hover
@@ -87,17 +87,29 @@ func update_layout() -> void:
 	if cards.is_empty():
 		return
 	var card_count: int = cards.size()
-	# Cards overlap: each card takes CARD_WIDTH - CARD_OVERLAP horizontal space
-	var step: float = CARD_WIDTH - CARD_OVERLAP
-	var total_width: float = step * (card_count - 1) + CARD_WIDTH
 	var vw: float = get_viewport_rect().size.x
-	var start_x: float = (vw - total_width) / 2.0
-	var base_y: float = HAND_Y  # Cards positioned relative to this Node2D
+	# Reserve space on each side (piles are below card area now, less margin needed)
+	var margin: float = 50.0
+	var available_width: float = vw - margin * 2.0
 
-	# Shrink cards when hand has 7+
+	# Progressive card scaling based on hand size
 	var base_scale: float = 1.0
-	if card_count >= 7:
+	if card_count > 8:
+		base_scale = 0.7
+	elif card_count > 6:
+		base_scale = 0.8
+	elif card_count > 4:
 		base_scale = 0.9
+
+	var scaled_card_w: float = CARD_WIDTH * base_scale
+	var step: float = scaled_card_w - CARD_OVERLAP * base_scale
+	var total_width: float = step * (card_count - 1) + scaled_card_w
+	# If still too wide, compress further
+	if total_width > available_width and card_count > 1:
+		step = (available_width - scaled_card_w) / float(card_count - 1)
+		total_width = step * (card_count - 1) + scaled_card_w
+	var start_x: float = margin + (available_width - total_width) / 2.0
+	var base_y: float = HAND_Y
 
 	var hovered_index: int = -1
 	if hovered_card != null and hovered_card in cards:
@@ -128,11 +140,12 @@ func update_layout() -> void:
 		var target_scale := Vector2(base_scale, base_scale)
 
 		if card == selected_card:
-			# Selected card: slight lift only (not too high, avoid blocking enemies)
-			# Full lift happens on hover, not on targeting selection
-			target_pos.y += -40  # Small lift to indicate selection
+			# Selected card: bottom edge at screen bottom, shifted down 100px from previous
+			var vh: float = get_viewport_rect().size.y
+			var hand_y: float = global_position.y
+			target_pos.y = vh - hand_y - CARD_HEIGHT * base_scale + 100
 			target_rot = 0.0
-			target_scale = Vector2(1.1, 1.1)  # Slight scale for visual feedback
+			target_scale = Vector2(base_scale * 1.05, base_scale * 1.05)
 		elif card == focused_card:
 			target_pos.y += hover_lift - 10  # Focused card lifts up for preview
 			target_rot = 0.0
@@ -142,8 +155,11 @@ func update_layout() -> void:
 			target_rot = 0.0
 			target_scale = Vector2(1.4, 1.4)
 
-		# Use the card's move_to method for smooth animation
-		card.move_to(target_pos, target_rot, target_scale, 0.12)
+		# Selected card: animate directly to final position (single motion, no bounce)
+		if card == selected_card:
+			card.move_to(target_pos, target_rot, target_scale, 0.1)
+		else:
+			card.move_to(target_pos, target_rot, target_scale, 0.12)
 
 		card.z_index = i
 		card.base_z_index = i
@@ -409,9 +425,9 @@ func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:
 	# Emit signal for battle_manager to resolve the target at release position
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
-	# Self/all_enemies: auto-play on drag release anywhere
-	if target_type == "self" or target_type == "all_enemies":
+	# All_enemies: auto-play on drag release anywhere
+	if target_type == "all_enemies":
 		card_played_tap.emit(card_node)
 		return
-	# Enemy-targeted: let battle_manager resolve
+	# Self and enemy-targeted: let battle_manager resolve at release position
 	card_drag_released.emit(card_node, release_position)

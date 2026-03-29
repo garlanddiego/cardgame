@@ -10,6 +10,12 @@ signal battle_won
 
 @export var max_energy: int = 3
 @export var cards_per_draw: int = 10
+@export var enemy_count: int = 1
+@export var config_player_hp: int = 80
+var config_enemy_hps: Array = [50, 50, 50]
+var dual_hero_mode: bool = false
+var second_character_id: String = ""
+var second_player: Node2D = null  # Back-row hero (dual hero mode)
 @export var player_sprite_scale_height: float = 400.0  ## Target height in pixels for player sprite
 @export var enemy_sprite_scale_height: float = 350.0  ## Target height in pixels for enemy sprite
 @export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
@@ -151,10 +157,13 @@ func _ready() -> void:
 	# Turn banner
 	_setup_turn_banner()
 
+	# Top status bar
+	_setup_top_status_bar()
 	# Pile viewer overlay
 	_setup_pile_viewer()
 	# Discard selection overlay
 	_setup_discard_overlay()
+	# Swap heroes button (dual hero mode only, created in start_battle)
 
 func _exit_tree() -> void:
 	if end_turn_btn and end_turn_btn.pressed.is_connected(_on_end_turn):
@@ -186,12 +195,20 @@ func start_battle(character_id: String) -> void:
 		push_error("GameManager not found")
 		return
 
-	# Setup player entity
+	# Setup player entity (front row = closer to enemies)
 	_setup_player(character_id, gm)
+	# Setup second player (back row) if dual hero mode
+	if dual_hero_mode and second_character_id != "":
+		_setup_second_player(second_character_id, gm)
+		_create_swap_button()
 	# Setup enemies
 	_setup_enemies()
-	# Build deck from character
+	# Center the battle layout dynamically
+	_center_battle_layout()
+	# Build deck from both characters if dual hero mode
 	_build_deck(character_id, gm)
+	# Update top status bar with initial HP
+	_update_status_bar()
 	# Start first turn
 	start_player_turn()
 
@@ -235,57 +252,249 @@ func _get_loc() -> Node:
 func _setup_player(character_id: String, gm: Node) -> void:
 	if player_area == null:
 		return
-	# Create player entity
+	# Create front-row player entity
 	player = _create_entity_node(false)
 	var char_data = gm.character_data[character_id]
-	player.init_entity(char_data["max_hp"], false)
+	var player_hp: int = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
+	player.init_entity(player_hp, false)
+	# In dual mode, offset front row to the right (100px+ gap between hero sprites)
+	if dual_hero_mode:
+		player.position = Vector2(160, 0)
 	# Set sprite
 	var sprite = player.get_node_or_null("Sprite") as Sprite2D
 	if sprite:
 		var tex = load(char_data["sprite"])
 		if tex:
 			sprite.texture = tex
-			# Scale to target height (adjustable via @export player_sprite_scale_height)
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
-				var scale_factor: float = player_sprite_scale_height / tex_height
-				sprite.scale = Vector2(scale_factor, scale_factor)
+				var sf: float = player_sprite_scale_height / tex_height
+				if dual_hero_mode:
+					sf *= 0.85  # Slightly smaller in dual mode
+				sprite.scale = Vector2(sf, sf)
 	var nlabel = player.get_node_or_null("NameLabel") as Label
 	if nlabel:
 		nlabel.text = char_data["name"]
 	player_area.add_child(player)
+
+func _setup_second_player(character_id: String, gm: Node) -> void:
+	if player_area == null:
+		return
+	second_player = _create_entity_node(false)
+	var char_data = gm.character_data[character_id]
+	var hp: int = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
+	second_player.init_entity(hp, false)
+	# Back row: positioned to the left of front row (100px+ gap between sprites)
+	second_player.position = Vector2(-180, 0)
+	var sprite = second_player.get_node_or_null("Sprite") as Sprite2D
+	if sprite:
+		var tex = load(char_data["sprite"])
+		if tex:
+			sprite.texture = tex
+			var tex_height: float = tex.get_height()
+			if tex_height > 0:
+				var sf: float = (player_sprite_scale_height * 0.85) / tex_height
+				sprite.scale = Vector2(sf, sf)
+	var nlabel = second_player.get_node_or_null("NameLabel") as Label
+	if nlabel:
+		nlabel.text = char_data["name"]
+	player_area.add_child(second_player)
+	# Connect died signal
+	second_player.died.connect(func(): _on_second_player_died())
+
+var _swap_button: Button = null
+
+func _create_swap_button() -> void:
+	## Create a button between the two heroes to swap front/back positions
+	var hud = get_node_or_null("HUDLayer/HUD")
+	if hud == null:
+		return
+	_swap_button = Button.new()
+	_swap_button.text = "⇄ 换位"
+	_swap_button.custom_minimum_size = Vector2(100, 40)
+	_swap_button.add_theme_font_size_override("font_size", 24)
+	_swap_button.add_theme_color_override("font_color", Color.WHITE)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.3, 0.25, 0.5, 0.8)
+	style.border_color = Color(0.6, 0.5, 0.9, 0.9)
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	_swap_button.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.4, 0.35, 0.65, 0.9)
+	_swap_button.add_theme_stylebox_override("hover", hover)
+	# Position centered between the two heroes
+	# PlayerArea.x=430, front=+160(=590), back=-180(=250), center=(590+250)/2=420
+	_swap_button.layout_mode = 1
+	_swap_button.anchors_preset = 0
+	_swap_button.anchor_left = 0.0
+	_swap_button.anchor_top = 0.5
+	_swap_button.offset_left = 370.0
+	_swap_button.offset_top = 100.0
+	_swap_button.offset_right = 470.0
+	_swap_button.offset_bottom = 140.0
+	_swap_button.pressed.connect(_on_swap_heroes)
+	hud.add_child(_swap_button)
+
+func _on_swap_heroes() -> void:
+	## Swap front and back row heroes
+	if player == null or second_player == null:
+		return
+	if not player.alive and not second_player.alive:
+		return
+	# Swap positions
+	var temp_pos: Vector2 = player.position
+	player.position = second_player.position
+	second_player.position = temp_pos
+	# Swap references
+	var temp = player
+	player = second_player
+	second_player = temp
+	# Names stay the same, no front/back row labels
+
+func _on_second_player_died() -> void:
+	# Check if both players are dead
+	if player and not player.alive:
+		_on_player_died()
+
+func _center_battle_layout() -> void:
+	## Dynamically center the battle layout so the midpoint between
+	## front hero and front enemy is at screen center X
+	if player_area == null or enemy_area == null:
+		return
+	var vw: float = get_viewport_rect().size.x
+	var screen_center: float = vw / 2.0
+
+	# Calculate front hero X (rightmost hero = closest to enemies)
+	var front_hero_x: float = player_area.position.x
+	if player:
+		front_hero_x = player_area.position.x + player.position.x
+
+	# Calculate front enemy X (leftmost enemy = closest to heroes)
+	var front_enemy_x: float = enemy_area.position.x
+	if not enemies.is_empty():
+		var min_x: float = INF
+		for e in enemies:
+			if e.position.x < min_x:
+				min_x = e.position.x
+		front_enemy_x = enemy_area.position.x + min_x
+
+	# Current midpoint
+	var midpoint: float = (front_hero_x + front_enemy_x) / 2.0
+
+	# Shift both areas equally to center the midpoint
+	var shift: float = screen_center - midpoint
+	player_area.position.x += shift
+	enemy_area.position.x += shift
+
+func get_front_player() -> Node2D:
+	## Returns the front-row hero (default target for enemy attacks)
+	if player and player.alive:
+		return player
+	elif second_player and second_player.alive:
+		return second_player
+	return null
+
+func _get_self_target(card_data: Dictionary = {}) -> Node2D:
+	## Returns the hero that self-targeting effects should apply to.
+	## In single hero mode, always returns player.
+	## In dual hero mode, returns player (front) by default.
+	## TODO: Add hero selection prompt for manual targeting
+	if player and player.alive:
+		return player
+	elif second_player and second_player.alive:
+		return second_player
+	return null
+
+func _highlight_heroes() -> void:
+	for hero in _get_all_alive_heroes():
+		if hero.has_method("show_target_highlight"):
+			hero.show_target_highlight()
+
+func _unhighlight_heroes() -> void:
+	for hero in _get_all_alive_heroes():
+		if hero.has_method("hide_target_highlight"):
+			hero.hide_target_highlight()
+
+func _get_closest_hero(click_pos: Vector2) -> Node2D:
+	## Returns the hero closest to the click position (for self-targeting in dual mode)
+	var heroes = _get_all_alive_heroes()
+	if heroes.is_empty():
+		return null
+	if heroes.size() == 1:
+		return heroes[0]
+	var closest: Node2D = null
+	var closest_dist: float = INF
+	for hero in heroes:
+		var hero_global_pos: Vector2 = hero.global_position
+		var dist: float = click_pos.distance_to(hero_global_pos)
+		if dist < closest_dist:
+			closest_dist = dist
+			closest = hero
+	return closest
+
+func _get_all_alive_heroes() -> Array:
+	## Returns all alive heroes (for "all heroes" effects)
+	var heroes: Array = []
+	if player and player.alive:
+		heroes.append(player)
+	if second_player and second_player.alive:
+		heroes.append(second_player)
+	return heroes
 
 func _setup_enemies() -> void:
 	if enemy_area == null:
 		return
 	enemies.clear()
 	enemy_ais.clear()
-	# Pick 3 random enemy types
-	var enemy_types = ["slime", "cultist", "jaw_worm"]
+	var enemy_types = ["slime", "cultist", "jaw_worm", "guardian"]
 	var enemy_configs = {
 		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime_sts.png", "scale_h": 350.0},
 		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist_sts.png", "scale_h": 400.0},
 		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm_sts.png", "scale_h": 380.0},
 		"guardian": {"name": "Guardian", "hp": 1000, "sprite": "res://assets/img/guardian.png", "scale_h": 400.0}
 	}
-	var selected_enemies: Array = ["slime"]
-	for i in range(1):
+	# Select random enemy types based on enemy_count
+	var count: int = clampi(enemy_count, 1, 3)
+	var shuffled_types = enemy_types.duplicate()
+	shuffled_types.shuffle()
+	var selected_enemies: Array = []
+	for i in range(count):
+		selected_enemies.append(shuffled_types[i % shuffled_types.size()])
+	# Position enemies based on count
+	var positions: Array = []
+	if count == 1:
+		positions = [Vector2(100, 0)]
+	elif count == 2:
+		positions = [Vector2(-20, 0), Vector2(320, 0)]
+	else:
+		positions = [Vector2(-80, 0), Vector2(120, 0), Vector2(320, 0)]
+	for i in range(count):
 		var etype: String = selected_enemies[i]
 		var config = enemy_configs[etype]
 		var enemy = _create_entity_node(true)
-		enemy.init_entity(config["hp"], true, etype)
-		# Single enemy centered in enemy area
-		enemy.position = Vector2(150, 0)
+		var enemy_hp: int = config_enemy_hps[i] if i < config_enemy_hps.size() and config_enemy_hps[i] > 0 else config["hp"]
+		enemy.init_entity(enemy_hp, true, etype)
+		enemy.position = positions[i]
 		# Set sprite
 		var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
 		if sprite:
 			var tex = load(config["sprite"])
 			if tex:
-				sprite.texture = tex
 				var tex_height: float = tex.get_height()
 				if tex_height > 0:
 					var sf: float = config["scale_h"] / tex_height
+					# Scale down slightly for multiple enemies
+					if count > 1:
+						sf *= 0.8
 					sprite.scale = Vector2(sf, sf)
+				sprite.texture = tex
 		var nlabel = enemy.get_node_or_null("NameLabel") as Label
 		if nlabel:
 			nlabel.text = config["name"]
@@ -381,19 +590,23 @@ func start_player_turn() -> void:
 		player.apply_status("dexterity", -anticipate_dex_to_remove)
 		anticipate_dex_to_remove = 0
 
-	# Berserk: +1 energy per turn
-	if berserk_active:
-		current_energy += 1
+	# Berserk: +1 energy per turn (check all heroes)
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("berserk", 0) > 0:
+			current_energy += 1
 
-	# Power effects at start of turn
-	if demon_form_active and player and player.alive:
-		player.apply_status("strength", 2)
-	if infinite_blades_active:
-		_add_shiv_to_hand(1)
+	# Power effects at start of turn — apply to the hero that has each power
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("demon_form", 0) > 0:
+			hero.apply_status("strength", 2)
+		if hero.active_powers.get("infinite_blades", 0) > 0:
+			_add_shiv_to_hand(1)
 
-	# Reset player block (unless Barricade or Blur is active)
-	if player and not barricade_active and not _blur_active:
-		player.reset_block()
+	# Reset block for each hero (unless that hero has Barricade or Blur)
+	for hero in _get_all_alive_heroes():
+		var has_barricade: bool = hero.active_powers.get("barricade", 0) > 0
+		if not has_barricade and not _blur_active:
+			hero.reset_block()
 	# Blur only lasts one turn — reset after preserving block
 	if _blur_active:
 		_blur_active = false
@@ -532,10 +745,12 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	if card_data.get("type", 0) == 0:  # ATTACK
 		attacks_played_this_turn += 1
 
-	# Rage: gain block when playing attacks
-	if rage_active and card_data.get("type", 0) == 0 and player:  # ATTACK
-		player.add_block(rage_block)
-		_trigger_juggernaut()
+	# Rage: gain block when playing attacks (applies to hero that has Rage)
+	if card_data.get("type", 0) == 0:  # ATTACK
+		for hero in _get_all_alive_heroes():
+			if hero.active_powers.get("rage", 0) > 0:
+				hero.add_block(rage_block)
+				_trigger_juggernaut()
 
 	# Determine where the card goes after play
 	var card_type: int = card_data.get("type", 0)
@@ -571,10 +786,11 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 
 func _exhaust_card(card_data: Dictionary) -> void:
 	exhaust_pile.append(card_data)
-	# Feel No Pain: gain block on exhaust
-	if feel_no_pain_active and player and player.alive:
-		player.add_block(feel_no_pain_block)
-		_trigger_juggernaut()
+	# Feel No Pain: gain block on exhaust (applies to hero that has the power)
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("feel_no_pain", 0) > 0:
+			hero.add_block(feel_no_pain_block)
+			_trigger_juggernaut()
 
 func _trigger_juggernaut() -> void:
 	if juggernaut_active and player and player.alive:
@@ -637,8 +853,10 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			# ---- Block ----
 			"block":
 				var blk: int = action.get("value", card_data.get("block", 0))
-				if blk > 0 and player:
-					player.add_block(blk)
+				# In dual hero mode, apply to targeted hero; otherwise player
+				var block_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+				if blk > 0 and block_target:
+					block_target.add_block(blk)
 					_trigger_juggernaut()
 
 			# ---- Draw cards ----
@@ -670,8 +888,9 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"apply_self_status":
 				var status_type: String = action.get("status", "")
 				var stacks: int = action.get("stacks", 1)
-				if status_type != "" and player:
-					player.apply_status(status_type, stacks)
+				var self_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+				if status_type != "" and self_target:
+					self_target.apply_status(status_type, stacks)
 
 			# ---- Gain energy ----
 			"gain_energy":
@@ -758,7 +977,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"power_effect":
 				var power_name: String = action.get("power", "")
 				if power_name != "":
-					_activate_power(power_name)
+					var power_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+					_activate_power(power_name, power_target)
 
 			# ---- Call named action function (for complex card behaviors) ----
 			"call":
@@ -835,26 +1055,31 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				draw_cards(1)
 		"flex":
 			var stacks: int = card_data.get("flex_stacks", 2)
-			if player:
-				player.apply_status("strength", stacks)
+			var self_hero = target if (target != null and not target.is_enemy) else player
+			if self_hero:
+				self_hero.apply_status("strength", stacks)
 				flex_strength_to_remove += stacks
 		"anticipate":
-			if player:
+			var self_hero = target if (target != null and not target.is_enemy) else player
+			if self_hero:
 				var stacks: int = card_data.get("temp_dex", 3)
-				player.apply_status("dexterity", stacks)
+				self_hero.apply_status("dexterity", stacks)
 				anticipate_dex_to_remove += stacks
 		"limit_break":
-			if player:
-				var str_val: int = player.get_status_stacks("strength")
+			var self_hero = target if (target != null and not target.is_enemy) else player
+			if self_hero:
+				var str_val: int = self_hero.get_status_stacks("strength")
 				if str_val > 0:
-					player.apply_status("strength", str_val)
+					self_hero.apply_status("strength", str_val)
 		"entrench":
-			if player:
-				var current_block: int = player.block
-				player.add_block(current_block)
+			var self_hero = target if (target != null and not target.is_enemy) else player
+			if self_hero:
+				var current_block: int = self_hero.block
+				self_hero.add_block(current_block)
 				_trigger_juggernaut()
 		"second_wind":
-			if player:
+			var self_hero = target if (target != null and not target.is_enemy) else player
+			if self_hero:
 				var blk_per: int = card_data.get("block_per", 5)
 				var cards_to_exhaust: Array = []
 				for c in hand:
@@ -863,7 +1088,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				for c in cards_to_exhaust:
 					hand.erase(c)
 					_exhaust_card(c)
-					player.add_block(blk_per)
+					self_hero.add_block(blk_per)
 					_trigger_juggernaut()
 				if card_hand:
 					card_hand.clear_hand()
@@ -1152,9 +1377,17 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 
 func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> void:
 	if target_type == "all_enemies":
+		# Sequential AOE: hit each enemy with a slight delay for visual impact
+		var delay: float = 0.0
 		for enemy in enemies:
 			if enemy.alive:
-				enemy.take_damage(dmg)
+				if delay > 0:
+					var aoe_tween = create_tween()
+					aoe_tween.tween_interval(delay)
+					aoe_tween.tween_callback(enemy.take_damage.bind(dmg))
+				else:
+					enemy.take_damage(dmg)
+				delay += 0.12
 	elif target_type == "random_enemy":
 		var alive = _get_alive_enemies()
 		if not alive.is_empty():
@@ -1180,10 +1413,11 @@ func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionar
 	if draw_count > 0:
 		draw_cards(draw_count)
 
-func _activate_power(power_name: String) -> void:
-	# Add visual power indicator on player
-	if player:
-		player.add_power(power_name)
+func _activate_power(power_name: String, power_target: Node2D = null) -> void:
+	# Add visual power indicator on the targeted hero
+	var hero = power_target if power_target else player
+	if hero:
+		hero.add_power(power_name)
 	match power_name:
 		"demon_form":
 			demon_form_active = true
@@ -1199,9 +1433,9 @@ func _activate_power(power_name: String) -> void:
 				card_hand.corruption_active = true
 		"berserk":
 			berserk_active = true
-			# Apply 1 Vulnerable to self
-			if player:
-				player.apply_status("vulnerable", 1)
+			# Apply 1 Vulnerable to the hero who activated it
+			if hero:
+				hero.apply_status("vulnerable", 1)
 		"feel_no_pain":
 			feel_no_pain_active = true
 		"juggernaut":
@@ -1296,15 +1530,25 @@ func end_player_turn() -> void:
 		player.apply_status("strength", -flex_strength_to_remove)
 		flex_strength_to_remove = 0
 
-	# Metallicize: gain block at end of turn
-	if metallicize_active and player and player.alive:
-		player.add_block(metallicize_block)
-		_trigger_juggernaut()
+	# Metallicize: gain block at end of turn (apply to hero that has the power)
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("metallicize", 0) > 0:
+			hero.add_block(metallicize_block)
+			_trigger_juggernaut()
+
+	# Noxious Fumes: apply poison to all enemies at end of turn
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("noxious_fumes", 0) > 0:
+			var stacks: int = hero.active_powers["noxious_fumes"]
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.apply_status("poison", stacks)
 
 	# Process end-of-turn damage from status cards in hand (Burn)
+	var front = get_front_player()
 	for card_data in hand:
-		if card_data.get("end_turn_damage", 0) > 0 and player:
-			player.take_damage_direct(card_data["end_turn_damage"])
+		if card_data.get("end_turn_damage", 0) > 0 and front:
+			front.take_damage_direct(card_data["end_turn_damage"])
 
 	# Exhaust ethereal cards (Dazed)
 	var ethereal_cards: Array = []
@@ -1322,9 +1566,9 @@ func end_player_turn() -> void:
 	hand.clear()
 	if card_hand:
 		card_hand.clear_hand()
-	# Tick player status effects
-	if player:
-		player.tick_status_effects()
+	# Tick status effects for all heroes
+	for hero in _get_all_alive_heroes():
+		hero.tick_status_effects()
 	_update_pile_labels()
 	turn_ended.emit()
 	# Start enemy turn after short delay
@@ -1404,11 +1648,21 @@ func _enemy_lunge(enemy: Node2D) -> void:
 	var orig_pos: Vector2 = enemy.position
 	var lunge_offset := Vector2(-60, 0)  # Lunge toward player (left)
 	var tween = create_tween()
-	tween.tween_property(enemy, "position", orig_pos + lunge_offset, 0.1).set_ease(Tween.EASE_OUT)
-	tween.tween_property(enemy, "position", orig_pos, 0.15).set_ease(Tween.EASE_IN)
+	tween.tween_property(enemy, "position", orig_pos + lunge_offset, 0.18).set_ease(Tween.EASE_OUT)
+	tween.tween_property(enemy, "position", orig_pos, 0.25).set_ease(Tween.EASE_IN)
+
+func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
+	## Check if attacked hero has reactive powers (caltrops, flame_barrier) and apply
+	if attacked_hero == null or enemy == null or not enemy.alive:
+		return
+	if attacked_hero.active_powers.get("flame_barrier", 0) > 0:
+		enemy.take_damage(flame_barrier_damage)
+	if attacked_hero.active_powers.get("caltrops", 0) > 0:
+		enemy.take_damage(3)
 
 func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
-	if player == null or not player.alive:
+	var front = get_front_player()
+	if front == null:
 		return
 	var action_type: String = action.get("type", "attack")
 	match action_type:
@@ -1417,16 +1671,20 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var times: int = action.get("times", 1)
 			var actual_dmg: int = enemy.get_attack_damage(value)
 			_enemy_lunge(enemy)
+			# In dual hero mode, attack front-row hero
+			var attack_target = front
 			for _i in range(times):
-				if player.alive:
-					player.take_damage(actual_dmg)
+				if attack_target.alive:
+					attack_target.take_damage(actual_dmg)
 					_screen_shake()
-					# Flame Barrier: deal damage back when attacked
-					if flame_barrier_active and enemy.alive:
-						enemy.take_damage(flame_barrier_damage)
-					# Caltrops: deal damage back
-					if caltrops_active and enemy.alive:
-						enemy.take_damage(3)
+					_check_reactive_powers(attack_target, enemy)
+				elif dual_hero_mode:
+					# Front row dead, switch to back row
+					attack_target = get_front_player()
+					if attack_target and attack_target.alive:
+						attack_target.take_damage(actual_dmg)
+						_screen_shake()
+						_check_reactive_powers(attack_target, enemy)
 		"buff":
 			var status_name: String = action.get("status", "strength")
 			var value: int = action.get("value", 1)
@@ -1439,13 +1697,11 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var blk: int = action.get("block_val", 5)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			_enemy_lunge(enemy)
-			player.take_damage(actual_dmg)
-			_screen_shake()
+			if front.alive:
+				front.take_damage(actual_dmg)
+				_screen_shake()
 			enemy.add_block(blk)
-			if flame_barrier_active and enemy.alive:
-				enemy.take_damage(flame_barrier_damage)
-			if caltrops_active and enemy.alive:
-				enemy.take_damage(3)
+			_check_reactive_powers(front, enemy)
 		"mode_shift":
 			var blk: int = action.get("block_val", 9)
 			enemy.add_block(blk)
@@ -1455,13 +1711,10 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var stacks: int = action.get("stacks", 1)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			_enemy_lunge(enemy)
-			player.take_damage(actual_dmg)
+			front.take_damage(actual_dmg)
 			_screen_shake()
-			player.apply_status(status_name, stacks)
-			if flame_barrier_active and enemy.alive:
-				enemy.take_damage(flame_barrier_damage)
-			if caltrops_active and enemy.alive:
-				enemy.take_damage(3)
+			front.apply_status(status_name, stacks)
+			_check_reactive_powers(front, enemy)
 
 func _end_enemy_turn() -> void:
 	if not battle_active:
@@ -1473,6 +1726,7 @@ func _end_enemy_turn() -> void:
 func _on_card_played(card_data: Dictionary, target: Node2D) -> void:
 	_clear_damage_previews()
 	_clear_all_enemy_highlights()
+	_unhighlight_heroes()
 	_hovered_enemy = null
 	if _targeting_arrow:
 		_targeting_arrow.hide_arrow()
@@ -1495,6 +1749,15 @@ func _on_entity_died(entity: Node2D) -> void:
 	_check_battle_end()
 
 func _on_player_died() -> void:
+	# In dual hero mode, only end battle if both heroes are dead
+	if dual_hero_mode:
+		var any_alive: bool = false
+		if player and player.alive:
+			any_alive = true
+		if second_player and second_player.alive:
+			any_alive = true
+		if any_alive:
+			return  # One hero still alive, continue battle
 	battle_active = false
 	player_died.emit()
 	if turn_label:
@@ -1531,24 +1794,11 @@ func _update_energy_label() -> void:
 		energy_label.text = str(current_energy) + "/" + str(max_energy)
 
 func _update_pile_labels() -> void:
-	var loc = _get_loc()
 	if draw_pile_label:
-		if loc:
-			draw_pile_label.text = loc.tf("draw_pile", [draw_pile.size()])
-		else:
-			draw_pile_label.text = "抽牌: " + str(draw_pile.size())
+		draw_pile_label.text = str(draw_pile.size())
 	if discard_label:
-		if loc:
-			discard_label.text = loc.tf("discard_pile", [discard_pile.size()])
-		else:
-			discard_label.text = "弃牌: " + str(discard_pile.size())
-	# Move pile panels up when hand is full (7+ cards) to prevent overlap
-	var hand_count: int = hand.size()
-	var y_offset: float = -60.0 if hand_count >= 7 else 0.0
-	if draw_panel:
-		draw_panel.position.y = 860 + y_offset
-	if discard_panel:
-		discard_panel.position.y = 860 + y_offset
+		discard_label.text = str(discard_pile.size())
+	# Pile panel positions are set by the scene anchors — no runtime override needed
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)
@@ -1580,6 +1830,10 @@ func _process(_delta: float) -> void:
 			# Show damage previews for attack cards
 			if _damage_preview_labels.is_empty():
 				_show_damage_previews()
+		elif target_type == "self" and dual_hero_mode:
+			# In dual hero mode, self-target cards need hero selection
+			# Highlight heroes to indicate they're clickable targets
+			_highlight_heroes()
 		elif target_type == "all_enemies":
 			# Highlight all enemies
 			if _hovered_enemy == null:
@@ -1611,6 +1865,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			card_hand.selected_card = null
 			card_hand.targeting_mode = false
 			_clear_all_enemy_highlights()
+			_unhighlight_heroes()
 			_clear_damage_previews()
 			_hovered_enemy = null
 			card_hand.update_layout()
@@ -1619,9 +1874,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		if card_hand and card_hand.is_targeting() and card_hand.selected_card:
 			var card_data: Dictionary = card_hand.get_selected_card_data()
 			var target_type: String = card_data.get("target", "enemy")
-			if target_type == "self" and player:
+			if target_type == "self":
 				_clear_damage_previews()
-				card_hand.play_selected_on(player)
+				if dual_hero_mode:
+					# In dual hero mode, must click on a specific hero
+					var click_pos: Vector2 = event.global_position
+					var hero_target = _get_closest_hero(click_pos)
+					if hero_target:
+						_unhighlight_heroes()
+						card_hand.play_selected_on(hero_target)
+				elif player:
+					card_hand.play_selected_on(player)
 			elif target_type == "all_enemies" and not enemies.is_empty():
 				_clear_damage_previews()
 				_clear_all_enemy_highlights()
@@ -1643,49 +1906,82 @@ func _unhandled_input(event: InputEvent) -> void:
 		_on_end_turn()
 
 func _on_card_tap_play(card_node: Area2D) -> void:
-	# Handle quick-tap for non-targeted cards (self/all_enemies)
+	# Handle quick-tap for non-targeted cards (all_enemies only; self cards use targeting)
 	if not battle_active or not is_player_turn:
 		return
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
-	if target_type == "self" and player:
-		card_hand.play_selected_on(player)
+	if target_type == "self":
+		if dual_hero_mode:
+			# Enter targeting mode — highlight heroes for selection
+			card_hand.selected_card = card_node
+			card_node.set_selected(true)
+			card_hand.targeting_mode = true
+			_highlight_heroes()
+		else:
+			if player:
+				card_hand.play_selected_on(player)
 	elif target_type == "all_enemies" and not enemies.is_empty():
 		card_hand.play_selected_on(enemies[0])
 
 func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
-	# Handle drag release — check if released over an enemy
+	# Handle drag release — check target based on card type
 	if not battle_active or not is_player_turn:
 		return
 	_clear_damage_previews()
 	_clear_all_enemy_highlights()
+	_unhighlight_heroes()
 	_hovered_enemy = null
 	if _targeting_arrow:
 		_targeting_arrow.hide_arrow()
 		_targeting_arrow.visible = false
-	var target_enemy = _get_enemy_at(release_position)
-	if target_enemy and target_enemy.alive:
-		# Play card on this enemy
-		card_hand.play_card_on(card_node, target_enemy)
+	var card_data: Dictionary = card_node.card_data
+	var target_type: String = card_data.get("target", "enemy")
+	if target_type == "self":
+		# Self-targeting: find closest hero at release position
+		var hero_target: Node2D = null
+		if dual_hero_mode:
+			hero_target = _get_closest_hero(release_position)
+		else:
+			hero_target = player
+		if hero_target:
+			card_hand.play_card_on(card_node, hero_target)
+		else:
+			_snap_card_back(card_node)
 	else:
-		# No valid target — snap card back to hand
-		if card_node and is_instance_valid(card_node):
-			card_node.set_selected(false)
-		card_hand.selected_card = null
-		card_hand.targeting_mode = false
-		card_hand.update_layout()
+		var target_enemy = _get_enemy_at(release_position)
+		if target_enemy and target_enemy.alive:
+			card_hand.play_card_on(card_node, target_enemy)
+		else:
+			_snap_card_back(card_node)
+
+func _snap_card_back(card_node: Area2D) -> void:
+	if card_node and is_instance_valid(card_node):
+		card_node.set_selected(false)
+	card_hand.selected_card = null
+	card_hand.targeting_mode = false
+	card_hand.update_layout()
 
 func _highlight_enemy(enemy: Node2D) -> void:
-	enemy.modulate = Color(1.2, 1.2, 1.0)  # Bright warm highlight on hover
+	if enemy.has_method("show_target_highlight"):
+		enemy.show_target_highlight()
+	else:
+		enemy.modulate = Color(1.2, 1.2, 1.0)
 
 func _clear_enemy_highlight() -> void:
 	if _hovered_enemy and is_instance_valid(_hovered_enemy):
-		_hovered_enemy.modulate = Color.WHITE
+		if _hovered_enemy.has_method("hide_target_highlight"):
+			_hovered_enemy.hide_target_highlight()
+		else:
+			_hovered_enemy.modulate = Color.WHITE
 
 func _clear_all_enemy_highlights() -> void:
 	for enemy in enemies:
 		if is_instance_valid(enemy):
-			enemy.modulate = Color.WHITE
+			if enemy.has_method("hide_target_highlight"):
+				enemy.hide_target_highlight()
+			else:
+				enemy.modulate = Color.WHITE
 
 func _get_enemy_at(screen_pos: Vector2) -> Node2D:
 	if enemy_area == null:
@@ -1822,6 +2118,117 @@ func _clear_damage_previews() -> void:
 		if is_instance_valid(lbl):
 			lbl.queue_free()
 	_damage_preview_labels.clear()
+
+# ---- Top Status Bar ----
+
+var _status_bar_hp1: Label = null
+var _status_bar_hp2: Label = null
+
+func _setup_top_status_bar() -> void:
+	var hud = get_node_or_null("HUDLayer/HUD")
+	if hud == null:
+		return
+	# Dark bar at top
+	var bar = Panel.new()
+	bar.name = "TopStatusBar"
+	var bar_style = StyleBoxFlat.new()
+	bar_style.bg_color = Color(0.05, 0.04, 0.03, 0.85)
+	bar_style.content_margin_left = 16
+	bar_style.content_margin_right = 16
+	bar_style.content_margin_top = 4
+	bar_style.content_margin_bottom = 4
+	bar.add_theme_stylebox_override("panel", bar_style)
+	bar.layout_mode = 1
+	bar.anchor_left = 0.0
+	bar.anchor_top = 0.0
+	bar.anchor_right = 1.0
+	bar.anchor_bottom = 0.0
+	bar.offset_bottom = 60.0  # +50% height
+	hud.add_child(bar)
+
+	# Left side: hero HPs + gold
+	var left_hbox = HBoxContainer.new()
+	left_hbox.add_theme_constant_override("separation", 20)
+	left_hbox.position = Vector2(16, 6)
+	bar.add_child(left_hbox)
+
+	# Hero 1 HP
+	_status_bar_hp1 = Label.new()
+	_status_bar_hp1.text = "♥ 80/80"
+	_status_bar_hp1.add_theme_font_size_override("font_size", 24)
+	_status_bar_hp1.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+	left_hbox.add_child(_status_bar_hp1)
+
+	# Hero 2 HP (only in dual mode)
+	_status_bar_hp2 = Label.new()
+	_status_bar_hp2.text = "♥ 80/80"
+	_status_bar_hp2.add_theme_font_size_override("font_size", 24)
+	_status_bar_hp2.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
+	_status_bar_hp2.visible = false  # Hidden until dual mode activates
+	left_hbox.add_child(_status_bar_hp2)
+
+	# Gold
+	var gold_label = Label.new()
+	gold_label.text = "💰 0"
+	gold_label.add_theme_font_size_override("font_size", 24)
+	gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	left_hbox.add_child(gold_label)
+
+	# Right side buttons
+	var right_hbox = HBoxContainer.new()
+	right_hbox.add_theme_constant_override("separation", 12)
+	right_hbox.layout_mode = 1
+	right_hbox.anchor_left = 1.0
+	right_hbox.anchor_right = 1.0
+	right_hbox.offset_left = -300.0
+	right_hbox.offset_top = 4.0
+	right_hbox.offset_right = -16.0
+	right_hbox.offset_bottom = 36.0
+	bar.add_child(right_hbox)
+
+	var region_btn = _create_top_button("地域")
+	right_hbox.add_child(region_btn)
+
+	var settings_btn = _create_top_button("设置")
+	right_hbox.add_child(settings_btn)
+
+	# Exit button already exists, remove old one
+	var old_exit = get_node_or_null("HUDLayer/HUD/ExitButton")
+	if old_exit:
+		old_exit.queue_free()
+	var exit_btn = _create_top_button("退出")
+	exit_btn.pressed.connect(_on_exit_battle)
+	right_hbox.add_child(exit_btn)
+
+func _create_top_button(text: String) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(80, 40)
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_color_override("font_color", Color(0.8, 0.78, 0.7))
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.13, 0.1, 0.7)
+	style.border_color = Color(0.4, 0.35, 0.25, 0.6)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	btn.add_theme_stylebox_override("normal", style)
+	return btn
+
+func _update_status_bar() -> void:
+	if _status_bar_hp1 and player:
+		_status_bar_hp1.text = "♥ %d/%d" % [player.current_hp, player.max_hp]
+	if _status_bar_hp2:
+		if dual_hero_mode and second_player:
+			_status_bar_hp2.visible = true
+			_status_bar_hp2.text = "♥ %d/%d" % [second_player.current_hp, second_player.max_hp]
+		else:
+			_status_bar_hp2.visible = false
 
 # ---- Turn Banner Animation ----
 
@@ -2098,6 +2505,29 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.add_child(_discard_confirm_btn)
 	_update_discard_confirm_style()
 
+	# Cancel button
+	var cancel_btn = Button.new()
+	cancel_btn.name = "CancelButton"
+	cancel_btn.text = "取消"
+	cancel_btn.position = Vector2(510, 900)
+	cancel_btn.custom_minimum_size = Vector2(200, 60)
+	cancel_btn.add_theme_font_size_override("font_size", 28)
+	cancel_btn.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	var cancel_style = StyleBoxFlat.new()
+	cancel_style.bg_color = Color(0.3, 0.25, 0.2, 0.8)
+	cancel_style.border_color = Color(0.5, 0.45, 0.35, 0.8)
+	cancel_style.border_width_left = 2
+	cancel_style.border_width_right = 2
+	cancel_style.border_width_top = 2
+	cancel_style.border_width_bottom = 2
+	cancel_style.corner_radius_top_left = 8
+	cancel_style.corner_radius_top_right = 8
+	cancel_style.corner_radius_bottom_left = 8
+	cancel_style.corner_radius_bottom_right = 8
+	cancel_btn.add_theme_stylebox_override("normal", cancel_style)
+	cancel_btn.pressed.connect(_on_discard_cancel)
+	_discard_overlay.add_child(cancel_btn)
+
 	hud_layer.add_child(_discard_overlay)
 
 func _show_discard_selection(count: int, callback: Callable) -> void:
@@ -2266,6 +2696,14 @@ func _on_discard_confirm() -> void:
 	_update_pile_labels()
 	if _discard_callback.is_valid():
 		_discard_callback.call()
+
+func _on_discard_cancel() -> void:
+	## Cancel the discard selection — close overlay without discarding
+	_discard_selected_cards.clear()
+	_discard_card_nodes.clear()
+	_discard_overlay.visible = false
+	# Note: the card that required discarding was already played
+	# Canceling just skips the discard requirement
 
 func _on_discard_complete() -> void:
 	# Called after discard selection finishes
