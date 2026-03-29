@@ -2440,8 +2440,8 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 # ---- Discard Selection (In-Hand Mode) ----
 
 func _setup_discard_overlay() -> void:
-	## Create a dark overlay covering everything EXCEPT the hand area,
-	## plus a title label and confirm button above the hand.
+	## Full-screen dark overlay with centered card preview and confirm button.
+	## Only the hand area at the bottom remains interactive for card selection.
 	var hud_layer = get_node_or_null("HUDLayer")
 	if hud_layer == null:
 		return
@@ -2452,25 +2452,23 @@ func _setup_discard_overlay() -> void:
 	_discard_overlay.z_index = 500
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Dark background covering the upper portion (above the hand area)
-	# Hand is at y~700, so darken 0..620 to leave hand visible
+	# Full-screen dark background
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
-	bg.position = Vector2(0, 0)
-	bg.size = Vector2(1920, 620)
-	bg.color = Color(0, 0, 0, 0.7)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.75)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_discard_overlay.add_child(bg)
 
-	# Title label — centered, positioned in the darkened area
+	# Title label — top center of the overlay
 	_discard_title_label = Label.new()
 	_discard_title_label.name = "Title"
 	_discard_title_label.text = ""
-	_discard_title_label.position = Vector2(0, 520)
+	_discard_title_label.position = Vector2(0, 80)
 	_discard_title_label.size = Vector2(1920, 50)
 	_discard_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_discard_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_discard_title_label.add_theme_font_size_override("font_size", 32)
+	_discard_title_label.add_theme_font_size_override("font_size", 36)
 	_discard_title_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
 	_discard_title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	_discard_title_label.add_theme_constant_override("shadow_offset_x", 1)
@@ -2478,13 +2476,23 @@ func _setup_discard_overlay() -> void:
 	_discard_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(_discard_title_label)
 
-	# Confirm button — centered above the hand
+	# Container for selected card previews — centered in the screen
+	var preview_container = HBoxContainer.new()
+	preview_container.name = "PreviewContainer"
+	preview_container.position = Vector2(660, 180)
+	preview_container.custom_minimum_size = Vector2(600, 450)
+	preview_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	preview_container.add_theme_constant_override("separation", 20)
+	preview_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_discard_overlay.add_child(preview_container)
+
+	# Confirm button — below the preview area, centered
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
 	_discard_confirm_btn.text = "确认弃牌"
-	_discard_confirm_btn.position = Vector2(810, 570)
-	_discard_confirm_btn.custom_minimum_size = Vector2(300, 50)
-	_discard_confirm_btn.add_theme_font_size_override("font_size", 26)
+	_discard_confirm_btn.position = Vector2(810, 650)
+	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
+	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
 	_discard_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
 	_discard_confirm_btn.z_index = 501
 	_discard_confirm_btn.pressed.connect(_on_discard_confirm)
@@ -2523,9 +2531,7 @@ func _on_hand_discard_selection_changed(selected_count: int) -> void:
 	## Called when the player selects/deselects cards in the hand for discard
 	_discard_selected_cards = card_hand.get_discard_selected_indices()
 	_update_discard_confirm_style()
-	# Auto-confirm when exactly the right number of cards are selected
-	if selected_count >= _discard_required_count:
-		_on_discard_confirm()
+	_update_discard_preview()
 
 func _update_discard_confirm_style() -> void:
 	if _discard_confirm_btn == null:
@@ -2555,6 +2561,32 @@ func _update_discard_confirm_style() -> void:
 		_discard_confirm_btn.disabled = true
 	_discard_confirm_btn.text = "确认弃牌 (%d/%d)" % [_discard_selected_cards.size(), _discard_required_count]
 
+func _update_discard_preview() -> void:
+	## Show selected discard cards as previews in the center of the overlay
+	if _discard_overlay == null:
+		return
+	var container = _discard_overlay.get_node_or_null("PreviewContainer")
+	if container == null:
+		return
+	# Clear old previews
+	for child in container.get_children():
+		child.queue_free()
+	# Add card previews for each selected card
+	if card_hand == null:
+		return
+	var card_script_res = load("res://scripts/card.gd")
+	for idx in _discard_selected_cards:
+		if idx < card_hand.cards.size() and is_instance_valid(card_hand.cards[idx]):
+			var card_data: Dictionary = card_hand.cards[idx].card_data
+			# Create a card preview using static method
+			var preview = card_script_res.create_card_visual(card_data, Vector2(200, 300))
+			if preview:
+				container.add_child(preview)
+	# Re-center the container based on number of previews
+	var count: int = _discard_selected_cards.size()
+	var total_w: float = count * 200 + maxf(0, count - 1) * 20
+	container.position.x = (1920.0 - total_w) / 2.0
+
 func _on_discard_confirm() -> void:
 	if _discard_selected_cards.size() < _discard_required_count:
 		return
@@ -2579,11 +2611,20 @@ func _on_discard_confirm() -> void:
 		for c in hand:
 			card_hand.add_card(c)
 	_discard_selected_cards.clear()
+	_clear_discard_preview()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	_update_pile_labels()
 	if _discard_callback.is_valid():
 		_discard_callback.call()
+
+func _clear_discard_preview() -> void:
+	if _discard_overlay == null:
+		return
+	var container = _discard_overlay.get_node_or_null("PreviewContainer")
+	if container:
+		for child in container.get_children():
+			child.queue_free()
 
 func _on_discard_cancel() -> void:
 	## Cancel the discard selection — close overlay without discarding
@@ -2592,6 +2633,7 @@ func _on_discard_cancel() -> void:
 			card_hand.discard_selection_changed.disconnect(_on_hand_discard_selection_changed)
 		card_hand.exit_discard_mode()
 	_discard_selected_cards.clear()
+	_clear_discard_preview()
 	if _discard_overlay:
 		_discard_overlay.visible = false
 	# Note: the card that required discarding was already played
