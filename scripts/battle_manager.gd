@@ -1951,7 +1951,8 @@ func _process(_delta: float) -> void:
 		var target_type: String = card_data.get("target", "enemy")
 		# Draw chain-style targeting arrow from card to mouse for all targeting modes
 		if _targeting_arrow:
-			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(160, 215)
+			# Arrow starts from top edge of card (not center)
+			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(148, -10)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
 			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow)
 			_targeting_arrow.visible = true
