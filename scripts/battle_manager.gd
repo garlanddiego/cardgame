@@ -800,6 +800,14 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			hand.remove_at(i)
 			break
 
+	# Play character-specific animation
+	var anim_hero: Node2D = _get_card_hero(card_data)
+	var card_type_anim: int = card_data.get("type", 0)
+	if card_type_anim == 0:  # ATTACK
+		_play_attack_effect(card_data, anim_hero, target)
+	elif card_type_anim == 1:  # SKILL
+		_play_skill_effect(card_data, anim_hero)
+
 	# Execute card effect (pass energy spent for X-cost cards)
 	_execute_card(card_data, target, cost)
 
@@ -1808,7 +1816,7 @@ func _process_enemy_actions(index: int) -> void:
 	timer.timeout.connect(_process_enemy_actions.bind(index + 1))
 
 func _enemy_lunge(enemy: Node2D) -> void:
-	## Enemy lunge animation toward player (STS-style)
+	## Enemy lunge animation toward player (STS-style) + bite effect
 	if enemy == null or not enemy.alive:
 		return
 	var orig_pos: Vector2 = enemy.position
@@ -1816,6 +1824,10 @@ func _enemy_lunge(enemy: Node2D) -> void:
 	var tween = create_tween()
 	tween.tween_property(enemy, "position", orig_pos + lunge_offset, 0.18).set_ease(Tween.EASE_OUT)
 	tween.tween_property(enemy, "position", orig_pos, 0.25).set_ease(Tween.EASE_IN)
+	# Bite effect at the target hero
+	var front = get_front_player()
+	if front:
+		_enemy_bite_effect(enemy, front)
 
 func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	## Check if attacked hero has reactive powers (caltrops, flame_barrier) and apply
@@ -2480,6 +2492,157 @@ func _screen_shake(intensity: float = 8.0, duration: float = 0.15) -> void:
 		var offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
 		tween.tween_property(self, "position", original_pos + offset, step_dur)
 	tween.tween_property(self, "position", original_pos, step_dur)
+
+# ---- Attack Animations ----
+
+func _hero_lunge(hero_node: Node2D, target_node: Node2D) -> void:
+	## Hero lunges toward target (rightward) and back
+	if hero_node == null or not hero_node.alive:
+		return
+	var orig_pos: Vector2 = hero_node.position
+	var lunge_offset := Vector2(60, 0)  # Lunge toward enemies (right)
+	var tween = create_tween()
+	tween.tween_property(hero_node, "position", orig_pos + lunge_offset, 0.12).set_ease(Tween.EASE_OUT)
+	tween.tween_property(hero_node, "position", orig_pos, 0.2).set_ease(Tween.EASE_IN)
+
+func _play_attack_effect(card_data: Dictionary, hero_node: Node2D, target_node: Node2D) -> void:
+	## Play character-specific attack visual effect
+	var card_char: String = card_data.get("character", "")
+	if card_char == "ironclad":
+		_sword_slash_effect(hero_node, target_node)
+	elif card_char == "silent":
+		_dagger_throw_effect(hero_node, target_node)
+	else:
+		_generic_hit_effect(target_node)
+
+func _play_skill_effect(card_data: Dictionary, hero_node: Node2D) -> void:
+	## Play character-specific skill visual effect (glow/aura)
+	if hero_node == null or not is_instance_valid(hero_node):
+		return
+	var card_char: String = card_data.get("character", "")
+	var glow_color: Color = Color(0.8, 0.3, 0.2, 0.6)  # Red for ironclad
+	if card_char == "silent":
+		glow_color = Color(0.2, 0.8, 0.3, 0.6)  # Green for silent
+	# Expanding ring effect
+	var ring = ColorRect.new()
+	ring.size = Vector2(10, 10)
+	ring.color = glow_color
+	ring.position = hero_node.global_position + Vector2(-5, -40)
+	ring.z_index = 250
+	ring.pivot_offset = Vector2(5, 5)
+	add_child(ring)
+	var tw = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(ring, "scale", Vector2(20, 20), 0.4).set_ease(Tween.EASE_OUT)
+	tw.tween_property(ring, "modulate:a", 0.0, 0.4)
+	tw.set_parallel(false)
+	tw.tween_callback(ring.queue_free)
+
+func _sword_slash_effect(hero_node: Node2D, target_node: Node2D) -> void:
+	## Ironclad: slash arc at target position
+	if target_node == null or not is_instance_valid(target_node):
+		return
+	_hero_lunge(hero_node, target_node)
+	var slash = Line2D.new()
+	slash.name = "SlashEffect"
+	slash.width = 6.0
+	slash.default_color = Color(1.0, 0.7, 0.2, 0.9)
+	slash.z_index = 300
+	# Arc from upper-left to lower-right of target
+	var center: Vector2 = target_node.global_position + Vector2(0, -30)
+	var arc_points: PackedVector2Array = PackedVector2Array()
+	for i in range(12):
+		var t: float = float(i) / 11.0
+		var angle: float = -0.8 + t * 1.6  # Arc sweep
+		var radius: float = 60.0 + t * 20.0
+		arc_points.append(center + Vector2(cos(angle) * radius, sin(angle) * radius))
+	slash.points = arc_points
+	add_child(slash)
+	var tw = create_tween()
+	tw.tween_property(slash, "modulate:a", 0.0, 0.3)
+	tw.tween_callback(slash.queue_free)
+
+func _dagger_throw_effect(hero_node: Node2D, target_node: Node2D) -> void:
+	## Silent: dagger projectile flies from hero to target
+	if hero_node == null or target_node == null:
+		return
+	if not is_instance_valid(hero_node) or not is_instance_valid(target_node):
+		return
+	var start: Vector2 = hero_node.global_position + Vector2(30, -30)
+	var end_p: Vector2 = target_node.global_position + Vector2(0, -20)
+	# Small dagger shape (triangle)
+	var dagger = Polygon2D.new()
+	dagger.polygon = PackedVector2Array([
+		Vector2(0, -8), Vector2(16, 0), Vector2(0, 8)
+	])
+	dagger.color = Color(0.7, 0.85, 0.7, 0.9)
+	dagger.position = start
+	dagger.z_index = 300
+	# Rotate to face target
+	var dir_angle: float = start.angle_to_point(end_p)
+	dagger.rotation = dir_angle + PI
+	add_child(dagger)
+	var tw = create_tween()
+	tw.tween_property(dagger, "position", end_p, 0.15).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		_generic_hit_effect(target_node)
+		dagger.queue_free()
+	)
+
+func _generic_hit_effect(target_node: Node2D) -> void:
+	## Flash hit effect at target position
+	if target_node == null or not is_instance_valid(target_node):
+		return
+	var flash = ColorRect.new()
+	flash.size = Vector2(20, 20)
+	flash.color = Color(1.0, 1.0, 0.8, 0.8)
+	flash.position = target_node.global_position + Vector2(-10, -30)
+	flash.z_index = 300
+	flash.pivot_offset = Vector2(10, 10)
+	add_child(flash)
+	var tw = create_tween()
+	tw.tween_property(flash, "scale", Vector2(4, 4), 0.15).set_ease(Tween.EASE_OUT)
+	tw.tween_property(flash, "modulate:a", 0.0, 0.15)
+	tw.tween_callback(flash.queue_free)
+
+func _enemy_bite_effect(enemy: Node2D, target_node: Node2D) -> void:
+	## Monster bite: two jaw shapes close on target
+	if target_node == null or not is_instance_valid(target_node):
+		return
+	var center: Vector2 = target_node.global_position + Vector2(0, -20)
+	# Upper jaw
+	var jaw_up = Polygon2D.new()
+	jaw_up.polygon = PackedVector2Array([
+		Vector2(-25, 0), Vector2(0, -20), Vector2(25, 0),
+		Vector2(15, -5), Vector2(0, -10), Vector2(-15, -5)
+	])
+	jaw_up.color = Color(0.7, 0.2, 0.15, 0.8)
+	jaw_up.position = center + Vector2(0, -30)
+	jaw_up.z_index = 300
+	add_child(jaw_up)
+	# Lower jaw (mirrored)
+	var jaw_down = Polygon2D.new()
+	jaw_down.polygon = PackedVector2Array([
+		Vector2(-25, 0), Vector2(0, 20), Vector2(25, 0),
+		Vector2(15, 5), Vector2(0, 10), Vector2(-15, 5)
+	])
+	jaw_down.color = Color(0.7, 0.2, 0.15, 0.8)
+	jaw_down.position = center + Vector2(0, 30)
+	jaw_down.z_index = 300
+	add_child(jaw_down)
+	# Jaws close together
+	var tw = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(jaw_up, "position:y", center.y - 5, 0.15).set_ease(Tween.EASE_IN)
+	tw.tween_property(jaw_down, "position:y", center.y + 5, 0.15).set_ease(Tween.EASE_IN)
+	tw.set_parallel(false)
+	tw.tween_interval(0.1)
+	tw.set_parallel(true)
+	tw.tween_property(jaw_up, "modulate:a", 0.0, 0.2)
+	tw.tween_property(jaw_down, "modulate:a", 0.0, 0.2)
+	tw.set_parallel(false)
+	tw.tween_callback(jaw_up.queue_free)
+	tw.tween_callback(jaw_down.queue_free)
 
 # ---- Pile Viewer ----
 
