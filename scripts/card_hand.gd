@@ -282,7 +282,11 @@ func _toggle_discard_card(card_node: Area2D) -> void:
 		card_node.scale = Vector2(1.0, 1.0)
 	else:
 		if _discard_selected_indices.size() >= _discard_max:
-			return  # Already at max selections
+			# At max: replace the oldest selection (swap)
+			var old_idx: int = _discard_selected_indices[0]
+			_discard_selected_indices.erase(old_idx)
+			if old_idx < cards.size() and is_instance_valid(cards[old_idx]):
+				cards[old_idx].scale = Vector2(1.0, 1.0)
 		_discard_selected_indices.append(idx)
 		card_node.z_index = 600
 	# Reposition all selected cards in center
