@@ -14,6 +14,7 @@ var all_card_data: Dictionary = {}
 var current_filter: String = ""  # "" = all, "ironclad", "silent", "neutral"
 var current_type_filter: int = -1  # -1 = all, 0=Attack, 1=Skill, 2=Power
 var current_version_filter: String = "all"  # "all", "old", "new"
+var current_upgrade_filter: String = "all"  # "all", "base", "upgraded"
 
 # STS card image mapping: delegated to Card script (single source of truth)
 var _CardScript = preload("res://scripts/card.gd")
@@ -169,6 +170,19 @@ func _build_browse_area(browse_w: float) -> void:
 	filter_bar.add_child(ver_old_btn)
 	var ver_new_btn = _make_version_filter_button("新版", "new")
 	filter_bar.add_child(ver_new_btn)
+
+	# Upgrade filter separator
+	var upg_sep = VSeparator.new()
+	upg_sep.custom_minimum_size = Vector2(2, 30)
+	filter_bar.add_child(upg_sep)
+
+	# Upgrade filter buttons
+	var upg_all_btn = _make_upgrade_filter_button("全部", "all")
+	filter_bar.add_child(upg_all_btn)
+	var upg_base_btn = _make_upgrade_filter_button("未升级", "base")
+	filter_bar.add_child(upg_base_btn)
+	var upg_plus_btn = _make_upgrade_filter_button("已升级", "upgraded")
+	filter_bar.add_child(upg_plus_btn)
 
 	# Language buttons on right side of filter bar
 	var spacer = Control.new()
@@ -402,6 +416,34 @@ func _on_version_filter(version: String) -> void:
 	current_version_filter = version
 	_populate_browse()
 
+func _make_upgrade_filter_button(text: String, upgrade: String) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(70, 40)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.3, 0.2, 0.25, 0.8)
+	style.border_color = Color(0.6, 0.4, 0.5, 0.7)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	btn.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.45, 0.3, 0.35, 0.9)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.9))
+	btn.pressed.connect(_on_upgrade_filter.bind(upgrade))
+	return btn
+
+func _on_upgrade_filter(upgrade: String) -> void:
+	current_upgrade_filter = upgrade
+	_populate_browse()
+
 func _update_filter_button_styles() -> void:
 	# Highlight active character filter button
 	var buttons := {
@@ -476,7 +518,7 @@ func _populate_browse() -> void:
 	if gm == null:
 		return
 
-	# Build card list from database
+	# Build card list from database (base + upgraded)
 	var cards: Array = []
 	for card_id in gm.card_database:
 		var card = gm.card_database[card_id]
@@ -494,11 +536,20 @@ func _populate_browse() -> void:
 			var card_version: String = card.get("version", "old")
 			if card_version != current_version_filter:
 				continue
-		# Skip cards already in cart
-		if selected_card_ids.has(card_id):
-			continue
-		cards.append(card)
-		all_card_data[card_id] = card
+		# Add base card (if not filtered to "upgraded" only)
+		if current_upgrade_filter != "upgraded":
+			if not selected_card_ids.has(card_id):
+				cards.append(card)
+				all_card_data[card_id] = card
+		# Add upgraded version (if not filtered to "base" only)
+		if current_upgrade_filter != "base":
+			var upgraded = gm.get_upgraded_card(card_id)
+			if not upgraded.is_empty():
+				var upg_id: String = card_id + "+"
+				upgraded["id"] = upg_id
+				if not selected_card_ids.has(upg_id):
+					cards.append(upgraded)
+					all_card_data[upg_id] = upgraded
 
 	# Sort by type then name
 	cards.sort_custom(func(a, b):
