@@ -293,11 +293,11 @@ var _card_descs_zh: Dictionary = {
 	"si_slice": "造成 6 点伤害。",
 	"si_dagger_spray": "对所有敌人\n造成 4 点伤害两次。",
 	"si_dagger_throw": "造成 9 点伤害。\n抽 1 张牌，弃 1 张牌。",
-	"si_flick_flack": "隐匿。对所有敌人\n造成 7 点伤害。",
+	"si_flick_flack": "奇巧。对所有敌人\n造成 7 点伤害。",
 	"si_leading_strike": "造成 7 点伤害。\n将 1 张小刀加入手牌。",
 	"si_poisoned_stab": "造成 6 点伤害。\n施加 3 层中毒。",
 	"si_sucker_punch": "造成 8 点伤害。\n施加 1 层虚弱。",
-	"si_ricochet": "隐匿。对随机敌人\n造成 3 点伤害 4 次。",
+	"si_ricochet": "奇巧。对随机敌人\n造成 3 点伤害 4 次。",
 	"si_quick_slash": "造成 8 点伤害。\n抽 1 张牌。",
 	# SILENT COMMON SKILLS
 	"si_anticipate": "本回合获得\n3 点敏捷。",
