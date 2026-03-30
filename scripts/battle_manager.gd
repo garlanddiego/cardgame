@@ -867,7 +867,7 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			# ---- Damage all enemies ----
 			"damage_all":
 				var base_dmg: int = action.get("value", card_data.get("damage", 0))
-				var times: int = action.get("times", 1)
+				var times: int = action.get("times", card_data.get("times", 1))
 				var actual_dmg: int = base_dmg
 				if player:
 					actual_dmg = player.get_attack_damage(base_dmg)
@@ -910,13 +910,23 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 					var src = card_data[source_key]
 					status_type = src.get("type", status_type)
 					stacks = src.get("stacks", stacks)
+				var status_times: int = action.get("times", card_data.get("times", 1))
 				if status_type != "":
-					if target_type == "all_enemies":
-						for enemy in enemies:
-							if enemy.alive:
-								enemy.apply_status(status_type, stacks)
-					elif target != null and target.alive:
-						target.apply_status(status_type, stacks)
+					for _t in range(status_times):
+						if target_type == "all_enemies":
+							for enemy in enemies:
+								if enemy.alive:
+									enemy.apply_status(status_type, stacks)
+						elif target_type == "random_enemy":
+							var alive_enemies: Array = []
+							for enemy in enemies:
+								if enemy.alive:
+									alive_enemies.append(enemy)
+							if not alive_enemies.is_empty():
+								var rand_enemy = alive_enemies[randi() % alive_enemies.size()]
+								rand_enemy.apply_status(status_type, stacks)
+						elif target != null and target.alive:
+							target.apply_status(status_type, stacks)
 
 			# ---- Apply status to self ----
 			"apply_self_status":
@@ -1043,7 +1053,13 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if player:
 				var str_val: int = player.get_status_stacks("strength")
 				var mult: int = card_data.get("str_mult", 3)
-				var dmg: int = card_data.get("damage", 14) + str_val * mult
+				var base_dmg: int = card_data.get("damage", 14)
+				# Apply strength with multiplier, then weak penalty
+				var dmg: int = base_dmg + str_val * mult
+				if player.status_effects.get("weak", 0) > 0:
+					dmg = int(dmg * 0.75)
+				if _double_damage_this_turn:
+					dmg *= 2
 				_apply_single_hit_damage(dmg, target, target_type)
 		"whirlwind":
 			var base_dmg: int = card_data.get("damage", 5)
@@ -1457,7 +1473,10 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 	var hero = power_target if power_target else player
 	if hero:
 		hero.add_power(power_name)
-	match power_name:
+	# Normalize _plus suffix — upgraded powers use same logic with boosted values
+	var is_plus: bool = power_name.ends_with("_plus")
+	var base_name: String = power_name.trim_suffix("_plus") if is_plus else power_name
+	match base_name:
 		"demon_form":
 			demon_form_active = true
 		"caltrops":
@@ -1466,29 +1485,64 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			envenom_active = true
 		"flame_barrier":
 			flame_barrier_active = true
+			if is_plus:
+				flame_barrier_damage = 6
 		"corruption":
 			corruption_active = true
 			if card_hand:
 				card_hand.corruption_active = true
 		"berserk":
 			berserk_active = true
-			# Apply 1 Vulnerable to the hero who activated it
 			if hero:
 				hero.apply_status("vulnerable", 1)
 		"feel_no_pain":
 			feel_no_pain_active = true
+			if is_plus:
+				feel_no_pain_block = 4
 		"juggernaut":
 			juggernaut_active = true
+			if is_plus:
+				juggernaut_damage = 7
 		"evolve":
 			evolve_active = true
 		"rage":
 			rage_active = true
+			if is_plus:
+				rage_block = 5
 		"barricade":
 			barricade_active = true
 		"metallicize":
 			metallicize_active = true
+			if is_plus:
+				metallicize_block = 4
 		"infinite_blades":
 			infinite_blades_active = true
+		"noxious_fumes":
+			pass  # Handled by entity.active_powers at start of turn
+		"accuracy":
+			pass  # Handled at shiv creation time
+		"a_thousand_cuts":
+			pass  # Handled in _on_card_played
+		"after_image":
+			pass  # Handled in _on_card_played
+		"well_laid_plans":
+			pass  # Handled at end of turn
+		"wraith_form":
+			pass  # Handled at start of turn
+		"tools_of_the_trade":
+			pass  # Handled at start of turn
+		"brutality":
+			pass  # Handled at start of turn
+		"combust":
+			pass  # Handled at end of turn
+		"dark_embrace":
+			pass  # Handled on exhaust
+		"rupture":
+			pass  # Handled on HP loss from card
+		"double_tap":
+			pass  # Handled on next attack
+		"fire_breathing":
+			pass  # Handled on draw
 
 func _process_next_turn_effects() -> void:
 	for effect in _next_turn_effects:
@@ -2703,13 +2757,14 @@ func _on_concentrate_discard_done(energy_gain_val: int) -> void:
 	_check_battle_end()
 
 func _auto_discard(count: int) -> void:
-	# Fallback: discard random cards from hand
+	# Fallback: discard random cards from hand (triggers on-discard effects)
 	for _i in range(count):
 		if hand.is_empty():
 			break
 		var idx = randi() % hand.size()
 		var card_data = hand[idx]
 		discard_pile.append(card_data)
+		_check_sly_on_discard(card_data)
 		hand.remove_at(idx)
 	if card_hand:
 		card_hand.clear_hand()
@@ -2718,8 +2773,23 @@ func _auto_discard(count: int) -> void:
 	_update_pile_labels()
 
 func _check_sly_on_discard(card_data: Dictionary) -> void:
-	## Sly mechanic: when a card with special "sly" is discarded, trigger its effects
-	if card_data.get("special", "") != "sly":
+	## On-discard triggers: sly, reflex, tactician
+	var special: String = card_data.get("special", "")
+	# Reflex: draw 2 cards when discarded
+	if special == "reflex":
+		if battle_active and player and player.alive:
+			draw_cards(2)
+		return
+	# Tactician: gain 1 Energy when discarded
+	if special == "tactician":
+		if battle_active:
+			current_energy += 1
+			_update_energy_label()
+			if card_hand:
+				card_hand.current_battle_energy = current_energy
+				card_hand.update_card_playability(current_energy)
+		return
+	if special != "sly":
 		return
 	if not battle_active or player == null or not player.alive:
 		return
