@@ -1596,7 +1596,8 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 		"after_image":
 			pass  # Handled in _on_card_played
 		"well_laid_plans":
-			pass  # Handled at end of turn
+			if is_plus:
+				hero.add_power("well_laid_plans", 1)  # Extra stack for +2 total retain
 		"wraith_form":
 			pass  # Handled at start of turn
 		"tools_of_the_trade":
@@ -1733,13 +1734,61 @@ func end_player_turn() -> void:
 		hand.erase(card_data)
 		_exhaust_card(card_data)
 
-	# Discard remaining hand — trigger sly cards
-	for card_data in hand:
+	# Check for Retain (Well-Laid Plans): let player keep cards in hand
+	var retain_count: int = 0
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("well_laid_plans", 0) > 0:
+			retain_count += hero.active_powers.get("well_laid_plans", 0)
+	if retain_count > 0 and hand.size() > retain_count:
+		# Show retain selection UI, then continue end-of-turn in callback
+		_show_discard_selection(retain_count, _on_retain_complete)
+		_discard_title_label.text = "保留 %d 张手牌" % retain_count
+		_discard_confirm_btn.text = "确认保留 (0/%d)" % retain_count
+		return  # End of turn continues in _on_retain_complete
+	elif retain_count > 0 and hand.size() <= retain_count:
+		# Keep all cards (fewer than retain count)
+		_finish_end_of_turn()
+		return
+
+	_finish_end_of_turn()
+
+func _on_retain_complete() -> void:
+	## Called after retain selection — discard non-retained cards, continue end of turn
+	# The "discard" selection actually picked cards to KEEP — invert logic
+	var retained_indices: Array = _discard_selected_cards.duplicate()
+	retained_indices.sort()
+	# Cards NOT in the retained list should be discarded
+	var cards_to_discard: Array = []
+	for i in range(hand.size()):
+		if i not in retained_indices:
+			cards_to_discard.append(hand[i])
+	for card_data in cards_to_discard:
+		hand.erase(card_data)
 		discard_pile.append(card_data)
 		_check_sly_on_discard(card_data)
-	hand.clear()
+	_discard_selected_cards.clear()
+	# Rebuild hand with only retained cards
 	if card_hand:
 		card_hand.clear_hand()
+		for c in hand:
+			card_hand.add_card(c, false)
+	_retain_applied = true
+	_finish_end_of_turn()
+
+var _retain_applied: bool = false  # Set by _on_retain_complete to skip hand discard
+
+func _finish_end_of_turn() -> void:
+	## Common end-of-turn logic after retain selection (or when no retain)
+	# Discard remaining hand (skip if retain already handled it)
+	if not _retain_applied and not hand.is_empty():
+		var hand_copy: Array = hand.duplicate()
+		for card_data in hand_copy:
+			discard_pile.append(card_data)
+			_check_sly_on_discard(card_data)
+		hand.clear()
+		if card_hand:
+			card_hand.clear_hand()
+	_retain_applied = false
 	# Tick status effects for all heroes
 	for hero in _get_all_alive_heroes():
 		hero.tick_status_effects()
