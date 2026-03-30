@@ -21,6 +21,7 @@ var _upgrade_overrides_cache: Dictionary = {}
 var _IroncladCards = preload("res://scripts/cards/ironclad_cards.gd")
 var _SilentCards = preload("res://scripts/cards/silent_cards.gd")
 var _NeutralCards = preload("res://scripts/cards/neutral_cards.gd")
+var _NewCards = preload("res://scripts/cards/new_cards.gd")
 
 func _ready() -> void:
 	_init_character_data()
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_register_card_pack(_IroncladCards)
 	_register_card_pack(_SilentCards)
 	_register_card_pack(_NeutralCards)
+	_register_card_pack(_NewCards)
 	# Build unified database from all packs
 	_build_card_database()
 

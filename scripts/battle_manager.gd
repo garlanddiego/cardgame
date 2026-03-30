@@ -647,6 +647,14 @@ func start_player_turn() -> void:
 			hero.apply_status("strength", 2)
 		if hero.active_powers.get("infinite_blades", 0) > 0:
 			_add_shiv_to_hand(1)
+		if hero.active_powers.get("venomous_might", 0) > 0:
+			var total_poison: int = 0
+			for enemy in enemies:
+				if enemy.alive:
+					total_poison += enemy.get_status_stacks("poison")
+			var str_gain: int = total_poison / 4
+			if str_gain > 0:
+				hero.apply_status("strength", str_gain)
 
 	# Reset block for each hero (unless that hero has Barricade or Blur)
 	for hero in _get_all_alive_heroes():
@@ -731,6 +739,13 @@ func draw_cards(count: int) -> void:
 		if evolve_active and card_data.get("type", 0) == 3:  # STATUS type
 			draw_cards(1)
 	_update_pile_labels()
+	# Psi Surge: gain energy when drawing 3+ cards at once
+	if count >= 3 and player:
+		if player.active_powers.get("psi_surge", 0) > 0:
+			current_energy += 1
+			_update_energy_label()
+			if card_hand:
+				card_hand.current_battle_energy = current_energy
 	# Update cost colors for all cards (including newly drawn ones)
 	if card_hand:
 		card_hand.update_card_playability(current_energy)
@@ -1086,6 +1101,12 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var amount: int = action.get("value", 0)
 				if amount > 0 and player:
 					player.take_damage_direct(amount)
+					# Rupture: gain strength on self HP loss from card
+					if player.active_powers.get("rupture", 0) > 0:
+						player.apply_status("strength", 1)
+					# Blood Fury: next attack deals double damage
+					if player.active_powers.get("blood_fury", 0) > 0:
+						_double_damage_this_turn = true
 
 			# ---- Power effect activation ----
 			"power_effect":
@@ -1498,6 +1519,69 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if player:
 				base_dmg = player.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
+		# ---- NEW CARDS ----
+		"toxic_storm":
+			# X cost: deal 3 damage X times to all, apply 1 poison per hit
+			var base_dmg: int = card_data.get("damage", 3)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			if energy_spent > 0:
+				for _hit in range(energy_spent):
+					for enemy in enemies:
+						if enemy.alive:
+							enemy.take_damage(base_dmg)
+							enemy.apply_status("poison", 1)
+		"echo_slash":
+			# Deal 5 damage, +1 hit per attack played this turn
+			var base_dmg: int = card_data.get("damage", 5)
+			if player:
+				base_dmg = player.get_attack_damage(base_dmg)
+			# attacks_played_this_turn counts cards played before this one
+			var hits: int = 1 + attacks_played_this_turn
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			_apply_multi_hit_damage(base_dmg, hits, target, target_type)
+		"gamblers_blade":
+			# Deal hand_size * 3 damage, discard 1
+			var hand_count: int = hand.size()
+			var dmg: int = hand_count * 3
+			if player:
+				var str_val: int = player.get_status_stacks("strength")
+				dmg += str_val
+				if player.status_effects.get("weak", 0) > 0:
+					dmg = int(dmg * 0.75)
+			if _double_damage_this_turn:
+				dmg *= 2
+			_apply_single_hit_damage(dmg, target, target_type)
+			# Discard 1 random card
+			if not hand.is_empty():
+				var idx: int = randi() % hand.size()
+				var discarded = hand[idx]
+				hand.remove_at(idx)
+				discard_pile.append(discarded)
+				_check_sly_on_discard(discarded)
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c)
+		"poison_shield":
+			# Gain block = total poison on all enemies
+			var total_poison: int = 0
+			for enemy in enemies:
+				if enemy.alive:
+					total_poison += enemy.get_status_stacks("poison")
+			if total_poison > 0 and player:
+				player.add_block(total_poison)
+				_trigger_juggernaut()
+		"all_in":
+			# Consume all energy, draw 2 per energy consumed
+			var energy_to_consume: int = current_energy
+			if energy_to_consume > 0:
+				current_energy = 0
+				_update_energy_label()
+				if card_hand:
+					card_hand.current_battle_energy = current_energy
+				draw_cards(energy_to_consume * 2)
 	_update_pile_labels()
 
 func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> void:
@@ -1614,6 +1698,12 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			pass  # Handled on next attack
 		"fire_breathing":
 			pass  # Handled on draw
+		"venomous_might":
+			pass  # Handled at start of turn
+		"psi_surge":
+			pass  # Handled on draw_cards
+		"blood_fury":
+			pass  # Handled on self HP loss from card
 
 func _process_next_turn_effects() -> void:
 	for effect in _next_turn_effects:
