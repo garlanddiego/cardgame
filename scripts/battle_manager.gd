@@ -686,7 +686,7 @@ func draw_cards(count: int) -> void:
 			if drawn_count > 0:
 				var delay_tween = create_tween()
 				var idx = drawn_count
-				delay_tween.tween_interval(0.1 * idx)
+				delay_tween.tween_interval(0.15 * idx)
 				delay_tween.tween_callback(func():
 					if card_hand and is_instance_valid(card_hand):
 						card_hand.add_card(card_data)

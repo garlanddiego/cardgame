@@ -55,7 +55,7 @@ func add_card(card_data: Dictionary, animate_from_draw: bool = true, animate_fro
 		card.scale = Vector2(0.3, 0.3)
 		card.set_meta("fly_in", true)
 	elif animate_from_draw:
-		var draw_pile_pos: Vector2 = to_local(Vector2(60, 700))
+		var draw_pile_pos: Vector2 = to_local(Vector2(95, 985))
 		card.position = draw_pile_pos
 		card.scale = Vector2(0.3, 0.3)
 		card.set_meta("fly_in", true)
@@ -387,7 +387,7 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 				elif should_exhaust:
 					_shatter_card(card_node)
 				else:
-					var discard_pos: Vector2 = to_local(Vector2(1700, 700))
+					var discard_pos: Vector2 = to_local(Vector2(1825, 985))
 					card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 			)
 		cards.erase(card_node)
@@ -421,7 +421,7 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 func complete_pending_play() -> void:
 	## Called after discard flow completes — send the pending card to discard pile
 	if _pending_card_node and is_instance_valid(_pending_card_node):
-		var discard_pos: Vector2 = to_local(Vector2(1700, 700))
+		var discard_pos: Vector2 = to_local(Vector2(1825, 985))
 		_pending_card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 		var node = _pending_card_node
 		var tween = create_tween()
