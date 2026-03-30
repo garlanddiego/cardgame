@@ -213,7 +213,8 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_font_size_override("font_size", int(26 * sx))  # Card name +2号
-	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))  # White text
+	var name_color: Color = Color(0.3, 0.9, 0.3) if card.get("upgraded", false) else Color(1.0, 1.0, 1.0)
+	name_lbl.add_theme_color_override("font_color", name_color)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_lbl.z_index = 6
 	root.add_child(name_lbl)
@@ -243,9 +244,11 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 
 	# Load art image if available — check card["art"] field first, then fallback
 	var card_id: String = card.get("id", "")
+	# Upgraded cards (id ends with "+") use same art as base card
+	var art_card_id: String = card_id.trim_suffix("+")
 	var art_path: String = card.get("art", "")
 	if art_path.is_empty() or not ResourceLoader.exists(art_path):
-		art_path = "res://assets/img/card_art/" + card_id + ".png"
+		art_path = "res://assets/img/card_art/" + art_card_id + ".png"
 	if ResourceLoader.exists(art_path):
 		var art_clip = Control.new()
 		art_clip.name = "ArtClip"
