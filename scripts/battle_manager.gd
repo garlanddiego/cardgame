@@ -1204,9 +1204,12 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				_exhaust_card(c)
 			if card_hand:
 				card_hand.clear_hand()
-			var dmg: int = card_data.get("damage", 7) * cards_in_hand
-			if dmg > 0:
-				_apply_single_hit_damage(dmg, target, target_type)
+			# Each exhausted card = one hit with Strength applied
+			if cards_in_hand > 0 and player:
+				var per_hit: int = player.get_attack_damage(card_data.get("damage", 7))
+				if _double_damage_this_turn:
+					per_hit *= 2
+				_apply_multi_hit_damage(per_hit, cards_in_hand, target, target_type)
 		"reaper":
 			if player:
 				var base_dmg: int = card_data.get("damage", 4)
@@ -1322,7 +1325,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			_apply_single_hit_damage(base_dmg, target, target_type)
 		"havoc":
 			if not draw_pile.is_empty():
-				var top_card = draw_pile.pop_front()
+				var top_card = draw_pile.pop_back()
 				_execute_card(top_card, target, 0)
 				_exhaust_card(top_card)
 				if card_hand:
@@ -1354,7 +1357,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 						card_hand.add_card(c)
 		"escape_plan":
 			if not draw_pile.is_empty():
-				var drawn = draw_pile.pop_front()
+				var drawn = draw_pile.pop_back()
 				hand.append(drawn)
 				if card_hand:
 					card_hand.add_card(drawn)
@@ -1381,10 +1384,12 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					card_hand.update_card_playability(current_energy)
 				_update_pile_labels()
 		"finisher":
-			var base_dmg: int = card_data.get("damage", 6) * attacks_played_this_turn
-			if player and base_dmg > 0:
-				base_dmg = player.get_attack_damage(base_dmg)
-				_apply_single_hit_damage(base_dmg, target, target_type)
+			# Deal (base + strength) per attack played this turn
+			if attacks_played_this_turn > 0 and player:
+				var per_hit: int = player.get_attack_damage(card_data.get("damage", 6))
+				if _double_damage_this_turn:
+					per_hit *= 2
+				_apply_multi_hit_damage(per_hit, attacks_played_this_turn, target, target_type)
 		"glass_knife":
 			var base_dmg: int = card_data.get("damage", 8)
 			var times_val: int = card_data.get("times", 2)
