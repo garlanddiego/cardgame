@@ -753,6 +753,39 @@ func _play_death() -> void:
 	if sprite_node == null:
 		visible = false
 		return
+	# Death flash: briefly turn red, then shatter into fragments
 	var tween = create_tween()
-	tween.tween_property(self, "modulate", Color(1, 1, 1, 0), 0.5)
+	# Flash red
+	tween.tween_property(self, "modulate", Color(1.0, 0.2, 0.1, 1.0), 0.1)
+	tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
+	# Spawn fragment particles
+	tween.tween_callback(_spawn_death_fragments)
+	# Fade out and collapse
+	tween.tween_property(self, "modulate:a", 0.0, 0.4)
+	tween.tween_property(self, "scale", Vector2(0.3, 0.3), 0.4).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func(): visible = false)
+
+func _spawn_death_fragments() -> void:
+	## Scatter colored fragments outward from entity position
+	var frag_count: int = 12
+	var death_color: Color = Color(0.8, 0.2, 0.15) if is_enemy else Color(0.3, 0.6, 0.9)
+	for i in range(frag_count):
+		var frag = ColorRect.new()
+		frag.size = Vector2(8 + randf() * 12, 6 + randf() * 10)
+		frag.color = death_color.lerp(Color(0.9, 0.8, 0.3), randf() * 0.4)
+		frag.position = global_position + Vector2(randf_range(-30, 30), randf_range(-60, 20))
+		frag.z_index = 250
+		get_parent().get_parent().add_child(frag)  # Add to battle scene
+		var angle: float = (float(i) / frag_count) * TAU + randf_range(-0.4, 0.4)
+		var dist: float = 80 + randf() * 140
+		var target_pos: Vector2 = frag.position + Vector2(cos(angle), sin(angle)) * dist
+		# Fall downward with gravity feel
+		target_pos.y += 40 + randf() * 60
+		var t = create_tween()
+		t.set_parallel(true)
+		t.tween_property(frag, "position", target_pos, 0.5 + randf() * 0.3).set_ease(Tween.EASE_OUT)
+		t.tween_property(frag, "rotation", randf_range(-3.0, 3.0), 0.6)
+		t.tween_property(frag, "modulate:a", 0.0, 0.6).set_delay(0.15)
+		t.tween_property(frag, "scale", Vector2(0.2, 0.2), 0.6)
+		t.set_parallel(false)
+		t.tween_callback(frag.queue_free)
