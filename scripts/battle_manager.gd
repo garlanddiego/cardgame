@@ -16,6 +16,8 @@ var config_enemy_hps: Array = [50, 50, 50]
 var dual_hero_mode: bool = false
 var second_character_id: String = ""
 var second_player: Node2D = null  # Back-row hero (dual hero mode)
+var _player_character_id: String = ""  # Character ID of front-row hero
+var _second_character_id: String = ""  # Character ID of back-row hero
 @export var player_sprite_scale_height: float = 400.0  ## Target height in pixels for player sprite
 @export var enemy_sprite_scale_height: float = 350.0  ## Target height in pixels for enemy sprite
 @export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
@@ -269,6 +271,7 @@ func _get_loc() -> Node:
 func _setup_player(character_id: String, gm: Node) -> void:
 	if player_area == null:
 		return
+	_player_character_id = character_id
 	# Create front-row player entity
 	player = _create_entity_node(false)
 	var char_data = gm.character_data[character_id]
@@ -297,6 +300,7 @@ func _setup_player(character_id: String, gm: Node) -> void:
 func _setup_second_player(character_id: String, gm: Node) -> void:
 	if player_area == null:
 		return
+	_second_character_id = character_id
 	second_player = _create_entity_node(false)
 	var char_data = gm.character_data[character_id]
 	var hp: int = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
@@ -434,9 +438,14 @@ func get_front_player() -> Node2D:
 
 func _get_self_target(card_data: Dictionary = {}) -> Node2D:
 	## Returns the hero that self-targeting effects should apply to.
-	## In single hero mode, always returns player.
-	## In dual hero mode, returns player (front) by default.
-	## TODO: Add hero selection prompt for manual targeting
+	## In dual hero mode, routes to the hero matching the card's character.
+	if dual_hero_mode and not card_data.is_empty():
+		var card_char: String = card_data.get("character", "")
+		if card_char == _player_character_id and player and player.alive:
+			return player
+		elif card_char == _second_character_id and second_player and second_player.alive:
+			return second_player
+	# Fallback: front-row hero
 	if player and player.alive:
 		return player
 	elif second_player and second_player.alive:
@@ -758,6 +767,12 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	if not _can_play_card(card_data):
 		return
 
+	# In dual hero mode, route self-targeting cards to the matching hero
+	if dual_hero_mode:
+		var target_type: String = card_data.get("target", "enemy")
+		if target_type == "self":
+			target = _get_self_target(card_data)
+
 	# Handle X-cost cards (Whirlwind)
 	var cost: int = card_data.get("cost", 0)
 	if cost == -1:  # X cost
@@ -868,8 +883,23 @@ func _get_alive_enemies() -> Array:
 # ==========================================================================
 # Data-driven action executor — cards with "actions" array use this path
 # ==========================================================================
+func _get_card_hero(card_data: Dictionary) -> Node2D:
+	## Returns the hero that should execute this card (based on character match)
+	if dual_hero_mode:
+		var card_char: String = card_data.get("character", "")
+		if card_char == _player_character_id and player and player.alive:
+			return player
+		elif card_char == _second_character_id and second_player and second_player.alive:
+			return second_player
+	if player and player.alive:
+		return player
+	elif second_player and second_player.alive:
+		return second_player
+	return null
+
 func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, energy_spent: int) -> void:
 	var target_type: String = card_data.get("target", "enemy")
+	var card_hero: Node2D = _get_card_hero(card_data)  # The hero playing this card
 
 	for action in actions:
 		var atype: String = action.get("type", "")
@@ -880,8 +910,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var times: int = action.get("times", card_data.get("times", 1))
 				var use_strength: bool = action.get("use_strength", true)
 				var actual_dmg: int = base_dmg
-				if use_strength and player:
-					actual_dmg = player.get_attack_damage(base_dmg)
+				if use_strength and card_hero:
+					actual_dmg = card_hero.get_attack_damage(base_dmg)
 				# Phantasmal Killer: double damage this turn
 				if _double_damage_this_turn:
 					actual_dmg *= 2
@@ -896,8 +926,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var base_dmg: int = action.get("value", card_data.get("damage", 0))
 				var times: int = action.get("times", card_data.get("times", 1))
 				var actual_dmg: int = base_dmg
-				if player:
-					actual_dmg = player.get_attack_damage(base_dmg)
+				if card_hero:
+					actual_dmg = card_hero.get_attack_damage(base_dmg)
 				if _double_damage_this_turn:
 					actual_dmg *= 2
 				if actual_dmg > 0:
