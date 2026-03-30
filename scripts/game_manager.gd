@@ -18,12 +18,16 @@ var character_data: Dictionary = {}
 # Cached upgrade overrides from all card packs
 var _upgrade_overrides_cache: Dictionary = {}
 
+var _IroncladCards = preload("res://scripts/cards/ironclad_cards.gd")
+var _SilentCards = preload("res://scripts/cards/silent_cards.gd")
+var _NeutralCards = preload("res://scripts/cards/neutral_cards.gd")
+
 func _ready() -> void:
 	_init_character_data()
 	# Register pluggable card packs
-	_register_card_pack(IroncladCards)
-	_register_card_pack(SilentCards)
-	_register_card_pack(NeutralCards)
+	_register_card_pack(_IroncladCards)
+	_register_card_pack(_SilentCards)
+	_register_card_pack(_NeutralCards)
 	# Build unified database from all packs
 	_build_card_database()
 
