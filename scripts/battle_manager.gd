@@ -2271,6 +2271,30 @@ func _on_enemy_click_area_input(_viewport: Node, event: InputEvent, _shape_idx: 
 
 # ---- Card Detail Overlay (long-press) ----
 
+# Card detail page state
+var _detail_card_list: Array = []  # List of card dicts for navigation
+var _detail_card_index: int = 0
+var _detail_show_upgrade: bool = false
+var _detail_card_container: Control = null
+var _detail_keyword_container: VBoxContainer = null
+var _detail_upgrade_check: CheckBox = null
+
+# Keyword definitions for tooltip display
+const KEYWORD_DEFS: Dictionary = {
+	"vulnerable": {"name": "易伤 Vulnerable", "desc": "受到的攻击伤害增加50%。"},
+	"weak": {"name": "虚弱 Weak", "desc": "造成的攻击伤害减少25%。"},
+	"poison": {"name": "中毒 Poison", "desc": "每回合开始时受到等同层数的伤害，\n然后层数减1。"},
+	"strength": {"name": "力量 Strength", "desc": "每点力量增加1点攻击伤害。"},
+	"dexterity": {"name": "敏捷 Dexterity", "desc": "每点敏捷增加1点格挡值。"},
+	"exhaust": {"name": "消耗 Exhaust", "desc": "打出后移除，不进入弃牌堆。"},
+	"ethereal": {"name": "虚无 Ethereal", "desc": "回合结束时，若在手中则消耗。"},
+	"block": {"name": "格挡 Block", "desc": "在生命值之前吸收伤害。\n下回合开始时清除。"},
+	"innate": {"name": "天赋 Innate", "desc": "战斗开始时必定被抽到。"},
+	"sly": {"name": "奇巧 Sly", "desc": "被弃牌时触发卡牌效果。"},
+	"retain": {"name": "保留 Retain", "desc": "回合结束时保留在手中，不被弃掉。"},
+	"intangible": {"name": "无实体 Intangible", "desc": "受到的伤害和失去的HP减少到1。"},
+}
+
 func _setup_card_detail_overlay() -> void:
 	var hud_layer = get_node_or_null("HUDLayer")
 	if hud_layer == null:
@@ -2282,28 +2306,200 @@ func _setup_card_detail_overlay() -> void:
 	_card_detail_overlay.z_index = 500
 	_card_detail_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# Semi-transparent dark background
+	# Dark background
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0, 0, 0, 0.7)
+	bg.color = Color(0, 0, 0, 0.8)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_detail_overlay.add_child(bg)
 
-	# Large card image centered
-	var card_img = TextureRect.new()
-	card_img.name = "DetailCardImage"
-	card_img.custom_minimum_size = Vector2(500, 670)
-	card_img.size = Vector2(500, 670)
-	card_img.position = Vector2((1920 - 500) / 2.0, (1080 - 670) / 2.0)
-	card_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	card_img.stretch_mode = TextureRect.STRETCH_SCALE
-	card_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_card_detail_overlay.add_child(card_img)
+	# Card container (holds the rendered card visual, centered)
+	_detail_card_container = Control.new()
+	_detail_card_container.name = "CardContainer"
+	_detail_card_container.position = Vector2(560, 60)
+	_detail_card_container.size = Vector2(480, 800)
+	_detail_card_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_detail_overlay.add_child(_detail_card_container)
 
-	# Tap anywhere to dismiss
-	_card_detail_overlay.gui_input.connect(_on_detail_overlay_input)
+	# Keyword tooltips (right side)
+	_detail_keyword_container = VBoxContainer.new()
+	_detail_keyword_container.name = "KeywordContainer"
+	_detail_keyword_container.position = Vector2(1100, 120)
+	_detail_keyword_container.size = Vector2(350, 600)
+	_detail_keyword_container.add_theme_constant_override("separation", 12)
+	_detail_keyword_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_detail_overlay.add_child(_detail_keyword_container)
+
+	# Left arrow button
+	var left_btn = Button.new()
+	left_btn.name = "PrevBtn"
+	left_btn.text = "◀"
+	left_btn.position = Vector2(480, 430)
+	left_btn.custom_minimum_size = Vector2(60, 60)
+	left_btn.add_theme_font_size_override("font_size", 32)
+	left_btn.pressed.connect(_detail_prev)
+	_card_detail_overlay.add_child(left_btn)
+
+	# Right arrow button
+	var right_btn = Button.new()
+	right_btn.name = "NextBtn"
+	right_btn.text = "▶"
+	right_btn.position = Vector2(1040, 430)
+	right_btn.custom_minimum_size = Vector2(60, 60)
+	right_btn.add_theme_font_size_override("font_size", 32)
+	right_btn.pressed.connect(_detail_next)
+	_card_detail_overlay.add_child(right_btn)
+
+	# View Upgrade checkbox
+	_detail_upgrade_check = CheckBox.new()
+	_detail_upgrade_check.name = "UpgradeCheck"
+	_detail_upgrade_check.text = "查看升级"
+	_detail_upgrade_check.position = Vector2(710, 880)
+	_detail_upgrade_check.add_theme_font_size_override("font_size", 22)
+	_detail_upgrade_check.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+	_detail_upgrade_check.toggled.connect(_on_detail_upgrade_toggled)
+	_card_detail_overlay.add_child(_detail_upgrade_check)
+
+	# Close button (top-right)
+	var close_btn = Button.new()
+	close_btn.name = "CloseBtn"
+	close_btn.text = "✕"
+	close_btn.position = Vector2(1470, 20)
+	close_btn.custom_minimum_size = Vector2(50, 50)
+	close_btn.add_theme_font_size_override("font_size", 28)
+	close_btn.pressed.connect(func(): _card_detail_overlay.visible = false)
+	_card_detail_overlay.add_child(close_btn)
+
 	hud_layer.add_child(_card_detail_overlay)
+
+func _show_card_detail(card_data: Dictionary, card_list: Array = [], index: int = 0) -> void:
+	if _card_detail_overlay == null:
+		return
+	_detail_card_list = card_list
+	_detail_card_index = index
+	_detail_show_upgrade = false
+	if _detail_upgrade_check:
+		_detail_upgrade_check.button_pressed = false
+	_render_detail_card(card_data)
+	_card_detail_overlay.visible = true
+
+func _render_detail_card(card_data: Dictionary) -> void:
+	# Clear previous card visual
+	for child in _detail_card_container.get_children():
+		_detail_card_container.remove_child(child)
+		child.queue_free()
+	# Render large card visual
+	var loc = _get_loc()
+	var card_size = Vector2(460, 770)
+	var _CardScript = load("res://scripts/card.gd")
+	var card_visual = _CardScript.create_card_visual(card_data, card_size, loc)
+	card_visual.position = Vector2(0, 0)
+	_detail_card_container.add_child(card_visual)
+	# Update keyword tooltips
+	_update_detail_keywords(card_data)
+	# Update navigation button visibility
+	var prev_btn = _card_detail_overlay.get_node_or_null("PrevBtn")
+	var next_btn = _card_detail_overlay.get_node_or_null("NextBtn")
+	if prev_btn:
+		prev_btn.visible = _detail_card_list.size() > 1
+	if next_btn:
+		next_btn.visible = _detail_card_list.size() > 1
+
+func _update_detail_keywords(card_data: Dictionary) -> void:
+	if _detail_keyword_container == null:
+		return
+	for child in _detail_keyword_container.get_children():
+		_detail_keyword_container.remove_child(child)
+		child.queue_free()
+	# Scan card description for keywords
+	var desc: String = card_data.get("description", "").to_lower()
+	var found_keywords: Array = []
+	for keyword in KEYWORD_DEFS:
+		if keyword in desc or card_data.get(keyword, false) == true or card_data.get("special", "") == keyword:
+			if keyword not in found_keywords:
+				found_keywords.append(keyword)
+	# Also check for common implicit keywords
+	if card_data.get("exhaust", false) and "exhaust" not in found_keywords:
+		found_keywords.append("exhaust")
+	if card_data.get("ethereal", false) and "ethereal" not in found_keywords:
+		found_keywords.append("ethereal")
+	if card_data.get("innate", false) and "innate" not in found_keywords:
+		found_keywords.append("innate")
+	# Render keyword tooltips
+	for keyword in found_keywords:
+		var kw_data = KEYWORD_DEFS[keyword]
+		var panel = PanelContainer.new()
+		var kw_style = StyleBoxFlat.new()
+		kw_style.bg_color = Color(0.1, 0.1, 0.15, 0.9)
+		kw_style.border_color = Color(0.5, 0.45, 0.3, 0.7)
+		kw_style.border_width_left = 1
+		kw_style.border_width_right = 1
+		kw_style.border_width_top = 1
+		kw_style.border_width_bottom = 1
+		kw_style.corner_radius_top_left = 6
+		kw_style.corner_radius_top_right = 6
+		kw_style.corner_radius_bottom_left = 6
+		kw_style.corner_radius_bottom_right = 6
+		kw_style.content_margin_left = 12
+		kw_style.content_margin_right = 12
+		kw_style.content_margin_top = 8
+		kw_style.content_margin_bottom = 8
+		panel.add_theme_stylebox_override("panel", kw_style)
+		var vbox = VBoxContainer.new()
+		vbox.add_theme_constant_override("separation", 4)
+		var title = Label.new()
+		title.text = kw_data["name"]
+		title.add_theme_font_size_override("font_size", 20)
+		title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		vbox.add_child(title)
+		var body = Label.new()
+		body.text = kw_data["desc"]
+		body.add_theme_font_size_override("font_size", 16)
+		body.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		vbox.add_child(body)
+		panel.add_child(vbox)
+		_detail_keyword_container.add_child(panel)
+
+func _detail_prev() -> void:
+	if _detail_card_list.is_empty():
+		return
+	_detail_card_index = (_detail_card_index - 1 + _detail_card_list.size()) % _detail_card_list.size()
+	var card = _detail_card_list[_detail_card_index]
+	if _detail_show_upgrade:
+		var gm = _get_game_manager()
+		if gm:
+			var upgraded = gm.get_upgraded_card(card.get("id", ""))
+			if not upgraded.is_empty():
+				card = upgraded
+	_render_detail_card(card)
+
+func _detail_next() -> void:
+	if _detail_card_list.is_empty():
+		return
+	_detail_card_index = (_detail_card_index + 1) % _detail_card_list.size()
+	var card = _detail_card_list[_detail_card_index]
+	if _detail_show_upgrade:
+		var gm = _get_game_manager()
+		if gm:
+			var upgraded = gm.get_upgraded_card(card.get("id", ""))
+			if not upgraded.is_empty():
+				card = upgraded
+	_render_detail_card(card)
+
+func _on_detail_upgrade_toggled(pressed: bool) -> void:
+	_detail_show_upgrade = pressed
+	if _detail_card_list.is_empty() or _detail_card_index >= _detail_card_list.size():
+		return
+	var card = _detail_card_list[_detail_card_index]
+	if pressed:
+		var gm = _get_game_manager()
+		if gm:
+			var upgraded = gm.get_upgraded_card(card.get("id", ""))
+			if not upgraded.is_empty():
+				card = upgraded
+	_render_detail_card(card)
 
 func _on_detail_overlay_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
@@ -2312,23 +2508,7 @@ func _on_detail_overlay_input(event: InputEvent) -> void:
 func _on_card_long_press_detail(card_node: Area2D) -> void:
 	if _card_detail_overlay == null:
 		return
-	var card_data_dict: Dictionary = card_node.card_data
-	var card_id: String = card_data_dict.get("id", "")
-	# Use the card's own STS image if it has one
-	var sts_path: String = ""
-	if card_node.sts_card_image and card_node.sts_card_image.texture:
-		var detail_img = _card_detail_overlay.get_node_or_null("DetailCardImage") as TextureRect
-		if detail_img:
-			detail_img.texture = card_node.sts_card_image.texture
-		_card_detail_overlay.visible = true
-		return
-	# Fallback: try loading via static map
-	var card_script_class = load("res://scripts/card.gd")
-	sts_path = card_script_class._get_sts_card_path(card_id)
-	var detail_img = _card_detail_overlay.get_node_or_null("DetailCardImage") as TextureRect
-	if detail_img and sts_path != "" and ResourceLoader.exists(sts_path):
-		detail_img.texture = load(sts_path)
-	_card_detail_overlay.visible = true
+	_show_card_detail(card_node.card_data, [card_node.card_data], 0)
 
 # ---- Damage Preview ----
 
@@ -2847,11 +3027,18 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 	# Use Card.create_card_visual() — sized for readability in pile viewer
 	var card_script_class_pv = load("res://scripts/card.gd")
 
-	for cd in sorted_pile:
+	for i in range(sorted_pile.size()):
+		var cd = sorted_pile[i]
 		var card_visual = card_script_class_pv.create_card_visual(cd, mini_size, loc)
 		card_visual.custom_minimum_size = mini_size
-		card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
+		# Click to open card detail
+		card_visual.gui_input.connect(_on_pile_card_clicked.bind(sorted_pile, i))
 		grid.add_child(card_visual)
+
+func _on_pile_card_clicked(event: InputEvent, pile: Array, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_show_card_detail(pile[index], pile, index)
 
 # ---- Discard Selection (In-Hand Mode) ----
 
