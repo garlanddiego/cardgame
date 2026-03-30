@@ -61,6 +61,18 @@ var flex_strength_to_remove: int = 0
 var anticipate_dex_to_remove: int = 0
 var attacks_played_this_turn: int = 0
 
+# ── Battle Statistics (for card synergies) ────────────────────────────────
+# Per-turn stats (reset at start of each player turn)
+var cards_played_this_turn: int = 0
+var cards_drawn_this_turn: int = 0
+var cards_discarded_this_turn: int = 0
+var hp_lost_this_turn: int = 0
+var cards_exhausted_this_turn: int = 0
+# Per-combat stats (reset at start of battle)
+var hp_lost_this_combat: int = 0
+var total_attacks_played: int = 0
+var total_cards_played: int = 0
+
 # Next-turn effect queue — processed at start of next player turn
 var _next_turn_effects: Array = []  # List of dicts: {"type": "block", "value": 4}, etc.
 var _blur_active: bool = false  # Block is not removed next turn
@@ -186,6 +198,10 @@ func start_battle(character_id: String) -> void:
 	battle_active = true
 	turn_number = 0
 	_reset_all_powers()
+	# Reset per-combat battle stats
+	hp_lost_this_combat = 0
+	total_attacks_played = 0
+	total_cards_played = 0
 
 	# Get GameManager
 	var gm = _get_game_manager()
@@ -598,7 +614,13 @@ func start_player_turn() -> void:
 	is_player_turn = true
 	turn_number += 1
 	current_energy = max_energy
+	# Reset per-turn battle stats
 	attacks_played_this_turn = 0
+	cards_played_this_turn = 0
+	cards_drawn_this_turn = 0
+	cards_discarded_this_turn = 0
+	hp_lost_this_turn = 0
+	cards_exhausted_this_turn = 0
 
 	# Remove Anticipate temp dexterity from previous turn
 	if anticipate_dex_to_remove > 0 and player:
@@ -681,6 +703,7 @@ func draw_cards(count: int) -> void:
 			break
 		var card_data: Dictionary = draw_pile.pop_back()
 		hand.append(card_data)
+		cards_drawn_this_turn += 1
 		if card_hand:
 			# Stagger draw animation: each card flies in with a slight delay
 			if drawn_count > 0:
@@ -770,9 +793,12 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		_burst_active = false
 		_execute_card(card_data, target, cost)
 
-	# Track attacks played this turn (for Finisher)
+	# Track battle stats
+	cards_played_this_turn += 1
+	total_cards_played += 1
 	if card_data.get("type", 0) == 0:  # ATTACK
 		attacks_played_this_turn += 1
+		total_attacks_played += 1
 
 	# Rage: gain block when playing attacks (applies to hero that has Rage)
 	if card_data.get("type", 0) == 0:  # ATTACK
@@ -815,6 +841,7 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 
 func _exhaust_card(card_data: Dictionary) -> void:
 	exhaust_pile.append(card_data)
+	cards_exhausted_this_turn += 1
 	# Feel No Pain: gain block on exhaust (applies to hero that has the power)
 	for hero in _get_all_alive_heroes():
 		if hero.active_powers.get("feel_no_pain", 0) > 0:
