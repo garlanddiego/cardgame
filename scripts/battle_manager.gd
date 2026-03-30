@@ -2025,7 +2025,24 @@ func _update_pile_labels() -> void:
 		draw_pile_label.text = str(draw_pile.size())
 	if discard_label:
 		discard_label.text = str(discard_pile.size())
-	# Pile panel positions are set by the scene anchors — no runtime override needed
+	# Update deck count button
+	if _deck_count_btn:
+		var total: int = draw_pile.size() + hand.size() + discard_pile.size() + exhaust_pile.size()
+		_deck_count_btn.text = "🃏 %d" % total
+
+func _on_deck_count_clicked() -> void:
+	## Show all cards in the current battle deck using the pile viewer
+	var all_cards: Array = []
+	all_cards.append_array(draw_pile)
+	all_cards.append_array(hand)
+	all_cards.append_array(discard_pile)
+	# Sort by type then name
+	all_cards.sort_custom(func(a, b):
+		if a.get("type", 0) != b.get("type", 0):
+			return a.get("type", 0) < b.get("type", 0)
+		return a.get("name", "") < b.get("name", "")
+	)
+	_show_pile_viewer("战斗卡组 (%d)" % all_cards.size(), all_cards)
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)
@@ -2362,6 +2379,7 @@ func _clear_damage_previews() -> void:
 
 var _status_bar_hp1: Label = null
 var _status_bar_hp2: Label = null
+var _deck_count_btn: Button = null
 
 func _setup_top_status_bar() -> void:
 	var hud = get_node_or_null("HUDLayer/HUD")
@@ -2405,6 +2423,28 @@ func _setup_top_status_bar() -> void:
 	_status_bar_hp2.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
 	_status_bar_hp2.visible = false  # Hidden until dual mode activates
 	left_hbox.add_child(_status_bar_hp2)
+
+	# Deck card count button
+	_deck_count_btn = Button.new()
+	_deck_count_btn.name = "DeckCountBtn"
+	_deck_count_btn.text = "🃏 0"
+	_deck_count_btn.custom_minimum_size = Vector2(80, 36)
+	_deck_count_btn.add_theme_font_size_override("font_size", 22)
+	_deck_count_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	var deck_btn_style = StyleBoxFlat.new()
+	deck_btn_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
+	deck_btn_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+	deck_btn_style.border_width_left = 1
+	deck_btn_style.border_width_right = 1
+	deck_btn_style.border_width_top = 1
+	deck_btn_style.border_width_bottom = 1
+	deck_btn_style.corner_radius_top_left = 6
+	deck_btn_style.corner_radius_top_right = 6
+	deck_btn_style.corner_radius_bottom_left = 6
+	deck_btn_style.corner_radius_bottom_right = 6
+	_deck_count_btn.add_theme_stylebox_override("normal", deck_btn_style)
+	_deck_count_btn.pressed.connect(_on_deck_count_clicked)
+	left_hbox.add_child(_deck_count_btn)
 
 	# Gold
 	var gold_label = Label.new()
