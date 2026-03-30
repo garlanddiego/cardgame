@@ -2968,11 +2968,11 @@ func _on_discard_confirm() -> void:
 			discard_pile.append(card_data)
 			_check_sly_on_discard(card_data)
 			hand.remove_at(idx)
-	# Rebuild hand display
+	# Rebuild hand display (no draw animation — cards stay in place)
 	if card_hand:
 		card_hand.clear_hand()
 		for c in hand:
-			card_hand.add_card(c)
+			card_hand.add_card(c, false)
 	_discard_selected_cards.clear()
 	# Lower hand back to normal layer
 	if _discard_overlay:
