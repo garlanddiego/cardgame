@@ -15,12 +15,26 @@ var player_deck: Array = []
 var card_database: Dictionary = {}
 var character_data: Dictionary = {}
 
-# Art paths — each card's art is at card_art/{card_id}.png
+# Cached upgrade overrides from all card packs
+var _upgrade_overrides_cache: Dictionary = {}
 
 func _ready() -> void:
 	_init_character_data()
-	_init_card_database()
-	# Mark all existing cards as "old" version
+	# Register pluggable card packs
+	_register_card_pack(IroncladCards)
+	_register_card_pack(SilentCards)
+	_register_card_pack(NeutralCards)
+	# Build unified database from all packs
+	_build_card_database()
+
+func _register_card_pack(pack_class) -> void:
+	var cards: Dictionary = pack_class.get_cards()
+	var upgrades: Dictionary = pack_class.get_upgrade_overrides()
+	card_database.merge(cards)
+	_upgrade_overrides_cache.merge(upgrades)
+
+func _build_card_database() -> void:
+	# Mark all cards as "old" version if not set
 	for card_id in card_database:
 		if not card_database[card_id].has("version"):
 			card_database[card_id]["version"] = "old"
@@ -44,10 +58,13 @@ func _init_character_data() -> void:
 	}
 
 func _ic_art(_index: int) -> String:
-	# Deprecated — art is now resolved by card ID in create_card_visual()
 	return ""
 
 func _init_card_database() -> void:
+	# Legacy — card database is now built from card packs in _ready()
+	pass
+
+func _legacy_init_card_database() -> void:
 	# =========================================================================
 	# IRONCLAD ATTACKS (26 cards)
 	# =========================================================================
@@ -519,6 +536,9 @@ func get_upgraded_card(card_id: String) -> Dictionary:
 	return base
 
 func _get_upgrade_overrides() -> Dictionary:
+	return _upgrade_overrides_cache
+
+func _legacy_get_upgrade_overrides() -> Dictionary:
 	return {
 		# =====================================================================
 		# IRONCLAD ATTACKS
