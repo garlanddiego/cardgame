@@ -28,6 +28,10 @@ var hp_bar_fill: ColorRect = null
 var poison_preview: ColorRect = null
 var hp_label: Label = null
 var block_label: Label = null
+var _shield_icon: TextureRect = null
+var _shield_tex: Texture2D = null
+var _shield_dim_tex: Texture2D = null
+var _target_highlight: Node2D = null  # Yellow border when targeted
 var intent_icon: TextureRect = null
 var intent_label: Label = null
 var status_container: HBoxContainer = null
@@ -78,6 +82,18 @@ func _setup_visuals() -> void:
 	intent_label = get_node_or_null("IntentLabel") as Label
 	status_container = get_node_or_null("StatusContainer") as HBoxContainer
 	name_label = get_node_or_null("NameLabel") as Label
+	# Shield icon and textures — use scene node if available, or load textures
+	_shield_icon = get_node_or_null("ShieldIcon") as TextureRect
+	if ResourceLoader.exists("res://assets/img/ui_icons/shield.png"):
+		_shield_tex = load("res://assets/img/ui_icons/shield.png")
+	if ResourceLoader.exists("res://assets/img/ui_icons/shield_dim.png"):
+		_shield_dim_tex = load("res://assets/img/ui_icons/shield_dim.png")
+	# Create target highlight border (hidden by default)
+	_target_highlight = Node2D.new()
+	_target_highlight.name = "TargetHighlight"
+	_target_highlight.visible = false
+	_target_highlight.z_index = -1
+	add_child(_target_highlight)
 	_update_hp_bar()
 	_update_block_display()
 
@@ -274,54 +290,34 @@ func _update_poison_preview() -> void:
 func _update_block_display() -> void:
 	if block_label == null:
 		return
+	block_label.visible = true
+	block_label.text = str(block)
+	block_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	block_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# Remove any old background style (shield icon replaces it)
+	block_label.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	if _shield_icon:
+		_shield_icon.visible = true
 	if block > 0:
-		block_label.text = " " + str(block) + " "
-		block_label.visible = true
 		block_label.add_theme_color_override("font_color", Color.WHITE)
-		# Ensure blue background panel is applied
-		if true:  # Always refresh style when block > 0
-			var block_bg = StyleBoxFlat.new()
-			block_bg.bg_color = Color(0.15, 0.3, 0.7, 0.9)
-			block_bg.border_color = Color(0.4, 0.6, 1.0, 1.0)
-			block_bg.border_width_left = 2
-			block_bg.border_width_right = 2
-			block_bg.border_width_top = 2
-			block_bg.border_width_bottom = 2
-			block_bg.corner_radius_top_left = 6
-			block_bg.corner_radius_top_right = 6
-			block_bg.corner_radius_bottom_left = 6
-			block_bg.corner_radius_bottom_right = 6
-			block_bg.content_margin_left = 4
-			block_bg.content_margin_right = 4
-			block_bg.content_margin_top = 2
-			block_bg.content_margin_bottom = 2
-			block_label.add_theme_stylebox_override("normal", block_bg)
+		block_label.add_theme_font_size_override("font_size", 20)
+		if _shield_icon and _shield_tex:
+			_shield_icon.texture = _shield_tex
+			_shield_icon.modulate = Color.WHITE
+		if _previous_block <= 0:
+			_flash_block()
 		_previous_block = block
 	else:
-		# Block is 0 — show broken/empty shield (always visible)
+		block_label.add_theme_color_override("font_color", Color(0.5, 0.55, 0.6, 0.7))
+		block_label.add_theme_font_size_override("font_size", 18)
+		if _shield_icon:
+			if _shield_dim_tex:
+				_shield_icon.texture = _shield_dim_tex
+			else:
+				_shield_icon.modulate = Color(0.5, 0.5, 0.5, 0.4)
 		if _previous_block > 0:
 			_flash_block_break()
 		_previous_block = 0
-		block_label.text = " 0 "
-		block_label.visible = true
-		# Grey/broken shield style
-		var broken_bg = StyleBoxFlat.new()
-		broken_bg.bg_color = Color(0.2, 0.2, 0.25, 0.5)
-		broken_bg.border_color = Color(0.4, 0.4, 0.45, 0.4)
-		broken_bg.border_width_left = 1
-		broken_bg.border_width_right = 1
-		broken_bg.border_width_top = 1
-		broken_bg.border_width_bottom = 1
-		broken_bg.corner_radius_top_left = 6
-		broken_bg.corner_radius_top_right = 6
-		broken_bg.corner_radius_bottom_left = 6
-		broken_bg.corner_radius_bottom_right = 6
-		broken_bg.content_margin_left = 4
-		broken_bg.content_margin_right = 4
-		broken_bg.content_margin_top = 2
-		broken_bg.content_margin_bottom = 2
-		block_label.add_theme_stylebox_override("normal", broken_bg)
-		block_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55, 0.6))
 
 func _update_status_display() -> void:
 	_update_poison_preview()
@@ -439,13 +435,48 @@ func update_intent_display() -> void:
 		intent_label.text = desc
 		intent_label.visible = true
 
+var _highlight_visible: bool = false
+
+func show_target_highlight() -> void:
+	_highlight_visible = true
+	queue_redraw()
+	if sprite_node:
+		sprite_node.modulate = Color(1.15, 1.1, 0.9, 1.0)
+
+func hide_target_highlight() -> void:
+	_highlight_visible = false
+	queue_redraw()
+	if sprite_node:
+		sprite_node.modulate = Color.WHITE
+
+func _draw() -> void:
+	if _highlight_visible and sprite_node:
+		# Draw yellow border around entity
+		var tex = sprite_node.texture
+		if tex:
+			var h: float = tex.get_height() * sprite_node.scale.y
+			var w: float = tex.get_width() * sprite_node.scale.x
+			var rect = Rect2(-w/2 - 8, -h/2 - 8, w + 16, h + 16)
+			# Yellow border
+			draw_rect(rect, Color(1.0, 0.85, 0.2, 0.9), false, 4.0)
+			# Inner glow
+			var inner = Rect2(rect.position + Vector2(2, 2), rect.size - Vector2(4, 4))
+			draw_rect(inner, Color(1.0, 0.9, 0.4, 0.3), false, 2.0)
+
 func _flash_damage(damage_amount: int = 0) -> void:
 	if sprite_node == null:
 		return
+	# Red flash + shake
+	var orig_pos: Vector2 = sprite_node.position
 	var tween = create_tween()
-	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.3, 0.3), 0.15)
+	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.3, 0.3), 0.08)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(8, 0), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-8, 0), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(5, 0), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-3, 0), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos, 0.03)
 	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3)
-	# Floating damage number
+	# Floating damage number with scale punch
 	if damage_amount <= 0:
 		return
 	var dmg_label = Label.new()
@@ -453,15 +484,19 @@ func _flash_damage(damage_amount: int = 0) -> void:
 	dmg_label.add_theme_font_size_override("font_size", damage_number_font_size)
 	dmg_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 	dmg_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	dmg_label.add_theme_constant_override("shadow_offset_x", 1)
-	dmg_label.add_theme_constant_override("shadow_offset_y", 2)
+	dmg_label.add_theme_constant_override("shadow_offset_x", 2)
+	dmg_label.add_theme_constant_override("shadow_offset_y", 3)
 	dmg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	dmg_label.position = Vector2(-40, -100)
+	dmg_label.position = Vector2(-40, -120)
+	dmg_label.scale = Vector2(1.8, 1.8)
+	dmg_label.pivot_offset = Vector2(40, 20)
 	add_child(dmg_label)
 	var float_tween = create_tween()
+	# Scale punch: big → normal → float up → fade
+	float_tween.tween_property(dmg_label, "scale", Vector2(1.0, 1.0), 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	float_tween.set_parallel(true)
-	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 1.2)
-	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.2).set_delay(0.3)
+	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 90, 1.8).set_ease(Tween.EASE_OUT)
+	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.2).set_delay(0.6)
 	float_tween.set_parallel(false)
 	float_tween.tween_callback(dmg_label.queue_free)
 
@@ -469,8 +504,8 @@ func _flash_poison_damage(damage_amount: int) -> void:
 	if sprite_node == null:
 		return
 	var tween = create_tween()
-	tween.tween_property(sprite_node, "modulate", Color(0.3, 1.0, 0.3), 0.1)
-	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	tween.tween_property(sprite_node, "modulate", Color(0.3, 1.0, 0.3), 0.2)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3)
 	if damage_amount <= 0:
 		return
 	var dmg_label = Label.new()
@@ -485,62 +520,45 @@ func _flash_poison_damage(damage_amount: int) -> void:
 	add_child(dmg_label)
 	var float_tween = create_tween()
 	float_tween.set_parallel(true)
-	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 0.8)
-	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 0.8).set_delay(0.3)
+	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 1.4)
+	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.4).set_delay(0.4)
 	float_tween.set_parallel(false)
 	float_tween.tween_callback(dmg_label.queue_free)
 
 func _flash_block() -> void:
-	if sprite_node == null:
-		return
-	var tween = create_tween()
-	tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1)
-	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	# Blue tint on sprite
+	if sprite_node:
+		var tween = create_tween()
+		tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1)
+		tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	# Shield pop animation
+	if _shield_icon:
+		_shield_icon.scale = Vector2(1.6, 1.6)
+		_shield_icon.modulate = Color(1.2, 1.2, 1.5, 1.0)
+		var pop_tween = create_tween()
+		pop_tween.set_parallel(true)
+		pop_tween.tween_property(_shield_icon, "scale", Vector2(1.0, 1.0), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		pop_tween.tween_property(_shield_icon, "modulate", Color.WHITE, 0.3)
 
 func _flash_block_break() -> void:
-	## Brief orange flash + shake when block breaks (goes to 0)
-	if block_label == null:
-		return
-	# Briefly show the label with orange flash before hiding
-	block_label.text = " 0 "
-	block_label.visible = true
-	var break_bg = StyleBoxFlat.new()
-	break_bg.bg_color = Color(1.0, 0.5, 0.1, 0.95)
-	break_bg.border_color = Color(1.0, 0.8, 0.3, 1.0)
-	break_bg.border_width_left = 2
-	break_bg.border_width_right = 2
-	break_bg.border_width_top = 2
-	break_bg.border_width_bottom = 2
-	break_bg.corner_radius_top_left = 6
-	break_bg.corner_radius_top_right = 6
-	break_bg.corner_radius_bottom_left = 6
-	break_bg.corner_radius_bottom_right = 6
-	break_bg.content_margin_left = 4
-	break_bg.content_margin_right = 4
-	break_bg.content_margin_top = 2
-	break_bg.content_margin_bottom = 2
-	block_label.add_theme_stylebox_override("normal", break_bg)
-	# Shake + fade out
-	var orig_pos: Vector2 = block_label.position
-	var tween = create_tween()
-	tween.tween_property(block_label, "position", orig_pos + Vector2(4, 0), 0.04)
-	tween.tween_property(block_label, "position", orig_pos + Vector2(-4, 0), 0.04)
-	tween.tween_property(block_label, "position", orig_pos + Vector2(3, 0), 0.04)
-	tween.tween_property(block_label, "position", orig_pos + Vector2(-2, 0), 0.04)
-	tween.tween_property(block_label, "position", orig_pos, 0.04)
-	tween.tween_property(block_label, "modulate:a", 0.0, 0.15)
-	tween.tween_callback(func():
-		block_label.visible = false
-		block_label.modulate.a = 1.0
-		block_label.position = orig_pos
-		# Remove the orange override so blue returns next time block is gained
-		block_label.remove_theme_stylebox_override("normal")
-	)
-	# Also flash the sprite orange briefly
+	## Shield break animation: orange flash + shake + scale down
+	# Shield icon shake and flash orange
+	if _shield_icon:
+		var orig_pos: Vector2 = _shield_icon.position
+		_shield_icon.modulate = Color(1.0, 0.5, 0.1, 1.0)
+		var tween = create_tween()
+		tween.tween_property(_shield_icon, "position", orig_pos + Vector2(5, 0), 0.04)
+		tween.tween_property(_shield_icon, "position", orig_pos + Vector2(-5, 0), 0.04)
+		tween.tween_property(_shield_icon, "position", orig_pos + Vector2(3, 0), 0.04)
+		tween.tween_property(_shield_icon, "position", orig_pos + Vector2(-2, 0), 0.04)
+		tween.tween_property(_shield_icon, "position", orig_pos, 0.04)
+		tween.tween_property(_shield_icon, "modulate", Color.WHITE, 0.2)
+	# Sprite orange flash
 	if sprite_node:
 		var sprite_tween = create_tween()
 		sprite_tween.tween_property(sprite_node, "modulate", Color(1.0, 0.6, 0.2), 0.1)
 		sprite_tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+	# Block label doesn't hide anymore (always visible)
 
 func _show_status_float(status_type: String, stacks: int) -> void:
 	## Show floating status name when applied (STS-style "Vulnerable" text)

@@ -39,6 +39,8 @@ var selected_cost: int = 1
 var selected_type: int = 0  # 0=Attack, 1=Skill, 2=Power
 var selected_character: String = "ironclad"
 var selected_power_trigger: String = "turn_end"  # "turn_start", "turn_end", "permanent"
+var selected_version: String = "new"  # "new" or "old"
+var version_buttons: Array[Button] = []
 
 # Colors matching the STS dark theme
 const BG_COLOR := Color(0.08, 0.06, 0.05, 1.0)
@@ -234,6 +236,22 @@ func _build_left_panel() -> PanelContainer:
 		char_buttons.append(btn)
 	vbox.add_child(char_row)
 	_highlight_button_group(char_buttons, 0)
+
+	_add_separator(vbox)
+
+	# Version Selector (新版/旧版)
+	_add_section_label(vbox, "版本")
+	var version_row = HBoxContainer.new()
+	version_row.add_theme_constant_override("separation", 8)
+	var ver_names = ["新版", "旧版"]
+	var ver_ids = ["new", "old"]
+	for i in range(ver_names.size()):
+		var btn = _create_toggle_button(ver_names[i], 100, 40)
+		btn.pressed.connect(_on_version_selected.bind(ver_ids[i], i))
+		version_row.add_child(btn)
+		version_buttons.append(btn)
+	vbox.add_child(version_row)
+	_highlight_button_group(version_buttons, 0)  # Default: "new"
 
 	_add_separator(vbox)
 
@@ -532,6 +550,8 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 		["next_turn_block", "下回合+格挡", true, 5, 1, 99],
 		["heal", "治疗", true, 5, 1, 99],
 		["add_shiv", "添加小刀", true, 1, 1, 5],
+		["target_all_enemies", "对所有怪物", false, 0, 0, 0],
+		["target_all_heroes", "对所有英雄", false, 0, 0, 0],
 	]
 
 	# 2-column layout: use an HBoxContainer with two VBoxContainers
@@ -561,6 +581,9 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 		cb.text = def_item[1]
 		cb.add_theme_font_size_override("font_size", 20)
 		cb.add_theme_color_override("font_color", TEXT_COLOR)
+		# Custom checkbox icons: white bg unchecked, green check on white bg checked
+		cb.add_theme_icon_override("unchecked", _get_unchecked_icon())
+		cb.add_theme_icon_override("checked", _get_checked_icon())
 		cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cb.toggled.connect(_on_any_input_changed_bool)
 		row.add_child(cb)
@@ -628,6 +651,9 @@ func _build_effect_rows(parent: VBoxContainer) -> void:
 			"value_label": value_label,
 			"minus_btn": minus_btn,
 			"plus_btn": plus_btn,
+			"default_value": def_item[3] if def_item[2] else 0,
+			"min_val": def_item[4] if def_item[2] else 0,
+			"max_val": def_item[5] if def_item[2] else 0,
 		})
 
 # =============================================================================
@@ -640,6 +666,65 @@ func _add_section_label(parent: VBoxContainer, text: String) -> void:
 	lbl.add_theme_font_size_override("font_size", 24)
 	lbl.add_theme_color_override("font_color", ACCENT_GOLD)
 	parent.add_child(lbl)
+
+var _cached_unchecked_icon: ImageTexture = null
+var _cached_checked_icon: ImageTexture = null
+
+func _get_unchecked_icon() -> ImageTexture:
+	if _cached_unchecked_icon != null:
+		return _cached_unchecked_icon
+	var size := 28
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	# White filled square with dark border
+	img.fill(Color(0.9, 0.9, 0.9, 1.0))
+	# Draw border (2px)
+	for i in range(size):
+		for b in range(2):
+			img.set_pixel(i, b, Color(0.4, 0.35, 0.25, 1.0))
+			img.set_pixel(i, size - 1 - b, Color(0.4, 0.35, 0.25, 1.0))
+			img.set_pixel(b, i, Color(0.4, 0.35, 0.25, 1.0))
+			img.set_pixel(size - 1 - b, i, Color(0.4, 0.35, 0.25, 1.0))
+	_cached_unchecked_icon = ImageTexture.create_from_image(img)
+	return _cached_unchecked_icon
+
+func _get_checked_icon() -> ImageTexture:
+	if _cached_checked_icon != null:
+		return _cached_checked_icon
+	var size := 28
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	# White filled square with gold border
+	img.fill(Color(0.9, 0.9, 0.9, 1.0))
+	# Draw border (2px) in gold
+	for i in range(size):
+		for b in range(2):
+			img.set_pixel(i, b, Color(0.85, 0.7, 0.15, 1.0))
+			img.set_pixel(i, size - 1 - b, Color(0.85, 0.7, 0.15, 1.0))
+			img.set_pixel(b, i, Color(0.85, 0.7, 0.15, 1.0))
+			img.set_pixel(size - 1 - b, i, Color(0.85, 0.7, 0.15, 1.0))
+	# Draw green checkmark (thick diagonal lines)
+	var check_color := Color(0.1, 0.65, 0.1, 1.0)
+	# Short leg: from (5,14) to (10,20)
+	for t in range(30):
+		var p := float(t) / 29.0
+		var x := int(lerp(5.0, 11.0, p))
+		var y := int(lerp(13.0, 21.0, p))
+		for dx in range(-1, 2):
+			for dy in range(-1, 2):
+				var px := clampi(x + dx, 0, size - 1)
+				var py := clampi(y + dy, 0, size - 1)
+				img.set_pixel(px, py, check_color)
+	# Long leg: from (10,20) to (23,6)
+	for t in range(40):
+		var p := float(t) / 39.0
+		var x := int(lerp(11.0, 23.0, p))
+		var y := int(lerp(21.0, 5.0, p))
+		for dx in range(-1, 2):
+			for dy in range(-1, 2):
+				var px := clampi(x + dx, 0, size - 1)
+				var py := clampi(y + dy, 0, size - 1)
+				img.set_pixel(px, py, check_color)
+	_cached_checked_icon = ImageTexture.create_from_image(img)
+	return _cached_checked_icon
 
 func _add_separator(parent: VBoxContainer) -> void:
 	var sep = HSeparator.new()
@@ -730,13 +815,26 @@ func _on_spin_minus(effect_key: String, min_val: int, _max_val: int) -> void:
 	if _effect_values.has(effect_key):
 		_effect_values[effect_key] = maxi(min_val, _effect_values[effect_key] - 1)
 		_refresh_value_label(effect_key)
+		_auto_check_by_value(effect_key)
 		_update_preview()
 
 func _on_spin_plus(effect_key: String, _min_val: int, max_val: int) -> void:
 	if _effect_values.has(effect_key):
 		_effect_values[effect_key] = mini(max_val, _effect_values[effect_key] + 1)
 		_refresh_value_label(effect_key)
+		_auto_check_by_value(effect_key)
 		_update_preview()
+
+func _auto_check_by_value(effect_key: String) -> void:
+	## Auto-check/uncheck based on value: non-zero = checked, zero = unchecked
+	for row in effect_rows:
+		if row["key"] == effect_key:
+			var val: int = _effect_values.get(effect_key, 0)
+			if val > 0 and not row["checkbox"].button_pressed:
+				row["checkbox"].button_pressed = true
+			elif val <= 0 and row["checkbox"].button_pressed:
+				row["checkbox"].button_pressed = false
+			break
 
 func _refresh_value_label(effect_key: String) -> void:
 	for row in effect_rows:
@@ -752,6 +850,16 @@ func _on_any_input_changed_text(_text: String) -> void:
 	_update_preview()
 
 func _on_any_input_changed_bool(_val: bool) -> void:
+	# When a checkbox is checked and its value is 0, auto-set default value
+	if _val:
+		for row in effect_rows:
+			if row["checkbox"].button_pressed and row["value_label"] != null:
+				var key: String = row["key"]
+				if _effect_values.has(key) and _effect_values[key] <= 0:
+					var def_val: int = row.get("default_value", 1)
+					if def_val > 0:
+						_effect_values[key] = def_val
+						row["value_label"].text = str(def_val)
 	_update_preview()
 
 func _on_any_input_changed_float(_val: float) -> void:
@@ -808,6 +916,10 @@ func _on_char_selected(char_id: String, index: int) -> void:
 	_highlight_button_group(char_buttons, index)
 	_update_preview()
 
+func _on_version_selected(ver_id: String, index: int) -> void:
+	selected_version = ver_id
+	_highlight_button_group(version_buttons, index)
+
 # =============================================================================
 # CARD DATA BUILDING
 # =============================================================================
@@ -817,8 +929,12 @@ func _build_card_data() -> Dictionary:
 	if card_name.is_empty():
 		card_name = "自定义卡牌"
 
-	# Generate a unique ID
-	var card_id: String = "custom_" + card_name.to_lower().replace(" ", "_").replace("/", "_")
+	# Use existing card ID when editing, otherwise generate a new one
+	var card_id: String = ""
+	if _editing_card_id != "":
+		card_id = _editing_card_id
+	else:
+		card_id = "custom_" + card_name.to_lower().replace(" ", "_").replace("/", "_")
 
 	var data: Dictionary = {
 		"id": card_id,
@@ -849,8 +965,8 @@ func _build_card_data() -> Dictionary:
 			continue
 		var key: String = row["key"]
 		var value: int = _effect_values[key] if _effect_values.has(key) else 0
-		# Skip effects with value 0 (for effects that need a value)
-		var needs_value: bool = row.get("has_spinbox", false)
+		# Skip effects with value 0 (for effects that have a spinbox/value control)
+		var needs_value: bool = (row["value_label"] != null)
 		if needs_value and value <= 0:
 			continue
 
@@ -964,12 +1080,26 @@ func _build_card_data() -> Dictionary:
 		else:
 			actions.insert(0, {"type": "damage"})
 
+	# Handle target_all_enemies / target_all_heroes checkboxes
+	for row in effect_rows:
+		if not row["checkbox"].button_pressed:
+			continue
+		match row["key"]:
+			"target_all_enemies":
+				data["target"] = "all_enemies"
+				desc_parts.append("（对所有怪物）")
+			"target_all_heroes":
+				data["target"] = "all_heroes"
+				desc_parts.append("（对所有英雄）")
+
 	# Set target based on effects
-	if target_enemy and not is_aoe:
+	if target_enemy and not is_aoe and data["target"] == "self":
 		data["target"] = "enemy"
 
 	data["actions"] = actions
 	data["description"] = "\n".join(desc_parts)
+	# Version from UI toggle (new or old)
+	data["version"] = selected_version
 
 	# Append custom description text if provided
 	var custom_text: String = ""
@@ -1241,6 +1371,15 @@ func _load_card_for_edit(card_data: Dictionary) -> void:
 	if char_idx < 0:
 		char_idx = 0
 	_highlight_button_group(char_buttons, char_idx)
+
+	# --- Version ---
+	var ver_id: String = card_data.get("version", "old")
+	selected_version = ver_id
+	var ver_ids = ["new", "old"]
+	var ver_idx = ver_ids.find(ver_id)
+	if ver_idx < 0:
+		ver_idx = 1  # Default to "old"
+	_highlight_button_group(version_buttons, ver_idx)
 
 	# --- Reset all effect checkboxes and values to 0 ---
 	for row in effect_rows:

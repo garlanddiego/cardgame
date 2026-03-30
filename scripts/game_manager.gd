@@ -15,29 +15,15 @@ var player_deck: Array = []
 var card_database: Dictionary = {}
 var character_data: Dictionary = {}
 
-# Art paths for cycling
-var _ironclad_art: Array = [
-	"res://assets/img/card_art_ironclad/strike.png",
-	"res://assets/img/card_art_ironclad/heavy_strike.png",
-	"res://assets/img/card_art_ironclad/iron_wave.png",
-	"res://assets/img/card_art_ironclad/body_slam.png",
-	"res://assets/img/card_art_ironclad/searing_blow.png",
-	"res://assets/img/card_art_ironclad/headbutt.png",
-	"res://assets/img/card_art_ironclad/reckless_strike.png",
-	"res://assets/img/card_art_ironclad/cleave.png",
-	"res://assets/img/card_art_ironclad/shrug_it_off.png",
-	"res://assets/img/card_art_ironclad/flame_barrier.png",
-	"res://assets/img/card_art_ironclad/battle_trance.png",
-	"res://assets/img/card_art_ironclad/demon_form.png",
-	"res://assets/img/card_art_ironclad/bludgeon.png",
-	"res://assets/img/card_art_ironclad/pummel.png",
-	"res://assets/img/card_art_ironclad/intimidate.png",
-	"res://assets/img/card_art_ironclad/warcry.png",
-]
+# Art paths — each card's art is at card_art/{card_id}.png
 
 func _ready() -> void:
 	_init_character_data()
 	_init_card_database()
+	# Mark all existing cards as "old" version
+	for card_id in card_database:
+		if not card_database[card_id].has("version"):
+			card_database[card_id]["version"] = "old"
 
 func _init_character_data() -> void:
 	character_data = {
@@ -45,20 +31,21 @@ func _init_character_data() -> void:
 			"name": "Ironclad",
 			"max_hp": 1000,
 			"color": Color(0.8, 0.2, 0.2),
-			"sprite": "res://assets/img/ironclad_sts.png",
+			"sprite": "res://assets/img/ironclad.png",
 			"description": "A powerful warrior who uses strength and heavy attacks."
 		},
 		"silent": {
 			"name": "Silent",
 			"max_hp": 1000,
 			"color": Color(0.2, 0.7, 0.3),
-			"sprite": "res://assets/img/silent_sts.png",
+			"sprite": "res://assets/img/silent.png",
 			"description": "A deadly hunter who uses agility and poison."
 		}
 	}
 
-func _ic_art(index: int) -> String:
-	return _ironclad_art[index % _ironclad_art.size()]
+func _ic_art(_index: int) -> String:
+	# Deprecated — art is now resolved by card ID in create_card_visual()
+	return ""
 
 func _init_card_database() -> void:
 	# =========================================================================
@@ -485,7 +472,7 @@ func select_character(character_id: String) -> void:
 	var data = character_data[character_id]
 	player_max_hp = data["max_hp"]
 	player_hp = player_max_hp
-	player_deck = get_starting_deck(character_id)
+	# Don't reset player_deck — it's set by the deck builder
 	character_selected.emit(character_id)
 
 func get_starting_deck(character_id: String) -> Array:

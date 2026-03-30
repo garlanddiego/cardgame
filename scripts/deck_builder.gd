@@ -13,6 +13,7 @@ var _cart_insertion_order: Array = []  # Track insertion order for cart display
 var all_card_data: Dictionary = {}
 var current_filter: String = ""  # "" = all, "ironclad", "silent", "neutral"
 var current_type_filter: int = -1  # -1 = all, 0=Attack, 1=Skill, 2=Power
+var current_version_filter: String = "all"  # "all", "old", "new"
 
 # STS card image mapping: delegated to Card script (single source of truth)
 var _CardScript = preload("res://scripts/card.gd")
@@ -155,6 +156,19 @@ func _build_browse_area(browse_w: float) -> void:
 	filter_bar.add_child(type_filter_skill_btn)
 	type_filter_power_btn = _make_type_filter_button("能力", 2)
 	filter_bar.add_child(type_filter_power_btn)
+
+	# Version filter separator
+	var ver_sep = VSeparator.new()
+	ver_sep.custom_minimum_size = Vector2(2, 30)
+	filter_bar.add_child(ver_sep)
+
+	# Version filter buttons
+	var ver_all_btn = _make_version_filter_button("全部", "all")
+	filter_bar.add_child(ver_all_btn)
+	var ver_old_btn = _make_version_filter_button("旧版", "old")
+	filter_bar.add_child(ver_old_btn)
+	var ver_new_btn = _make_version_filter_button("新版", "new")
+	filter_bar.add_child(ver_new_btn)
 
 	# Language buttons on right side of filter bar
 	var spacer = Control.new()
@@ -360,6 +374,34 @@ func _make_type_filter_button(text: String, type_value: int) -> Button:
 	btn.pressed.connect(_on_type_filter.bind(type_value))
 	return btn
 
+func _make_version_filter_button(text: String, version: String) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(70, 40)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.3, 0.25, 0.8)
+	style.border_color = Color(0.4, 0.6, 0.5, 0.7)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	btn.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.3, 0.45, 0.35, 0.9)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
+	btn.pressed.connect(_on_version_filter.bind(version))
+	return btn
+
+func _on_version_filter(version: String) -> void:
+	current_version_filter = version
+	_populate_browse()
+
 func _update_filter_button_styles() -> void:
 	# Highlight active character filter button
 	var buttons := {
@@ -447,6 +489,11 @@ func _populate_browse() -> void:
 		# Apply card type filter
 		if current_type_filter >= 0 and card["type"] != current_type_filter:
 			continue
+		# Apply version filter
+		if current_version_filter != "all":
+			var card_version: String = card.get("version", "old")
+			if card_version != current_version_filter:
+				continue
 		# Skip cards already in cart
 		if selected_card_ids.has(card_id):
 			continue
@@ -629,6 +676,8 @@ func _animate_card_to_cart(card_id: String) -> void:
 	var start_pos: Vector2 = Vector2(SCREEN_W * 0.4, SCREEN_H * 0.4)  # fallback
 	if source_node:
 		start_pos = source_node.global_position
+		# Immediately hide the source card from browse grid
+		source_node.visible = false
 
 	# Target: top of cart scroll area
 	var browse_w: float = SCREEN_W * BROWSE_RATIO
