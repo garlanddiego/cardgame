@@ -464,6 +464,8 @@ func _draw() -> void:
 func _flash_damage(damage_amount: int = 0) -> void:
 	if sprite_node == null:
 		return
+	# Swap to hit pose if available
+	_swap_to_hit_pose()
 	# White flash → red flash → shake → recover
 	var orig_pos: Vector2 = sprite_node.position
 	var tween = create_tween()
@@ -528,6 +530,29 @@ func _flash_poison_damage(damage_amount: int) -> void:
 	float_tween.tween_callback(dmg_label.queue_free)
 
 var _idle_tween: Tween = null
+var _hit_tex: Texture2D = null
+
+func _swap_to_hit_pose() -> void:
+	if sprite_node == null:
+		return
+	if _hit_tex == null:
+		# Try to load hit pose texture
+		var tex_path: String = sprite_node.texture.resource_path if sprite_node.texture else ""
+		var hit_path: String = ""
+		if "slime" in tex_path: hit_path = "res://assets/img/anim/slime_hit.png"
+		elif "cultist" in tex_path: hit_path = "res://assets/img/anim/cultist_hit.png"
+		elif "jaw_worm" in tex_path: hit_path = "res://assets/img/anim/jaw_worm_hit.png"
+		elif "guardian" in tex_path: hit_path = "res://assets/img/anim/guardian_hit.png"
+		if hit_path != "" and ResourceLoader.exists(hit_path):
+			_hit_tex = load(hit_path)
+	if _hit_tex and _idle_tex_normal:
+		sprite_node.texture = _hit_tex
+		var tw = create_tween()
+		tw.tween_interval(0.3)
+		tw.tween_callback(func():
+			if is_instance_valid(sprite_node) and _idle_tex_normal:
+				sprite_node.texture = _idle_tex_normal
+		)
 
 func _start_idle_animation() -> void:
 	"""Breathing animation — sprite bobs up and down + scale pulse."""
@@ -537,17 +562,43 @@ func _start_idle_animation() -> void:
 	print("[IDLE] Starting idle animation for %s (enemy=%s)" % [name, is_enemy])
 	_idle_loop()
 
+var _idle_tex_normal: Texture2D = null
+var _idle_tex_alt: Texture2D = null
+
 func _idle_loop() -> void:
 	if not is_inside_tree() or not alive:
 		return
+	# Try to load alternate idle frame for texture-swap animation
+	if sprite_node and sprite_node.texture:
+		_idle_tex_normal = sprite_node.texture
+		var tex_path: String = _idle_tex_normal.resource_path if _idle_tex_normal else ""
+		var alt_path: String = ""
+		if "ironclad" in tex_path:
+			alt_path = "res://assets/img/anim/ironclad_idle_2.png"
+		elif "silent" in tex_path:
+			alt_path = "res://assets/img/anim/silent_idle_2.png"
+		if alt_path != "" and ResourceLoader.exists(alt_path):
+			_idle_tex_alt = load(alt_path)
+
 	_idle_tween = create_tween()
 	_idle_tween.set_loops()
-	var base_y: float = sprite_node.position.y
-	var breathe_amount: float = 8.0 if not is_enemy else 5.0
-	var speed: float = 1.2 + randf() * 0.3
-	# Smooth bob up and down only (no scale distortion)
-	_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe_amount, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	_idle_tween.tween_property(sprite_node, "position:y", base_y + breathe_amount * 0.3, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	var speed: float = 1.0 + randf() * 0.3
+	if _idle_tex_alt:
+		# Frame-based idle: swap between normal and alt textures
+		_idle_tween.tween_callback(func():
+			if is_instance_valid(sprite_node): sprite_node.texture = _idle_tex_alt
+		)
+		_idle_tween.tween_interval(speed)
+		_idle_tween.tween_callback(func():
+			if is_instance_valid(sprite_node): sprite_node.texture = _idle_tex_normal
+		)
+		_idle_tween.tween_interval(speed)
+	else:
+		# Fallback: position bob for entities without alt frame
+		var base_y: float = sprite_node.position.y
+		var breathe: float = 5.0 if not is_enemy else 3.0
+		_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+		_idle_tween.tween_property(sprite_node, "position:y", base_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
 func _flash_block() -> void:
 	# Blue tint on sprite
