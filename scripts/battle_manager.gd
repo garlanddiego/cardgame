@@ -2849,9 +2849,12 @@ func _setup_top_status_bar() -> void:
 	deck_btn_style.corner_radius_top_right = 6
 	deck_btn_style.corner_radius_bottom_left = 6
 	deck_btn_style.corner_radius_bottom_right = 6
+	var deck_hover = deck_btn_style.duplicate() as StyleBoxFlat
+	deck_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
 	_deck_count_btn.add_theme_stylebox_override("normal", deck_btn_style)
+	_deck_count_btn.add_theme_stylebox_override("hover", deck_hover)
 	_deck_count_btn.pressed.connect(_on_deck_count_clicked)
-	left_hbox.add_child(_deck_count_btn)
+	# Will be added to right_hbox below
 
 	# Gold
 	var gold_label = Label.new()
@@ -2866,11 +2869,14 @@ func _setup_top_status_bar() -> void:
 	right_hbox.layout_mode = 1
 	right_hbox.anchor_left = 1.0
 	right_hbox.anchor_right = 1.0
-	right_hbox.offset_left = -300.0
+	right_hbox.offset_left = -420.0
 	right_hbox.offset_top = 4.0
 	right_hbox.offset_right = -16.0
 	right_hbox.offset_bottom = 36.0
 	bar.add_child(right_hbox)
+
+	# Deck count button (right side, first)
+	right_hbox.add_child(_deck_count_btn)
 
 	var region_btn = _create_top_button("地域")
 	right_hbox.add_child(region_btn)
