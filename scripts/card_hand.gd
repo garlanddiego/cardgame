@@ -225,8 +225,10 @@ func _can_afford_card(card_data_check: Dictionary) -> bool:
 	# Corruption: skills cost 0
 	if corruption_active and card_data_check.get("type", 0) == 1:  # SKILL
 		return true
-	if cost <= 0:
+	if cost == 0:
 		return true
+	if cost < 0 and cost != -1:
+		return false  # Negative cost (except X=-1) = unplayable
 	return cost <= current_battle_energy
 
 func _on_card_clicked(card_node: Area2D) -> void:
