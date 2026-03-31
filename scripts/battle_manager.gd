@@ -2587,15 +2587,16 @@ func _show_card_detail(card_data: Dictionary, card_list: Array = [], index: int 
 		return
 	_detail_card_list = card_list
 	_detail_card_index = index
-	_detail_show_upgrade = false
+	var is_upgraded: bool = card_data.get("upgraded", false)
+	_detail_show_upgrade = is_upgraded
 	if _detail_upgrade_check:
-		_detail_upgrade_check.button_pressed = false
+		_detail_upgrade_check.button_pressed = is_upgraded
 		# Hide upgrade checkbox if card has no upgrade
+		var card_id: String = card_data.get("id", "")
 		var has_upgrade: bool = false
 		var gm = _get_game_manager()
 		if gm:
-			var upgraded = gm.get_upgraded_card(card_data.get("id", ""))
-			has_upgrade = not upgraded.is_empty() and gm._upgrade_overrides_cache.has(card_data.get("id", ""))
+			has_upgrade = gm._upgrade_overrides_cache.has(card_id)
 		_detail_upgrade_check.visible = has_upgrade
 	_render_detail_card(card_data)
 	_card_detail_overlay.visible = true
