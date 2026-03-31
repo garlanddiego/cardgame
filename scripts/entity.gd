@@ -716,12 +716,14 @@ func _update_power_display() -> void:
 			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
 			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(fallback)
-		var lbl = Label.new()
-		lbl.text = str(stacks)
-		lbl.add_theme_font_size_override("font_size", 16)
-		lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
-		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		container.add_child(lbl)
+		# Only show stack number if stacks > 1 (binary powers show no number)
+		if stacks > 1:
+			var lbl = Label.new()
+			lbl.text = str(stacks)
+			lbl.add_theme_font_size_override("font_size", 16)
+			lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			container.add_child(lbl)
 		status_container.add_child(container)
 
 var _tooltip_hover: bool = false

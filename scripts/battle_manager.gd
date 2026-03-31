@@ -1709,84 +1709,99 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 	# Normalize _plus suffix — upgraded powers use same logic with boosted values
 	var is_plus: bool = power_name.ends_with("_plus")
 	var base_name: String = power_name.trim_suffix("_plus") if is_plus else power_name
-	# Add power with BASE name so runtime checks find it
 	var hero = power_target if power_target else player
-	if hero:
-		hero.add_power(base_name)
+
+	# Determine stack value for the power icon display
+	# Powers that show effect value as stacks (stackable across multiple plays)
+	var power_stacks: int = 1  # Default
+	var show_icon: bool = true  # Whether to show a power icon
+
 	match base_name:
 		"demon_form":
 			demon_form_active = true
+			power_stacks = 3 if is_plus else 2  # Strength gained per turn
 		"caltrops":
 			caltrops_active = true
+			power_stacks = 5 if is_plus else 3  # Damage reflected per hit
 		"envenom":
 			envenom_active = true
+			power_stacks = 2 if is_plus else 1  # Poison per unblocked hit
 		"flame_barrier":
 			flame_barrier_active = true
-			if is_plus:
-				flame_barrier_damage = 6
+			flame_barrier_damage = 6 if is_plus else 4
+			power_stacks = flame_barrier_damage
 		"corruption":
 			corruption_active = true
 			if card_hand:
 				card_hand.corruption_active = true
+			power_stacks = 0  # Binary — no number
 		"berserk":
 			berserk_active = true
 			if hero:
 				hero.apply_status("vulnerable", 1)
+			power_stacks = 2 if is_plus else 1  # Energy per turn
 		"feel_no_pain":
 			feel_no_pain_active = true
-			if is_plus:
-				feel_no_pain_block = 4
+			feel_no_pain_block = 4 if is_plus else 3
+			power_stacks = feel_no_pain_block
 		"juggernaut":
 			juggernaut_active = true
-			if is_plus:
-				juggernaut_damage = 7
+			juggernaut_damage = 7 if is_plus else 5
+			power_stacks = juggernaut_damage
 		"evolve":
 			evolve_active = true
+			power_stacks = 2 if is_plus else 1  # Cards drawn per status
 		"rage":
 			rage_active = true
-			if is_plus:
-				rage_block = 5
+			rage_block = 5 if is_plus else 3
+			power_stacks = rage_block
 		"barricade":
 			barricade_active = true
+			power_stacks = 0  # Binary — no number
 		"metallicize":
 			metallicize_active = true
-			if is_plus:
-				metallicize_block = 4
+			metallicize_block = 4 if is_plus else 3
+			power_stacks = metallicize_block
 		"infinite_blades":
 			infinite_blades_active = true
+			power_stacks = 0  # Binary — no number
 		"noxious_fumes":
-			pass  # Handled by entity.active_powers at start of turn
+			power_stacks = 3 if is_plus else 2  # Poison per turn to all enemies
 		"accuracy":
-			pass  # Handled at shiv creation time
+			power_stacks = 6 if is_plus else 4  # Extra shiv damage
 		"a_thousand_cuts":
-			pass  # Triggered in play_card after stat tracking
+			power_stacks = 2 if is_plus else 1  # Damage per card played
 		"after_image":
-			pass  # Triggered in play_card after stat tracking
+			power_stacks = 0  # Binary — no number (1 block per card)
 		"well_laid_plans":
-			if is_plus:
-				hero.add_power("well_laid_plans", 1)  # Extra stack for +2 total retain
+			power_stacks = 2 if is_plus else 1  # Cards retained
 		"wraith_form":
-			pass  # Triggered at start_player_turn (dex loss)
+			power_stacks = 3 if is_plus else 2  # Intangible turns
 		"tools_of_the_trade":
-			pass  # Triggered at start_player_turn (draw 1)
+			power_stacks = 0  # Binary — no number
 		"brutality":
-			pass  # Triggered at start_player_turn
+			power_stacks = 0  # Binary — no number
 		"combust":
-			pass  # Triggered at end of turn
+			power_stacks = 7 if is_plus else 5  # Damage per turn to all
 		"dark_embrace":
-			pass  # Triggered in _exhaust_card
+			power_stacks = 0  # Binary — no number
 		"rupture":
-			pass  # Triggered in self_damage action
+			power_stacks = 2 if is_plus else 1  # Strength per HP loss
 		"double_tap":
 			_double_tap_active = true
+			show_icon = false  # Temporary effect, no persistent icon
 		"fire_breathing":
-			pass  # Triggered in draw_cards on status draw
+			power_stacks = 10 if is_plus else 6  # Damage on status draw
 		"venomous_might":
 			pass  # Handled at start of turn
 		"psi_surge":
 			pass  # Handled on draw_cards
 		"blood_fury":
 			pass  # Handled on self HP loss from card
+
+	# Add power icon with correct stack value
+	if show_icon and hero:
+		hero.add_power(base_name, power_stacks if power_stacks > 0 else 1)
 
 func _process_next_turn_effects() -> void:
 	for effect in _next_turn_effects:
