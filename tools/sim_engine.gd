@@ -156,7 +156,7 @@ func _draw_cards(state: Dictionary, count: int) -> void:
 
 
 func _greedy_play(state: Dictionary) -> void:
-	# Priority 1: Play all affordable Power cards first (long-term value)
+	# Step 1: Play all affordable Power cards first (always beneficial)
 	var played_power := true
 	while played_power and state["energy"] > 0:
 		played_power = false
@@ -174,49 +174,116 @@ func _greedy_play(state: Dictionary) -> void:
 			_play_card(state, card_id)
 			state["total_cards"] += 1
 			played_power = true
-			break  # Restart loop (hand changed)
-
-	# Priority 2: Play other cards greedily by score
-	while state["energy"] > 0 and not state["hand"].is_empty():
-		var best_id: String = ""
-		var best_score: float = -999.0
-		for card_id in state["hand"]:
-			var card: Dictionary = card_db.get(card_id, {})
-			if card.is_empty():
-				continue
-			var cost: int = card.get("cost", 0)
-			if cost == -1:
-				cost = state["energy"]
-			if cost < 0:
-				continue  # Unplayable
-			if cost > state["energy"]:
-				continue
-			# Corruption: skills cost 0
-			if state["corruption"] and card.get("type", 0) == 1:
-				cost = 0
-
-			# Check playability conditions
-			if not _can_play(state, card):
-				continue
-
-			var score: float = _score_card(state, card_id, cost)
-			if score > best_score:
-				best_score = score
-				best_id = card_id
-
-		if best_id == "" or best_score <= 0:
 			break
 
-		var card: Dictionary = card_db.get(best_id, {})
-		var cost: int = card.get("cost", 0)
-		if cost == -1:
-			cost = state["energy"]
-		if state["corruption"] and card.get("type", 0) == 1:
-			cost = 0
+	# Step 2: Exhaustive search of non-power card play orderings
+	# Find all playable non-power cards
+	var playable: Array = []
+	for card_id in state["hand"]:
+		var card: Dictionary = card_db.get(card_id, {})
+		if card.is_empty():
+			continue
+		if card.get("type", 0) == 2:  # Skip powers (already played)
+			continue
+		var cost: int = _get_card_cost(state, card)
+		if cost < 0:
+			continue  # Unplayable
+		if not _can_play(state, card):
+			continue
+		playable.append(card_id)
+
+	# Generate all valid subsets that fit within energy, then find best order
+	var best_play_order: Array = []
+	var best_score: float = -999999.0
+
+	# Calculate incoming monster damage for scoring
+	var incoming_dmg := 0
+	for m in _alive(state):
+		var d: int = m["base_dmg"] + m["dmg_inc"] * (state["turn"] - 1)
+		if m["weak"] > 0: d = int(d * 0.75)
+		incoming_dmg += d
+
+	# Try all permutations of playable cards (up to 5 cards, manageable)
+	var perms: Array = _generate_permutations(playable)
+	for perm in perms:
+		# Simulate this play order on a copy of state
+		var sim_state: Dictionary = _copy_state(state)
+		var valid := true
+		var cards_played: Array = []
+		for card_id in perm:
+			var card: Dictionary = card_db.get(card_id, {})
+			var cost: int = _get_card_cost(sim_state, card)
+			if cost > sim_state["energy"]:
+				break  # Can't afford, stop here
+			sim_state["energy"] -= cost
+			_play_card(sim_state, card_id)
+			cards_played.append(card_id)
+
+		# Score: damage dealt - hero damage taken × 2
+		var total_monster_hp_before := 0
+		for m in state["monsters"]:
+			if m["hp"] > 0: total_monster_hp_before += m["hp"]
+		var total_monster_hp_after := 0
+		for m in sim_state["monsters"]:
+			if m["hp"] > 0: total_monster_hp_after += maxi(0, m["hp"])
+		var dmg_dealt: float = total_monster_hp_before - total_monster_hp_after
+		var hero_dmg_taken: float = maxi(0, incoming_dmg - sim_state["hero_block"])
+		var score: float = dmg_dealt - hero_dmg_taken * 2.0
+
+		if score > best_score:
+			best_score = score
+			best_play_order = cards_played
+
+	# Execute the best play order
+	for card_id in best_play_order:
+		var card: Dictionary = card_db.get(card_id, {})
+		var cost: int = _get_card_cost(state, card)
+		if cost > state["energy"]:
+			break
 		state["energy"] -= cost
-		state["hand"].erase(best_id)
-		_play_card(state, best_id)
+		state["hand"].erase(card_id)
+		_play_card(state, card_id)
 		state["total_cards"] += 1
+
+
+func _get_card_cost(state: Dictionary, card: Dictionary) -> int:
+	var cost: int = card.get("cost", 0)
+	if cost == -1:
+		cost = state["energy"]
+	if state["corruption"] and card.get("type", 0) == 1:
+		cost = 0
+	return cost
+
+
+func _copy_state(state: Dictionary) -> Dictionary:
+	"""Deep copy battle state for simulation."""
+	var copy: Dictionary = state.duplicate(true)
+	return copy
+
+
+func _generate_permutations(items: Array) -> Array:
+	"""Generate all permutations of items (max 5 to keep tractable)."""
+	if items.size() > 5:
+		# Too many permutations; fall back to identity order only
+		return [items]
+	var result: Array = []
+	_permute(items, 0, result)
+	return result
+
+
+func _permute(arr: Array, start: int, result: Array) -> void:
+	if start == arr.size():
+		result.append(arr.duplicate())
+		return
+	for i in range(start, arr.size()):
+		# Swap
+		var tmp = arr[start]
+		arr[start] = arr[i]
+		arr[i] = tmp
+		_permute(arr, start + 1, result)
+		# Swap back
+		arr[i] = arr[start]
+		arr[start] = tmp
 
 
 func _can_play(state: Dictionary, card: Dictionary) -> bool:
