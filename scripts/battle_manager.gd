@@ -2524,14 +2524,20 @@ func _setup_card_detail_overlay() -> void:
 	_detail_card_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card_detail_overlay.add_child(_detail_card_container)
 
-	# Keyword tooltips (right side)
+	# Keyword tooltips (right side, with scroll for overflow)
+	var kw_scroll = ScrollContainer.new()
+	kw_scroll.name = "KeywordScroll"
+	kw_scroll.position = Vector2(1100, 80)
+	kw_scroll.size = Vector2(400, 850)
+	kw_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	kw_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_card_detail_overlay.add_child(kw_scroll)
 	_detail_keyword_container = VBoxContainer.new()
 	_detail_keyword_container.name = "KeywordContainer"
-	_detail_keyword_container.position = Vector2(1100, 120)
-	_detail_keyword_container.size = Vector2(350, 600)
+	_detail_keyword_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_keyword_container.add_theme_constant_override("separation", 12)
 	_detail_keyword_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_card_detail_overlay.add_child(_detail_keyword_container)
+	kw_scroll.add_child(_detail_keyword_container)
 
 	# Left arrow button
 	var left_btn = Button.new()
