@@ -65,7 +65,15 @@ func _init() -> void:
 			continue
 		pool.append(card_id)
 
-	print("Card pool: %d cards (char=%s, version=%s)" % [pool.size(), char_filter if char_filter else "all", version_filter])
+	# Apply upgrades to card database if requested (default: true)
+	var upgraded_db: Dictionary = gm.card_database.duplicate(true)
+	# By default, upgrade all cards that have upgrade overrides
+	for card_id in pool:
+		var upgraded := gm.get_upgraded_card(card_id)
+		if not upgraded.is_empty() and gm._upgrade_overrides_cache.has(card_id):
+			upgraded_db[card_id] = upgraded
+
+	print("Card pool: %d cards (char=%s, version=%s, upgraded)" % [pool.size(), char_filter if char_filter else "all", version_filter])
 
 	# Generate combinations
 	var combos := _generate_combinations(pool, combo_size)
@@ -95,11 +103,11 @@ func _init() -> void:
 		var deck: Array = combo.duplicate()
 		deck.append_array(["ic_strike", "ic_strike", "ic_strike", "ic_defend", "ic_defend", "ic_defend"])
 
-		var result := engine.simulate(deck, gm.card_database, hero_hp, monster_hp, monster_dmg, monster_inc, monster_count, draw_per_turn)
+		var result := engine.simulate(deck, upgraded_db, hero_hp, monster_hp, monster_dmg, monster_inc, monster_count, draw_per_turn)
 		result["combo"] = combo
 		var combo_names: Array = []
 		for card_id in combo:
-			combo_names.append(gm.card_database[card_id].get("name", card_id))
+			combo_names.append(upgraded_db[card_id].get("name", card_id))
 		result["combo_names"] = combo_names
 
 		# Write to CSV immediately
