@@ -1523,7 +1523,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				base_dmg = player.get_attack_damage(base_dmg)
 			if base_dmg > 0:
 				_apply_multi_hit_damage(base_dmg, times_val, target, target_type)
-			card_data["damage"] = maxi(0, card_data.get("damage", 8) - 2)
+			var new_dmg: int = maxi(0, card_data.get("damage", 8) - 2)
+			print("[GLASS_KNIFE] damage %d → %d" % [card_data.get("damage", 8), new_dmg])
+			card_data["damage"] = new_dmg
 		"choke":
 			var base_dmg: int = card_data.get("damage", 12)
 			if player:
