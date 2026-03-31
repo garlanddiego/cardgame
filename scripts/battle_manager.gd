@@ -3056,9 +3056,13 @@ func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 		attack_path = "res://assets/img/anim/ironclad_attack_1.png"
 	elif char_id == "silent":
 		attack_path = "res://assets/img/anim/silent_attack_1.png"
-	if attack_path == "" or not ResourceLoader.exists(attack_path):
+	if attack_path == "":
+		return
+	if not ResourceLoader.exists(attack_path):
+		print("[ANIM] Attack texture not found: %s" % attack_path)
 		return
 	var attack_tex: Texture2D = load(attack_path)
+	print("[ANIM] Swapping to attack pose: %s" % attack_path)
 	# Swap to attack pose
 	sprite.texture = attack_tex
 	# Swap back after 0.4s
