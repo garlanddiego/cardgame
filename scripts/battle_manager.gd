@@ -3219,9 +3219,9 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 	)
 
 	var loc = _get_loc()
-	var mini_size := Vector2(256, 350)
+	var mini_size := Vector2(296, 422)
 
-	# Use Card.create_card_visual() — sized for readability in pile viewer
+	# Use Card.create_card_visual() — sized to match hand card size
 	var card_script_class_pv = load("res://scripts/card.gd")
 
 	for i in range(sorted_pile.size()):
