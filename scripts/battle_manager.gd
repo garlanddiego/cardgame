@@ -906,6 +906,11 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 
 	_update_pile_labels()
 
+	# Re-update card playability (card effects may have changed energy)
+	if card_hand:
+		card_hand.current_battle_energy = current_energy
+		card_hand.update_card_playability(current_energy)
+
 	# Handle discard requirement (e.g., Acrobatics: draw 3, discard 1)
 	var discard_count: int = card_data.get("discard", 0)
 	if discard_count > 0 and not hand.is_empty():
