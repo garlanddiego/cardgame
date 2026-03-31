@@ -2082,9 +2082,11 @@ func _process_enemy_actions(index: int) -> void:
 	timer.timeout.connect(_process_enemy_actions.bind(index + 1))
 
 func _enemy_lunge(enemy: Node2D) -> void:
-	## Enemy lunge animation toward player (STS-style) + bite effect
+	## Enemy lunge animation toward player (STS-style) + bite effect + sprite swap
 	if enemy == null or not enemy.alive:
 		return
+	# Swap to attack sprite
+	_swap_enemy_attack_sprite(enemy)
 	var orig_pos: Vector2 = enemy.position
 	var lunge_offset := Vector2(-60, 0)  # Lunge toward player (left)
 	var tween = create_tween()
@@ -2094,6 +2096,38 @@ func _enemy_lunge(enemy: Node2D) -> void:
 	var front = get_front_player()
 	if front:
 		_enemy_bite_effect(enemy, front)
+
+func _swap_enemy_attack_sprite(enemy_node: Node2D) -> void:
+	"""Swap enemy sprite to attack pose temporarily."""
+	if enemy_node == null or not is_instance_valid(enemy_node):
+		return
+	var sprite: Sprite2D = enemy_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var original_tex: Texture2D = sprite.texture
+	# Determine enemy type from name or texture path
+	var attack_path: String = ""
+	var tex_path: String = ""
+	if original_tex and original_tex.resource_path:
+		tex_path = original_tex.resource_path
+	if "slime" in tex_path:
+		attack_path = "res://assets/img/anim/slime_attack.png"
+	elif "cultist" in tex_path:
+		attack_path = "res://assets/img/anim/cultist_attack.png"
+	elif "jaw_worm" in tex_path:
+		attack_path = "res://assets/img/anim/jaw_worm_attack.png"
+	elif "guardian" in tex_path:
+		attack_path = "res://assets/img/anim/guardian_attack.png"
+	if attack_path == "" or not ResourceLoader.exists(attack_path):
+		return
+	var attack_tex: Texture2D = load(attack_path)
+	sprite.texture = attack_tex
+	var tw = create_tween()
+	tw.tween_interval(0.35)
+	tw.tween_callback(func():
+		if is_instance_valid(sprite) and is_instance_valid(enemy_node):
+			sprite.texture = original_tex
+	)
 
 func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	## Check if attacked hero has reactive powers (caltrops, flame_barrier) and apply
