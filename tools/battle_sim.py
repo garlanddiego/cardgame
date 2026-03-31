@@ -468,8 +468,8 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
         if state.noxious_fumes > 0:
             state.monster_poison += state.noxious_fumes
 
-        # Draw 5 cards
-        for _ in range(5):
+        # Draw 4 cards per turn
+        for _ in range(4):
             if not state.draw_pile:
                 state.draw_pile = list(state.discard_pile)
                 state.discard_pile = []
@@ -530,8 +530,8 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
 
 def evaluate_deck(custom_cards: List[str], n_sims=100, **kwargs) -> Dict:
     """Run multiple simulations and return average results."""
-    # Build full deck: custom cards + 2 strikes + 2 defends
-    deck = list(custom_cards) + ["strike", "strike", "defend", "defend"]
+    # Build full deck: custom cards + 3 strikes + 3 defends
+    deck = list(custom_cards) + ["strike", "strike", "strike", "defend", "defend", "defend"]
 
     results = []
     for _ in range(n_sims):
@@ -613,7 +613,7 @@ if __name__ == "__main__":
             print(json.dumps(results, indent=2))
         else:
             print(f"\n{'='*70}")
-            print(f"TOP {len(results)} CARD COMBOS ({args.all_combos} picks + 2 Strike + 2 Defend)")
+            print(f"TOP {len(results)} CARD COMBOS ({args.all_combos} picks + 3 Strike + 3 Defend)")
             print(f"vs Monster: {args.monster_hp}HP, {args.monster_dmg}+{args.monster_inc}/turn dmg")
             print(f"{'='*70}")
             for i, r in enumerate(results):
@@ -630,7 +630,7 @@ if __name__ == "__main__":
                 sys.exit(1)
 
         if args.verbose:
-            print(f"Simulating: {[CARDS[c]['name'] for c in cards]} + 2 Strike + 2 Defend")
+            print(f"Simulating: {[CARDS[c]['name'] for c in cards]} + 3 Strike + 3 Defend")
             print(f"vs Monster: {args.monster_hp}HP, {args.monster_dmg}+{args.monster_inc}/turn")
             print()
             r = simulate_battle(cards + ["strike", "strike", "defend", "defend"],
@@ -642,7 +642,7 @@ if __name__ == "__main__":
                 print(json.dumps(r, indent=2))
             else:
                 names = [CARDS[c]["name"] for c in cards]
-                print(f"Deck: {names} + 2 Strike + 2 Defend")
+                print(f"Deck: {names} + 3 Strike + 3 Defend")
                 print(f"Win rate: {r['win_rate']*100:.1f}%")
                 print(f"Avg remaining HP: {r['avg_remaining_hp']:.1f}")
                 print(f"Avg turns: {r['avg_turns']:.1f}")
@@ -660,7 +660,7 @@ if __name__ == "__main__":
         ]
 
         print(f"Hero: {args.hero_hp}HP | Monster: {args.monster_hp}HP, {args.monster_dmg}+{args.monster_inc}/turn")
-        print(f"Each deck: 4 custom + 2 Strike + 2 Defend | {args.sims} sims each\n")
+        print(f"Each deck: 4 custom + 3 Strike + 3 Defend | {args.sims} sims each\n")
 
         for deck in test_decks:
             r = evaluate_deck(deck, n_sims=args.sims, **sim_kwargs)
