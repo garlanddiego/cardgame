@@ -1944,7 +1944,47 @@ func _finish_end_of_turn() -> void:
 			_check_sly_on_discard(card_data)
 		hand.clear()
 		if card_hand:
-			card_hand.clear_hand()
+			# Animate cards flying to discard pile one by one (right to left)
+			_animate_hand_discard()
+		else:
+			_after_hand_discard()
+			return
+	else:
+		_after_hand_discard()
+		return
+	_retain_applied = false
+
+func _animate_hand_discard() -> void:
+	## Animate each card in hand flying to discard pile position, then clean up
+	if not card_hand or card_hand.cards.is_empty():
+		_after_hand_discard()
+		return
+	var discard_target := Vector2(1740, 900)
+	var card_nodes: Array = card_hand.cards.duplicate()
+	# Reverse so rightmost card goes first
+	card_nodes.reverse()
+	var total_delay: float = 0.0
+	for i in range(card_nodes.size()):
+		var card_node = card_nodes[i]
+		if not is_instance_valid(card_node):
+			continue
+		var fly_tween = create_tween()
+		fly_tween.tween_interval(0.08 * i)
+		fly_tween.tween_property(card_node, "position", discard_target, 0.2).set_ease(Tween.EASE_IN)
+		fly_tween.parallel().tween_property(card_node, "scale", Vector2(0.3, 0.3), 0.2)
+		fly_tween.parallel().tween_property(card_node, "modulate:a", 0.0, 0.15).set_delay(0.1)
+		total_delay = 0.08 * i + 0.2
+	# After all animations, clear hand and continue
+	var cleanup_tween = create_tween()
+	cleanup_tween.tween_interval(total_delay + 0.05)
+	cleanup_tween.tween_callback(_on_hand_discard_complete)
+
+func _on_hand_discard_complete() -> void:
+	if card_hand:
+		card_hand.clear_hand()
+	_after_hand_discard()
+
+func _after_hand_discard() -> void:
 	_retain_applied = false
 	# Tick status effects for all heroes
 	for hero in _get_all_alive_heroes():
