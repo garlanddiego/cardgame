@@ -69,7 +69,7 @@ func _init() -> void:
 	var upgraded_db: Dictionary = gm.card_database.duplicate(true)
 	# By default, upgrade all cards that have upgrade overrides
 	for card_id in pool:
-		var upgraded := gm.get_upgraded_card(card_id)
+		var upgraded: Dictionary = gm.get_upgraded_card(card_id)
 		if not upgraded.is_empty() and gm._upgrade_overrides_cache.has(card_id):
 			upgraded_db[card_id] = upgraded
 
