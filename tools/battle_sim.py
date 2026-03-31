@@ -768,6 +768,8 @@ if __name__ == "__main__":
     parser.add_argument("--monster-inc", type=int, default=2, help="Monster damage increase/turn (default: 2)")
     parser.add_argument("--hero-hp", type=int, default=200, help="Hero HP (default: 200)")
     parser.add_argument("--monsters", type=int, default=2, help="Number of monsters (default: 2)")
+    parser.add_argument("--char", type=str, help="Filter cards by character: ironclad, silent, neutral")
+    parser.add_argument("--upgraded", action="store_true", help="Use upgraded card versions")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show turn-by-turn log")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     parser.add_argument("--csv", type=str, metavar="FILE", help="Output results as CSV file")
@@ -786,8 +788,17 @@ if __name__ == "__main__":
         if args.pool:
             pool = args.pool.split(",")
         else:
-            # Default pool: all non-basic cards
-            pool = [k for k in CARDS if k not in ("strike", "defend", "si_strike", "si_defend")]
+            # Build pool from available cards
+            basic_ids = {"strike", "defend", "ic_strike", "ic_defend", "si_strike", "si_defend",
+                         "status_wound", "status_burn", "status_dazed"}
+            pool = []
+            for k, v in CARDS.items():
+                if k in basic_ids:
+                    continue
+                if args.char and v.get("char", "") != args.char:
+                    continue
+                pool.append(k)
+            print(f"Card pool: {len(pool)} cards" + (f" (char={args.char})" if args.char else ""))
 
         results = find_best_combos(pool, pick=args.all_combos, n_sims=args.sims, **sim_kwargs)
 
