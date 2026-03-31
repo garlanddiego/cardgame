@@ -321,9 +321,14 @@ func _update_status_display() -> void:
 	_update_poison_preview()
 	if status_container == null:
 		return
-	# Clear existing
+	# Clear existing status icons (not PowerIcon_ — those are managed by _update_power_display)
+	var status_to_remove: Array = []
 	for child in status_container.get_children():
-		child.queue_free()
+		if not child.name.begins_with("PowerIcon_"):
+			status_to_remove.append(child)
+	for child in status_to_remove:
+		status_container.remove_child(child)
+		child.free()
 	# Add status icons
 	for status_type in status_effects:
 		if status_effects[status_type] <= 0:
@@ -354,66 +359,7 @@ func _update_status_display() -> void:
 			lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.7))
 		container.add_child(lbl)
 		status_container.add_child(container)
-	# Add active power icons
-	var power_icon_map: Dictionary = {
-		"demon_form": "fire",
-		"caltrops": "lightning",
-		"envenom": "poison",
-		"flame_barrier": "fire",
-		"corruption": "death",
-		"berserk": "fire",
-		"feel_no_pain": "dexterity",
-		"juggernaut": "strength",
-		"evolve": "eye",
-		"rage": "fire",
-		"barricade": "dexterity",
-		"metallicize": "strength",
-		"accuracy": "lightning",
-		"infinite_blades": "lightning",
-		"noxious_fumes": "poison",
-		"a_thousand_cuts": "lightning",
-		"after_image": "dexterity",
-	}
-	for power_id in active_powers:
-		if active_powers[power_id] <= 0:
-			continue
-		var icon_name: String = power_icon_map.get(power_id, "hourglass")
-		var icon_path: String = "res://assets/img/ui_icons/" + icon_name + ".png"
-		var tex = load(icon_path)
-		if tex == null:
-			continue
-		var container = HBoxContainer.new()
-		# Power background badge
-		var badge = Panel.new()
-		var badge_style = StyleBoxFlat.new()
-		badge_style.bg_color = Color(0.4, 0.15, 0.6, 0.85)
-		badge_style.corner_radius_top_left = 6
-		badge_style.corner_radius_top_right = 6
-		badge_style.corner_radius_bottom_left = 6
-		badge_style.corner_radius_bottom_right = 6
-		badge_style.content_margin_left = 2
-		badge_style.content_margin_right = 2
-		badge_style.content_margin_top = 2
-		badge_style.content_margin_bottom = 2
-		badge.add_theme_stylebox_override("panel", badge_style)
-		badge.custom_minimum_size = Vector2(36, 36)
-		var icon = TextureRect.new()
-		icon.texture = tex
-		icon.custom_minimum_size = Vector2(28, 28)
-		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.position = Vector2(4, 4)
-		badge.add_child(icon)
-		container.add_child(badge)
-		var lbl = Label.new()
-		if active_powers[power_id] > 1:
-			lbl.text = str(active_powers[power_id])
-		else:
-			lbl.text = ""
-		lbl.add_theme_font_size_override("font_size", 14)
-		lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
-		container.add_child(lbl)
-		status_container.add_child(container)
+	# Power icons are handled by _update_power_display() — not duplicated here
 
 func update_intent_display() -> void:
 	if intent.is_empty():
