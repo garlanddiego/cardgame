@@ -174,6 +174,10 @@ func _greedy_play(state: Dictionary) -> void:
 			if state["corruption"] and card.get("type", 0) == 1:
 				cost = 0
 
+			# Check playability conditions
+			if not _can_play(state, card):
+				continue
+
 			var score: float = _score_card(state, card_id, cost)
 			if score > best_score:
 				best_score = score
@@ -193,6 +197,20 @@ func _greedy_play(state: Dictionary) -> void:
 		_play_card(state, best_id)
 		state["total_cards"] += 1
 
+
+func _can_play(state: Dictionary, card: Dictionary) -> bool:
+	"""Check if a card can be played (special conditions)."""
+	if card.get("unplayable", false):
+		return false
+	var special: String = card.get("special", "")
+	if special == "grand_finale":
+		return state["draw_pile"].is_empty()
+	if special == "clash":
+		for c_id in state["hand"]:
+			var c: Dictionary = card_db.get(c_id, {})
+			if c.get("type", 0) != 0:  # Not ATTACK
+				return false
+	return true
 
 func _score_card(state: Dictionary, card_id: String, cost: int) -> float:
 	var card: Dictionary = card_db.get(card_id, {})
