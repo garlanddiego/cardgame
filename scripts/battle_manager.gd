@@ -2629,7 +2629,7 @@ func _update_detail_keywords(card_data: Dictionary) -> void:
 	var desc: String = card_data.get("description", "").to_lower()
 	var found_keywords: Array = []
 	for keyword in KEYWORD_DEFS:
-		if keyword in desc or card_data.get(keyword, false) == true or card_data.get("special", "") == keyword:
+		if keyword in desc or (card_data.has(keyword) and typeof(card_data[keyword]) == TYPE_BOOL and card_data[keyword] == true) or card_data.get("special", "") == keyword:
 			if keyword not in found_keywords:
 				found_keywords.append(keyword)
 	# Also check for common implicit keywords
