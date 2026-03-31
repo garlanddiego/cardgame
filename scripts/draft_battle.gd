@@ -54,9 +54,12 @@ func _build_settings_ui() -> void:
 
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.set_anchors_preset(Control.PRESET_CENTER)
-	vbox.position = Vector2(660, 200)
 	vbox.add_theme_constant_override("separation", 24)
+	# Center on screen
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	vbox.custom_minimum_size = Vector2(500, 0)
 	_settings_panel.add_child(vbox)
 
 	# Title
