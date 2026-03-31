@@ -24,6 +24,12 @@ func _init() -> void:
 		quit()
 		return
 
+	# Load localization for Chinese names
+	var loc_script = load("res://scripts/localization.gd")
+	var loc = loc_script.new() if loc_script else null
+	if loc:
+		loc.current_lang = "zh"
+
 	print("=== Card Statistics ===")
 	print("Reading: %s" % input_csv)
 
@@ -86,13 +92,19 @@ func _init() -> void:
 		var n: int = s["appearances"]
 		if n == 0:
 			continue
-		# Get card name from game database
-		var card_name: String = card_id
+		# Get card name (Chinese if available, English fallback)
+		var card_name_en: String = card_id
+		var card_name_zh: String = ""
 		if gm.card_database.has(card_id):
-			card_name = gm.card_database[card_id].get("name", card_id)
+			var cd: Dictionary = gm.card_database[card_id]
+			card_name_en = cd.get("name", card_id)
+			if loc:
+				card_name_zh = loc.card_name(cd)
+		var card_name: String = card_name_zh if card_name_zh != "" else card_name_en
 		results.append({
 			"card_id": card_id,
 			"name": card_name,
+			"name_en": card_name_en,
 			"appearances": n,
 			"avg_hp": snapped(float(s["total_hp"]) / n, 0.1),
 			"avg_turns": snapped(float(s["total_turns"]) / n, 0.1),
@@ -123,20 +135,13 @@ func _init() -> void:
 	if output_csv != "":
 		var out := FileAccess.open(output_csv, FileAccess.WRITE)
 		if out:
-			out.store_line("排名,卡牌ID,卡牌名称,出现次数,平均剩余HP,平均回合数,平均出牌数,平均最大伤害,胜率%,出现行号")
+			out.store_line("排名,卡牌ID,中文名,英文名,出现次数,平均剩余HP,平均回合数,平均出牌数,平均最大伤害,胜率%")
 			for ri in range(results.size()):
 				var r: Dictionary = results[ri]
-				var row_str := ""
-				var rows: Array = r["rows"]
-				for rr in range(mini(100, rows.size())):
-					if rr > 0: row_str += "; "
-					row_str += str(rows[rr])
-				if rows.size() > 100:
-					row_str += "... (%d total)" % rows.size()
-				out.store_line("%d,\"%s\",\"%s\",%d,%.1f,%.1f,%.1f,%.1f,%.1f%%,\"%s\"" % [
-					ri + 1, r["card_id"], r["name"], r["appearances"],
+				out.store_line("%d,\"%s\",\"%s\",\"%s\",%d,%.1f,%.1f,%.1f,%.1f,%.1f%%" % [
+					ri + 1, r["card_id"], r["name"], r["name_en"], r["appearances"],
 					r["avg_hp"], r["avg_turns"], r["avg_cards"], r["avg_max_dmg"],
-					r["win_rate"], row_str
+					r["win_rate"]
 				])
 			out.close()
 			print("\nSaved to %s" % output_csv)
