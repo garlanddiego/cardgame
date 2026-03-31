@@ -17,7 +17,7 @@ func _init() -> void:
 	var monster_count := 2
 	var monster_hp := 50
 	var monster_dmg := 6
-	var monster_inc := 4
+	var monster_inc := 3
 	var hero_hp := 200
 	var draw_per_turn := 4
 	var top_n := 50
