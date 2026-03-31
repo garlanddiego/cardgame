@@ -20,6 +20,27 @@ from typing import List, Dict, Optional, Tuple
 # CARD DEFINITIONS
 # =============================================================================
 
+# Chinese name lookup for output
+ZH_NAMES = {
+    "strike": "打击", "bash": "重击", "iron_wave": "铁浪", "twin_strike": "双击",
+    "pommel_strike": "柄击", "heavy_blade": "重刃", "cleave": "劈砍", "headbutt": "头槌",
+    "uppercut": "上勾拳", "pummel": "连击", "bludgeon": "痛殴", "hemokinesis": "血动力学",
+    "carnage": "大屠杀", "clothesline": "过肩摔", "defend": "防御", "shrug_it_off": "耸肩",
+    "battle_trance": "战斗冥想", "bloodletting": "献血", "offering": "供奉",
+    "impervious": "坚不可摧", "flame_barrier": "火焰屏障", "flex": "屈伸",
+    "seeing_red": "目赤", "limit_break": "极限爆发", "inflame": "燃烧",
+    "demon_form": "恶魔形态", "metallicize": "金属化",
+    "si_strike": "打击", "neutralize": "中和", "poisoned_stab": "毒刺",
+    "quick_slash": "快斩", "dagger_spray": "飞刀喷", "eviscerate": "剜心",
+    "glass_knife": "玻璃刀", "riddle_with_holes": "千疮百孔",
+    "si_defend": "防御", "backflip": "后空翻", "deadly_poison": "致命毒",
+    "leg_sweep": "扫腿", "catalyst": "催化",
+    "noxious_fumes": "毒雾", "envenom": "淬毒", "accuracy": "精准",
+    "venomous_might": "毒化之力", "toxic_storm": "毒风暴", "poison_shield": "毒雾护盾",
+    "gamblers_blade": "赌徒之刃", "echo_slash": "回声斩", "all_in": "全力以赴",
+    "blood_fury": "血怒", "psi_surge": "灵能涌动", "tactical_retreat": "战术撤退",
+}
+
 CARDS = {
     # --- Ironclad Attacks ---
     "strike": {"name": "Strike", "cost": 1, "type": "attack", "char": "ironclad",
@@ -610,8 +631,9 @@ if __name__ == "__main__":
             print(f"vs Monster: {args.monster_hp}HP, {args.monster_dmg}+{args.monster_inc}/turn dmg")
             print(f"{'='*70}")
             for i, r in enumerate(results):
-                names = ", ".join(r["combo_names"])
-                print(f"{i+1:3d}. HP:{r['avg_remaining_hp']:5.1f}  Turns:{r['avg_turns']:4.1f}  Cards:{r['avg_cards_played']:4.1f}  MaxDmg:{r['avg_max_turn_dmg']:5.1f}  | {names}")
+                en_names = ", ".join(r["combo_names"])
+                zh_names = ", ".join(ZH_NAMES.get(c, c) for c in r["custom_cards"])
+                print(f"{i+1:3d}. HP:{r['avg_remaining_hp']:5.1f}  Turns:{r['avg_turns']:4.1f}  Cards:{r['avg_cards_played']:4.1f}  MaxDmg:{r['avg_max_turn_dmg']:5.1f}  | {en_names}  | {zh_names}")
 
     elif args.cards:
         # Test specific cards
@@ -657,5 +679,6 @@ if __name__ == "__main__":
 
         for deck in test_decks:
             r = evaluate_deck(deck, n_sims=args.sims, **sim_kwargs)
-            names = [CARDS[c]["name"] for c in deck]
-            print(f"  {', '.join(names):50s} → HP:{r['avg_remaining_hp']:5.1f}  Turns:{r['avg_turns']:.1f}  Cards:{r['avg_cards_played']:.1f}  MaxDmg:{r['avg_max_turn_dmg']:.1f}")
+            en_names = [CARDS[c]["name"] for c in deck]
+            zh_names = [ZH_NAMES.get(c, c) for c in deck]
+            print(f"  {', '.join(en_names):50s} → HP:{r['avg_remaining_hp']:5.1f}  Turns:{r['avg_turns']:.1f}  Cards:{r['avg_cards_played']:.1f}  MaxDmg:{r['avg_max_turn_dmg']:.1f}  | {', '.join(zh_names)}")
