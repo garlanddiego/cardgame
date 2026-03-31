@@ -67,6 +67,11 @@ func _build_ui() -> void:
 	battle_btn.pressed.connect(_on_battle_pressed)
 	vbox.add_child(battle_btn)
 
+	# Draft Battle button
+	var draft_btn = _create_menu_button("选牌战斗", Color(0.2, 0.7, 0.3))
+	draft_btn.pressed.connect(_on_draft_battle_pressed)
+	vbox.add_child(draft_btn)
+
 	# Card Creator button
 	var creator_btn = _create_menu_button("卡牌制作器", Color(0.85, 0.7, 0.15))
 	creator_btn.pressed.connect(_on_creator_pressed)
@@ -108,6 +113,9 @@ func _on_battle_pressed() -> void:
 	if gm:
 		gm.select_character("silent")
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+func _on_draft_battle_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/draft_battle.tscn")
 
 func _on_creator_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/card_generator.tscn")

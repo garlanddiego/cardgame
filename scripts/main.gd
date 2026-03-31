@@ -36,8 +36,12 @@ func _ready() -> void:
 		current_character = gm.current_character
 	elif gm:
 		gm.select_character(current_character)
-	# Go directly to deck builder (no character select)
-	call_deferred("_load_deck_builder")
+	# If deck is already set (from draft mode), skip deck builder
+	if gm and not gm.player_deck.is_empty():
+		call_deferred("_start_battle_from_deck", gm.player_deck.duplicate())
+	else:
+		# Go directly to deck builder (no character select)
+		call_deferred("_load_deck_builder")
 
 func _load_deck_builder() -> void:
 	var builder = deck_builder_scene.instantiate()
@@ -45,6 +49,14 @@ func _load_deck_builder() -> void:
 	add_child(builder)
 	builder.deck_confirmed.connect(_on_deck_confirmed)
 	builder.setup(current_character)
+
+func _start_battle_from_deck(deck: Array) -> void:
+	# Start battle directly with pre-set deck (from draft mode)
+	var gm = _get_gm()
+	if gm:
+		gm.player_deck = deck
+	# Show battle config popup with deck already set
+	_show_battle_config_popup()
 
 func _on_deck_confirmed(deck: Array) -> void:
 	# Show battle config popup instead of jumping straight to battle
