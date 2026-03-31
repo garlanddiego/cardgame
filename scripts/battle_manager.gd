@@ -84,6 +84,7 @@ var _burst_active: bool = false  # Next skill played twice
 var _double_tap_active: bool = false  # Next attack played twice
 var _no_draw_next_turn: bool = false  # Bullet Time
 var _bullet_time_this_turn: bool = false  # All cards cost 0 this turn
+var _setup_mode: bool = false  # Setup card: selected card goes to draw pile top instead of discard
 
 # Node refs
 var card_hand: Node2D = null
@@ -1572,6 +1573,13 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if player:
 				base_dmg = player.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
+		"setup":
+			# Put a card from hand on top of draw pile
+			# Use discard selection with custom callback
+			if not hand.is_empty():
+				_setup_mode = true
+				_show_discard_selection(1, _on_setup_complete)
+				return  # Wait for selection
 		# ---- NEW CARDS ----
 		"toxic_storm":
 			# X cost: deal 3 damage X times to all, apply 1 poison per hit
@@ -3434,9 +3442,14 @@ func _on_discard_confirm() -> void:
 	for idx in sorted_indices:
 		if idx < hand.size():
 			var card_data = hand[idx]
-			discard_pile.append(card_data)
-			_check_sly_on_discard(card_data)
+			if _setup_mode:
+				# Setup: put on top of draw pile instead of discard
+				draw_pile.append(card_data)
+			else:
+				discard_pile.append(card_data)
+				_check_sly_on_discard(card_data)
 			hand.remove_at(idx)
+	_setup_mode = false
 	# Rebuild hand display (no draw animation — cards stay in place)
 	if card_hand:
 		card_hand.clear_hand()
@@ -3485,9 +3498,15 @@ func _on_discard_cancel() -> void:
 
 func _on_discard_complete() -> void:
 	# Called after discard selection finishes
-	# Update card cost colors after discard changes hand
 	if card_hand:
 		card_hand.update_card_playability(current_energy)
+	_check_battle_end()
+
+func _on_setup_complete() -> void:
+	# Called after Setup card selection finishes — card is already on draw pile
+	if card_hand:
+		card_hand.update_card_playability(current_energy)
+	_update_pile_labels()
 	_check_battle_end()
 
 func _on_concentrate_discard_done(energy_gain_val: int) -> void:
