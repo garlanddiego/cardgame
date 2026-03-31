@@ -15,8 +15,8 @@ func _init() -> void:
 	var combo_size := 4
 	var csv_path := "sim_results.csv"
 	var monster_count := 2
-	var monster_hp := 100
-	var monster_dmg := 8
+	var monster_hp := 50
+	var monster_dmg := 6
 	var monster_inc := 4
 	var hero_hp := 200
 	var draw_per_turn := 4

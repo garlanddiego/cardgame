@@ -5,8 +5,8 @@ class_name SimBattleEngine
 var card_db: Dictionary = {}  # Reference to game_manager.card_database
 
 func simulate(deck: Array, card_database: Dictionary,
-			  hero_hp: int = 200, monster_hp: int = 100,
-			  monster_dmg: int = 8, monster_inc: int = 4,
+			  hero_hp: int = 200, monster_hp: int = 50,
+			  monster_dmg: int = 6, monster_inc: int = 4,
 			  monster_count: int = 2, draw_per_turn: int = 4) -> Dictionary:
 	card_db = card_database
 	var state := {
