@@ -213,7 +213,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_font_size_override("font_size", int(26 * sx))  # Card name +2号
-	var name_color: Color = Color(0.3, 0.9, 0.3) if card.get("upgraded", false) else Color(1.0, 1.0, 1.0)
+	var name_color: Color = Color(0.2, 0.6, 0.2) if card.get("upgraded", false) else Color(1.0, 1.0, 1.0)
 	name_lbl.add_theme_color_override("font_color", name_color)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_lbl.z_index = 6
