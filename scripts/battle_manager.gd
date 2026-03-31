@@ -2142,7 +2142,7 @@ func _swap_enemy_attack_sprite(enemy_node: Node2D) -> void:
 	var attack_tex: Texture2D = load(attack_path)
 	sprite.texture = attack_tex
 	var tw = create_tween()
-	tw.tween_interval(0.35)
+	tw.tween_interval(0.7)
 	tw.tween_callback(func():
 		if is_instance_valid(sprite) and is_instance_valid(enemy_node):
 			sprite.texture = original_tex
@@ -3120,7 +3120,7 @@ func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 	sprite.texture = attack_tex
 	# Swap back after 0.4s
 	var tw = create_tween()
-	tw.tween_interval(0.4)
+	tw.tween_interval(0.8)
 	tw.tween_callback(func():
 		if is_instance_valid(sprite) and is_instance_valid(hero_node):
 			sprite.texture = original_tex
@@ -3168,7 +3168,7 @@ func _swap_hero_skill_sprite(hero_node: Node2D, char_id: String) -> void:
 		return
 	sprite.texture = load(skill_path)
 	var tw = create_tween()
-	tw.tween_interval(0.5)
+	tw.tween_interval(1.0)
 	tw.tween_callback(func():
 		if is_instance_valid(sprite) and is_instance_valid(hero_node):
 			sprite.texture = original_tex

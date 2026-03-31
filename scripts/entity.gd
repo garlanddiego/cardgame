@@ -548,7 +548,7 @@ func _swap_to_hit_pose() -> void:
 	if _hit_tex and _idle_tex_normal:
 		sprite_node.texture = _hit_tex
 		var tw = create_tween()
-		tw.tween_interval(0.3)
+		tw.tween_interval(0.6)
 		tw.tween_callback(func():
 			if is_instance_valid(sprite_node) and _idle_tex_normal:
 				sprite_node.texture = _idle_tex_normal
