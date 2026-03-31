@@ -42,10 +42,12 @@ func _register_card_pack(pack_class) -> void:
 const CUSTOM_CARDS_PATH := "user://custom_cards.json"
 
 func _build_card_database() -> void:
-	# Mark all code-defined cards as "old" version if not set
+	# Set defaults for all cards
 	for card_id in card_database:
 		if not card_database[card_id].has("version"):
 			card_database[card_id]["version"] = "old"
+		if not card_database[card_id].has("status"):
+			card_database[card_id]["status"] = "active"
 	# Load and merge locally saved card modifications/additions
 	_load_custom_cards()
 

@@ -41,6 +41,8 @@ var selected_character: String = "ironclad"
 var selected_power_trigger: String = "turn_end"  # "turn_start", "turn_end", "permanent"
 var selected_version: String = "new"  # "new" or "old"
 var version_buttons: Array[Button] = []
+var selected_status: String = "active"  # "active", "incomplete", "deprecated"
+var status_buttons: Array[Button] = []
 
 # Colors matching the STS dark theme
 const BG_COLOR := Color(0.08, 0.06, 0.05, 1.0)
@@ -252,6 +254,22 @@ func _build_left_panel() -> PanelContainer:
 		version_buttons.append(btn)
 	vbox.add_child(version_row)
 	_highlight_button_group(version_buttons, 0)  # Default: "new"
+
+	_add_separator(vbox)
+
+	# Status Selector (可用/未完成/废弃)
+	_add_section_label(vbox, "状态")
+	var status_row = HBoxContainer.new()
+	status_row.add_theme_constant_override("separation", 8)
+	var st_names = ["可用", "未完成", "废弃"]
+	var st_ids = ["active", "incomplete", "deprecated"]
+	for i in range(st_names.size()):
+		var btn = _create_toggle_button(st_names[i], 100, 40)
+		btn.pressed.connect(_on_status_selected.bind(st_ids[i], i))
+		status_row.add_child(btn)
+		status_buttons.append(btn)
+	vbox.add_child(status_row)
+	_highlight_button_group(status_buttons, 0)  # Default: "active"
 
 	_add_separator(vbox)
 
@@ -920,6 +938,10 @@ func _on_version_selected(ver_id: String, index: int) -> void:
 	selected_version = ver_id
 	_highlight_button_group(version_buttons, index)
 
+func _on_status_selected(st_id: String, index: int) -> void:
+	selected_status = st_id
+	_highlight_button_group(status_buttons, index)
+
 # =============================================================================
 # CARD DATA BUILDING
 # =============================================================================
@@ -1098,8 +1120,9 @@ func _build_card_data() -> Dictionary:
 
 	data["actions"] = actions
 	data["description"] = "\n".join(desc_parts)
-	# Version from UI toggle (new or old)
+	# Version and status from UI toggles
 	data["version"] = selected_version
+	data["status"] = selected_status
 
 	# Append custom description text if provided
 	var custom_text: String = ""
@@ -1383,6 +1406,15 @@ func _load_card_for_edit(card_data: Dictionary) -> void:
 	if ver_idx < 0:
 		ver_idx = 1  # Default to "old"
 	_highlight_button_group(version_buttons, ver_idx)
+
+	# --- Status ---
+	var st_id: String = card_data.get("status", "active")
+	selected_status = st_id
+	var st_ids = ["active", "incomplete", "deprecated"]
+	var st_idx = st_ids.find(st_id)
+	if st_idx < 0:
+		st_idx = 0
+	_highlight_button_group(status_buttons, st_idx)
 
 	# --- Reset all effect checkboxes and values to 0 ---
 	for row in effect_rows:
