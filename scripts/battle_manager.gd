@@ -3031,14 +3031,43 @@ func _hero_lunge(hero_node: Node2D, target_node: Node2D) -> void:
 	tween.tween_property(hero_node, "position", orig_pos, 0.2).set_ease(Tween.EASE_IN)
 
 func _play_attack_effect(card_data: Dictionary, hero_node: Node2D, target_node: Node2D) -> void:
-	## Play character-specific attack visual effect
+	## Play character-specific attack visual effect with sprite swap
 	var card_char: String = card_data.get("character", "")
+	# Swap hero sprite to attack pose
+	_swap_hero_attack_sprite(hero_node, card_char)
 	if card_char == "ironclad":
 		_sword_slash_effect(hero_node, target_node)
 	elif card_char == "silent":
 		_dagger_throw_effect(hero_node, target_node)
 	else:
 		_generic_hit_effect(target_node)
+
+func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
+	"""Swap hero sprite to attack pose, then swap back after delay."""
+	if hero_node == null or not is_instance_valid(hero_node):
+		return
+	var sprite: Sprite2D = hero_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var original_tex: Texture2D = sprite.texture
+	# Load attack texture
+	var attack_path: String = ""
+	if char_id == "ironclad":
+		attack_path = "res://assets/img/anim/ironclad_attack_1.png"
+	elif char_id == "silent":
+		attack_path = "res://assets/img/anim/silent_attack_1.png"
+	if attack_path == "" or not ResourceLoader.exists(attack_path):
+		return
+	var attack_tex: Texture2D = load(attack_path)
+	# Swap to attack pose
+	sprite.texture = attack_tex
+	# Swap back after 0.4s
+	var tw = create_tween()
+	tw.tween_interval(0.4)
+	tw.tween_callback(func():
+		if is_instance_valid(sprite) and is_instance_valid(hero_node):
+			sprite.texture = original_tex
+	)
 
 func _play_skill_effect(card_data: Dictionary, hero_node: Node2D) -> void:
 	## Play character-specific skill visual effect (glow/aura)
