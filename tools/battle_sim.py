@@ -765,7 +765,7 @@ if __name__ == "__main__":
     parser.add_argument("--sims", type=int, default=1, help="Simulations per combo (default: 1)")
     parser.add_argument("--monster-hp", type=int, default=100, help="Monster HP (default: 100)")
     parser.add_argument("--monster-dmg", type=int, default=8, help="Monster base damage (default: 8)")
-    parser.add_argument("--monster-inc", type=int, default=2, help="Monster damage increase/turn (default: 2)")
+    parser.add_argument("--monster-inc", type=int, default=4, help="Monster damage increase/turn (default: 4)")
     parser.add_argument("--hero-hp", type=int, default=200, help="Hero HP (default: 200)")
     parser.add_argument("--monsters", type=int, default=2, help="Number of monsters (default: 2)")
     parser.add_argument("--char", type=str, help="Filter cards by character: ironclad, silent, neutral")
