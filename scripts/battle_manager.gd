@@ -711,6 +711,7 @@ func start_player_turn() -> void:
 
 	# Draw cards
 	draw_cards(draw_count)
+	_update_unplayable_ids()
 	_update_energy_label()
 	_update_pile_labels()
 	if turn_label:
@@ -784,6 +785,16 @@ func _reshuffle_discard() -> void:
 	_show_turn_banner("Reshuffling...", Color(0.7, 0.85, 1.0))
 	# Visual: small card icon flies from discard pile to draw pile
 	_animate_reshuffle()
+
+func _update_unplayable_ids() -> void:
+	"""Update the list of card IDs that can't be played due to special conditions."""
+	if card_hand == null:
+		return
+	var blocked: Array = []
+	for card_data in hand:
+		if not _can_play_card(card_data):
+			blocked.append(card_data.get("id", ""))
+	card_hand.unplayable_ids = blocked
 
 func _can_play_card(card_data: Dictionary) -> bool:
 	# Unplayable cards (status cards)
@@ -908,6 +919,7 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	_update_pile_labels()
 
 	# Re-update card playability (card effects may have changed energy)
+	_update_unplayable_ids()
 	if card_hand:
 		card_hand.current_battle_energy = current_energy
 		card_hand.update_card_playability(current_energy)

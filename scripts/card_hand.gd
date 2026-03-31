@@ -13,6 +13,7 @@ var hovered_card: Area2D = null
 var targeting_mode: bool = false
 var current_battle_energy: int = 3
 var corruption_active: bool = false
+var unplayable_ids: Array = []  # Card IDs that can't be played (special conditions not met)
 
 # Discard selection mode — cards are tapped to toggle discard selection
 var discard_mode: bool = false
@@ -211,6 +212,12 @@ signal card_played_tap(card_node: Area2D)
 signal card_long_press_detail(card_node: Area2D)
 
 func _can_afford_card(card_data_check: Dictionary) -> bool:
+	# Check unplayable (special conditions not met)
+	var card_id: String = card_data_check.get("id", "")
+	if card_id in unplayable_ids:
+		return false
+	if card_data_check.get("unplayable", false):
+		return false
 	var cost: int = card_data_check.get("cost", 0)
 	# X-cost cards (cost -1): playable if energy > 0
 	if cost == -1:
@@ -478,9 +485,24 @@ func update_card_playability(current_energy: int) -> void:
 			cost_lbl = card.card_visual.get_node_or_null("CostLabel") as Label
 			if cost_lbl == null:
 				cost_lbl = card.card_visual.get_node_or_null("FallbackCost") as Label
-			# Determine affordable color
-			var affordable: bool = cost <= current_energy
+			# Determine affordable + playable
+			var card_id: String = card.card_data.get("id", "")
+			var is_blocked: bool = card_id in unplayable_ids or card.card_data.get("unplayable", false)
+			var affordable: bool = (cost <= current_energy) and not is_blocked
 			var cost_color: Color = Color(0.2, 0.85, 0.3) if affordable else Color(1.0, 0.2, 0.2)
+			# Show/remove slash indicator for blocked cards
+			var slash_node = card.card_visual.get_node_or_null("BlockedSlash")
+			if is_blocked and slash_node == null:
+				var slash = Label.new()
+				slash.name = "BlockedSlash"
+				slash.text = "/"
+				slash.add_theme_font_size_override("font_size", 40)
+				slash.add_theme_color_override("font_color", Color(1.0, 0.1, 0.1, 0.9))
+				slash.position = Vector2(4, -2)
+				slash.z_index = 20
+				card.card_visual.add_child(slash)
+			elif not is_blocked and slash_node:
+				slash_node.queue_free()
 			if cost_lbl:
 				cost_lbl.add_theme_color_override("font_color", cost_color)
 			# Update the cost orb background border color to match
