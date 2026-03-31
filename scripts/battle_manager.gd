@@ -1430,6 +1430,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			var base_dmg: int = card_data.get("damage", 8) + rampage_bonus
 			if player:
 				base_dmg = player.get_attack_damage(base_dmg)
+			print("[RAMPAGE] bonus=%d, base=%d, total=%d" % [rampage_bonus, card_data.get("damage", 8), base_dmg])
 			_apply_single_hit_damage(base_dmg, target, target_type)
 			card_data["_rampage_bonus"] = rampage_bonus + card_data.get("rampage_inc", 5)
 		"sever_soul":
