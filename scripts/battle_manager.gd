@@ -81,6 +81,7 @@ var _blur_active: bool = false  # Block is not removed next turn
 var _double_damage_next_turn: bool = false  # Phantasmal Killer
 var _double_damage_this_turn: bool = false
 var _burst_active: bool = false  # Next skill played twice
+var _double_tap_active: bool = false  # Next attack played twice
 var _no_draw_next_turn: bool = false  # Bullet Time
 var _bullet_time_this_turn: bool = false  # All cards cost 0 this turn
 
@@ -250,6 +251,7 @@ func _reset_all_powers() -> void:
 	_double_damage_next_turn = false
 	_double_damage_this_turn = false
 	_burst_active = false
+	_double_tap_active = false
 	_no_draw_next_turn = false
 	_bullet_time_this_turn = false
 
@@ -681,6 +683,24 @@ func start_player_turn() -> void:
 	else:
 		_double_damage_this_turn = false
 
+	# Brutality: lose 1 HP and draw 1 at start of turn
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("brutality", 0) > 0:
+			hero.take_damage_direct(1)
+			draw_cards(1)
+
+	# Tools of the Trade: draw 1 at start of turn (discard 1 after)
+	var _tools_need_discard: bool = false
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("tools_of_the_trade", 0) > 0:
+			draw_cards(1)
+			_tools_need_discard = true
+
+	# Wraith Form: lose 1 Dexterity each turn (intangible not yet supported)
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("wraith_form", 0) > 0:
+			hero.apply_status("dexterity", -1)
+
 	# Bullet Time: no draw if flagged
 	var draw_count: int = cards_per_draw
 	if _no_draw_next_turn:
@@ -738,6 +758,12 @@ func draw_cards(count: int) -> void:
 		# Evolve: draw extra on Status draw
 		if evolve_active and card_data.get("type", 0) == 3:  # STATUS type
 			draw_cards(1)
+		# Fire Breathing: deal 6 damage to ALL on Status/Curse draw
+		if card_data.get("type", 0) == 3 and player:  # STATUS type
+			if player.active_powers.get("fire_breathing", 0) > 0:
+				for enemy in enemies:
+					if enemy.alive:
+						enemy.take_damage(6)
 	_update_pile_labels()
 	# Psi Surge: gain energy when drawing 3+ cards at once
 	if count >= 3 and player:
@@ -831,6 +857,11 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		_burst_active = false
 		_execute_card(card_data, target, cost)
 
+	# Double Tap: if active and this is an Attack, play it again
+	if _double_tap_active and card_data.get("type", 0) == 0:  # ATTACK
+		_double_tap_active = false
+		_execute_card(card_data, target, cost)
+
 	# Track battle stats
 	cards_played_this_turn += 1
 	total_cards_played += 1
@@ -844,6 +875,19 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			if hero.active_powers.get("rage", 0) > 0:
 				hero.add_block(rage_block)
 				_trigger_juggernaut()
+
+	# A Thousand Cuts: deal 1 damage to ALL enemies on card play
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("a_thousand_cuts", 0) > 0:
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.take_damage(1)
+
+	# After Image: gain 1 Block on card play
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("after_image", 0) > 0:
+			hero.add_block(1)
+			_trigger_juggernaut()
 
 	# Determine where the card goes after play
 	var card_type: int = card_data.get("type", 0)
@@ -885,6 +929,10 @@ func _exhaust_card(card_data: Dictionary) -> void:
 		if hero.active_powers.get("feel_no_pain", 0) > 0:
 			hero.add_block(feel_no_pain_block)
 			_trigger_juggernaut()
+	# Dark Embrace: draw 1 on exhaust
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("dark_embrace", 0) > 0:
+			draw_cards(1)
 
 func _trigger_juggernaut() -> void:
 	if juggernaut_active and player and player.alive:
@@ -1596,14 +1644,21 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 					aoe_tween.tween_callback(enemy.take_damage.bind(dmg))
 				else:
 					enemy.take_damage(dmg)
+				# Envenom: apply 1 poison on hit
+				if envenom_active and enemy.alive:
+					enemy.apply_status("poison", 1)
 				delay += 0.12
 	elif target_type == "random_enemy":
 		var alive = _get_alive_enemies()
 		if not alive.is_empty():
 			var rand_target = alive[randi() % alive.size()]
 			rand_target.take_damage(dmg)
+			if envenom_active and rand_target.alive:
+				rand_target.apply_status("poison", 1)
 	elif target != null and target.alive:
 		target.take_damage(dmg)
+		if envenom_active and target.alive and target.is_enemy:
+			target.apply_status("poison", 1)
 
 func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
 	# First hit immediately
@@ -1676,28 +1731,28 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 		"accuracy":
 			pass  # Handled at shiv creation time
 		"a_thousand_cuts":
-			pass  # Handled in _on_card_played
+			pass  # Triggered in play_card after stat tracking
 		"after_image":
-			pass  # Handled in _on_card_played
+			pass  # Triggered in play_card after stat tracking
 		"well_laid_plans":
 			if is_plus:
 				hero.add_power("well_laid_plans", 1)  # Extra stack for +2 total retain
 		"wraith_form":
-			pass  # Handled at start of turn
+			pass  # Triggered at start_player_turn (dex loss)
 		"tools_of_the_trade":
-			pass  # Handled at start of turn
+			pass  # Triggered at start_player_turn (draw 1)
 		"brutality":
-			pass  # Handled at start of turn
+			pass  # Triggered at start_player_turn
 		"combust":
-			pass  # Handled at end of turn
+			pass  # Triggered at end of turn
 		"dark_embrace":
-			pass  # Handled on exhaust
+			pass  # Triggered in _exhaust_card
 		"rupture":
-			pass  # Handled on HP loss from card
+			pass  # Triggered in self_damage action
 		"double_tap":
-			pass  # Handled on next attack
+			_double_tap_active = true
 		"fire_breathing":
-			pass  # Handled on draw
+			pass  # Triggered in draw_cards on status draw
 		"venomous_might":
 			pass  # Handled at start of turn
 		"psi_surge":
@@ -1757,6 +1812,10 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 		var shiv = gm.get_card_data("si_shiv")
 		if shiv.is_empty():
 			continue
+		# Accuracy: boost shiv damage
+		if player and player.active_powers.get("accuracy", 0) > 0:
+			var accuracy_stacks: int = player.active_powers["accuracy"]
+			shiv["damage"] = shiv.get("damage", 4) + accuracy_stacks * 4
 		hand.append(shiv)
 		if card_hand:
 			# Stagger shiv animation and fly from screen center
@@ -1808,6 +1867,14 @@ func end_player_turn() -> void:
 			for enemy in enemies:
 				if enemy.alive:
 					enemy.apply_status("poison", stacks)
+
+	# Combust: lose 1 HP and deal 5 damage to ALL enemies at end of turn
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("combust", 0) > 0:
+			hero.take_damage_direct(1)
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.take_damage(5)
 
 	# Process end-of-turn damage from status cards in hand (Burn)
 	var front = get_front_player()
