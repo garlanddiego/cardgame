@@ -96,6 +96,8 @@ func _setup_visuals() -> void:
 	add_child(_target_highlight)
 	_update_hp_bar()
 	_update_block_display()
+	# Start idle breathing animation
+	_start_idle_animation()
 
 func init_entity(hp: int, enemy: bool, etype: String = "") -> void:
 	max_hp = hp
@@ -520,6 +522,25 @@ func _flash_poison_damage(damage_amount: int) -> void:
 	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.4).set_delay(0.4)
 	float_tween.set_parallel(false)
 	float_tween.tween_callback(dmg_label.queue_free)
+
+var _idle_tween: Tween = null
+
+func _start_idle_animation() -> void:
+	"""Subtle breathing animation — sprite bobs up and down gently."""
+	if sprite_node == null:
+		return
+	_idle_loop()
+
+func _idle_loop() -> void:
+	if not is_inside_tree() or not alive:
+		return
+	_idle_tween = create_tween()
+	_idle_tween.set_loops()
+	var base_y: float = sprite_node.position.y
+	var breathe_amount: float = 3.0 if not is_enemy else 2.0
+	var speed: float = 2.0 + randf() * 0.5  # Slight variation
+	_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe_amount, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.tween_property(sprite_node, "position:y", base_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
 func _flash_block() -> void:
 	# Blue tint on sprite
