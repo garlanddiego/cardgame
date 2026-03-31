@@ -252,8 +252,8 @@ func reset_block() -> void:
 
 func get_attack_damage(base_damage: int) -> int:
 	var dmg: int = base_damage
-	# Add strength bonus
-	if status_effects.has("strength") and status_effects["strength"] > 0:
+	# Apply strength (can be positive or negative)
+	if status_effects.has("strength"):
 		dmg += status_effects["strength"]
 	# Apply weak penalty
 	if status_effects.has("weak") and status_effects["weak"] > 0:
