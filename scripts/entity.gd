@@ -695,7 +695,7 @@ func _update_power_display() -> void:
 		container.name = "PowerIcon_" + power_id
 		container.mouse_filter = Control.MOUSE_FILTER_PASS
 		var power_name: String = POWER_NAMES.get(power_id, power_id)
-		container.gui_input.connect(_on_status_icon_clicked.bind(container, power_name, stacks))
+		container.gui_input.connect(_on_power_icon_clicked.bind(container, power_name, power_id, stacks))
 		# Try loading power-specific icon
 		var icon_path: String = "res://assets/img/power_icons/" + power_id + ".png"
 		var tex = load(icon_path) if ResourceLoader.exists(icon_path) else null
@@ -722,22 +722,46 @@ func _update_power_display() -> void:
 		container.add_child(lbl)
 		status_container.add_child(container)
 
+func _on_power_icon_clicked(event: InputEvent, icon_container: Control, power_name: String, power_id: String, stacks: int) -> void:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	# Look up the card description from game manager
+	var desc_text: String = ""
+	var gm = Engine.get_main_loop().root.get_node_or_null("GameManager")
+	if gm and gm.card_database:
+		# Find the card with matching power_effect
+		for card_id in gm.card_database:
+			var card = gm.card_database[card_id]
+			if card.get("power_effect", "") == power_id and card.get("type", 0) == 2:
+				desc_text = card.get("description", "")
+				break
+	# Show tooltip with name + description
+	_show_icon_tooltip(icon_container, power_name, stacks, desc_text)
+
 func _on_status_icon_clicked(event: InputEvent, icon_container: Control, status_name: String, stacks: int) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
+	_show_icon_tooltip(icon_container, status_name, stacks, "")
+
+func _show_icon_tooltip(icon_container: Control, name_text: String, stacks: int, description: String) -> void:
 	# Remove existing tooltip if any
 	if _active_tooltip and is_instance_valid(_active_tooltip):
 		_active_tooltip.queue_free()
 		_active_tooltip = null
+	# Build tooltip text: name + stacks, then description below
+	var tip_text: String = "%s x%d" % [name_text, stacks]
+	if description != "":
+		tip_text += "\n" + description
 	# Create tooltip label above the icon
 	var tooltip = Label.new()
-	tooltip.text = "%s x%d" % [status_name, stacks]
+	tooltip.text = tip_text
 	tooltip.add_theme_font_size_override("font_size", 18)
 	tooltip.add_theme_color_override("font_color", Color(1.0, 1.0, 0.85))
 	tooltip.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	tooltip.add_theme_constant_override("shadow_offset_x", 1)
 	tooltip.add_theme_constant_override("shadow_offset_y", 1)
-	tooltip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tooltip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tooltip.custom_minimum_size = Vector2(220, 0)
 	# Style background
 	var bg = StyleBoxFlat.new()
 	bg.bg_color = Color(0.1, 0.1, 0.15, 0.92)
@@ -752,21 +776,22 @@ func _on_status_icon_clicked(event: InputEvent, icon_container: Control, status_
 	bg.corner_radius_bottom_right = 6
 	bg.content_margin_left = 10
 	bg.content_margin_right = 10
-	bg.content_margin_top = 4
-	bg.content_margin_bottom = 4
+	bg.content_margin_top = 6
+	bg.content_margin_bottom = 6
 	tooltip.add_theme_stylebox_override("normal", bg)
 	tooltip.z_index = 200
 	tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Position above status container
-	tooltip.position = Vector2(icon_container.position.x - 20, -45)
+	tooltip.position = Vector2(icon_container.position.x - 20, -65 if description != "" else -45)
 	if status_container:
 		status_container.add_child(tooltip)
 	else:
 		add_child(tooltip)
 	_active_tooltip = tooltip
-	# Auto-hide after 2 seconds
+	# Auto-hide after 3 seconds (longer for descriptions)
+	var duration: float = 3.0 if description != "" else 1.6
 	var tw = create_tween()
-	tw.tween_interval(1.6)
+	tw.tween_interval(duration)
 	tw.tween_property(tooltip, "modulate:a", 0.0, 0.4)
 	tw.tween_callback(func():
 		if is_instance_valid(tooltip):
