@@ -2583,6 +2583,13 @@ func _show_card_detail(card_data: Dictionary, card_list: Array = [], index: int 
 	_detail_show_upgrade = false
 	if _detail_upgrade_check:
 		_detail_upgrade_check.button_pressed = false
+		# Hide upgrade checkbox if card has no upgrade
+		var has_upgrade: bool = false
+		var gm = _get_game_manager()
+		if gm:
+			var upgraded = gm.get_upgraded_card(card_data.get("id", ""))
+			has_upgrade = not upgraded.is_empty() and gm._upgrade_overrides_cache.has(card_data.get("id", ""))
+		_detail_upgrade_check.visible = has_upgrade
 	_render_detail_card(card_data)
 	_card_detail_overlay.visible = true
 
@@ -2673,6 +2680,7 @@ func _detail_prev() -> void:
 		return
 	_detail_card_index = (_detail_card_index - 1 + _detail_card_list.size()) % _detail_card_list.size()
 	var card = _detail_card_list[_detail_card_index]
+	_update_upgrade_check_visibility(card)
 	if _detail_show_upgrade:
 		var gm = _get_game_manager()
 		if gm:
@@ -2686,6 +2694,7 @@ func _detail_next() -> void:
 		return
 	_detail_card_index = (_detail_card_index + 1) % _detail_card_list.size()
 	var card = _detail_card_list[_detail_card_index]
+	_update_upgrade_check_visibility(card)
 	if _detail_show_upgrade:
 		var gm = _get_game_manager()
 		if gm:
@@ -2693,6 +2702,18 @@ func _detail_next() -> void:
 			if not upgraded.is_empty():
 				card = upgraded
 	_render_detail_card(card)
+
+func _update_upgrade_check_visibility(card: Dictionary) -> void:
+	if _detail_upgrade_check == null:
+		return
+	var gm = _get_game_manager()
+	var has_upgrade: bool = false
+	if gm:
+		has_upgrade = gm._upgrade_overrides_cache.has(card.get("id", ""))
+	_detail_upgrade_check.visible = has_upgrade
+	if not has_upgrade:
+		_detail_show_upgrade = false
+		_detail_upgrade_check.button_pressed = false
 
 func _on_detail_upgrade_toggled(pressed: bool) -> void:
 	_detail_show_upgrade = pressed
