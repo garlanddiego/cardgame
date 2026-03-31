@@ -582,23 +582,24 @@ func _idle_loop() -> void:
 
 	_idle_tween = create_tween()
 	_idle_tween.set_loops()
-	var speed: float = 1.0 + randf() * 0.3
-	if _idle_tex_alt:
-		# Frame-based idle: swap between normal and alt textures
-		_idle_tween.tween_callback(func():
-			if is_instance_valid(sprite_node): sprite_node.texture = _idle_tex_alt
-		)
-		_idle_tween.tween_interval(speed)
-		_idle_tween.tween_callback(func():
-			if is_instance_valid(sprite_node): sprite_node.texture = _idle_tex_normal
-		)
-		_idle_tween.tween_interval(speed)
-	else:
-		# Fallback: position bob for entities without alt frame
-		var base_y: float = sprite_node.position.y
-		var breathe: float = 5.0 if not is_enemy else 3.0
-		_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-		_idle_tween.tween_property(sprite_node, "position:y", base_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	var speed: float = 1.2 + randf() * 0.3
+	# Breathing animation: scale pulse + vertical bob (larger amplitude)
+	var base_scale: Vector2 = sprite_node.scale
+	var breathe_y: float = 8.0 if not is_enemy else 5.0  # Vertical bob pixels
+	var breathe_scale: float = 0.03 if not is_enemy else 0.02  # Scale pulse
+	var base_y: float = sprite_node.position.y
+	var inhale_scale: Vector2 = base_scale * (1.0 + breathe_scale)
+	var exhale_scale: Vector2 = base_scale
+	# Inhale: scale up slightly + move up
+	_idle_tween.tween_property(sprite_node, "scale", inhale_scale, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.set_parallel(true)
+	_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.set_parallel(false)
+	# Exhale: scale back down + move back
+	_idle_tween.tween_property(sprite_node, "scale", exhale_scale, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.set_parallel(true)
+	_idle_tween.tween_property(sprite_node, "position:y", base_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.set_parallel(false)
 
 func _flash_block() -> void:
 	# Blue tint on sprite
