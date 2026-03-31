@@ -603,6 +603,7 @@ if __name__ == "__main__":
     parser.add_argument("--monsters", type=int, default=2, help="Number of monsters (default: 2)")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show turn-by-turn log")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
+    parser.add_argument("--csv", type=str, metavar="FILE", help="Output results as CSV file")
     args = parser.parse_args()
 
     sim_kwargs = {
@@ -623,7 +624,19 @@ if __name__ == "__main__":
 
         results = find_best_combos(pool, pick=args.all_combos, n_sims=args.sims, **sim_kwargs)
 
-        if args.json:
+        if args.csv:
+            import csv
+            with open(args.csv, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                writer.writerow(["排名", "卡牌ID", "卡牌中文名", "剩余HP", "回合数", "出牌数", "最大单轮伤害", "胜率"])
+                for i, r in enumerate(results):
+                    ids = ", ".join(r["custom_cards"])
+                    zh = ", ".join(ZH_NAMES.get(c, c) for c in r["custom_cards"])
+                    writer.writerow([i+1, ids, zh, r["avg_remaining_hp"], r["avg_turns"],
+                                    r["avg_cards_played"], r["avg_max_turn_dmg"],
+                                    f"{r['win_rate']*100:.1f}%"])
+            print(f"Results saved to {args.csv} ({len(results)} rows)")
+        elif args.json:
             print(json.dumps(results, indent=2))
         else:
             print(f"\n{'='*70}")
