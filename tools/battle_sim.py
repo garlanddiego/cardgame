@@ -11,14 +11,171 @@ Usage:
 
 import itertools
 import json
+import os
 import sys
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple
+from pathlib import Path
 
 # =============================================================================
 # CARD DEFINITIONS
 # =============================================================================
+
+# =============================================================================
+# LOAD CARDS FROM GODOT EXPORT (single source of truth)
+# =============================================================================
+
+def load_cards_from_export():
+    """Load card database from Godot's exported JSON. Returns (cards_dict, zh_names)."""
+    export_path = Path(__file__).parent / "cards_export.json"
+    if not export_path.exists():
+        return None, None
+
+    with open(export_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    cards = {}
+    zh_names = {}
+    raw_cards = data.get("cards", {})
+
+    for card_id, card in raw_cards.items():
+        card_type = card.get("type", 0)
+        # Skip status cards (type 3)
+        if card_type == 3:
+            continue
+        # Skip incomplete/deprecated
+        if card.get("status", "active") != "active":
+            continue
+
+        type_map = {0: "attack", 1: "skill", 2: "power"}
+        sim_card = {
+            "name": card.get("name", card_id),
+            "cost": card.get("cost", 1),
+            "type": type_map.get(card_type, "skill"),
+            "char": card.get("character", "neutral"),
+            "effects": _convert_actions(card),
+        }
+        if card.get("exhaust", False):
+            sim_card["exhaust"] = True
+        if card.get("ethereal", False):
+            sim_card["ethereal"] = True
+
+        cards[card_id] = sim_card
+        zh_names[card_id] = card.get("name", card_id)
+
+    return cards, zh_names
+
+
+def _convert_actions(card):
+    """Convert Godot card actions to simulator effects."""
+    effects = []
+    actions = card.get("actions", [])
+    damage = card.get("damage", 0)
+    block = card.get("block", 0)
+    draw = card.get("draw", 0)
+    times = card.get("times", 1)
+
+    for action in actions:
+        atype = action.get("type", "")
+
+        if atype == "damage" or atype == "damage_all":
+            eff = {"type": "damage", "value": damage}
+            if times > 1:
+                eff["times"] = times
+            str_mult = card.get("str_mult", 0)
+            if str_mult > 1:
+                eff["str_mult"] = str_mult
+            effects.append(eff)
+
+        elif atype == "block":
+            if block > 0:
+                effects.append({"type": "block", "value": block})
+
+        elif atype == "draw":
+            if draw > 0:
+                effects.append({"type": "draw", "value": draw})
+
+        elif atype == "apply_status":
+            source = action.get("source", "apply_status")
+            status_data = card.get(source, {})
+            if isinstance(status_data, dict):
+                st = status_data.get("type", "")
+                stacks = status_data.get("stacks", 1)
+                if st == "vulnerable":
+                    effects.append({"type": "apply_vulnerable", "value": stacks})
+                elif st == "weak":
+                    effects.append({"type": "apply_weak", "value": stacks})
+                elif st == "poison":
+                    effects.append({"type": "apply_poison", "value": stacks})
+
+        elif atype == "apply_self_status":
+            status = action.get("status", "")
+            stacks = action.get("stacks", 1)
+            if status == "strength":
+                effects.append({"type": "gain_strength", "value": stacks})
+            elif status == "dexterity":
+                pass  # Dexterity not fully simulated
+
+        elif atype == "self_damage":
+            effects.append({"type": "self_damage", "value": action.get("value", 0)})
+
+        elif atype == "gain_energy":
+            effects.append({"type": "gain_energy", "value": action.get("value", 1)})
+
+        elif atype == "add_shiv":
+            pass  # Shivs not simulated yet
+
+        elif atype == "power_effect":
+            power = action.get("power", "")
+            eff = {"type": "power", "power": power}
+            if power == "noxious_fumes":
+                eff["value"] = 2
+            elif power == "accuracy":
+                eff["value"] = 4
+            effects.append(eff)
+
+        elif atype == "call":
+            fn = action.get("fn", "")
+            # Map known call functions to effects
+            if fn == "whirlwind":
+                effects.append({"type": "x_damage_poison", "value": damage})
+            elif fn == "toxic_storm":
+                effects.append({"type": "x_damage_poison", "value": damage})
+            elif fn == "poison_shield":
+                effects.append({"type": "poison_to_block"})
+            elif fn == "gamblers_blade":
+                effects.append({"type": "hand_size_damage", "mult": 3})
+            elif fn == "all_in":
+                effects.append({"type": "all_in_draw"})
+            elif fn == "limit_break":
+                effects.append({"type": "double_strength"})
+            elif fn == "catalyst":
+                effects.append({"type": "double_poison"})
+            elif fn == "body_slam":
+                effects.append({"type": "damage", "value": 0})  # Block-based (simplified)
+            else:
+                # Fallback: treat as damage if card has damage
+                if damage > 0:
+                    eff = {"type": "damage", "value": damage}
+                    if times > 1:
+                        eff["times"] = times
+                    effects.append(eff)
+
+    # If no effects parsed but card has basic values, add them
+    if not effects:
+        if damage > 0:
+            eff = {"type": "damage", "value": damage}
+            if times > 1:
+                eff["times"] = times
+            effects.append(eff)
+        if block > 0:
+            effects.append({"type": "block", "value": block})
+        if draw > 0:
+            effects.append({"type": "draw", "value": draw})
+
+    return effects
+
 
 # Chinese name lookup for output
 ZH_NAMES = {
@@ -543,7 +700,10 @@ def simulate_battle(deck, hero_hp=200, monster_hp=100,
 def evaluate_deck(custom_cards: List[str], n_sims=100, **kwargs) -> Dict:
     """Run multiple simulations and return average results."""
     # Build full deck: custom cards + 3 strikes + 3 defends
-    deck = list(custom_cards) + ["strike", "strike", "strike", "defend", "defend", "defend"]
+    # Determine correct strike/defend IDs based on what's available
+    strike_id = "ic_strike" if "ic_strike" in CARDS else "strike"
+    defend_id = "ic_defend" if "ic_defend" in CARDS else "defend"
+    deck = list(custom_cards) + [strike_id]*3 + [defend_id]*3
 
     results = []
     for _ in range(n_sims):
@@ -588,6 +748,13 @@ def find_best_combos(pool: List[str], pick: int = 4, n_sims=50, top_n=20, **kwar
 # =============================================================================
 # MAIN
 # =============================================================================
+
+# Try to load cards from Godot export, fall back to hardcoded
+_exported_cards, _exported_zh = load_cards_from_export()
+if _exported_cards:
+    CARDS = _exported_cards
+    ZH_NAMES = _exported_zh
+    print(f"[Loaded {len(CARDS)} cards from cards_export.json]", file=sys.stderr)
 
 if __name__ == "__main__":
     import argparse

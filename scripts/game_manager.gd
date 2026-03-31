@@ -32,6 +32,8 @@ func _ready() -> void:
 	_register_card_pack(_NewCards)
 	# Build unified database from all packs
 	_build_card_database()
+	# Export cards JSON for external tools (simulator)
+	export_all_cards_json()
 
 func _register_card_pack(pack_class) -> void:
 	var cards: Dictionary = pack_class.get_cards()
@@ -68,6 +70,28 @@ func _load_custom_cards() -> void:
 	if custom_data is Dictionary:
 		for card_id in custom_data:
 			card_database[card_id] = custom_data[card_id]
+
+const CARDS_EXPORT_PATH := "res://tools/cards_export.json"
+
+func export_all_cards_json() -> void:
+	## Export the full card database to JSON for use by external tools (simulator, etc.)
+	var export_data: Dictionary = {}
+	for card_id in card_database:
+		var card = card_database[card_id].duplicate()
+		# Convert enums to ints for JSON compatibility
+		if card.has("type") and card["type"] is int:
+			pass  # Already int
+		export_data[card_id] = card
+	# Also export upgrade overrides
+	var full_export: Dictionary = {
+		"cards": export_data,
+		"upgrades": _upgrade_overrides_cache,
+	}
+	var file = FileAccess.open(CARDS_EXPORT_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(full_export, "\t"))
+		file.close()
+		print("Exported %d cards to %s" % [export_data.size(), CARDS_EXPORT_PATH])
 
 func save_custom_cards() -> void:
 	## Save all non-code cards (custom/modified) to local JSON file.
