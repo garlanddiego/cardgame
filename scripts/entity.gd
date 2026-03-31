@@ -298,23 +298,19 @@ func _update_block_display() -> void:
 	block_label.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
 	if _shield_icon:
 		_shield_icon.visible = true
+	# Always use bright shield icon (not dim)
+	if _shield_icon and _shield_tex:
+		_shield_icon.texture = _shield_tex
+		_shield_icon.modulate = Color.WHITE
 	if block > 0:
 		block_label.add_theme_color_override("font_color", Color.WHITE)
 		block_label.add_theme_font_size_override("font_size", 20)
-		if _shield_icon and _shield_tex:
-			_shield_icon.texture = _shield_tex
-			_shield_icon.modulate = Color.WHITE
 		if _previous_block <= 0:
 			_flash_block()
 		_previous_block = block
 	else:
-		block_label.add_theme_color_override("font_color", Color(0.5, 0.55, 0.6, 0.7))
+		block_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75, 0.9))
 		block_label.add_theme_font_size_override("font_size", 18)
-		if _shield_icon:
-			if _shield_dim_tex:
-				_shield_icon.texture = _shield_dim_tex
-			else:
-				_shield_icon.modulate = Color(0.5, 0.5, 0.5, 0.4)
 		if _previous_block > 0:
 			_flash_block_break()
 		_previous_block = 0
