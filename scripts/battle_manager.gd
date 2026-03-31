@@ -1915,14 +1915,20 @@ func end_player_turn() -> void:
 		if card_data.get("end_turn_damage", 0) > 0 and front:
 			front.take_damage_direct(card_data["end_turn_damage"])
 
-	# Exhaust ethereal cards (Dazed)
+	# Exhaust ethereal cards (Dazed, Ghostly Armor, Carnage, etc.)
 	var ethereal_cards: Array = []
 	for card_data in hand:
 		if card_data.get("ethereal", false):
 			ethereal_cards.append(card_data)
-	for card_data in ethereal_cards:
-		hand.erase(card_data)
-		_exhaust_card(card_data)
+	if not ethereal_cards.is_empty():
+		for card_data in ethereal_cards:
+			hand.erase(card_data)
+			_exhaust_card(card_data)
+		# Rebuild card_hand visual to reflect removed cards
+		if card_hand:
+			card_hand.clear_hand()
+			for c in hand:
+				card_hand.add_card(c, false)
 
 	# Check for Retain (Well-Laid Plans): let player keep cards in hand
 	var retain_count: int = 0
