@@ -1842,6 +1842,13 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 				)
 			else:
 				card_hand.add_card(shiv, false, Vector2(960, 400))
+	# Reset card interaction state after adding cards mid-turn
+	if card_hand:
+		card_hand.selected_card = null
+		card_hand.focused_card = null
+		card_hand.targeting_mode = false
+		card_hand._any_card_dragging = false
+		card_hand.update_card_playability(current_energy)
 	_update_pile_labels()
 
 func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, use_strength: bool = true) -> void:
