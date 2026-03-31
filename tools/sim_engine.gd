@@ -123,11 +123,11 @@ func _all_dead(state: Dictionary) -> bool:
 			return false
 	return true
 
-func _first_alive(state: Dictionary):
+func _first_alive(state: Dictionary) -> Dictionary:
 	for m in state["monsters"]:
 		if m["hp"] > 0:
 			return m
-	return null
+	return {}
 
 func _result(state: Dictionary, won: bool) -> Dictionary:
 	return {
@@ -209,7 +209,7 @@ func _score_card(state: Dictionary, card_id: String, cost: int) -> float:
 		var per_hit: int = damage + str_bonus * str_mult
 		var times: int = card.get("times", 1)
 		var target = _first_alive(state)
-		if target and target["vulnerable"] > 0:
+		if not target.is_empty() and target["vulnerable"] > 0:
 			per_hit = int(per_hit * 1.5)
 		score += per_hit * times * 1.0
 
@@ -295,7 +295,7 @@ func _play_card(state: Dictionary, card_id: String) -> void:
 							_apply_monster_status(m, st, stacks)
 					else:
 						var target = _first_alive(state)
-						if target:
+						if not target.is_empty():
 							_apply_monster_status(target, st, stacks)
 			"apply_self_status":
 				var status: String = action.get("status", "")
@@ -376,7 +376,7 @@ func _deal_damage(state: Dictionary, card: Dictionary, target_type: String) -> v
 	else:
 		for _t in range(times_val):
 			var target = _first_alive(state)
-			if target == null:
+			if target.is_empty():
 				break
 			var dmg: int = per_hit
 			if target["vulnerable"] > 0:
@@ -442,7 +442,7 @@ func _call_fn(state: Dictionary, card: Dictionary, fn: String, target_type: Stri
 			var x: int = state["energy"]
 			state["energy"] = 0
 			var target = _first_alive(state)
-			if target:
+			if not target.is_empty():
 				for _hit in range(x):
 					var dmg: int = base + state["hero_strength"]
 					if target["vulnerable"] > 0:
@@ -453,7 +453,7 @@ func _call_fn(state: Dictionary, card: Dictionary, fn: String, target_type: Stri
 			var base: int = card.get("damage", 14)
 			var mult: int = card.get("str_mult", 3)
 			var target = _first_alive(state)
-			if target:
+			if not target.is_empty():
 				var dmg: int = base + state["hero_strength"] * mult
 				if target["vulnerable"] > 0:
 					dmg = int(dmg * 1.5)
@@ -461,7 +461,7 @@ func _call_fn(state: Dictionary, card: Dictionary, fn: String, target_type: Stri
 				state["current_turn_dmg"] += dmg
 		"body_slam":
 			var target = _first_alive(state)
-			if target:
+			if not target.is_empty():
 				var dmg: int = state["hero_block"]
 				if target["vulnerable"] > 0:
 					dmg = int(dmg * 1.5)
@@ -471,7 +471,7 @@ func _call_fn(state: Dictionary, card: Dictionary, fn: String, target_type: Stri
 			state["hero_strength"] *= 2
 		"catalyst":
 			var target = _first_alive(state)
-			if target:
+			if not target.is_empty():
 				target["poison"] *= 2
 		"poison_shield":
 			var total_p := 0
@@ -480,7 +480,7 @@ func _call_fn(state: Dictionary, card: Dictionary, fn: String, target_type: Stri
 			state["hero_block"] += total_p
 		"gamblers_blade":
 			var target = _first_alive(state)
-			if target:
+			if not target.is_empty():
 				var dmg: int = state["hand"].size() * 3 + state["hero_strength"]
 				if target["vulnerable"] > 0:
 					dmg = int(dmg * 1.5)
