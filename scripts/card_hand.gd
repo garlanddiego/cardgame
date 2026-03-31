@@ -267,15 +267,15 @@ func _on_card_clicked(card_node: Area2D) -> void:
 		update_layout()
 		return
 
-	# Energy check
-	if not _can_afford_card(card_data_val):
-		update_layout()
-		return
-
 	# SELECT this card on single click
 	selected_card = card_node
 	card_node.set_selected(true)
-	targeting_mode = true
+
+	# Only enable targeting if card is playable
+	if _can_afford_card(card_data_val):
+		targeting_mode = true
+	else:
+		targeting_mode = false  # Card lifted for viewing but no targeting arrow
 	focused_card = null
 	hovered_card = null
 	update_layout()
