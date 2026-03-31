@@ -464,16 +464,20 @@ func _draw() -> void:
 func _flash_damage(damage_amount: int = 0) -> void:
 	if sprite_node == null:
 		return
-	# Red flash + shake
+	# White flash → red flash → shake → recover
 	var orig_pos: Vector2 = sprite_node.position
 	var tween = create_tween()
-	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.3, 0.3), 0.08)
-	tween.tween_property(sprite_node, "position", orig_pos + Vector2(8, 0), 0.03)
-	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-8, 0), 0.03)
-	tween.tween_property(sprite_node, "position", orig_pos + Vector2(5, 0), 0.03)
-	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-3, 0), 0.03)
+	# Bright white flash on impact
+	tween.tween_property(sprite_node, "modulate", Color(3.0, 3.0, 3.0), 0.04)
+	tween.tween_property(sprite_node, "modulate", Color(1.0, 0.2, 0.2), 0.06)
+	# Shake with larger amplitude
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(12, -3), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-12, 3), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(8, -2), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-6, 1), 0.03)
+	tween.tween_property(sprite_node, "position", orig_pos + Vector2(3, 0), 0.03)
 	tween.tween_property(sprite_node, "position", orig_pos, 0.03)
-	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.25)
 	# Floating damage number with scale punch
 	if damage_amount <= 0:
 		return
@@ -537,10 +541,13 @@ func _idle_loop() -> void:
 	_idle_tween = create_tween()
 	_idle_tween.set_loops()
 	var base_y: float = sprite_node.position.y
-	var breathe_amount: float = 3.0 if not is_enemy else 2.0
-	var speed: float = 2.0 + randf() * 0.5  # Slight variation
+	var breathe_amount: float = 6.0 if not is_enemy else 4.0
+	var speed: float = 1.2 + randf() * 0.3  # Faster breathing cycle
+	# Bob up and down + subtle scale pulse
 	_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe_amount, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.parallel().tween_property(sprite_node, "scale", Vector2(1.01, 0.99), speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 	_idle_tween.tween_property(sprite_node, "position:y", base_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.parallel().tween_property(sprite_node, "scale", Vector2(1.0, 1.0), speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
 func _flash_block() -> void:
 	# Blue tint on sprite
