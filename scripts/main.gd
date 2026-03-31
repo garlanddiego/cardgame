@@ -36,12 +36,11 @@ func _ready() -> void:
 		current_character = gm.current_character
 	elif gm:
 		gm.select_character(current_character)
-	# If deck is already set (from draft mode), skip deck builder
-	if gm and not gm.player_deck.is_empty():
-		call_deferred("_start_battle_from_deck", gm.player_deck.duplicate())
-	else:
-		# Go directly to deck builder (no character select)
-		call_deferred("_load_deck_builder")
+	# Clear previous deck — returning to main always starts fresh
+	if gm:
+		gm.player_deck.clear()
+	# Go directly to deck builder (no character select)
+	call_deferred("_load_deck_builder")
 
 func _load_deck_builder() -> void:
 	var builder = deck_builder_scene.instantiate()
