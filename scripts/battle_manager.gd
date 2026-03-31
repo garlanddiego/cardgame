@@ -3108,10 +3108,12 @@ func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 	)
 
 func _play_skill_effect(card_data: Dictionary, hero_node: Node2D) -> void:
-	## Play character-specific skill visual effect (glow/aura)
+	## Play character-specific skill visual effect (glow/aura) + sprite swap
 	if hero_node == null or not is_instance_valid(hero_node):
 		return
 	var card_char: String = card_data.get("character", "")
+	# Swap hero sprite to skill/casting pose
+	_swap_hero_skill_sprite(hero_node, card_char)
 	var glow_color: Color = Color(0.8, 0.3, 0.2, 0.6)  # Red for ironclad
 	if card_char == "silent":
 		glow_color = Color(0.2, 0.8, 0.3, 0.6)  # Green for silent
@@ -3129,6 +3131,29 @@ func _play_skill_effect(card_data: Dictionary, hero_node: Node2D) -> void:
 	tw.tween_property(ring, "modulate:a", 0.0, 0.4)
 	tw.set_parallel(false)
 	tw.tween_callback(ring.queue_free)
+
+func _swap_hero_skill_sprite(hero_node: Node2D, char_id: String) -> void:
+	"""Swap hero sprite to skill/casting pose temporarily."""
+	if hero_node == null or not is_instance_valid(hero_node):
+		return
+	var sprite: Sprite2D = hero_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var original_tex: Texture2D = sprite.texture
+	var skill_path: String = ""
+	if char_id == "ironclad":
+		skill_path = "res://assets/img/anim/ironclad_skill.png"
+	elif char_id == "silent":
+		skill_path = "res://assets/img/anim/silent_skill.png"
+	if skill_path == "" or not ResourceLoader.exists(skill_path):
+		return
+	sprite.texture = load(skill_path)
+	var tw = create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		if is_instance_valid(sprite) and is_instance_valid(hero_node):
+			sprite.texture = original_tex
+	)
 
 func _sword_slash_effect(hero_node: Node2D, target_node: Node2D) -> void:
 	## Ironclad: slash arc at target position
