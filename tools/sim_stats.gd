@@ -1,0 +1,144 @@
+extends SceneTree
+## tools/sim_stats.gd — Card statistics from simulation results
+## Reads simulation CSV, aggregates per-card stats using game card database for names.
+## Run: godot --headless --path . --script tools/sim_stats.gd -- --input sim_results.csv --csv card_stats.csv
+
+func _init() -> void:
+	await process_frame
+
+	var args := OS.get_cmdline_user_args()
+	var input_csv := "sim_silent_4combo.csv"
+	var output_csv := ""
+
+	var i := 0
+	while i < args.size():
+		match args[i]:
+			"--input": i += 1; input_csv = args[i] if i < args.size() else input_csv
+			"--csv": i += 1; output_csv = args[i] if i < args.size() else ""
+		i += 1
+
+	# Access GameManager for card names
+	var gm = root.get_node_or_null("/root/GameManager")
+	if gm == null:
+		print("ERROR: GameManager not found")
+		quit()
+		return
+
+	print("=== Card Statistics ===")
+	print("Reading: %s" % input_csv)
+
+	# Read CSV
+	var file := FileAccess.open(input_csv, FileAccess.READ)
+	if file == null:
+		print("ERROR: Cannot open %s" % input_csv)
+		quit()
+		return
+
+	# Skip header
+	var header := file.get_csv_line()
+
+	# Per-card aggregation
+	var card_data: Dictionary = {}  # card_id -> {appearances, total_hp, ...}
+	var total_rows := 0
+
+	while not file.eof_reached():
+		var line := file.get_csv_line()
+		if line.size() < 7:
+			continue
+		total_rows += 1
+
+		var ids_str: String = line[1]  # 卡牌ID column
+		var hp: int = int(line[3])     # 剩余HP
+		var turns: int = int(line[4])  # 回合数
+		var cards_played: int = int(line[5])  # 出牌数
+		var max_dmg: int = int(line[6])  # 最大单轮伤害
+		var won: bool = line[7].strip_edges() == "胜" if line.size() > 7 else false
+
+		var card_ids := ids_str.split(";")
+		for card_id_raw in card_ids:
+			var card_id := card_id_raw.strip_edges()
+			if card_id.is_empty():
+				continue
+			if not card_data.has(card_id):
+				card_data[card_id] = {
+					"appearances": 0, "total_hp": 0, "total_turns": 0,
+					"total_cards": 0, "total_max_dmg": 0, "wins": 0,
+					"rows": [] as Array,
+				}
+			var s: Dictionary = card_data[card_id]
+			s["appearances"] += 1
+			s["total_hp"] += hp
+			s["total_turns"] += turns
+			s["total_cards"] += cards_played
+			s["total_max_dmg"] += max_dmg
+			if won:
+				s["wins"] += 1
+			if s["rows"].size() < 100:
+				s["rows"].append(total_rows)
+
+	file.close()
+	print("Processed %d rows" % total_rows)
+
+	# Build results with card names from game database
+	var results: Array = []
+	for card_id in card_data:
+		var s: Dictionary = card_data[card_id]
+		var n: int = s["appearances"]
+		if n == 0:
+			continue
+		# Get card name from game database
+		var card_name: String = card_id
+		if gm.card_database.has(card_id):
+			card_name = gm.card_database[card_id].get("name", card_id)
+		results.append({
+			"card_id": card_id,
+			"name": card_name,
+			"appearances": n,
+			"avg_hp": snapped(float(s["total_hp"]) / n, 0.1),
+			"avg_turns": snapped(float(s["total_turns"]) / n, 0.1),
+			"avg_cards": snapped(float(s["total_cards"]) / n, 0.1),
+			"avg_max_dmg": snapped(float(s["total_max_dmg"]) / n, 0.1),
+			"win_rate": snapped(float(s["wins"]) / n * 100, 0.1),
+			"rows": s["rows"],
+		})
+
+	# Sort by avg HP descending
+	results.sort_custom(func(a, b): return a["avg_hp"] > b["avg_hp"])
+
+	# Print table
+	print("\n%s" % ("=" .repeat(95)))
+	print("Card Statistics from %d simulations" % total_rows)
+	print("%s" % ("=" .repeat(95)))
+	print("%4s %-25s %-18s %6s %7s %8s %8s %8s %6s" % ["排名", "卡牌ID", "名称", "出现", "平均HP", "平均回合", "平均出牌", "平均伤害", "胜率"])
+	print("%s" % ("-" .repeat(95)))
+
+	for ri in range(results.size()):
+		var r: Dictionary = results[ri]
+		print("%4d %-25s %-18s %6d %7.1f %8.1f %8.1f %8.1f %5.1f%%" % [
+			ri + 1, r["card_id"], r["name"], r["appearances"],
+			r["avg_hp"], r["avg_turns"], r["avg_cards"], r["avg_max_dmg"], r["win_rate"]
+		])
+
+	# Output CSV if requested
+	if output_csv != "":
+		var out := FileAccess.open(output_csv, FileAccess.WRITE)
+		if out:
+			out.store_line("排名,卡牌ID,卡牌名称,出现次数,平均剩余HP,平均回合数,平均出牌数,平均最大伤害,胜率%,出现行号")
+			for ri in range(results.size()):
+				var r: Dictionary = results[ri]
+				var row_str := ""
+				var rows: Array = r["rows"]
+				for rr in range(mini(100, rows.size())):
+					if rr > 0: row_str += "; "
+					row_str += str(rows[rr])
+				if rows.size() > 100:
+					row_str += "... (%d total)" % rows.size()
+				out.store_line("%d,\"%s\",\"%s\",%d,%.1f,%.1f,%.1f,%.1f,%.1f%%,\"%s\"" % [
+					ri + 1, r["card_id"], r["name"], r["appearances"],
+					r["avg_hp"], r["avg_turns"], r["avg_cards"], r["avg_max_dmg"],
+					r["win_rate"], row_str
+				])
+			out.close()
+			print("\nSaved to %s" % output_csv)
+
+	quit()
