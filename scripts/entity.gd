@@ -530,9 +530,11 @@ func _flash_poison_damage(damage_amount: int) -> void:
 var _idle_tween: Tween = null
 
 func _start_idle_animation() -> void:
-	"""Subtle breathing animation — sprite bobs up and down gently."""
+	"""Breathing animation — sprite bobs up and down + scale pulse."""
 	if sprite_node == null:
+		print("[IDLE] sprite_node is null for %s" % name)
 		return
+	print("[IDLE] Starting idle animation for %s (enemy=%s)" % [name, is_enemy])
 	_idle_loop()
 
 func _idle_loop() -> void:
