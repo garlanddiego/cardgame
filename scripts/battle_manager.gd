@@ -2582,10 +2582,14 @@ func _show_card_detail(card_data: Dictionary, card_list: Array = [], index: int 
 	_card_detail_overlay.visible = true
 
 func _render_detail_card(card_data: Dictionary) -> void:
+	if _detail_card_container == null:
+		return
 	# Clear previous card visual
 	for child in _detail_card_container.get_children():
 		_detail_card_container.remove_child(child)
 		child.queue_free()
+	if card_data.is_empty():
+		return
 	# Render large card visual
 	var loc = _get_loc()
 	var card_size = Vector2(460, 770)
@@ -3235,7 +3239,8 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 
 func _on_pile_card_clicked(event: InputEvent, pile: Array, index: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_show_card_detail(pile[index], pile, index)
+		if index >= 0 and index < pile.size():
+			_show_card_detail(pile[index], pile, index)
 
 # ---- Discard Selection (In-Hand Mode) ----
 
