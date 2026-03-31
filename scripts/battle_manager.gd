@@ -2559,13 +2559,14 @@ func _setup_card_detail_overlay() -> void:
 	right_btn.pressed.connect(_detail_next)
 	_card_detail_overlay.add_child(right_btn)
 
-	# View Upgrade checkbox
+	# View Upgrade checkbox (below card, centered)
 	_detail_upgrade_check = CheckBox.new()
 	_detail_upgrade_check.name = "UpgradeCheck"
-	_detail_upgrade_check.text = "查看升级"
-	_detail_upgrade_check.position = Vector2(710, 880)
-	_detail_upgrade_check.add_theme_font_size_override("font_size", 22)
-	_detail_upgrade_check.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+	_detail_upgrade_check.text = "查看升级版"
+	_detail_upgrade_check.position = Vector2(660, 860)
+	_detail_upgrade_check.custom_minimum_size = Vector2(200, 40)
+	_detail_upgrade_check.add_theme_font_size_override("font_size", 24)
+	_detail_upgrade_check.add_theme_color_override("font_color", Color(0.2, 0.7, 0.2))
 	_detail_upgrade_check.toggled.connect(_on_detail_upgrade_toggled)
 	_card_detail_overlay.add_child(_detail_upgrade_check)
 
