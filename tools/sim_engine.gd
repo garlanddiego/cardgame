@@ -361,8 +361,7 @@ func _score_card(state: Dictionary, card_id: String, cost: int) -> float:
 			if action.get("status", "") == "strength":
 				score += action.get("stacks", 1) * 8.0
 
-	# Status effects on enemy
-	var apply_status: Dictionary = card.get("apply_status", {})
+	# Status effects on enemy (reuse apply_status from above)
 	if not apply_status.is_empty():
 		var st: String = apply_status.get("type", "")
 		var stacks: int = apply_status.get("stacks", 1)
