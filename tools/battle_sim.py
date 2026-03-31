@@ -625,17 +625,20 @@ if __name__ == "__main__":
         results = find_best_combos(pool, pick=args.all_combos, n_sims=args.sims, **sim_kwargs)
 
         if args.csv:
-            import csv
-            with open(args.csv, 'w', newline='', encoding='utf-8-sig') as f:
+            import csv, os
+            file_exists = os.path.exists(args.csv) and os.path.getsize(args.csv) > 0
+            with open(args.csv, 'a', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f)
-                writer.writerow(["排名", "卡牌ID", "卡牌中文名", "剩余HP", "回合数", "出牌数", "最大单轮伤害", "胜率"])
+                if not file_exists:
+                    writer.writerow(["排名", "卡牌ID", "卡牌中文名", "剩余HP", "回合数", "出牌数", "最大单轮伤害", "胜率"])
                 for i, r in enumerate(results):
                     ids = ", ".join(r["custom_cards"])
                     zh = ", ".join(ZH_NAMES.get(c, c) for c in r["custom_cards"])
                     writer.writerow([i+1, ids, zh, r["avg_remaining_hp"], r["avg_turns"],
                                     r["avg_cards_played"], r["avg_max_turn_dmg"],
                                     f"{r['win_rate']*100:.1f}%"])
-            print(f"Results saved to {args.csv} ({len(results)} rows)")
+            mode = "appended to" if file_exists else "saved to"
+            print(f"Results {mode} {args.csv} ({len(results)} rows)")
         elif args.json:
             print(json.dumps(results, indent=2))
         else:
