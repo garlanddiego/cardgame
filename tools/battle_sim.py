@@ -762,14 +762,17 @@ if __name__ == "__main__":
     parser.add_argument("--cards", type=str, help="Comma-separated card IDs to test")
     parser.add_argument("--all-combos", type=int, metavar="N", help="Test all N-card combos from pool")
     parser.add_argument("--pool", type=str, help="Comma-separated card pool for --all-combos")
-    parser.add_argument("--sims", type=int, default=100, help="Simulations per combo (default: 100)")
+    parser.add_argument("--sims", type=int, default=1, help="Simulations per combo (default: 1)")
     parser.add_argument("--monster-hp", type=int, default=100, help="Monster HP (default: 100)")
     parser.add_argument("--monster-dmg", type=int, default=8, help="Monster base damage (default: 8)")
     parser.add_argument("--monster-inc", type=int, default=2, help="Monster damage increase/turn (default: 2)")
     parser.add_argument("--hero-hp", type=int, default=200, help="Hero HP (default: 200)")
     parser.add_argument("--monsters", type=int, default=2, help="Number of monsters (default: 2)")
     parser.add_argument("--char", type=str, help="Filter cards by character: ironclad, silent, neutral")
-    parser.add_argument("--upgraded", action="store_true", help="Use upgraded card versions")
+    parser.add_argument("--upgraded", action="store_true", default=True, help="Use upgraded card versions (default: True)")
+    parser.add_argument("--no-upgraded", dest="upgraded", action="store_false", help="Use base card versions")
+    parser.add_argument("--version", type=str, choices=["all", "new", "old"], default="all",
+                        help="Filter by card version: all, new, old")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show turn-by-turn log")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     parser.add_argument("--csv", type=str, metavar="FILE", help="Output results as CSV file")
@@ -792,13 +795,29 @@ if __name__ == "__main__":
             basic_ids = {"strike", "defend", "ic_strike", "ic_defend", "si_strike", "si_defend",
                          "status_wound", "status_burn", "status_dazed"}
             pool = []
+            # Load version info from export if available
+            version_info = {}
+            export_path = Path(__file__).parent / "cards_export.json"
+            if export_path.exists():
+                with open(export_path, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                for cid, cd in raw.get("cards", {}).items():
+                    version_info[cid] = cd.get("version", "old")
+
             for k, v in CARDS.items():
                 if k in basic_ids:
                     continue
                 if args.char and v.get("char", "") != args.char:
                     continue
+                if args.version != "all":
+                    ver = version_info.get(k, "old")
+                    if ver != args.version:
+                        continue
                 pool.append(k)
-            print(f"Card pool: {len(pool)} cards" + (f" (char={args.char})" if args.char else ""))
+            filters = []
+            if args.char: filters.append(f"char={args.char}")
+            if args.version != "all": filters.append(f"version={args.version}")
+            print(f"Card pool: {len(pool)} cards" + (f" ({', '.join(filters)})" if filters else ""))
 
         results = find_best_combos(pool, pick=args.all_combos, n_sims=args.sims, **sim_kwargs)
 
