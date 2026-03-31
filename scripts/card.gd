@@ -212,7 +212,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	name_lbl.size = Vector2(size.x - banner_margin * 2.0 - 24.0 * sx, banner_h)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", int(26 * sx))  # Card name +2号
+	name_lbl.add_theme_font_size_override("font_size", int(28 * sx))  # Card name
 	var name_color: Color = Color(0.2, 0.6, 0.2) if card.get("upgraded", false) else Color(1.0, 1.0, 1.0)
 	name_lbl.add_theme_color_override("font_color", name_color)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -294,7 +294,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	type_lbl.size = Vector2(type_badge_w, type_badge_h)
 	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	type_lbl.add_theme_font_size_override("font_size", int(11 * sx))
+	type_lbl.add_theme_font_size_override("font_size", int(12 * sx))
 	type_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	type_lbl.z_index = 8
@@ -334,7 +334,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.add_theme_font_size_override("font_size", int(20 * sx))  # Description text
+		desc_lbl.add_theme_font_size_override("font_size", int(22 * sx))  # Description text
 		desc_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 		desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		desc_lbl.z_index = 5
