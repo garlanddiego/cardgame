@@ -398,14 +398,9 @@ func card_desc(card_data: Dictionary) -> String:
 	var card_id: String = card_data.get("id", "")
 	var base_id: String = card_id.trim_suffix("+") if card_id.ends_with("+") else card_id
 	if current_lang == "zh" and _card_descs_zh.has(base_id):
-		# For upgraded cards we still use the English description since
-		# upgrade overrides change numbers; the base zh description is a
-		# reasonable fallback. A full solution would store upgraded zh descs too.
 		if card_data.get("upgraded", false):
-			# Return the base description – upgraded stats are shown in the
-			# English description field from game_manager upgrade overrides.
-			# We keep zh base desc as best-effort.
-			return _card_descs_zh[base_id]
+			# Upgraded cards: use English description which has correct upgraded values
+			return card_data.get("description", _card_descs_zh[base_id])
 		return _card_descs_zh[base_id]
 	return card_data.get("description", "")
 
