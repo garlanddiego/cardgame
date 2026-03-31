@@ -182,6 +182,9 @@ class BattleState:
     blood_fury_active: bool = False  # Next attack doubles
     psi_surge: bool = False
 
+    total_cards_played: int = 0
+    max_turn_damage: int = 0
+    current_turn_damage: int = 0
     log: list = field(default_factory=list)
 
 
@@ -210,6 +213,7 @@ def apply_card(state: BattleState, card_id: str) -> None:
             str_mult = effect.get("str_mult", 1)
             dmg = calc_damage(state, effect["value"], str_mult, times)
             state.monster_hp -= dmg
+            state.current_turn_damage += dmg
             state.attacks_played += 1
             if state.envenom and times >= 1:
                 state.monster_poison += times
@@ -409,6 +413,7 @@ def greedy_play_turn(state: BattleState) -> List[str]:
         state.energy -= cost
         state.hand.remove(best_id)
         apply_card(state, best_id)
+        state.total_cards_played += 1
         played.append(best_id)
 
     return played
@@ -437,6 +442,7 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
         state.energy = state.max_energy
         state.hero_block = 0
         state.attacks_played = 0
+        state.current_turn_damage = 0
 
         # Start-of-turn powers
         if state.demon_form:
@@ -455,7 +461,8 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
             if state.monster_hp <= 0:
                 if verbose:
                     print(f"  Turn {turn}: Monster dies to poison! Hero HP: {state.hero_hp}")
-                return {"turns": turn, "hero_hp": state.hero_hp, "won": True}
+                return {"turns": turn, "hero_hp": state.hero_hp, "won": True,
+                        "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
         # Noxious fumes
         if state.noxious_fumes > 0:
@@ -472,17 +479,19 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
 
         # Play cards (greedy AI)
         played = greedy_play_turn(state)
+        state.max_turn_damage = max(state.max_turn_damage, state.current_turn_damage)
 
         if verbose:
             card_names = [CARDS[c]["name"] for c in played]
-            print(f"  Turn {turn}: Played {card_names}")
+            print(f"  Turn {turn}: Played {card_names} (dmg this turn: {state.current_turn_damage})")
             print(f"    Monster HP: {state.monster_hp}, Poison: {state.monster_poison}")
 
         # Check win
         if state.monster_hp <= 0:
             if verbose:
-                print(f"    WIN! Hero HP: {state.hero_hp}")
-            return {"turns": turn, "hero_hp": state.hero_hp, "won": True}
+                print(f"    WIN! Hero HP: {state.hero_hp}, Cards played: {state.total_cards_played}, Max turn dmg: {state.max_turn_damage}")
+            return {"turns": turn, "hero_hp": state.hero_hp, "won": True,
+                    "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
         # Monster attacks
         monster_dmg_val = state.monster_base_damage + state.monster_damage_inc * (turn - 1)
@@ -512,9 +521,11 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
         if state.hero_hp <= 0:
             if verbose:
                 print(f"    DEFEAT! Died on turn {turn}")
-            return {"turns": turn, "hero_hp": 0, "won": False}
+            return {"turns": turn, "hero_hp": 0, "won": False,
+                    "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
-    return {"turns": max_turns, "hero_hp": state.hero_hp, "won": state.monster_hp <= 0}
+    return {"turns": max_turns, "hero_hp": state.hero_hp, "won": state.monster_hp <= 0,
+            "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
 
 def evaluate_deck(custom_cards: List[str], n_sims=100, **kwargs) -> Dict:
@@ -530,6 +541,8 @@ def evaluate_deck(custom_cards: List[str], n_sims=100, **kwargs) -> Dict:
     wins = sum(1 for r in results if r["won"])
     avg_hp = sum(r["hero_hp"] for r in results) / len(results)
     avg_turns = sum(r["turns"] for r in results) / len(results)
+    avg_cards = sum(r.get("total_cards", 0) for r in results) / len(results)
+    avg_max_dmg = sum(r.get("max_turn_dmg", 0) for r in results) / len(results)
 
     return {
         "deck": deck,
@@ -537,6 +550,8 @@ def evaluate_deck(custom_cards: List[str], n_sims=100, **kwargs) -> Dict:
         "win_rate": wins / len(results),
         "avg_remaining_hp": round(avg_hp, 1),
         "avg_turns": round(avg_turns, 1),
+        "avg_cards_played": round(avg_cards, 1),
+        "avg_max_turn_dmg": round(avg_max_dmg, 1),
         "n_sims": n_sims,
     }
 
@@ -603,7 +618,7 @@ if __name__ == "__main__":
             print(f"{'='*70}")
             for i, r in enumerate(results):
                 names = ", ".join(r["combo_names"])
-                print(f"{i+1:3d}. HP:{r['avg_remaining_hp']:5.1f}  Win:{r['win_rate']*100:5.1f}%  Turns:{r['avg_turns']:4.1f}  | {names}")
+                print(f"{i+1:3d}. HP:{r['avg_remaining_hp']:5.1f}  Turns:{r['avg_turns']:4.1f}  Cards:{r['avg_cards_played']:4.1f}  MaxDmg:{r['avg_max_turn_dmg']:5.1f}  | {names}")
 
     elif args.cards:
         # Test specific cards
@@ -650,4 +665,4 @@ if __name__ == "__main__":
         for deck in test_decks:
             r = evaluate_deck(deck, n_sims=args.sims, **sim_kwargs)
             names = [CARDS[c]["name"] for c in deck]
-            print(f"  {', '.join(names):50s} → HP:{r['avg_remaining_hp']:5.1f}  Win:{r['win_rate']*100:5.1f}%  Turns:{r['avg_turns']:.1f}")
+            print(f"  {', '.join(names):50s} → HP:{r['avg_remaining_hp']:5.1f}  Turns:{r['avg_turns']:.1f}  Cards:{r['avg_cards_played']:.1f}  MaxDmg:{r['avg_max_turn_dmg']:.1f}")
