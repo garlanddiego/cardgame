@@ -371,6 +371,170 @@ var _card_descs_zh: Dictionary = {
 	"si_shiv_plus": "造成 6 点伤害。\n消耗。",
 }
 
+# Upgraded card description translations: base card_id -> zh description (upgraded values)
+var _card_descs_zh_plus: Dictionary = {
+	# IRONCLAD ATTACKS
+	"ic_strike": "造成 9 点伤害。",
+	"ic_bash": "造成 10 点伤害。\n施加 3 层易伤。",
+	"ic_iron_wave": "造成 7 点伤害。\n获得 7 点格挡。",
+	"ic_body_slam": "造成等同于你\n格挡值的伤害。",
+	"ic_anger": "造成 8 点伤害。\n将一张本牌的复制\n加入弃牌堆。",
+	"ic_cleave": "对所有敌人\n造成 11 点伤害。",
+	"ic_twin_strike": "造成 7 点伤害两次。",
+	"ic_wild_strike": "造成 17 点伤害。\n将一张创伤洗入\n抽牌堆。",
+	"ic_pommel_strike": "造成 10 点伤害。\n抽 2 张牌。",
+	"ic_headbutt": "造成 12 点伤害。",
+	"ic_pummel": "造成 2 点伤害 x5。",
+	"ic_uppercut": "造成 16 点伤害。\n施加 2 层虚弱。\n施加 2 层易伤。",
+	"ic_immolate": "对所有敌人\n造成 28 点伤害。\n将一张灼伤加入弃牌堆。",
+	"ic_fiend_fire": "消耗手牌。\n每消耗一张牌\n造成 10 点伤害。",
+	"ic_reaper": "对所有敌人\n造成 5 点伤害。\n恢复等同于未被格挡\n伤害的生命值。",
+	"ic_heavy_blade": "造成 18 点伤害。\n力量加成 x5。",
+	"ic_thunderclap": "对所有敌人\n造成 7 点伤害。\n施加 1 层易伤。",
+	"ic_hemokinesis": "失去 2 点生命。\n造成 20 点伤害。",
+	"ic_reckless_charge": "造成 10 点伤害。\n将一张眩晕洗入\n抽牌堆。",
+	"ic_clash": "只能在手牌全部\n为攻击牌时打出。\n造成 18 点伤害。",
+	"ic_perfected_strike": "造成 6 点伤害。\n你牌组中每有一张\n\"打击\"牌，额外\n造成 3 点伤害。",
+	"ic_bludgeon": "造成 42 点伤害。",
+	"ic_sword_boomerang": "对随机敌人\n造成 3 点伤害 4 次。",
+	"ic_searing_blow": "造成 16 点伤害。",
+	"ic_whirlwind": "对所有敌人\n造成 8 点伤害 X 次。\n（X = 当前能量）",
+	"ic_dropkick": "造成 8 点伤害。\n若敌人处于易伤状态：\n获得 1 点能量，抽 1 张牌。",
+	"ic_carnage": "虚无。\n造成 28 点伤害。",
+	"ic_clothesline": "造成 14 点伤害。\n施加 3 层虚弱。",
+	"ic_feed": "造成 12 点伤害。\n若击杀则获得\n4 点最大生命。消耗。",
+	"ic_rampage": "造成 8 点伤害。\n每次打出后\n伤害增加 8。",
+	"ic_sever_soul": "消耗手牌中所有\n非攻击牌。\n造成 22 点伤害。",
+	"ic_blood_for_blood": "你每失去一次生命，\n此牌费用减少 1。\n造成 22 点伤害。",
+	# IRONCLAD SKILLS
+	"ic_defend": "获得 8 点格挡。",
+	"ic_shrug_it_off": "获得 11 点格挡。\n抽 1 张牌。",
+	"ic_flame_barrier": "获得 16 点格挡。\n本回合受到攻击时，\n反弹 6 点伤害。",
+	"ic_battle_trance": "抽 4 张牌。",
+	"ic_bloodletting": "失去 3 点生命。\n获得 3 点能量。",
+	"ic_flex": "获得 4 点力量。\n回合结束时，\n失去 4 点力量。",
+	"ic_limit_break": "使你的力量翻倍。",
+	"ic_entrench": "使你的格挡翻倍。",
+	"ic_shockwave": "对所有敌人施加\n5 层虚弱和\n5 层易伤。消耗。",
+	"ic_armaments": "获得 5 点格挡。\n升级手牌中所有牌。",
+	"ic_power_through": "获得 20 点格挡。\n将 2 张创伤\n加入手牌。",
+	"ic_offering": "失去 6 点生命。\n获得 2 点能量。\n抽 5 张牌。消耗。",
+	"ic_war_cry": "抽 2 张牌。\n消耗。",
+	"ic_burning_pact": "消耗 1 张牌。\n抽 3 张牌。",
+	"ic_seeing_red": "获得 2 点能量。\n消耗。",
+	"ic_second_wind": "消耗手牌中所有\n非攻击牌。每消耗\n一张获得 7 点格挡。",
+	"ic_intimidate": "对所有敌人\n施加 2 层虚弱。消耗。",
+	"ic_infernal_blade": "将一张随机攻击牌\n加入手牌，其费用\n变为 0。消耗。",
+	"ic_dual_wield": "复制手牌中的一张\n攻击或能力牌 2 次。",
+	"ic_ghostly_armor": "虚无。\n获得 13 点格挡。",
+	"ic_havoc": "打出抽牌堆顶部\n的牌并消耗它。",
+	"ic_impervious": "获得 40 点格挡。\n消耗。",
+	"ic_exhume": "将消耗堆中的一张牌\n加入手牌。消耗。",
+	"ic_sentinel": "获得 8 点格挡。\n若本牌被消耗，\n获得 3 点能量。",
+	"ic_spot_weakness": "若敌人意图攻击，\n获得 4 点力量。",
+	"ic_true_grit": "获得 9 点格挡。\n消耗手牌中一张牌。",
+	"ic_disarm": "敌人失去 3 点\n力量。消耗。",
+	"ic_double_tap": "本回合你打出的\n下 2 张攻击牌\n会被打出两次。",
+	# IRONCLAD POWERS
+	"ic_demon_form": "每回合开始时，\n获得 3 点力量。",
+	"ic_corruption": "技能牌费用变为 0。\n打出技能牌时，\n将其消耗。",
+	"ic_berserk": "获得 1 层易伤。\n每回合开始时，\n获得 2 点能量。",
+	"ic_feel_no_pain": "每当有牌被消耗时，\n获得 4 点格挡。",
+	"ic_juggernaut": "每当你获得格挡时，\n对随机敌人造成\n7 点伤害。",
+	"ic_evolve": "每当你抽到状态牌时，\n抽 2 张牌。",
+	"ic_rage": "本回合每当你打出\n攻击牌时，\n获得 5 点格挡。",
+	"ic_barricade": "你的格挡不再在\n回合开始时移除。",
+	"ic_inflame": "获得 3 点力量。",
+	"ic_metallicize": "回合结束时，\n获得 4 点格挡。",
+	"ic_brutality": "天赋。回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
+	"ic_combust": "回合结束时，\n失去 1 点生命，\n对所有敌人造成\n7 点伤害。",
+	"ic_dark_embrace": "每当有牌被消耗时，\n抽 1 张牌。",
+	"ic_rupture": "每当你因打牌\n而失去生命时，\n获得 2 点力量。",
+	"ic_fire_breathing": "每当你抽到状态牌\n或诅咒牌时，对所有\n敌人造成 10 点伤害。",
+	# SILENT BASIC
+	"si_strike": "造成 9 点伤害。",
+	"si_defend": "获得 8 点格挡。",
+	"si_neutralize": "造成 4 点伤害。\n施加 2 层虚弱。",
+	"si_survivor": "获得 11 点格挡。\n弃 1 张牌。",
+	# SILENT COMMON ATTACKS
+	"si_slice": "造成 9 点伤害。",
+	"si_dagger_spray": "对所有敌人\n造成 6 点伤害两次。",
+	"si_dagger_throw": "造成 12 点伤害。\n抽 1 张牌，弃 1 张牌。",
+	"si_flick_flack": "奇巧。对所有敌人\n造成 10 点伤害。",
+	"si_leading_strike": "造成 10 点伤害。\n将 1 张小刀加入手牌。",
+	"si_poisoned_stab": "造成 8 点伤害。\n施加 4 层中毒。",
+	"si_sucker_punch": "造成 11 点伤害。\n施加 2 层虚弱。",
+	"si_ricochet": "奇巧。对随机敌人\n造成 4 点伤害 4 次。",
+	"si_quick_slash": "造成 12 点伤害。\n抽 1 张牌。",
+	# SILENT COMMON SKILLS
+	"si_anticipate": "本回合获得\n5 点敏捷。",
+	"si_deflect": "获得 7 点格挡。",
+	"si_prepared": "抽 2 张牌，弃 1 张牌。",
+	"si_backflip": "获得 8 点格挡。\n抽 2 张牌。",
+	"si_dodge_and_roll": "本回合和下回合\n获得 6 点格挡。",
+	"si_cloak_and_dagger": "获得 6 点格挡。\n将 2 张小刀加入手牌。",
+	"si_outmaneuver": "下回合获得\n3 点能量。",
+	"si_acrobatics": "抽 4 张牌。\n弃 1 张牌。",
+	"si_blade_dance": "将 4 张小刀\n加入手牌。",
+	"si_escape_plan": "抽 1 张牌。若为\n技能牌则获得\n5 点格挡。",
+	"si_calculated_gamble": "弃掉所有手牌。\n抽等量 +1 的牌。",
+	"si_concentrate": "弃 2 张牌。\n获得 2 点能量。",
+	# SILENT UNCOMMON ATTACKS
+	"si_predator": "造成 20 点伤害。",
+	"si_masterful_stab": "固有。\n造成 16 点伤害。",
+	"si_skewer": "造成 10 点伤害 X 次。\n（X = 当前能量）",
+	"si_die_die_die": "对所有敌人\n造成 17 点伤害。消耗。",
+	"si_endless_agony": "造成 6 点伤害。\n消耗。抽到时将复制\n加入手牌。",
+	"si_eviscerate": "造成 9 点伤害 3 次。",
+	"si_finisher": "本回合每打出一张\n攻击牌，造成\n8 点伤害。",
+	"si_flying_knee": "造成 11 点伤害。\n下回合获得\n1 点能量。",
+	"si_heel_hook": "造成 8 点伤害。\n若敌人处于虚弱状态：\n获得 1 点能量，抽 1 张牌。",
+	"si_glass_knife": "造成 12 点伤害两次。\n每次使用伤害\n减少 2。",
+	"si_choke": "造成 16 点伤害。\n敌人每打出一张牌\n受到 4 点伤害。",
+	"si_riddle_with_holes": "造成 4 点伤害 5 次。",
+	# SILENT UNCOMMON SKILLS
+	"si_blur": "获得 8 点格挡。\n格挡不在下回合\n开始时移除。",
+	"si_dash": "获得 13 点格挡。\n造成 13 点伤害。",
+	"si_terror": "施加 99 层易伤。\n消耗。",
+	"si_distraction": "将一张随机技能牌\n加入手牌。消耗。",
+	"si_expertise": "抽牌直到手牌\n有 7 张。",
+	"si_infinite_blades": "每回合开始时\n将一张小刀+加入手牌。",
+	"si_leg_sweep": "施加 3 层虚弱。\n获得 14 点格挡。",
+	"si_reflex": "无法打出。\n被弃掉时抽 3 张牌。",
+	"si_setup": "将一张手牌放到\n抽牌堆顶部。",
+	"si_tactician": "无法打出。\n被弃掉时获得\n2 点能量。",
+	"si_bouncing_flask": "对随机敌人施加\n4 层中毒 3 次。",
+	"si_catalyst": "使目标的中毒\n层数变为三倍。消耗。",
+	"si_crippling_cloud": "对所有敌人施加\n7 层中毒和\n3 层虚弱。",
+	"si_deadly_poison": "施加 7 层中毒。",
+	"si_noxious_fumes": "每回合开始时\n对所有敌人施加\n3 层中毒。",
+	# SILENT UNCOMMON POWERS
+	"si_accuracy": "小刀额外造成\n6 点伤害。",
+	"si_caltrops": "每当你受到攻击时，\n反弹 5 点伤害。",
+	"si_a_thousand_cuts": "每当你打出一张牌，\n对所有敌人造成\n2 点伤害。",
+	"si_envenom": "每当你造成未被格挡\n的伤害时，施加\n2 层中毒。",
+	"si_footwork": "获得 3 点敏捷。",
+	"si_tools_of_the_trade": "每回合开始时\n抽 1 张牌，弃 1 张牌。",
+	# SILENT RARE ATTACKS
+	"si_backstab": "造成 15 点伤害。\n固有。消耗。",
+	"si_grand_finale": "只能在抽牌堆为空时\n打出。造成 60 点伤害。",
+	"si_unload": "造成 18 点伤害。\n弃掉手牌中所有\n非攻击牌。",
+	# SILENT RARE SKILLS
+	"si_adrenaline": "获得 2 点能量。\n抽 3 张牌。消耗。",
+	"si_alchemize": "获得一瓶随机药水。\n消耗。",
+	"si_bullet_time": "本回合牌费用\n变为 0。下回合\n不抽牌。",
+	"si_burst": "下 2 张技能牌\n打出两次。",
+	"si_corpse_explosion": "施加 9 层中毒。\n敌人死亡时对所有\n敌人造成伤害。",
+	"si_malaise": "敌人失去 X+1 点力量。\n施加 X+1 层虚弱。",
+	"si_nightmare": "选择一张牌。\n下回合将 3 张复制\n加入手牌。",
+	"si_phantasmal_killer": "下回合造成\n双倍伤害。",
+	# SILENT RARE POWERS
+	"si_after_image": "每当你打出一张牌，\n获得 1 点格挡。",
+	"si_storm_of_steel": "弃掉所有手牌。\n每弃一张牌将一张\n小刀+加入手牌。",
+	"si_well_laid_plans": "回合结束时\n保留最多 2 张牌。",
+	"si_wraith_form": "获得 3 层无实体。\n每回合失去\n1 点敏捷。",
+}
+
 func t(key: String) -> String:
 	if _ui_strings.has(key):
 		var entry: Dictionary = _ui_strings[key]
@@ -397,11 +561,11 @@ func card_name(card_data: Dictionary) -> String:
 func card_desc(card_data: Dictionary) -> String:
 	var card_id: String = card_data.get("id", "")
 	var base_id: String = card_id.trim_suffix("+") if card_id.ends_with("+") else card_id
-	if current_lang == "zh" and _card_descs_zh.has(base_id):
-		if card_data.get("upgraded", false):
-			# Upgraded cards: use English description which has correct upgraded values
-			return card_data.get("description", _card_descs_zh[base_id])
-		return _card_descs_zh[base_id]
+	if current_lang == "zh":
+		if card_data.get("upgraded", false) and _card_descs_zh_plus.has(base_id):
+			return _card_descs_zh_plus[base_id]
+		if _card_descs_zh.has(base_id):
+			return _card_descs_zh[base_id]
 	return card_data.get("description", "")
 
 func type_name(type_index: int) -> String:
