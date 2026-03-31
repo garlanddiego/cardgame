@@ -7,7 +7,7 @@ var card_db: Dictionary = {}  # Reference to game_manager.card_database
 func simulate(deck: Array, card_database: Dictionary,
 			  hero_hp: int = 200, monster_hp: int = 100,
 			  monster_dmg: int = 8, monster_inc: int = 4,
-			  monster_count: int = 2) -> Dictionary:
+			  monster_count: int = 2, draw_per_turn: int = 4) -> Dictionary:
 	card_db = card_database
 	var state := {
 		"hero_hp": hero_hp, "hero_max_hp": hero_hp, "hero_block": 0,
@@ -72,8 +72,8 @@ func simulate(deck: Array, card_database: Dictionary,
 			for m in _alive(state):
 				m["poison"] += state["noxious_fumes"]
 
-		# Draw 4 cards
-		_draw_cards(state, 4)
+		# Draw cards
+		_draw_cards(state, draw_per_turn)
 
 		# Play cards (greedy AI)
 		_greedy_play(state)

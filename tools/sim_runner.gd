@@ -19,6 +19,7 @@ func _init() -> void:
 	var monster_dmg := 8
 	var monster_inc := 4
 	var hero_hp := 200
+	var draw_per_turn := 4
 	var top_n := 50
 
 	var i := 0
@@ -33,6 +34,7 @@ func _init() -> void:
 			"--monster-dmg": i += 1; monster_dmg = int(args[i]) if i < args.size() else 8
 			"--monster-inc": i += 1; monster_inc = int(args[i]) if i < args.size() else 4
 			"--hero-hp": i += 1; hero_hp = int(args[i]) if i < args.size() else 200
+			"--draw": i += 1; draw_per_turn = int(args[i]) if i < args.size() else 4
 			"--top": i += 1; top_n = int(args[i]) if i < args.size() else 50
 		i += 1
 
@@ -85,7 +87,7 @@ func _init() -> void:
 		var deck: Array = combo.duplicate()
 		deck.append_array(["ic_strike", "ic_strike", "ic_strike", "ic_defend", "ic_defend", "ic_defend"])
 
-		var result := engine.simulate(deck, gm.card_database, hero_hp, monster_hp, monster_dmg, monster_inc, monster_count)
+		var result := engine.simulate(deck, gm.card_database, hero_hp, monster_hp, monster_dmg, monster_inc, monster_count, draw_per_turn)
 		result["combo"] = combo
 		result["combo_names"] = []
 		for card_id in combo:
