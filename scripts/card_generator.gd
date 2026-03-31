@@ -1156,6 +1156,7 @@ func _on_save_pressed() -> void:
 		if gm.card_database.has(card_id) and gm.card_database[card_id].has("art"):
 			card_data["art"] = gm.card_database[card_id]["art"]
 		gm.card_database[card_id] = card_data
+		gm.save_custom_cards()
 		_flash_save_feedback()
 	else:
 		# Generate unique ID with counter
@@ -1163,6 +1164,7 @@ func _on_save_pressed() -> void:
 		var card_id = "custom_%04d_%s" % [_card_counter, card_data["name"].to_lower().replace(" ", "_")]
 		card_data["id"] = card_id
 		gm.card_database[card_id] = card_data
+		gm.save_custom_cards()
 		_flash_save_feedback()
 
 func _on_save_as_new_pressed() -> void:
@@ -1179,6 +1181,7 @@ func _on_save_as_new_pressed() -> void:
 	# Do not carry over art from original
 	card_data.erase("art")
 	gm.card_database[card_id] = card_data
+	gm.save_custom_cards()
 
 	# Switch to editing the newly created card
 	_editing_card_id = card_id

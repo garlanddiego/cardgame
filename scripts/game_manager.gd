@@ -39,11 +39,57 @@ func _register_card_pack(pack_class) -> void:
 	card_database.merge(cards)
 	_upgrade_overrides_cache.merge(upgrades)
 
+const CUSTOM_CARDS_PATH := "user://custom_cards.json"
+
 func _build_card_database() -> void:
-	# Mark all cards as "old" version if not set
+	# Mark all code-defined cards as "old" version if not set
 	for card_id in card_database:
 		if not card_database[card_id].has("version"):
 			card_database[card_id]["version"] = "old"
+	# Load and merge locally saved card modifications/additions
+	_load_custom_cards()
+
+func _load_custom_cards() -> void:
+	if not FileAccess.file_exists(CUSTOM_CARDS_PATH):
+		return
+	var file = FileAccess.open(CUSTOM_CARDS_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var json_text: String = file.get_as_text()
+	file.close()
+	var json = JSON.new()
+	var err = json.parse(json_text)
+	if err != OK:
+		push_warning("Failed to parse custom cards: %s" % json.get_error_message())
+		return
+	var custom_data = json.data
+	if custom_data is Dictionary:
+		for card_id in custom_data:
+			card_database[card_id] = custom_data[card_id]
+
+func save_custom_cards() -> void:
+	## Save all non-code cards (custom/modified) to local JSON file.
+	## Cards whose data differs from code-defined versions are saved.
+	var custom_cards: Dictionary = {}
+	# Rebuild code-defined cards to compare
+	var code_cards: Dictionary = {}
+	for pack in [_IroncladCards, _SilentCards, _NeutralCards, _NewCards]:
+		code_cards.merge(pack.get_cards())
+	# Find cards that are new or modified
+	for card_id in card_database:
+		if not code_cards.has(card_id):
+			# New card (not in any pack)
+			custom_cards[card_id] = card_database[card_id]
+		elif str(card_database[card_id]) != str(code_cards[card_id]):
+			# Modified card
+			custom_cards[card_id] = card_database[card_id]
+	# Write to file
+	var file = FileAccess.open(CUSTOM_CARDS_PATH, FileAccess.WRITE)
+	if file == null:
+		push_warning("Failed to save custom cards")
+		return
+	file.store_string(JSON.stringify(custom_cards, "\t"))
+	file.close()
 
 func _init_character_data() -> void:
 	character_data = {
