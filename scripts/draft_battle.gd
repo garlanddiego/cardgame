@@ -276,10 +276,13 @@ func _finish_drafting() -> void:
 	if gm == null:
 		return
 
-	# Set player deck to drafted cards
+	# Set player deck to drafted card IDs (with "+" suffix for upgraded)
 	gm.player_deck.clear()
 	for card_data in drafted_cards:
-		gm.player_deck.append(card_data)
+		var card_id: String = card_data.get("id", "")
+		if card_data.get("upgraded", false) and not card_id.ends_with("+"):
+			card_id += "+"
+		gm.player_deck.append(card_id)
 
 	# Use the first selected hero
 	if not selected_heroes.is_empty():
