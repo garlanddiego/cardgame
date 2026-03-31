@@ -696,6 +696,8 @@ func _update_power_display() -> void:
 		container.mouse_filter = Control.MOUSE_FILTER_PASS
 		var power_name: String = POWER_NAMES.get(power_id, power_id)
 		container.gui_input.connect(_on_power_icon_clicked.bind(container, power_name, power_id, stacks))
+		container.mouse_entered.connect(_on_icon_hover_enter.bind(container, power_name, power_id, stacks))
+		container.mouse_exited.connect(_on_icon_hover_exit)
 		# Try loading power-specific icon
 		var icon_path: String = "res://assets/img/power_icons/" + power_id + ".png"
 		var tex = load(icon_path) if ResourceLoader.exists(icon_path) else null
@@ -721,6 +723,43 @@ func _update_power_display() -> void:
 		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(lbl)
 		status_container.add_child(container)
+
+var _tooltip_hover: bool = false
+var _tooltip_hide_tween: Tween = null
+
+func _on_icon_hover_enter(icon_container: Control, power_name: String, power_id: String, stacks: int) -> void:
+	_tooltip_hover = true
+	# Cancel any pending hide
+	if _tooltip_hide_tween and _tooltip_hide_tween.is_valid():
+		_tooltip_hide_tween.kill()
+		_tooltip_hide_tween = null
+	# Look up description
+	var desc_text: String = ""
+	var gm = Engine.get_main_loop().root.get_node_or_null("GameManager")
+	if gm and gm.card_database:
+		for card_id in gm.card_database:
+			var card = gm.card_database[card_id]
+			if card.get("power_effect", "") == power_id and card.get("type", 0) == 2:
+				desc_text = card.get("description", "")
+				break
+	_show_icon_tooltip(icon_container, power_name, stacks, desc_text)
+
+func _on_icon_hover_exit() -> void:
+	_tooltip_hover = false
+	# Delayed hide after mouse leaves
+	if _active_tooltip and is_instance_valid(_active_tooltip):
+		_tooltip_hide_tween = create_tween()
+		_tooltip_hide_tween.tween_interval(1.0)
+		_tooltip_hide_tween.tween_callback(func():
+			if not _tooltip_hover and _active_tooltip and is_instance_valid(_active_tooltip):
+				var tw = create_tween()
+				tw.tween_property(_active_tooltip, "modulate:a", 0.0, 0.3)
+				tw.tween_callback(func():
+					if is_instance_valid(_active_tooltip):
+						_active_tooltip.queue_free()
+					_active_tooltip = null
+				)
+		)
 
 func _on_power_icon_clicked(event: InputEvent, icon_container: Control, power_name: String, power_id: String, stacks: int) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
@@ -788,17 +827,18 @@ func _show_icon_tooltip(icon_container: Control, name_text: String, stacks: int,
 	else:
 		add_child(tooltip)
 	_active_tooltip = tooltip
-	# Auto-hide after 3 seconds (longer for descriptions)
-	var duration: float = 3.0 if description != "" else 1.6
-	var tw = create_tween()
-	tw.tween_interval(duration)
-	tw.tween_property(tooltip, "modulate:a", 0.0, 0.4)
-	tw.tween_callback(func():
-		if is_instance_valid(tooltip):
-			tooltip.queue_free()
-		if _active_tooltip == tooltip:
-			_active_tooltip = null
-	)
+	# Auto-hide only if not in hover mode
+	if not _tooltip_hover:
+		var duration: float = 3.0 if description != "" else 1.6
+		var tw = create_tween()
+		tw.tween_interval(duration)
+		tw.tween_property(tooltip, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(func():
+			if is_instance_valid(tooltip):
+				tooltip.queue_free()
+			if _active_tooltip == tooltip:
+				_active_tooltip = null
+		)
 
 func _play_death() -> void:
 	if sprite_node == null:
