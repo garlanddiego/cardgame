@@ -25,6 +25,7 @@ def analyze(csv_path: str, output_csv: str = None):
         "total_max_dmg": 0,
         "wins": 0,
         "name": "",
+        "rows": [],  # Row numbers where this card appeared
     })
 
     total_rows = 0
@@ -53,6 +54,7 @@ def analyze(csv_path: str, output_csv: str = None):
                 s["total_max_dmg"] += max_dmg
                 if won:
                     s["wins"] += 1
+                s["rows"].append(total_rows)
                 if i < len(card_names):
                     s["name"] = card_names[i]
 
@@ -71,6 +73,7 @@ def analyze(csv_path: str, output_csv: str = None):
             "avg_cards": round(s["total_cards_played"] / n, 1),
             "avg_max_dmg": round(s["total_max_dmg"] / n, 1),
             "win_rate": round(s["wins"] / n * 100, 1),
+            "rows": s["rows"],
         })
 
     results.sort(key=lambda x: x["avg_hp"], reverse=True)
@@ -88,11 +91,16 @@ def analyze(csv_path: str, output_csv: str = None):
     if output_csv:
         with open(output_csv, "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
-            writer.writerow(["排名", "卡牌ID", "卡牌名称", "出现次数", "平均剩余HP", "平均回合数", "平均出牌数", "平均最大伤害", "胜率%"])
+            writer.writerow(["排名", "卡牌ID", "卡牌名称", "出现次数", "平均剩余HP", "平均回合数", "平均出牌数", "平均最大伤害", "胜率%", "出现行号"])
             for i, r in enumerate(results):
+                # Limit row list to first 100 entries to avoid huge CSV cells
+                row_list = r.get("rows", [])
+                row_str = "; ".join(str(x) for x in row_list[:100])
+                if len(row_list) > 100:
+                    row_str += f"... ({len(row_list)} total)"
                 writer.writerow([i+1, r["card_id"], r["name"], r["appearances"],
                                 r["avg_hp"], r["avg_turns"], r["avg_cards"],
-                                r["avg_max_dmg"], r["win_rate"]])
+                                r["avg_max_dmg"], r["win_rate"], row_str])
         print(f"\nSaved to {output_csv}")
 
 
