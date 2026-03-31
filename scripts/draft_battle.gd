@@ -201,6 +201,15 @@ func _build_draft_ui() -> void:
 	_drafted_label.add_theme_color_override("font_color", DIM)
 	_draft_panel.add_child(_drafted_label)
 
+	# Back button during draft
+	var back_btn = Button.new()
+	back_btn.text = "返回主菜单"
+	back_btn.position = Vector2(30, 20)
+	back_btn.custom_minimum_size = Vector2(160, 40)
+	back_btn.add_theme_font_size_override("font_size", 20)
+	back_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/main_menu.tscn"))
+	_draft_panel.add_child(back_btn)
+
 	# 4 card option containers
 	var card_w: float = 320.0
 	var card_h: float = 480.0
@@ -234,7 +243,7 @@ func _next_draft_round() -> void:
 	var pool_copy: Array = card_pool.duplicate()
 	pool_copy.shuffle()
 
-	var loc = get_node_or_null("/root/Localization")
+	var loc = get_node_or_null("/root/Loc")
 
 	for i in range(mini(4, pool_copy.size())):
 		var card_id: String = pool_copy[i]
