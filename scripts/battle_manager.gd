@@ -1706,13 +1706,13 @@ func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionar
 		draw_cards(draw_count)
 
 func _activate_power(power_name: String, power_target: Node2D = null) -> void:
-	# Add visual power indicator on the targeted hero
-	var hero = power_target if power_target else player
-	if hero:
-		hero.add_power(power_name)
 	# Normalize _plus suffix — upgraded powers use same logic with boosted values
 	var is_plus: bool = power_name.ends_with("_plus")
 	var base_name: String = power_name.trim_suffix("_plus") if is_plus else power_name
+	# Add power with BASE name so runtime checks find it
+	var hero = power_target if power_target else player
+	if hero:
+		hero.add_power(base_name)
 	match base_name:
 		"demon_form":
 			demon_form_active = true

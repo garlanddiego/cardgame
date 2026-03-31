@@ -732,10 +732,14 @@ func add_power(power_id: String, stacks: int = 1) -> void:
 func _update_power_display() -> void:
 	if status_container == null:
 		return
-	# Remove old power icons (they have "PowerIcon_" prefix)
+	# Remove old power icons (they have "PowerIcon_" prefix) — use free() not queue_free()
+	var to_remove: Array = []
 	for child in status_container.get_children():
 		if child.name.begins_with("PowerIcon_"):
-			child.queue_free()
+			to_remove.append(child)
+	for child in to_remove:
+		status_container.remove_child(child)
+		child.free()
 	# Add power icons
 	for power_id in active_powers:
 		var stacks: int = active_powers[power_id]
