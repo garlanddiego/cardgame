@@ -76,7 +76,15 @@ func _init() -> void:
 		quit()
 		return
 
-	# Run simulations
+	# Open CSV for incremental writing
+	var file := FileAccess.open(csv_path, FileAccess.WRITE)
+	if file == null:
+		print("ERROR: Cannot open %s for writing" % csv_path)
+		quit()
+		return
+	file.store_line("序号,卡牌ID,卡牌名称,剩余HP,回合数,出牌数,最大单轮伤害,胜负")
+
+	# Run simulations (write each result immediately)
 	var engine := BattleSimEngine.new()
 	var results: Array = []
 	var progress_interval := maxi(1, combos.size() / 20)
@@ -89,43 +97,39 @@ func _init() -> void:
 
 		var result := engine.simulate(deck, gm.card_database, hero_hp, monster_hp, monster_dmg, monster_inc, monster_count, draw_per_turn)
 		result["combo"] = combo
-		result["combo_names"] = []
+		var combo_names: Array = []
 		for card_id in combo:
-			result["combo_names"].append(gm.card_database[card_id].get("name", card_id))
+			combo_names.append(gm.card_database[card_id].get("name", card_id))
+		result["combo_names"] = combo_names
+
+		# Write to CSV immediately
+		var ids := "; ".join(PackedStringArray(combo))
+		var names := "; ".join(PackedStringArray(combo_names))
+		var won := "胜" if result["won"] else "败"
+		file.store_line("%d,\"%s\",\"%s\",%d,%d,%d,%d,%s" % [
+			ci + 1, ids, names, result["hero_hp"], result["turns"],
+			result["total_cards"], result["max_turn_dmg"], won
+		])
+		file.flush()
+
 		results.append(result)
 
 		if (ci + 1) % progress_interval == 0:
 			print("  Progress: %d/%d (%.0f%%)" % [ci + 1, combos.size(), float(ci + 1) / combos.size() * 100])
 
-	# Sort by remaining HP (descending)
+	file.close()
+	print("\nAll %d results saved to %s" % [combos.size(), csv_path])
+
+	# Sort and print top 10
 	results.sort_custom(func(a, b): return a["hero_hp"] > b["hero_hp"])
-
-	# Output top N to CSV
-	var file := FileAccess.open(csv_path, FileAccess.WRITE)
-	if file:
-		file.store_line("排名,卡牌ID,卡牌名称,剩余HP,回合数,出牌数,最大单轮伤害,胜负")
-		var count := mini(top_n, results.size())
-		for ri in range(count):
-			var r: Dictionary = results[ri]
-			var ids := ",".join(PackedStringArray(r["combo"]))
-			var names := ",".join(PackedStringArray(r["combo_names"]))
-			var won := "胜" if r["won"] else "败"
-			file.store_line("%d,\"%s\",\"%s\",%d,%d,%d,%d,%s" % [
-				ri + 1, ids, names, r["hero_hp"], r["turns"],
-				r["total_cards"], r["max_turn_dmg"], won
-			])
-		file.close()
-		print("\nResults saved to %s (top %d of %d)" % [csv_path, count, results.size()])
-
-		# Print top 10 to console
-		print("\nTOP 10:")
-		for ri in range(mini(10, count)):
-			var r: Dictionary = results[ri]
-			var names := ", ".join(PackedStringArray(r["combo_names"]))
-			var won := "WIN" if r["won"] else "LOSS"
-			print("  %d. HP:%d  Turns:%d  Cards:%d  MaxDmg:%d  %s  | %s" % [
-				ri + 1, r["hero_hp"], r["turns"], r["total_cards"], r["max_turn_dmg"], won, names
-			])
+	print("\nTOP 10:")
+	for ri in range(mini(10, results.size())):
+		var r: Dictionary = results[ri]
+		var names := ", ".join(PackedStringArray(r["combo_names"]))
+		var won := "WIN" if r["won"] else "LOSS"
+		print("  %d. HP:%d  Turns:%d  Cards:%d  MaxDmg:%d  %s  | %s" % [
+			ri + 1, r["hero_hp"], r["turns"], r["total_cards"], r["max_turn_dmg"], won, names
+		])
 
 	quit()
 
