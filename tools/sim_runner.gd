@@ -12,7 +12,7 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var char_filter := ""
 	var version_filter := "all"
-	var combo_size := 5
+	var combo_size := 4
 	var csv_path := "sim_results.csv"
 	var monster_count := 2
 	var monster_hp := 100
