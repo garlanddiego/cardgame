@@ -156,6 +156,27 @@ func _draw_cards(state: Dictionary, count: int) -> void:
 
 
 func _greedy_play(state: Dictionary) -> void:
+	# Priority 1: Play all affordable Power cards first (long-term value)
+	var played_power := true
+	while played_power and state["energy"] > 0:
+		played_power = false
+		for card_id in state["hand"]:
+			var card: Dictionary = card_db.get(card_id, {})
+			if card.is_empty() or card.get("type", 0) != 2:  # Not POWER
+				continue
+			var cost: int = card.get("cost", 0)
+			if cost > state["energy"]:
+				continue
+			if not _can_play(state, card):
+				continue
+			state["energy"] -= cost
+			state["hand"].erase(card_id)
+			_play_card(state, card_id)
+			state["total_cards"] += 1
+			played_power = true
+			break  # Restart loop (hand changed)
+
+	# Priority 2: Play other cards greedily by score
 	while state["energy"] > 0 and not state["hand"].is_empty():
 		var best_id: String = ""
 		var best_score: float = -999.0
@@ -220,6 +241,22 @@ func _score_card(state: Dictionary, card_id: String, cost: int) -> float:
 	var card_type: int = card.get("type", 0)
 
 	var score: float = 0.0
+
+	# Priority bonus: debuffs (vulnerable/weak) should be played before attacks
+	var apply_status: Dictionary = card.get("apply_status", {})
+	if not apply_status.is_empty():
+		var st: String = apply_status.get("type", "")
+		if st == "vulnerable":
+			# Bonus: remaining attack damage in hand benefits from vulnerable
+			var remaining_dmg := 0
+			for other_id in state["hand"]:
+				if other_id == card_id:
+					continue
+				var oc: Dictionary = card_db.get(other_id, {})
+				if oc.get("type", 0) == 0:  # ATTACK
+					remaining_dmg += oc.get("damage", 0) * oc.get("times", 1)
+			score += remaining_dmg * 0.5  # 50% more damage from vulnerable
+
 	# Estimate damage value
 	if damage > 0:
 		var str_bonus: int = state["hero_strength"]
