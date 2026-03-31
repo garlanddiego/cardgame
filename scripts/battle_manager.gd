@@ -659,6 +659,27 @@ func start_player_turn() -> void:
 			if str_gain > 0:
 				hero.apply_status("strength", str_gain)
 
+		# Wraith Form: lose dexterity each turn (stacks = dex loss per turn)
+		if hero.active_powers.get("wraith_form", 0) > 0:
+			hero.apply_status("dexterity", -hero.active_powers["wraith_form"])
+		# Brutality: lose 1 HP, draw 1 card
+		if hero.active_powers.get("brutality", 0) > 0:
+			hero.take_damage_direct(1)
+			draw_cards(1)
+		# Tools of the Trade: draw 1, discard 1
+		if hero.active_powers.get("tools_of_the_trade", 0) > 0:
+			draw_cards(1)
+			if not hand.is_empty():
+				var idx: int = randi() % hand.size()
+				var card_data = hand[idx]
+				discard_pile.append(card_data)
+				_check_sly_on_discard(card_data)
+				hand.remove_at(idx)
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c, false)
+
 	# Reset block for each hero (unless that hero has Barricade or Blur)
 	for hero in _get_all_alive_heroes():
 		var has_barricade: bool = hero.active_powers.get("barricade", 0) > 0
@@ -1776,7 +1797,10 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 		"well_laid_plans":
 			power_stacks = 2 if is_plus else 1  # Cards retained
 		"wraith_form":
-			power_stacks = 3 if is_plus else 2  # Intangible turns
+			power_stacks = 1  # Dex loss per turn (the icon shows this)
+			# Apply intangible stacks as a status effect
+			if hero:
+				hero.apply_status("intangible", 3 if is_plus else 2)
 		"tools_of_the_trade":
 			power_stacks = 0  # Binary — no number
 		"brutality":

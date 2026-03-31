@@ -114,8 +114,11 @@ func take_damage(amount: int) -> void:
 	if not alive:
 		return
 	var actual_damage: int = amount
+	# Intangible: cap all damage at 1
+	if status_effects.get("intangible", 0) > 0:
+		actual_damage = mini(actual_damage, 1)
 	# Check vulnerable
-	if status_effects.has("vulnerable") and status_effects["vulnerable"] > 0:
+	elif status_effects.has("vulnerable") and status_effects["vulnerable"] > 0:
 		actual_damage = int(ceil(float(actual_damage) * 1.5))
 	# Block absorbs damage first
 	if block > 0:
@@ -144,7 +147,10 @@ func take_damage_direct(amount: int) -> void:
 	## Deal damage bypassing block (e.g. self-harm effects like Offering, Hemokinesis)
 	if not alive:
 		return
-	current_hp -= amount
+	var actual: int = amount
+	if status_effects.get("intangible", 0) > 0:
+		actual = mini(actual, 1)
+	current_hp -= actual
 	if current_hp <= 0:
 		current_hp = 0
 		alive = false
@@ -172,9 +178,10 @@ func add_block(amount: int) -> void:
 	if not alive:
 		return
 	var actual_block: int = amount
-	# Add dexterity bonus
-	if status_effects.has("dexterity") and status_effects["dexterity"] > 0:
+	# Apply dexterity (can be positive or negative)
+	if status_effects.has("dexterity"):
 		actual_block += status_effects["dexterity"]
+	actual_block = maxi(0, actual_block)  # Block can't be negative
 	block += actual_block
 	block_changed.emit(block)
 	_update_block_display()
@@ -225,7 +232,7 @@ func tick_poison() -> void:
 func tick_status_effects() -> void:
 	var to_remove: Array = []
 	for status_type in status_effects:
-		if status_type in ["vulnerable", "weak"]:
+		if status_type in ["vulnerable", "weak", "intangible"]:
 			status_effects[status_type] -= 1
 			if status_effects[status_type] <= 0:
 				to_remove.append(status_type)
