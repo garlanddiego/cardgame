@@ -1772,7 +1772,7 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 		"a_thousand_cuts":
 			power_stacks = 2 if is_plus else 1  # Damage per card played
 		"after_image":
-			power_stacks = 0  # Binary — no number (1 block per card)
+			power_stacks = 1  # Block per card played, stackable
 		"well_laid_plans":
 			power_stacks = 2 if is_plus else 1  # Cards retained
 		"wraith_form":
