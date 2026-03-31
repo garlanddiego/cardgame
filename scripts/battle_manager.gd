@@ -3180,28 +3180,7 @@ func _setup_pile_viewer() -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pile_viewer.add_child(title)
 
-	# Close button (X) top-right
-	var close_btn = Button.new()
-	close_btn.name = "CloseButton"
-	close_btn.text = "X"
-	close_btn.position = Vector2(1920 - 80, 15)
-	close_btn.custom_minimum_size = Vector2(50, 50)
-	close_btn.add_theme_font_size_override("font_size", 28)
-	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
-	var close_sb = StyleBoxFlat.new()
-	close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
-	close_sb.corner_radius_top_left = 8
-	close_sb.corner_radius_top_right = 8
-	close_sb.corner_radius_bottom_left = 8
-	close_sb.corner_radius_bottom_right = 8
-	close_btn.add_theme_stylebox_override("normal", close_sb)
-	var close_hover = close_sb.duplicate() as StyleBoxFlat
-	close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
-	close_btn.add_theme_stylebox_override("hover", close_hover)
-	close_btn.pressed.connect(func(): _pile_viewer.visible = false)
-	_pile_viewer.add_child(close_btn)
-
-	# Scroll container for card grid
+	# Scroll container for card grid (added before close button so button gets input priority)
 	var scroll = ScrollContainer.new()
 	scroll.name = "Scroll"
 	scroll.position = Vector2(60, 80)
@@ -3216,6 +3195,27 @@ func _setup_pile_viewer() -> void:
 	grid.add_theme_constant_override("v_separation", 16)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(grid)
+
+	# Close button (X) top-right — added AFTER scroll so it receives input on top
+	var close_btn = Button.new()
+	close_btn.name = "CloseButton"
+	close_btn.text = "✕"
+	close_btn.position = Vector2(1920 - 80, 15)
+	close_btn.custom_minimum_size = Vector2(60, 60)
+	close_btn.add_theme_font_size_override("font_size", 32)
+	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	var close_sb = StyleBoxFlat.new()
+	close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
+	close_sb.corner_radius_top_left = 8
+	close_sb.corner_radius_top_right = 8
+	close_sb.corner_radius_bottom_left = 8
+	close_sb.corner_radius_bottom_right = 8
+	close_btn.add_theme_stylebox_override("normal", close_sb)
+	var close_hover = close_sb.duplicate() as StyleBoxFlat
+	close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
+	close_btn.add_theme_stylebox_override("hover", close_hover)
+	close_btn.pressed.connect(func(): _pile_viewer.visible = false)
+	_pile_viewer.add_child(close_btn)
 
 func _on_draw_pile_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
