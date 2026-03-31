@@ -543,11 +543,11 @@ func _idle_loop() -> void:
 	_idle_tween = create_tween()
 	_idle_tween.set_loops()
 	var base_y: float = sprite_node.position.y
-	var breathe_amount: float = 6.0 if not is_enemy else 4.0
-	var speed: float = 1.2 + randf() * 0.3  # Faster breathing cycle
-	# Bob up and down + subtle scale pulse
+	var breathe_amount: float = 12.0 if not is_enemy else 8.0
+	var speed: float = 1.0 + randf() * 0.3
+	# Bob up and down + scale pulse
 	_idle_tween.tween_property(sprite_node, "position:y", base_y - breathe_amount, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	_idle_tween.parallel().tween_property(sprite_node, "scale", Vector2(1.01, 0.99), speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_idle_tween.parallel().tween_property(sprite_node, "scale", Vector2(1.03, 0.97), speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 	_idle_tween.tween_property(sprite_node, "position:y", base_y, speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 	_idle_tween.parallel().tween_property(sprite_node, "scale", Vector2(1.0, 1.0), speed).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
