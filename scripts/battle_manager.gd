@@ -1964,7 +1964,7 @@ func _animate_hand_discard() -> void:
 	if not card_hand or card_hand.cards.is_empty():
 		_after_hand_discard()
 		return
-	var discard_target := Vector2(1740, 900)
+	var discard_target: Vector2 = card_hand.to_local(Vector2(1825, 985))
 	var card_nodes: Array = card_hand.cards.duplicate()
 	# Reverse so rightmost card goes first
 	card_nodes.reverse()
