@@ -63,7 +63,7 @@ func _build_ui() -> void:
 	vbox.add_child(spacer)
 
 	# Test Battle button
-	var battle_btn = _create_menu_button("测试战斗", Color(0.85, 0.2, 0.2))
+	var battle_btn = _create_menu_button("套牌战斗", Color(0.85, 0.2, 0.2))
 	battle_btn.pressed.connect(_on_battle_pressed)
 	vbox.add_child(battle_btn)
 
