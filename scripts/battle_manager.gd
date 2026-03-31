@@ -647,9 +647,9 @@ func start_player_turn() -> void:
 	# Power effects at start of turn — apply to the hero that has each power
 	for hero in _get_all_alive_heroes():
 		if hero.active_powers.get("demon_form", 0) > 0:
-			hero.apply_status("strength", 2)
+			hero.apply_status("strength", hero.active_powers["demon_form"])
 		if hero.active_powers.get("infinite_blades", 0) > 0:
-			_add_shiv_to_hand(1)
+			_add_shiv_to_hand(hero.active_powers["infinite_blades"])
 		if hero.active_powers.get("venomous_might", 0) > 0:
 			var total_poison: int = 0
 			for enemy in enemies:
@@ -1764,7 +1764,7 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			power_stacks = metallicize_block
 		"infinite_blades":
 			infinite_blades_active = true
-			power_stacks = 0  # Binary — no number
+			power_stacks = 1  # Shivs per turn, stackable
 		"noxious_fumes":
 			power_stacks = 3 if is_plus else 2  # Poison per turn to all enemies
 		"accuracy":
