@@ -143,26 +143,24 @@ CARDS = {
 
 
 # =============================================================================
-# BATTLE STATE
+# BATTLE STATE (multi-monster support)
 # =============================================================================
+
+def make_monster(hp, base_dmg, dmg_inc):
+    return {"hp": hp, "vulnerable": 0, "weak": 0, "poison": 0,
+            "base_dmg": base_dmg, "dmg_inc": dmg_inc}
 
 @dataclass
 class BattleState:
-    hero_hp: int = 100
-    hero_max_hp: int = 100
+    hero_hp: int = 200
+    hero_max_hp: int = 200
     hero_block: int = 0
     hero_strength: int = 0
-    hero_temp_strength: int = 0  # Flex-style, removed at end of turn
+    hero_temp_strength: int = 0
     energy: int = 3
     max_energy: int = 3
 
-    monster_hp: int = 100
-    monster_base_damage: int = 10
-    monster_damage_inc: int = 2
-    monster_block: int = 0
-    monster_vulnerable: int = 0
-    monster_weak: int = 0
-    monster_poison: int = 0
+    monsters: list = field(default_factory=list)  # list of monster dicts
 
     turn: int = 0
     hand: list = field(default_factory=list)
@@ -179,59 +177,82 @@ class BattleState:
     accuracy: int = 0
     venomous_might: bool = False
     blood_fury: bool = False
-    blood_fury_active: bool = False  # Next attack doubles
+    blood_fury_active: bool = False
     psi_surge: bool = False
 
     total_cards_played: int = 0
     max_turn_damage: int = 0
     current_turn_damage: int = 0
-    log: list = field(default_factory=list)
+
+    def alive_monsters(self):
+        return [m for m in self.monsters if m["hp"] > 0]
+
+    def first_alive(self):
+        for m in self.monsters:
+            if m["hp"] > 0:
+                return m
+        return None
+
+    def total_poison(self):
+        return sum(m["poison"] for m in self.alive_monsters())
+
+    def all_dead(self):
+        return all(m["hp"] <= 0 for m in self.monsters)
 
 
-def calc_damage(state: BattleState, base: int, str_mult: int = 1, times: int = 1) -> int:
-    """Calculate total damage for an attack."""
-    str_bonus = state.hero_strength * str_mult
-    per_hit = max(0, base + str_bonus)
-    if state.monster_weak > 0:  # Hero is weak (not implemented here)
-        pass
-    if state.monster_vulnerable > 0:
+def calc_hit(state, base, target, str_mult=1):
+    """Calculate single-hit damage against a target monster."""
+    per_hit = max(0, base + state.hero_strength * str_mult)
+    if target["vulnerable"] > 0:
         per_hit = int(per_hit * 1.5)
     if state.blood_fury_active:
         per_hit *= 2
         state.blood_fury_active = False
-    return per_hit * times
+    return per_hit
 
 
-def apply_card(state: BattleState, card_id: str) -> None:
-    """Apply a card's effects to the battle state."""
+def apply_card(state, card_id):
+    """Apply card effects. Single-target effects hit first alive monster."""
     card = CARDS[card_id]
+    target = state.first_alive()
+    if target is None:
+        return
+
     for effect in card["effects"]:
         etype = effect["type"]
 
         if etype == "damage":
             times = effect.get("times", 1)
             str_mult = effect.get("str_mult", 1)
-            dmg = calc_damage(state, effect["value"], str_mult, times)
-            state.monster_hp -= dmg
-            state.current_turn_damage += dmg
+            for _ in range(times):
+                t = state.first_alive()
+                if t is None:
+                    break
+                dmg = calc_hit(state, effect["value"], t, str_mult)
+                t["hp"] -= dmg
+                state.current_turn_damage += dmg
+                if state.envenom:
+                    t["poison"] += 1
             state.attacks_played += 1
-            if state.envenom and times >= 1:
-                state.monster_poison += times
 
         elif etype == "block":
             state.hero_block += effect["value"]
 
         elif etype == "apply_vulnerable":
-            state.monster_vulnerable += effect["value"]
+            t = state.first_alive()
+            if t: t["vulnerable"] += effect["value"]
 
         elif etype == "apply_weak":
-            state.monster_weak += effect["value"]
+            t = state.first_alive()
+            if t: t["weak"] += effect["value"]
 
         elif etype == "apply_poison":
-            state.monster_poison += effect["value"]
+            t = state.first_alive()
+            if t: t["poison"] += effect["value"]
 
         elif etype == "double_poison":
-            state.monster_poison *= 2
+            t = state.first_alive()
+            if t: t["poison"] *= 2
 
         elif etype == "self_damage":
             state.hero_hp -= effect["value"]
@@ -252,68 +273,57 @@ def apply_card(state: BattleState, card_id: str) -> None:
             state.hero_strength *= 2
 
         elif etype == "draw":
-            draw_count = effect["value"]
-            for _ in range(draw_count):
+            for _ in range(effect["value"]):
                 if not state.draw_pile:
                     state.draw_pile = list(state.discard_pile)
                     state.discard_pile = []
-                    import random
-                    random.shuffle(state.draw_pile)
+                    import random; random.shuffle(state.draw_pile)
                 if state.draw_pile:
                     state.hand.append(state.draw_pile.pop())
 
         elif etype == "power":
-            power = effect["power"]
-            if power == "demon_form":
-                state.demon_form = True
-            elif power == "metallicize":
-                state.metallicize = 3
-            elif power == "noxious_fumes":
-                state.noxious_fumes = effect.get("value", 2)
-            elif power == "envenom":
-                state.envenom = True
-            elif power == "accuracy":
-                state.accuracy += effect.get("value", 4)
-            elif power == "venomous_might":
-                state.venomous_might = True
-            elif power == "blood_fury":
-                state.blood_fury = True
-            elif power == "psi_surge":
-                state.psi_surge = True
+            p = effect["power"]
+            if p == "demon_form": state.demon_form = True
+            elif p == "metallicize": state.metallicize = 3
+            elif p == "noxious_fumes": state.noxious_fumes = effect.get("value", 2)
+            elif p == "envenom": state.envenom = True
+            elif p == "accuracy": state.accuracy += effect.get("value", 4)
+            elif p == "venomous_might": state.venomous_might = True
+            elif p == "blood_fury": state.blood_fury = True
+            elif p == "psi_surge": state.psi_surge = True
 
         elif etype == "x_damage_poison":
-            # X cost: use all remaining energy
             x = state.energy
             base = effect["value"]
             for _ in range(x):
-                dmg = calc_damage(state, base)
-                state.monster_hp -= dmg
-                state.monster_poison += 1
+                for m in state.alive_monsters():
+                    dmg = calc_hit(state, base, m)
+                    m["hp"] -= dmg
+                    m["poison"] += 1
+                    state.current_turn_damage += dmg
             state.energy = 0
 
         elif etype == "poison_to_block":
-            state.hero_block += state.monster_poison
+            state.hero_block += state.total_poison()
 
         elif etype == "hand_size_damage":
-            dmg = len(state.hand) * effect["mult"]
-            dmg += state.hero_strength
-            if state.monster_vulnerable > 0:
-                dmg = int(dmg * 1.5)
-            state.monster_hp -= dmg
+            t = state.first_alive()
+            if t:
+                dmg = len(state.hand) * effect["mult"] + state.hero_strength
+                if t["vulnerable"] > 0: dmg = int(dmg * 1.5)
+                t["hp"] -= dmg
+                state.current_turn_damage += dmg
 
         elif etype == "all_in_draw":
-            e = state.energy
-            state.energy = 0
+            e = state.energy; state.energy = 0
             for _ in range(e * 2):
                 if not state.draw_pile:
                     state.draw_pile = list(state.discard_pile)
                     state.discard_pile = []
-                    import random
-                    random.shuffle(state.draw_pile)
+                    import random; random.shuffle(state.draw_pile)
                 if state.draw_pile:
                     state.hand.append(state.draw_pile.pop())
 
-    # Move to discard/exhaust
     if card.get("exhaust"):
         state.exhaust_pile.append(card_id)
     elif card["type"] != "power":
@@ -324,64 +334,55 @@ def apply_card(state: BattleState, card_id: str) -> None:
 # GREEDY AI — picks best card each step
 # =============================================================================
 
-def score_card(state: BattleState, card_id: str) -> float:
+def score_card(state, card_id):
     """Heuristic score for playing a card. Higher = better."""
     card = CARDS[card_id]
     cost = card["cost"]
-    if cost == -1:
-        cost = state.energy
-    if cost > state.energy:
-        return -999
+    if cost == -1: cost = state.energy
+    if cost > state.energy: return -999
 
     s = deepcopy(state)
     s.energy -= cost
-    old_monster_hp = s.monster_hp
-    old_hero_block = s.hero_block
-    old_strength = s.hero_strength
-    old_poison = s.monster_poison
+    old_total_hp = sum(m["hp"] for m in s.alive_monsters())
+    old_block = s.hero_block
+    old_str = s.hero_strength
+    old_poison = s.total_poison()
 
     apply_card(s, card_id)
 
-    damage_dealt = old_monster_hp - s.monster_hp
-    block_gained = s.hero_block - old_hero_block
-    strength_gained = s.hero_strength - old_strength
-    poison_gained = s.monster_poison - old_poison
-    hp_lost = state.hero_hp - s.hero_hp  # Self-damage
+    new_total_hp = sum(max(0, m["hp"]) for m in s.monsters)
+    damage_dealt = old_total_hp - new_total_hp
+    block_gained = s.hero_block - old_block
+    strength_gained = s.hero_strength - old_str
+    poison_gained = s.total_poison() - old_poison
+    hp_lost = state.hero_hp - s.hero_hp
 
-    # Monster damage this turn (for block value estimation)
-    monster_dmg = state.monster_base_damage + state.monster_damage_inc * state.turn
-    if state.monster_weak > 0:
-        monster_dmg = int(monster_dmg * 0.75)
+    # Total incoming damage from all alive monsters
+    total_incoming = 0
+    for m in state.alive_monsters():
+        d = m["base_dmg"] + m["dmg_inc"] * (state.turn - 1)
+        if m["weak"] > 0: d = int(d * 0.75)
+        total_incoming += d
 
-    # Score components
     score = 0.0
-    score += damage_dealt * 1.0  # Direct damage is good
-    score += min(block_gained, max(0, monster_dmg - state.hero_block)) * 0.8  # Block up to incoming damage
-    score += strength_gained * 8.0  # Strength is very valuable long-term
-    score += poison_gained * 2.0  # Poison has compounding value
-    score -= hp_lost * 0.5  # Self-damage is a cost
+    score += damage_dealt * 1.0
+    score += min(block_gained, max(0, total_incoming - state.hero_block)) * 0.8
+    score += strength_gained * 8.0
+    score += poison_gained * 2.0
+    score -= hp_lost * 0.5
 
-    # Powers have long-term value
     if card["type"] == "power":
         for eff in card["effects"]:
             if eff["type"] == "power":
-                if eff["power"] == "demon_form":
-                    score += 30  # Huge long-term value
-                elif eff["power"] == "noxious_fumes":
-                    score += 15
-                elif eff["power"] == "metallicize":
-                    score += 10
-                elif eff["power"] == "envenom":
-                    score += 12
-                elif eff["power"] == "venomous_might":
-                    score += max(5, state.monster_poison * 2)
-                elif eff["power"] == "blood_fury":
-                    score += 10
+                p = eff["power"]
+                if p == "demon_form": score += 30
+                elif p == "noxious_fumes": score += 15 * len(state.alive_monsters())
+                elif p == "metallicize": score += 10
+                elif p == "envenom": score += 12
+                elif p == "venomous_might": score += max(5, state.total_poison() * 2)
+                elif p == "blood_fury": score += 10
 
-    # Energy efficiency
-    if cost > 0:
-        score = score / cost  # Normalize by cost
-
+    if cost > 0: score = score / cost
     return score
 
 
@@ -423,17 +424,13 @@ def greedy_play_turn(state: BattleState) -> List[str]:
 # SIMULATION
 # =============================================================================
 
-def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
-                    monster_dmg=10, monster_inc=2, max_turns=20,
-                    verbose=False) -> Dict:
-    """Simulate a full battle and return results."""
+def simulate_battle(deck, hero_hp=200, monster_hp=100,
+                    monster_dmg=8, monster_inc=2, monster_count=2,
+                    max_turns=20, verbose=False):
+    """Simulate a full battle with multiple monsters."""
     import random
-    state = BattleState(
-        hero_hp=hero_hp, hero_max_hp=hero_hp,
-        monster_hp=monster_hp, monster_base_damage=monster_dmg,
-        monster_damage_inc=monster_inc,
-    )
-
+    state = BattleState(hero_hp=hero_hp, hero_max_hp=hero_hp)
+    state.monsters = [make_monster(monster_hp, monster_dmg, monster_inc) for _ in range(monster_count)]
     state.draw_pile = list(deck)
     random.shuffle(state.draw_pile)
 
@@ -447,28 +444,28 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
         # Start-of-turn powers
         if state.demon_form:
             state.hero_strength += 2
-        if state.venomous_might and state.monster_poison > 0:
-            str_gain = state.monster_poison // 4
-            if str_gain > 0:
-                state.hero_strength += str_gain
+        if state.venomous_might and state.total_poison() > 0:
+            sg = state.total_poison() // 4
+            if sg > 0: state.hero_strength += sg
         if state.metallicize > 0:
             state.hero_block += state.metallicize
 
-        # Poison tick
-        if state.monster_poison > 0:
-            state.monster_hp -= state.monster_poison
-            state.monster_poison -= 1
-            if state.monster_hp <= 0:
-                if verbose:
-                    print(f"  Turn {turn}: Monster dies to poison! Hero HP: {state.hero_hp}")
-                return {"turns": turn, "hero_hp": state.hero_hp, "won": True,
-                        "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
+        # Poison tick on all monsters
+        for m in state.alive_monsters():
+            if m["poison"] > 0:
+                m["hp"] -= m["poison"]
+                m["poison"] = max(0, m["poison"] - 1)
+        if state.all_dead():
+            if verbose: print(f"  Turn {turn}: All monsters die to poison! Hero HP: {state.hero_hp}")
+            return {"turns": turn, "hero_hp": state.hero_hp, "won": True,
+                    "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
-        # Noxious fumes
+        # Noxious fumes: apply to all alive monsters
         if state.noxious_fumes > 0:
-            state.monster_poison += state.noxious_fumes
+            for m in state.alive_monsters():
+                m["poison"] += state.noxious_fumes
 
-        # Draw 4 cards per turn
+        # Draw 4 cards
         for _ in range(4):
             if not state.draw_pile:
                 state.draw_pile = list(state.discard_pile)
@@ -477,54 +474,48 @@ def simulate_battle(deck: List[str], hero_hp=100, monster_hp=100,
             if state.draw_pile:
                 state.hand.append(state.draw_pile.pop())
 
-        # Play cards (greedy AI)
+        # Play cards
         played = greedy_play_turn(state)
         state.max_turn_damage = max(state.max_turn_damage, state.current_turn_damage)
 
         if verbose:
-            card_names = [CARDS[c]["name"] for c in played]
-            print(f"  Turn {turn}: Played {card_names} (dmg this turn: {state.current_turn_damage})")
-            print(f"    Monster HP: {state.monster_hp}, Poison: {state.monster_poison}")
+            names = [CARDS[c]["name"] for c in played]
+            m_status = ", ".join(f"M{i+1}:{m['hp']}hp p{m['poison']}" for i, m in enumerate(state.monsters))
+            print(f"  Turn {turn}: {names} (dmg:{state.current_turn_damage}) | {m_status}")
 
-        # Check win
-        if state.monster_hp <= 0:
-            if verbose:
-                print(f"    WIN! Hero HP: {state.hero_hp}, Cards played: {state.total_cards_played}, Max turn dmg: {state.max_turn_damage}")
+        if state.all_dead():
+            if verbose: print(f"    WIN! HP:{state.hero_hp} Cards:{state.total_cards_played} MaxDmg:{state.max_turn_damage}")
             return {"turns": turn, "hero_hp": state.hero_hp, "won": True,
                     "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
-        # Monster attacks
-        monster_dmg_val = state.monster_base_damage + state.monster_damage_inc * (turn - 1)
-        if state.monster_weak > 0:
-            monster_dmg_val = int(monster_dmg_val * 0.75)
-        actual_dmg = max(0, monster_dmg_val - state.hero_block)
-        state.hero_hp -= actual_dmg
+        # All alive monsters attack
+        total_monster_dmg = 0
+        for m in state.alive_monsters():
+            d = m["base_dmg"] + m["dmg_inc"] * (turn - 1)
+            if m["weak"] > 0: d = int(d * 0.75)
+            total_monster_dmg += d
+        actual = max(0, total_monster_dmg - state.hero_block)
+        state.hero_hp -= actual
 
         if verbose:
-            print(f"    Monster attacks for {monster_dmg_val}, blocked {min(state.hero_block, monster_dmg_val)}, took {actual_dmg}")
-            print(f"    Hero HP: {state.hero_hp}")
+            print(f"    Monsters attack total {total_monster_dmg}, block {state.hero_block}, took {actual} → HP:{state.hero_hp}")
 
         # Status tick
-        if state.monster_vulnerable > 0:
-            state.monster_vulnerable -= 1
-        if state.monster_weak > 0:
-            state.monster_weak -= 1
+        for m in state.alive_monsters():
+            if m["vulnerable"] > 0: m["vulnerable"] -= 1
+            if m["weak"] > 0: m["weak"] -= 1
 
-        # Remove temp strength
         state.hero_strength -= state.hero_temp_strength
         state.hero_temp_strength = 0
-
-        # Discard remaining hand
         state.discard_pile.extend(state.hand)
         state.hand = []
 
         if state.hero_hp <= 0:
-            if verbose:
-                print(f"    DEFEAT! Died on turn {turn}")
+            if verbose: print(f"    DEFEAT on turn {turn}")
             return {"turns": turn, "hero_hp": 0, "won": False,
                     "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
-    return {"turns": max_turns, "hero_hp": state.hero_hp, "won": state.monster_hp <= 0,
+    return {"turns": max_turns, "hero_hp": state.hero_hp, "won": state.all_dead(),
             "total_cards": state.total_cards_played, "max_turn_dmg": state.max_turn_damage}
 
 
@@ -585,9 +576,10 @@ if __name__ == "__main__":
     parser.add_argument("--pool", type=str, help="Comma-separated card pool for --all-combos")
     parser.add_argument("--sims", type=int, default=100, help="Simulations per combo (default: 100)")
     parser.add_argument("--monster-hp", type=int, default=100, help="Monster HP (default: 100)")
-    parser.add_argument("--monster-dmg", type=int, default=10, help="Monster base damage (default: 10)")
+    parser.add_argument("--monster-dmg", type=int, default=8, help="Monster base damage (default: 8)")
     parser.add_argument("--monster-inc", type=int, default=2, help="Monster damage increase/turn (default: 2)")
-    parser.add_argument("--hero-hp", type=int, default=100, help="Hero HP (default: 100)")
+    parser.add_argument("--hero-hp", type=int, default=200, help="Hero HP (default: 200)")
+    parser.add_argument("--monsters", type=int, default=2, help="Number of monsters (default: 2)")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show turn-by-turn log")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     args = parser.parse_args()
@@ -597,6 +589,7 @@ if __name__ == "__main__":
         "monster_hp": args.monster_hp,
         "monster_dmg": args.monster_dmg,
         "monster_inc": args.monster_inc,
+        "monster_count": args.monsters,
     }
 
     if args.all_combos:
