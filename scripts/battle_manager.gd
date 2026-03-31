@@ -2505,7 +2505,7 @@ func _setup_card_detail_overlay() -> void:
 	_card_detail_overlay.name = "CardDetailOverlay"
 	_card_detail_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_card_detail_overlay.visible = false
-	_card_detail_overlay.z_index = 500
+	_card_detail_overlay.z_index = 600  # Above pile viewer (500)
 	_card_detail_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	# Dark background
