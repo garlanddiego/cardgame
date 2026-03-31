@@ -320,6 +320,15 @@ func _reposition_discard_preview() -> void:
 			cards[card_idx].move_to(pos, 0.0, Vector2(1.0, 1.0), 0.2)
 			cards[card_idx].z_index = 600 + i
 
+func _unhandled_input(event: InputEvent) -> void:
+	# Deselect card on any tap when card is selected but not in targeting mode
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if selected_card != null and not targeting_mode and is_instance_valid(selected_card):
+			selected_card.set_selected(false)
+			selected_card = null
+			focused_card = null
+			update_layout()
+
 func _on_card_long_pressed(card_node: Area2D) -> void:
 	card_long_press_detail.emit(card_node)
 
