@@ -662,23 +662,15 @@ func start_player_turn() -> void:
 		# Wraith Form: lose dexterity each turn (stacks = dex loss per turn)
 		if hero.active_powers.get("wraith_form", 0) > 0:
 			hero.apply_status("dexterity", -hero.active_powers["wraith_form"])
-		# Brutality: lose 1 HP, draw 1 card
+		# Brutality: lose HP and draw cards (stacks)
 		if hero.active_powers.get("brutality", 0) > 0:
-			hero.take_damage_direct(1)
-			draw_cards(1)
-		# Tools of the Trade: draw 1, discard 1
+			var stacks: int = hero.active_powers["brutality"]
+			hero.take_damage_direct(stacks)
+			draw_cards(stacks)
+		# Tools of the Trade: draw N, then show discard selection for N
 		if hero.active_powers.get("tools_of_the_trade", 0) > 0:
-			draw_cards(1)
-			if not hand.is_empty():
-				var idx: int = randi() % hand.size()
-				var card_data = hand[idx]
-				discard_pile.append(card_data)
-				_check_sly_on_discard(card_data)
-				hand.remove_at(idx)
-				if card_hand:
-					card_hand.clear_hand()
-					for c in hand:
-						card_hand.add_card(c, false)
+			_tools_discard_count = hero.active_powers["tools_of_the_trade"]
+			draw_cards(_tools_discard_count)
 
 	# Reset block for each hero (unless that hero has Barricade or Blur)
 	for hero in _get_all_alive_heroes():
@@ -735,6 +727,13 @@ func start_player_turn() -> void:
 	_update_unplayable_ids()
 	_update_energy_label()
 	_update_pile_labels()
+
+	# Tools of the Trade: show discard selection after draw phase
+	if _tools_discard_count > 0 and not hand.is_empty():
+		var to_discard: int = mini(_tools_discard_count, hand.size())
+		_tools_discard_count = 0
+		_show_discard_selection(to_discard, _on_tools_discard_complete)
+		return  # Player turn continues after discard selection
 	if turn_label:
 		var loc = _get_loc()
 		if loc:
@@ -1803,9 +1802,9 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			if hero:
 				hero.apply_status("intangible", 3 if is_plus else 2)
 		"tools_of_the_trade":
-			power_stacks = 0  # Binary — no number
+			power_stacks = 1  # Draw/discard per turn, stackable
 		"brutality":
-			power_stacks = 0  # Binary — no number
+			power_stacks = 1  # Draw per turn (costs 1HP), stackable
 		"combust":
 			power_stacks = 7 if is_plus else 5  # Damage per turn to all
 		"dark_embrace":
@@ -2014,6 +2013,13 @@ func _on_retain_complete() -> void:
 	_finish_end_of_turn()
 
 var _retain_applied: bool = false  # Set by _on_retain_complete to skip hand discard
+var _tools_discard_count: int = 0  # Tools of the Trade discards pending
+
+func _on_tools_discard_complete() -> void:
+	## Called after Tools of the Trade discard selection completes
+	if card_hand:
+		card_hand.update_card_playability(current_energy)
+	_check_battle_end()
 
 func _finish_end_of_turn() -> void:
 	## Common end-of-turn logic after retain selection (or when no retain)
