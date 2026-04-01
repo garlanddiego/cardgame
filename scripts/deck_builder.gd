@@ -766,7 +766,12 @@ func _on_fly_animation_done(card_id: String, fly_card: Control) -> void:
 		# Track insertion order — newest first
 		_cart_insertion_order.erase(card_id)
 		_cart_insertion_order.push_front(card_id)
-	_populate_browse()
+	# Remove the card from browse grid without rebuilding everything
+	if browse_grid:
+		var browse_node = browse_grid.get_node_or_null("Browse_" + card_id)
+		if browse_node:
+			browse_grid.remove_child(browse_node)
+			browse_node.queue_free()
 	_rebuild_cart_list()
 	_update_cart_ui()
 
