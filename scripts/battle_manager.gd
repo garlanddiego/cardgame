@@ -848,11 +848,8 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	if not _can_play_card(card_data):
 		return
 
-	# In dual hero mode, route self-targeting cards to the matching hero
-	if dual_hero_mode:
-		var target_type: String = card_data.get("target", "enemy")
-		if target_type == "self":
-			target = _get_self_target(card_data)
+	# In dual hero mode, self-targeting cards target whoever the player clicked
+	# (target is already set by card_hand play flow — don't override it)
 
 	# Handle X-cost cards (Whirlwind)
 	var cost: int = card_data.get("cost", 0)
