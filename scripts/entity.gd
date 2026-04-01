@@ -713,7 +713,8 @@ func _update_power_display() -> void:
 			var icon = TextureRect.new()
 			icon.texture = tex
 			icon.custom_minimum_size = Vector2(28, 28)
-			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.size = Vector2(28, 28)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(icon)
