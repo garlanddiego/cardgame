@@ -2016,8 +2016,12 @@ var _tools_discard_count: int = 0  # Tools of the Trade discards pending
 
 func _on_tools_discard_complete() -> void:
 	## Called after Tools of the Trade discard selection completes
+	_update_unplayable_ids()
 	if card_hand:
+		card_hand.current_battle_energy = current_energy
 		card_hand.update_card_playability(current_energy)
+	_update_pile_labels()
+	_refresh_enemy_intents()
 	_check_battle_end()
 
 func _finish_end_of_turn() -> void:
