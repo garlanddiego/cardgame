@@ -394,7 +394,12 @@ func _on_swap_heroes() -> void:
 	var temp = player
 	player = second_player
 	second_player = temp
-	# Names stay the same, no front/back row labels
+	# Swap character IDs
+	var temp_id = _player_character_id
+	_player_character_id = _second_character_id
+	_second_character_id = temp_id
+	# Update monster intents based on new front hero
+	_refresh_enemy_intents()
 
 func _on_second_player_died() -> void:
 	# Check if both players are dead
