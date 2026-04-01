@@ -725,8 +725,8 @@ func _update_power_display() -> void:
 			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
 			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(fallback)
-		# Only show stack number if stacks > 1 (binary powers show no number)
-		if stacks > 1:
+		# Show stack number for all powers with stacks >= 1
+		if stacks >= 1:
 			var lbl = Label.new()
 			lbl.text = str(stacks)
 			lbl.add_theme_font_size_override("font_size", 16)
