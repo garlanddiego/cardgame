@@ -2467,9 +2467,29 @@ func _unhandled_input(event: InputEvent) -> void:
 			_clear_damage_previews()
 			_hovered_enemy = null
 			card_hand.update_layout()
-	# Left click during targeting: check target type and play
+	# Left click during targeting: check if clicking on the selected card (deselect) or target
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if card_hand and card_hand.is_targeting() and card_hand.selected_card:
+			# Check if click is on the selected card itself → deselect
+			var click_pos_check: Vector2 = event.global_position
+			var sel_card = card_hand.selected_card
+			var card_global_pos: Vector2 = sel_card.global_position
+			var card_rect = Rect2(card_global_pos, Vector2(296, 422) * sel_card.scale)
+			if card_rect.has_point(click_pos_check):
+				# Clicking on the selected card → deselect
+				sel_card.set_selected(false)
+				card_hand.selected_card = null
+				card_hand.targeting_mode = false
+				card_hand.focused_card = null
+				_clear_all_enemy_highlights()
+				_unhighlight_heroes()
+				_clear_damage_previews()
+				_hovered_enemy = null
+				if _targeting_arrow:
+					_targeting_arrow.hide_arrow()
+					_targeting_arrow.visible = false
+				card_hand.update_layout()
+				return
 			var card_data: Dictionary = card_hand.get_selected_card_data()
 			var target_type: String = card_data.get("target", "enemy")
 			if target_type == "self":
