@@ -701,6 +701,7 @@ func _update_power_display() -> void:
 		var container = HBoxContainer.new()
 		container.name = "PowerIcon_" + power_id
 		container.mouse_filter = Control.MOUSE_FILTER_PASS
+		container.focus_mode = Control.FOCUS_NONE
 		var power_name: String = POWER_NAMES.get(power_id, power_id)
 		container.gui_input.connect(_on_power_icon_clicked.bind(container, power_name, power_id, stacks))
 		container.mouse_entered.connect(_on_icon_hover_enter.bind(container, power_name, power_id, stacks))
