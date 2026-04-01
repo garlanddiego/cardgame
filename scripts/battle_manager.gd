@@ -3727,22 +3727,8 @@ func _auto_discard(count: int) -> void:
 	_update_pile_labels()
 
 func _check_sly_on_discard(card_data: Dictionary) -> void:
-	## On-discard triggers: sly, reflex, tactician
+	## On-discard triggers: sly cards (includes Reflex, Tactician, Flick-Flack, etc.)
 	var special: String = card_data.get("special", "")
-	# Reflex: draw 2 cards when discarded
-	if special == "reflex":
-		if battle_active and player and player.alive:
-			draw_cards(2)
-		return
-	# Tactician: gain 1 Energy when discarded
-	if special == "tactician":
-		if battle_active:
-			current_energy += 1
-			_update_energy_label()
-			if card_hand:
-				card_hand.current_battle_energy = current_energy
-				card_hand.update_card_playability(current_energy)
-		return
 	if special != "sly":
 		return
 	if not battle_active or player == null or not player.alive:
