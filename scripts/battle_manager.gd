@@ -938,6 +938,7 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		discard_pile.append(card_data)
 
 	_update_pile_labels()
+	_refresh_enemy_intents()
 
 	# Re-update card playability (card effects may have changed energy)
 	_update_unplayable_ids()
@@ -2354,6 +2355,32 @@ func _on_deck_count_clicked() -> void:
 		return a.get("name", "") < b.get("name", "")
 	)
 	_show_pile_viewer("战斗卡组 (%d)" % all_cards.size(), all_cards)
+
+func _refresh_enemy_intents() -> void:
+	## Recalculate enemy intent display values based on current statuses
+	var front = get_front_player()
+	for enemy in enemies:
+		if not enemy.alive or enemy.intent.is_empty():
+			continue
+		var intent_type: String = enemy.intent.get("type", "")
+		if intent_type != "attack" and intent_type != "attack_block":
+			continue
+		var base_dmg: int = enemy.intent.get("value", enemy.intent.get("damage", 0))
+		var times: int = enemy.intent.get("times", 1)
+		# Apply enemy's strength
+		var actual_dmg: int = enemy.get_attack_damage(base_dmg)
+		# Apply hero's vulnerable (50% more damage taken)
+		if front and front.status_effects.get("vulnerable", 0) > 0:
+			actual_dmg = int(ceil(float(actual_dmg) * 1.5))
+		# Apply hero's intangible (cap at 1)
+		if front and front.status_effects.get("intangible", 0) > 0:
+			actual_dmg = 1
+		# Update display text
+		if times > 1:
+			enemy.intent["desc"] = "%dx%d" % [actual_dmg, times]
+		else:
+			enemy.intent["desc"] = str(actual_dmg)
+		enemy.update_intent_display()
 
 var _hovered_enemy: Node2D = null
 var _targeting_arrow: Node2D = null  # TargetingArrow (chain-style bezier)
