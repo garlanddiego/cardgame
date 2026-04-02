@@ -123,7 +123,26 @@ var _damage_preview_labels: Array = []
 # Turn banner
 var _turn_banner: Label = null
 
+const BATTLE_BACKGROUNDS: Array[String] = [
+	"res://assets/img/dungeon_bg_sts.png",
+	"res://assets/img/battle_bg_1.png",
+	"res://assets/img/battle_bg_2.png",
+	"res://assets/img/battle_bg_3.png",
+	"res://assets/img/battle_bg_4.png",
+	"res://assets/img/battle_bg_5.png",
+]
+
 func _ready() -> void:
+	# Random battle background
+	var bg_node = get_node_or_null("Background") as TextureRect
+	if bg_node:
+		var available: Array[String] = []
+		for path in BATTLE_BACKGROUNDS:
+			if ResourceLoader.exists(path):
+				available.append(path)
+		if not available.is_empty():
+			bg_node.texture = load(available[randi() % available.size()])
+
 	# Preload entity template scene
 	_entity_template = preload("res://scenes/entity_template.tscn")
 

@@ -2,6 +2,7 @@ extends Control
 ## res://scripts/standard_mode.gd — Standard Mode: map, battles, rewards, rest, shop
 
 const MonstersDB = preload("res://scripts/monsters.gd")
+const CardScript = preload("res://scripts/card.gd")
 
 enum Phase { DRAFT, MAP, BATTLE, REWARD, REST, SHOP, VICTORY, DEFEAT }
 var phase: Phase = Phase.DRAFT
@@ -18,7 +19,11 @@ var _pending_node: Dictionary = {}
 
 # Draft state
 var _draft_round: int = 0
-var _draft_total_rounds: int = 3
+var _draft_total_rounds: int = 4
+var _draft_hero_order: Array = ["ironclad", "silent", "ironclad", "silent"]
+var _draft_picked_cards: Array = []  # card data dicts picked so far
+var _draft_status_bar: HBoxContainer = null  # top status bar
+var _draft_card_count_label: Label = null
 
 func _ready() -> void:
   # Let input pass through to battle scene's Area2D cards
@@ -64,152 +69,163 @@ func _show_draft() -> void:
   var bg := ColorRect.new()
   bg.color = Color(0, 0, 0, 0.9)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.add_child(bg)
 
-  var center := CenterContainer.new()
-  center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  _overlay.add_child(center)
+  var hero_id: String = _draft_hero_order[_draft_round - 1]
+  var hero_name: String = "铁甲战士" if hero_id == "ironclad" else "沉默猎手"
+  var hero_color: Color = Color(0.85, 0.2, 0.2) if hero_id == "ironclad" else Color(0.2, 0.7, 0.3)
 
-  var vbox := VBoxContainer.new()
-  vbox.add_theme_constant_override("separation", 20)
-  vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  center.add_child(vbox)
+  # === Top status bar ===
+  var top_bar := PanelContainer.new()
+  var bar_style := StyleBoxFlat.new()
+  bar_style.bg_color = Color(0.08, 0.06, 0.04, 0.95)
+  bar_style.border_color = Color(0.4, 0.3, 0.15)
+  bar_style.border_width_bottom = 2
+  bar_style.content_margin_left = 20
+  bar_style.content_margin_right = 20
+  bar_style.content_margin_top = 10
+  bar_style.content_margin_bottom = 10
+  top_bar.add_theme_stylebox_override("panel", bar_style)
+  top_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+  top_bar.offset_bottom = 60
+  _overlay.add_child(top_bar)
 
-  # Title
+  var bar_hbox := HBoxContainer.new()
+  bar_hbox.add_theme_constant_override("separation", 30)
+  top_bar.add_child(bar_hbox)
+
+  # Round indicator
+  var round_label := Label.new()
+  round_label.text = "第 %d/%d 轮" % [_draft_round, _draft_total_rounds]
+  round_label.add_theme_font_size_override("font_size", 24)
+  round_label.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
+  bar_hbox.add_child(round_label)
+
+  # Hero name for this round
+  var hero_label := Label.new()
+  hero_label.text = hero_name
+  hero_label.add_theme_font_size_override("font_size", 24)
+  hero_label.add_theme_color_override("font_color", hero_color)
+  bar_hbox.add_child(hero_label)
+
+  # Spacer
+  var spacer_ctrl := Control.new()
+  spacer_ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  bar_hbox.add_child(spacer_ctrl)
+
+  # My cards count (right side)
+  _draft_card_count_label = Label.new()
+  _draft_card_count_label.text = "我的卡牌: %d 张" % _draft_picked_cards.size()
+  _draft_card_count_label.add_theme_font_size_override("font_size", 22)
+  _draft_card_count_label.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
+  bar_hbox.add_child(_draft_card_count_label)
+
+  # === Round dots ===
+  _draft_status_bar = HBoxContainer.new()
+  _draft_status_bar.add_theme_constant_override("separation", 12)
+  _draft_status_bar.position = Vector2(0, 70)
+  _draft_status_bar.size = Vector2(1920, 30)
+  _draft_status_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+  _overlay.add_child(_draft_status_bar)
+  for i in range(_draft_total_rounds):
+    var dot := Label.new()
+    if i < _draft_round - 1:
+      dot.text = "●"
+      dot.add_theme_color_override("font_color", Color(0.4, 0.8, 0.3))
+    elif i == _draft_round - 1:
+      dot.text = "◉"
+      dot.add_theme_color_override("font_color", hero_color)
+    else:
+      dot.text = "○"
+      dot.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+    dot.add_theme_font_size_override("font_size", 22)
+    _draft_status_bar.add_child(dot)
+
+  # === Title ===
   var title := Label.new()
-  title.text = "初始选牌  第 %d/%d 轮" % [_draft_round, _draft_total_rounds]
-  title.add_theme_font_size_override("font_size", 42)
-  title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
+  title.text = "选择一张卡牌"
+  title.add_theme_font_size_override("font_size", 36)
+  title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(title)
+  title.position = Vector2(0, 120)
+  title.size = Vector2(1920, 50)
+  _overlay.add_child(title)
 
-  var deck_info := Label.new()
-  deck_info.text = "当前卡组: %d 张" % run.deck.size()
-  deck_info.add_theme_font_size_override("font_size", 20)
-  deck_info.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-  deck_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(deck_info)
+  # === 3 card options (battle-style visuals) ===
+  var cards := _random_cards_for_hero(hero_id, 3)
+  var card_w: float = 280.0
+  var card_h: float = 400.0
+  var gap: float = 60.0
+  var total_w: float = cards.size() * card_w + (cards.size() - 1) * gap
+  var start_x: float = (1920.0 - total_w) / 2.0
+  var card_y: float = 200.0
+  var loc = get_node_or_null("/root/Loc")
 
-  vbox.add_child(_spacer(10))
+  for i in range(cards.size()):
+    var card_data: Dictionary = cards[i]
+    var container := Control.new()
+    container.position = Vector2(start_x + i * (card_w + gap), card_y)
+    container.size = Vector2(card_w, card_h)
+    container.mouse_filter = Control.MOUSE_FILTER_STOP
+    container.gui_input.connect(_on_draft_card_clicked.bind(card_data, container))
+    _overlay.add_child(container)
+    # Render battle-style card visual
+    var visual := CardScript.create_card_visual(card_data, Vector2(card_w, card_h), loc)
+    container.add_child(visual)
+    # Hover highlight
+    container.mouse_entered.connect(func():
+      container.modulate = Color(1.2, 1.2, 1.2)
+    )
+    container.mouse_exited.connect(func():
+      container.modulate = Color(1, 1, 1)
+    )
 
-  # Ironclad cards row
-  var ic_label := Label.new()
-  ic_label.text = "铁甲战士 — 选择一张 (或跳过)"
-  ic_label.add_theme_font_size_override("font_size", 24)
-  ic_label.add_theme_color_override("font_color", Color(0.8, 0.2, 0.2))
-  ic_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(ic_label)
-
-  var ic_cards := _random_cards_for_hero("ironclad", 3)
-  var ic_row := _create_draft_row(ic_cards, "ironclad")
-  vbox.add_child(ic_row)
-
-  vbox.add_child(_spacer(10))
-
-  # Silent cards row
-  var si_label := Label.new()
-  si_label.text = "沉默猎手 — 选择一张 (或跳过)"
-  si_label.add_theme_font_size_override("font_size", 24)
-  si_label.add_theme_color_override("font_color", Color(0.2, 0.7, 0.3))
-  si_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(si_label)
-
-  var si_cards := _random_cards_for_hero("silent", 3)
-  var si_row := _create_draft_row(si_cards, "silent")
-  vbox.add_child(si_row)
-
-  vbox.add_child(_spacer(10))
-
-  # Skip both button
-  var skip_btn := _styled_button("两组都跳过 →", Color(0.4, 0.4, 0.4))
-  skip_btn.pressed.connect(_on_draft_skip.bind(null, null))
-  vbox.add_child(skip_btn)
-
-var _draft_ic_done: bool = false
-var _draft_si_done: bool = false
-var _draft_ic_row: HBoxContainer = null
-var _draft_si_row: HBoxContainer = null
-
-func _create_draft_row(cards: Array, hero_id: String) -> HBoxContainer:
-  var row := HBoxContainer.new()
-  row.add_theme_constant_override("separation", 20)
-  row.alignment = BoxContainer.ALIGNMENT_CENTER
-  for card_data in cards:
-    var btn := _create_card_button(card_data)
-    btn.custom_minimum_size = Vector2(260, 140)
-    var cid: String = card_data["id"]
-    btn.pressed.connect(_on_draft_card_picked.bind(hero_id, cid))
-    row.add_child(btn)
-  # Skip button for this hero
-  var skip := Button.new()
-  skip.text = "跳过"
-  skip.custom_minimum_size = Vector2(80, 60)
-  skip.add_theme_font_size_override("font_size", 20)
-  skip.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+  # === Skip button ===
+  var skip_btn := Button.new()
+  skip_btn.text = "跳过本轮"
+  skip_btn.custom_minimum_size = Vector2(180, 50)
+  skip_btn.add_theme_font_size_override("font_size", 22)
+  skip_btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
   var skip_style := StyleBoxFlat.new()
-  skip_style.bg_color = Color(0.2, 0.2, 0.2, 0.5)
+  skip_style.bg_color = Color(0.15, 0.15, 0.15, 0.7)
   skip_style.set_border_width_all(1)
-  skip_style.border_color = Color(0.4, 0.4, 0.4)
-  skip_style.set_corner_radius_all(6)
-  skip.add_theme_stylebox_override("normal", skip_style)
-  skip.pressed.connect(_on_draft_card_picked.bind(hero_id, ""))
-  row.add_child(skip)
-  if hero_id == "ironclad":
-    _draft_ic_row = row
-  else:
-    _draft_si_row = row
-  return row
+  skip_style.border_color = Color(0.3, 0.3, 0.3)
+  skip_style.set_corner_radius_all(8)
+  skip_btn.add_theme_stylebox_override("normal", skip_style)
+  var skip_hover := skip_style.duplicate() as StyleBoxFlat
+  skip_hover.bg_color = Color(0.25, 0.25, 0.25, 0.7)
+  skip_btn.add_theme_stylebox_override("hover", skip_hover)
+  skip_btn.position = Vector2((1920.0 - 180.0) / 2.0, card_y + card_h + 40.0)
+  skip_btn.pressed.connect(_advance_draft)
+  _overlay.add_child(skip_btn)
 
-func _on_draft_card_picked(hero_id: String, card_id: String) -> void:
-  # Prevent double-pick from same row
-  if hero_id == "ironclad" and _draft_ic_done:
+var _draft_picking: bool = false
+
+func _on_draft_card_clicked(event: InputEvent, card_data: Dictionary, container: Control) -> void:
+  if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
     return
-  if hero_id == "silent" and _draft_si_done:
+  if _draft_picking:
     return
-  # Add card to deck (skip if empty = user chose skip)
+  _draft_picking = true
+
+  var card_id: String = card_data.get("id", "")
   if card_id != "":
     run.add_card(card_id)
-  # Dim the row to show selection made
-  if hero_id == "ironclad":
-    _draft_ic_done = true
-    if _draft_ic_row:
-      for child in _draft_ic_row.get_children():
-        child.modulate = Color(0.4, 0.4, 0.4, 0.6)
-        if child is Button:
-          (child as Button).disabled = true
-  else:
-    _draft_si_done = true
-    if _draft_si_row:
-      for child in _draft_si_row.get_children():
-        child.modulate = Color(0.4, 0.4, 0.4, 0.6)
-        if child is Button:
-          (child as Button).disabled = true
-  # Both done? Advance
-  if _draft_ic_done and _draft_si_done:
-    _advance_draft()
+    _draft_picked_cards.append(card_data)
 
-func _on_draft_skip(_ic: Variant, _si: Variant) -> void:
-  if not _draft_ic_done:
-    _draft_ic_done = true
-    if _draft_ic_row:
-      for child in _draft_ic_row.get_children():
-        child.modulate = Color(0.4, 0.4, 0.4, 0.6)
-        if child is Button:
-          (child as Button).disabled = true
-  if not _draft_si_done:
-    _draft_si_done = true
-    if _draft_si_row:
-      for child in _draft_si_row.get_children():
-        child.modulate = Color(0.4, 0.4, 0.4, 0.6)
-        if child is Button:
-          (child as Button).disabled = true
-  _advance_draft()
+  # Fly animation: card flies to top-right corner
+  var target_pos := Vector2(1920.0 - 60.0, 10.0)
+  var tween := create_tween()
+  tween.set_ease(Tween.EASE_IN_OUT)
+  tween.set_trans(Tween.TRANS_CUBIC)
+  tween.tween_property(container, "position", target_pos, 0.4)
+  tween.parallel().tween_property(container, "scale", Vector2(0.15, 0.15), 0.4)
+  tween.parallel().tween_property(container, "modulate:a", 0.0, 0.35).set_delay(0.2)
+  tween.tween_callback(_advance_draft)
 
 func _advance_draft() -> void:
-  _draft_ic_done = false
-  _draft_si_done = false
-  _draft_ic_row = null
-  _draft_si_row = null
+  _draft_picking = false
   if _draft_round >= _draft_total_rounds:
     _show_map()
   else:
