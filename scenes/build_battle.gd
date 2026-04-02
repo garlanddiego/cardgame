@@ -105,45 +105,25 @@ func _initialize() -> void:
 	energy_label.add_theme_color_override("font_color", Color(0.200, 0.600, 1.0, 1.0))  # energy_blue
 	energy_container.add_child(energy_label)
 
-	# Draw pile panel (bottom left) — clickable, original position
-	var draw_panel = Panel.new()
-	draw_panel.name = "DrawPanel"
-	draw_panel.position = Vector2(60, 900)
-	draw_panel.size = Vector2(120, 36)
-	var draw_style = StyleBoxFlat.new()
-	draw_style.bg_color = Color(0.1, 0.15, 0.25, 0.7)
-	draw_style.set_corner_radius_all(4)
-	draw_style.content_margin_left = 8
-	draw_style.content_margin_top = 4
-	draw_panel.add_theme_stylebox_override("panel", draw_style)
-	draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	hud.add_child(draw_panel)
+	# Draw pile label (bottom left) — original layout from morning
 	var draw_pile_label = Label.new()
 	draw_pile_label.name = "DrawPileLabel"
 	draw_pile_label.text = "抽牌: 0"
+	draw_pile_label.position = Vector2(60, 900)
 	draw_pile_label.add_theme_font_size_override("font_size", 18)
 	draw_pile_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
-	draw_panel.add_child(draw_pile_label)
+	draw_pile_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud.add_child(draw_pile_label)
 
-	# Discard pile panel (bottom right) — clickable, original position
-	var discard_panel = Panel.new()
-	discard_panel.name = "DiscardPanel"
-	discard_panel.position = Vector2(1740, 900)
-	discard_panel.size = Vector2(140, 36)
-	var discard_style = StyleBoxFlat.new()
-	discard_style.bg_color = Color(0.25, 0.1, 0.1, 0.7)
-	discard_style.set_corner_radius_all(4)
-	discard_style.content_margin_left = 8
-	discard_style.content_margin_top = 4
-	discard_panel.add_theme_stylebox_override("panel", discard_style)
-	discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	hud.add_child(discard_panel)
+	# Discard pile label (bottom right) — original layout from morning
 	var discard_label = Label.new()
 	discard_label.name = "DiscardPileLabel"
 	discard_label.text = "弃牌: 0"
+	discard_label.position = Vector2(1740, 900)
 	discard_label.add_theme_font_size_override("font_size", 18)
 	discard_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.7))
-	discard_panel.add_child(discard_label)
+	discard_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud.add_child(discard_label)
 
 	# End turn button — per spec section 4.6: 220x56, positioned at 1680,762
 	var end_turn_btn = Button.new()

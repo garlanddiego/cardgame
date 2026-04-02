@@ -17,6 +17,7 @@ var _battle_instance: Node2D = null
 var _current_monsters: Array = []  # [{id, hp}]
 var _pending_node: Dictionary = {}
 var _persistent_hud_canvas: CanvasLayer = null
+var _main_bg: ColorRect = null
 
 # Draft state
 var _draft_round: int = 0
@@ -38,12 +39,12 @@ func _ready() -> void:
   _show_draft()
 
 func _build_ui() -> void:
-  # Dark background
-  var bg := ColorRect.new()
-  bg.color = Color(0.05, 0.04, 0.03)
-  bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  add_child(bg)
+  # Dark background (hidden during battle so battle's own bg shows)
+  _main_bg = ColorRect.new()
+  _main_bg.color = Color(0.05, 0.04, 0.03)
+  _main_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  _main_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  add_child(_main_bg)
   # Map layer
   _map_layer = Control.new()
   _map_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -340,6 +341,8 @@ func _show_map() -> void:
   phase = Phase.MAP
   _map_layer.visible = true
   _overlay.visible = false
+  if _main_bg:
+    _main_bg.visible = true
   if _persistent_hud_canvas:
     _persistent_hud_canvas.visible = true
   if _battle_instance:
@@ -547,6 +550,8 @@ func _start_battle(nd: Dictionary) -> void:
   _map_layer.visible = false
   _overlay.visible = false  # Hide any overlay from previous phase
   _clear_children(_overlay)
+  if _main_bg:
+    _main_bg.visible = false  # Hide so battle's own background shows
   if _persistent_hud_canvas:
     _persistent_hud_canvas.visible = false  # Hide: battle has its own TopStatusBar
 

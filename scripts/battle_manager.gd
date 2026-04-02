@@ -174,11 +174,15 @@ func _ready() -> void:
 	# AI Recommend button — below End Turn
 	_create_ai_button()
 
-	# Connect draw/discard panel click signals (panels are pre-styled in scene)
+	# Connect draw/discard click signals
 	if draw_panel:
 		draw_panel.gui_input.connect(_on_draw_pile_clicked)
+	elif draw_pile_label:
+		draw_pile_label.gui_input.connect(_on_draw_pile_clicked)
 	if discard_panel:
 		discard_panel.gui_input.connect(_on_discard_pile_clicked)
+	elif discard_label:
+		discard_label.gui_input.connect(_on_discard_pile_clicked)
 
 	# Exit button — return to character select / deck builder
 	var exit_btn = get_node_or_null("HUDLayer/HUD/ExitButton")
