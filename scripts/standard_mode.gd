@@ -23,7 +23,7 @@ var _draft_total_rounds: int = 4
 var _draft_hero_order: Array = ["ironclad", "silent", "ironclad", "silent"]
 var _draft_picked_cards: Array = []  # card data dicts picked so far
 var _draft_status_bar: HBoxContainer = null  # top status bar
-var _draft_card_count_label: Label = null
+var _draft_card_count_label: Button = null
 
 func _ready() -> void:
   # Let input pass through to battle scene's Area2D cards
@@ -114,12 +114,25 @@ func _show_draft() -> void:
   spacer_ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   bar_hbox.add_child(spacer_ctrl)
 
-  # My cards count (right side)
-  _draft_card_count_label = Label.new()
-  _draft_card_count_label.text = "我的卡牌: %d 张" % _draft_picked_cards.size()
-  _draft_card_count_label.add_theme_font_size_override("font_size", 22)
-  _draft_card_count_label.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
-  bar_hbox.add_child(_draft_card_count_label)
+  # My cards button (right side, clickable)
+  var my_cards_btn := Button.new()
+  my_cards_btn.text = "我的卡牌 (%d)" % _draft_picked_cards.size()
+  my_cards_btn.add_theme_font_size_override("font_size", 22)
+  my_cards_btn.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
+  var mcb_style := StyleBoxFlat.new()
+  mcb_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
+  mcb_style.border_color = Color(0.5, 0.4, 0.2)
+  mcb_style.set_border_width_all(1)
+  mcb_style.set_corner_radius_all(6)
+  mcb_style.content_margin_left = 12
+  mcb_style.content_margin_right = 12
+  my_cards_btn.add_theme_stylebox_override("normal", mcb_style)
+  var mcb_hover := mcb_style.duplicate() as StyleBoxFlat
+  mcb_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+  my_cards_btn.add_theme_stylebox_override("hover", mcb_hover)
+  my_cards_btn.pressed.connect(_show_draft_deck_viewer)
+  bar_hbox.add_child(my_cards_btn)
+  _draft_card_count_label = my_cards_btn
 
   # === Round dots ===
   _draft_status_bar = HBoxContainer.new()
@@ -214,8 +227,14 @@ func _on_draft_card_clicked(event: InputEvent, card_data: Dictionary, container:
     run.add_card(card_id)
     _draft_picked_cards.append(card_data)
 
-  # Fly animation: card flies to top-right corner
-  var target_pos := Vector2(1920.0 - 60.0, 10.0)
+  # Update card count button
+  if _draft_card_count_label:
+    _draft_card_count_label.text = "我的卡牌 (%d)" % _draft_picked_cards.size()
+
+  # Fly animation: card flies to "My Cards" button (top-right corner)
+  var target_pos := Vector2(1920.0 - 120.0, 10.0)
+  if _draft_card_count_label:
+    target_pos = _draft_card_count_label.global_position
   var tween := create_tween()
   tween.set_ease(Tween.EASE_IN_OUT)
   tween.set_trans(Tween.TRANS_CUBIC)
@@ -223,6 +242,69 @@ func _on_draft_card_clicked(event: InputEvent, card_data: Dictionary, container:
   tween.parallel().tween_property(container, "scale", Vector2(0.15, 0.15), 0.4)
   tween.parallel().tween_property(container, "modulate:a", 0.0, 0.35).set_delay(0.2)
   tween.tween_callback(_advance_draft)
+
+func _show_draft_deck_viewer() -> void:
+  # Show overlay with all picked cards so far
+  var viewer := Control.new()
+  viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  _overlay.add_child(viewer)
+
+  var vbg := ColorRect.new()
+  vbg.color = Color(0, 0, 0, 0.85)
+  vbg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  vbg.mouse_filter = Control.MOUSE_FILTER_STOP
+  viewer.add_child(vbg)
+
+  var vtitle := Label.new()
+  vtitle.text = "已选卡牌 (%d)" % _draft_picked_cards.size()
+  vtitle.add_theme_font_size_override("font_size", 36)
+  vtitle.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
+  vtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  vtitle.position = Vector2(0, 30)
+  vtitle.size = Vector2(1920, 50)
+  viewer.add_child(vtitle)
+
+  if _draft_picked_cards.is_empty():
+    var empty_label := Label.new()
+    empty_label.text = "还没有选择卡牌"
+    empty_label.add_theme_font_size_override("font_size", 24)
+    empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+    empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    empty_label.position = Vector2(0, 400)
+    empty_label.size = Vector2(1920, 50)
+    viewer.add_child(empty_label)
+  else:
+    var loc = get_node_or_null("/root/Loc")
+    var card_w: float = 200.0
+    var card_h: float = 280.0
+    var gap: float = 20.0
+    var cols: int = mini(_draft_picked_cards.size(), 6)
+    var total_w: float = cols * card_w + (cols - 1) * gap
+    var sx: float = (1920.0 - total_w) / 2.0
+    for i in range(_draft_picked_cards.size()):
+      var cd: Dictionary = _draft_picked_cards[i]
+      var col: int = i % 6
+      var row: int = i / 6
+      var c := Control.new()
+      c.position = Vector2(sx + col * (card_w + gap), 100.0 + row * (card_h + 20.0))
+      c.size = Vector2(card_w, card_h)
+      c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      viewer.add_child(c)
+      var vis := CardScript.create_card_visual(cd, Vector2(card_w, card_h), loc)
+      c.add_child(vis)
+
+  # Close button
+  var close_btn := Button.new()
+  close_btn.text = "返回"
+  close_btn.custom_minimum_size = Vector2(160, 50)
+  close_btn.add_theme_font_size_override("font_size", 24)
+  var close_style := StyleBoxFlat.new()
+  close_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+  close_style.set_corner_radius_all(8)
+  close_btn.add_theme_stylebox_override("normal", close_style)
+  close_btn.position = Vector2((1920.0 - 160.0) / 2.0, 1080.0 - 80.0)
+  close_btn.pressed.connect(func(): viewer.queue_free())
+  viewer.add_child(close_btn)
 
 func _advance_draft() -> void:
   _draft_picking = false
