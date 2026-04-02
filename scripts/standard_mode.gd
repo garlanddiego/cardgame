@@ -21,6 +21,8 @@ var _draft_round: int = 0
 var _draft_total_rounds: int = 3
 
 func _ready() -> void:
+  # Let input pass through to battle scene's Area2D cards
+  mouse_filter = Control.MOUSE_FILTER_IGNORE
   run = get_node_or_null("/root/RunManager")
   gm = get_node_or_null("/root/GameManager")
   if run == null or gm == null:
