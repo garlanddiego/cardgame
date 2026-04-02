@@ -3,7 +3,7 @@ extends Control
 
 func _draw():
 	var center := size / 2
-	var radius := min(size.x, size.y) / 2 - 3.0
+	var radius: float = minf(size.x, size.y) / 2 - 3.0
 	var color := Color(1.0, 0.15, 0.15, 0.95)
 	var width := 3.0
 	# Circle
