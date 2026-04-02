@@ -1087,7 +1087,7 @@ func _show_upgrade_detail(card_id: String) -> void:
   _overlay.add_child(detail)
 
   var dbg := ColorRect.new()
-  dbg.color = Color(0, 0, 0, 0.85)
+  dbg.color = Color(0.05, 0.04, 0.03, 1.0)  # Fully opaque to cover card list
   dbg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   dbg.mouse_filter = Control.MOUSE_FILTER_STOP
   detail.add_child(dbg)
