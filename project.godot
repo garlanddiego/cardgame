@@ -25,6 +25,7 @@ textures/canvas_textures/default_texture_filter=1
 
 GameManager="*res://scripts/game_manager.gd"
 Loc="*res://scripts/localization.gd"
+RunManager="*res://scripts/run_manager.gd"
 
 [input]
 

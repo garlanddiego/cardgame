@@ -85,6 +85,9 @@ var _no_draw_next_turn: bool = false  # Bullet Time
 var _bullet_time_this_turn: bool = false  # All cards cost 0 this turn
 var _setup_mode: bool = false  # Setup card: selected card goes to draw pile top instead of discard
 
+# Standard Mode: custom monster configuration
+var standard_mode_monsters: Array = []  # [{id: "mushroom", hp: 40}, ...]
+
 # Node refs
 var card_hand: Node2D = null
 var energy_label: Label = null
@@ -505,21 +508,45 @@ func _setup_enemies() -> void:
 		return
 	enemies.clear()
 	enemy_ais.clear()
-	var enemy_types = ["slime", "cultist", "jaw_worm", "guardian"]
-	var enemy_configs = {
+
+	# Legacy enemy configs (for non-standard modes)
+	var legacy_configs = {
 		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime_sts.png", "scale_h": 350.0},
 		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist_sts.png", "scale_h": 400.0},
 		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm_sts.png", "scale_h": 380.0},
 		"guardian": {"name": "Guardian", "hp": 1000, "sprite": "res://assets/img/guardian.png", "scale_h": 400.0}
 	}
-	# Select random enemy types based on enemy_count
-	var count: int = clampi(enemy_count, 1, 3)
-	var shuffled_types = enemy_types.duplicate()
-	shuffled_types.shuffle()
-	var selected_enemies: Array = []
-	for i in range(count):
-		selected_enemies.append(shuffled_types[i % shuffled_types.size()])
+
+	# Merge standard mode monster configs
+	var _monsters_script = load("res://scripts/monsters.gd") if ResourceLoader.exists("res://scripts/monsters.gd") else null
+	var monsters_db: Dictionary = _monsters_script.get_all() if _monsters_script else {}
+	for mid in monsters_db:
+		var m: Dictionary = monsters_db[mid]
+		legacy_configs[mid] = {
+			"name": m.get("name", mid),
+			"hp": m.get("base_hp", 50),
+			"sprite": m.get("sprite", ""),
+			"scale_h": m.get("scale_h", 300.0),
+		}
+
+	# Build selected enemies list
+	var selected_enemies: Array = []  # [{type, hp}]
+	if standard_mode_monsters.size() > 0:
+		# Standard mode — use pre-configured monsters
+		for m in standard_mode_monsters:
+			selected_enemies.append({"type": m["id"], "hp": m["hp"]})
+	else:
+		# Legacy mode — random from original 4
+		var enemy_types = ["slime", "cultist", "jaw_worm", "guardian"]
+		var count: int = clampi(enemy_count, 1, 3)
+		var shuffled_types = enemy_types.duplicate()
+		shuffled_types.shuffle()
+		for i in range(count):
+			var etype: String = shuffled_types[i % shuffled_types.size()]
+			var hp: int = config_enemy_hps[i] if i < config_enemy_hps.size() and config_enemy_hps[i] > 0 else legacy_configs[etype]["hp"]
+			selected_enemies.append({"type": etype, "hp": hp})
 	# Position enemies based on count
+	var count: int = selected_enemies.size()
 	var positions: Array = []
 	if count == 1:
 		positions = [Vector2(100, 0)]
@@ -528,21 +555,21 @@ func _setup_enemies() -> void:
 	else:
 		positions = [Vector2(-80, 0), Vector2(120, 0), Vector2(320, 0)]
 	for i in range(count):
-		var etype: String = selected_enemies[i]
-		var config = enemy_configs[etype]
+		var entry: Dictionary = selected_enemies[i]
+		var etype: String = entry["type"]
+		var config: Dictionary = legacy_configs.get(etype, {"name": etype, "hp": 50, "sprite": "", "scale_h": 300.0})
 		var enemy = _create_entity_node(true)
-		var enemy_hp: int = config_enemy_hps[i] if i < config_enemy_hps.size() and config_enemy_hps[i] > 0 else config["hp"]
+		var enemy_hp: int = entry["hp"]
 		enemy.init_entity(enemy_hp, true, etype)
 		enemy.position = positions[i]
 		# Set sprite
 		var sprite = enemy.get_node_or_null("Sprite") as Sprite2D
-		if sprite:
-			var tex = load(config["sprite"])
+		if sprite and config["sprite"] != "":
+			var tex = load(config["sprite"]) if ResourceLoader.exists(config["sprite"]) else null
 			if tex:
 				var tex_height: float = tex.get_height()
 				if tex_height > 0:
 					var sf: float = config["scale_h"] / tex_height
-					# Scale down slightly for multiple enemies
 					if count > 1:
 						sf *= 0.8
 					sprite.scale = Vector2(sf, sf)
