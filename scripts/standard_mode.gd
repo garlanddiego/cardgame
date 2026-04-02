@@ -1005,7 +1005,7 @@ func _show_upgrade_selection() -> void:
   _clear_children(_overlay)
 
   var bg := ColorRect.new()
-  bg.color = Color(0, 0, 0, 0.9)
+  bg.color = Color(0.05, 0.04, 0.03, 1.0)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   _overlay.add_child(bg)
 
@@ -1014,47 +1014,152 @@ func _show_upgrade_selection() -> void:
   title.add_theme_font_size_override("font_size", 36)
   title.add_theme_color_override("font_color", Color(0.3, 0.5, 0.9))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  title.offset_top = 30
+  title.offset_top = 60
   title.offset_right = 1920
   _overlay.add_child(title)
 
-  # Scrollable card grid
-  var scroll := ScrollContainer.new()
-  scroll.offset_top = 80
-  scroll.offset_right = 1920
-  scroll.offset_bottom = 1020
-  _overlay.add_child(scroll)
+  # Card grid with full card visuals
+  var loc = get_node_or_null("/root/Loc")
+  var card_w: float = 180.0
+  var card_h: float = 260.0
+  var gap_x: float = 16.0
+  var gap_y: float = 16.0
+  var cols: int = 7
+  var total_w: float = cols * card_w + (cols - 1) * gap_x
+  var start_x: float = (1920.0 - total_w) / 2.0
+  var start_y: float = 110.0
+  var idx: int = 0
 
-  var grid := GridContainer.new()
-  grid.columns = 6
-  grid.add_theme_constant_override("h_separation", 15)
-  grid.add_theme_constant_override("v_separation", 15)
-  scroll.add_child(grid)
-
+  var upgradeable_cards: Array = []
   for card_id in run.deck:
-    # Skip already-upgraded cards
     if card_id.ends_with("+"):
       continue
     if not gm.card_database.has(card_id):
       continue
-    var cd: Dictionary = gm.card_database[card_id]
-    # Check if upgradeable (has upgrade overrides)
     if not gm._upgrade_overrides_cache.has(card_id):
       continue
-    # Show upgraded version preview
-    var upgraded_cd: Dictionary = gm.get_upgraded_card(card_id)
-    var btn := _create_card_button(upgraded_cd if not upgraded_cd.is_empty() else cd)
-    btn.pressed.connect(_upgrade_card.bind(card_id))
-    grid.add_child(btn)
+    upgradeable_cards.append(card_id)
+
+  for card_id in upgradeable_cards:
+    var cd: Dictionary = gm.card_database[card_id]
+    var col: int = idx % cols
+    var row: int = idx / cols
+    var container := Control.new()
+    container.position = Vector2(start_x + col * (card_w + gap_x), start_y + row * (card_h + gap_y))
+    container.size = Vector2(card_w, card_h)
+    container.mouse_filter = Control.MOUSE_FILTER_STOP
+    container.gui_input.connect(func(event: InputEvent):
+      if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+        _show_upgrade_detail(card_id)
+    )
+    _overlay.add_child(container)
+    var visual := CardScript.create_card_visual(cd, Vector2(card_w, card_h), loc)
+    container.add_child(visual)
+    container.mouse_entered.connect(func(): container.modulate = Color(1.2, 1.2, 1.2))
+    container.mouse_exited.connect(func(): container.modulate = Color(1, 1, 1))
+    idx += 1
 
   # Cancel button
-  var cancel := _styled_button("取消", Color(0.5, 0.5, 0.5))
-  cancel.offset_top = 1030
-  cancel.offset_left = 860
-  cancel.offset_right = 1060
-  cancel.offset_bottom = 1070
+  var cancel := Button.new()
+  cancel.text = "返回"
+  cancel.custom_minimum_size = Vector2(160, 50)
+  cancel.add_theme_font_size_override("font_size", 24)
+  var cancel_style := StyleBoxFlat.new()
+  cancel_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+  cancel_style.set_corner_radius_all(8)
+  cancel.add_theme_stylebox_override("normal", cancel_style)
+  cancel.position = Vector2((1920.0 - 160.0) / 2.0, 1010.0)
   cancel.pressed.connect(_show_rest)
   _overlay.add_child(cancel)
+
+func _show_upgrade_detail(card_id: String) -> void:
+  """Show upgrade detail: before/after with confirm/cancel."""
+  var detail := Control.new()
+  detail.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  _overlay.add_child(detail)
+
+  var dbg := ColorRect.new()
+  dbg.color = Color(0, 0, 0, 0.85)
+  dbg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  dbg.mouse_filter = Control.MOUSE_FILTER_STOP
+  detail.add_child(dbg)
+
+  var loc = get_node_or_null("/root/Loc")
+  var cd: Dictionary = gm.card_database[card_id]
+  var upgraded_cd: Dictionary = gm.get_upgraded_card(card_id)
+
+  # Before card (left)
+  var before_label := Label.new()
+  before_label.text = "当前"
+  before_label.add_theme_font_size_override("font_size", 24)
+  before_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+  before_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  before_label.position = Vector2(480, 120)
+  before_label.size = Vector2(280, 30)
+  detail.add_child(before_label)
+
+  var before_card := Control.new()
+  before_card.position = Vector2(480, 160)
+  before_card.size = Vector2(280, 400)
+  detail.add_child(before_card)
+  before_card.add_child(CardScript.create_card_visual(cd, Vector2(280, 400), loc))
+
+  # Arrow
+  var arrow := Label.new()
+  arrow.text = "→"
+  arrow.add_theme_font_size_override("font_size", 60)
+  arrow.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
+  arrow.position = Vector2(910, 300)
+  detail.add_child(arrow)
+
+  # After card (right, upgraded)
+  var after_label := Label.new()
+  after_label.text = "升级后"
+  after_label.add_theme_font_size_override("font_size", 24)
+  after_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
+  after_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  after_label.position = Vector2(1100, 120)
+  after_label.size = Vector2(280, 30)
+  detail.add_child(after_label)
+
+  var after_card := Control.new()
+  after_card.position = Vector2(1100, 160)
+  after_card.size = Vector2(280, 400)
+  detail.add_child(after_card)
+  var display_cd: Dictionary = upgraded_cd if not upgraded_cd.is_empty() else cd
+  after_card.add_child(CardScript.create_card_visual(display_cd, Vector2(280, 400), loc))
+
+  # Confirm button
+  var confirm := Button.new()
+  confirm.text = "确认升级"
+  confirm.custom_minimum_size = Vector2(200, 56)
+  confirm.add_theme_font_size_override("font_size", 26)
+  var confirm_style := StyleBoxFlat.new()
+  confirm_style.bg_color = Color(0.15, 0.5, 0.15, 0.9)
+  confirm_style.set_corner_radius_all(8)
+  confirm.add_theme_stylebox_override("normal", confirm_style)
+  var confirm_hover := confirm_style.duplicate() as StyleBoxFlat
+  confirm_hover.bg_color = Color(0.2, 0.65, 0.2, 0.95)
+  confirm.add_theme_stylebox_override("hover", confirm_hover)
+  confirm.position = Vector2(760, 620)
+  confirm.pressed.connect(func():
+    _upgrade_card(card_id)
+    detail.queue_free()
+  )
+  detail.add_child(confirm)
+
+  # Back button
+  var back := Button.new()
+  back.text = "返回"
+  back.custom_minimum_size = Vector2(160, 50)
+  back.add_theme_font_size_override("font_size", 22)
+  var back_style := StyleBoxFlat.new()
+  back_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+  back_style.set_corner_radius_all(8)
+  back.add_theme_stylebox_override("normal", back_style)
+  back.position = Vector2(1000, 625)
+  back.pressed.connect(func(): detail.queue_free())
+  detail.add_child(back)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SHOP
