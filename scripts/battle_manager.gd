@@ -599,6 +599,7 @@ func _setup_enemies() -> void:
 						sf *= 0.8
 					sprite.scale = Vector2(sf, sf)
 				sprite.texture = tex
+				sprite.flip_h = true  # Face left toward heroes
 		var nlabel = enemy.get_node_or_null("NameLabel") as Label
 		if nlabel:
 			nlabel.text = config["name"]
