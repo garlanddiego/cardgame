@@ -63,7 +63,7 @@ func _build_ui() -> void:
   _persistent_hud_canvas = CanvasLayer.new()
   _persistent_hud_canvas.name = "PersistentHUD"
   _persistent_hud_canvas.layer = 20  # Above overlay (10) and battle HUD (1)
-  _persistent_hud_canvas.visible = false  # Hidden initially (shown on map)
+  _persistent_hud_canvas.visible = true  # Always visible across all phases
   add_child(_persistent_hud_canvas)
   _build_persistent_hud(_persistent_hud_canvas)
 
@@ -545,7 +545,7 @@ func _start_battle(nd: Dictionary) -> void:
   phase = Phase.BATTLE
   _map_layer.visible = false
   if _persistent_hud_canvas:
-    _persistent_hud_canvas.visible = false  # Battle has its own HUD
+    _persistent_hud_canvas.visible = false  # Hide: battle has its own TopStatusBar
 
   # Load battle scene
   var battle_scene := load("res://scenes/battle.tscn")
@@ -638,6 +638,9 @@ func _show_rewards() -> void:
   _reward_gold_collected = false
   _reward_h1_collected = false
   _reward_h2_collected = false
+  if _persistent_hud_canvas:
+    _persistent_hud_canvas.visible = true
+  _update_hud_labels()
   # Hide and destroy battle scene completely so reward overlay is clean
   if _battle_instance:
     _battle_instance.visible = false
