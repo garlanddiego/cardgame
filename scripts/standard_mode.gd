@@ -77,47 +77,15 @@ func _show_draft() -> void:
   _overlay.add_child(bg)
 
   var hero_id: String = _draft_hero_order[_draft_round - 1]
-  var hero_name: String = "铁甲战士" if hero_id == "ironclad" else "沉默猎手"
   var hero_color: Color = Color(0.85, 0.2, 0.2) if hero_id == "ironclad" else Color(0.2, 0.7, 0.3)
 
-  # === Top status bar (same style as battle/map HUD) ===
-  var top_bar := PanelContainer.new()
-  var bar_style := StyleBoxFlat.new()
-  bar_style.bg_color = Color(0.1, 0.08, 0.06, 0.95)
-  bar_style.border_color = Color(0.4, 0.3, 0.2)
-  bar_style.border_width_bottom = 2
-  top_bar.add_theme_stylebox_override("panel", bar_style)
-  top_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-  top_bar.offset_bottom = 60
-  _overlay.add_child(top_bar)
-
-  var bar_hbox := HBoxContainer.new()
-  bar_hbox.add_theme_constant_override("separation", 30)
-  bar_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  top_bar.add_child(bar_hbox)
-
-  # HP labels (same as map HUD)
-  var hp1_lbl := _hud_label("♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp])
-  bar_hbox.add_child(hp1_lbl)
-  var hp2_lbl := _hud_label("♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp])
-  bar_hbox.add_child(hp2_lbl)
-
-  # Gold
-  var gold_lbl := _hud_label("💰 %d" % run.gold)
-  bar_hbox.add_child(gold_lbl)
-
-  # Spacer
-  var spacer_ctrl := Control.new()
-  spacer_ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  bar_hbox.add_child(spacer_ctrl)
-
-  # My cards button (right side — card fly target)
+  # "My cards" button — top-right corner (card fly target)
   var my_cards_btn := Button.new()
   my_cards_btn.text = "我的卡牌 (%d)" % _draft_picked_cards.size()
   my_cards_btn.add_theme_font_size_override("font_size", 22)
   my_cards_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
   var mcb_style := StyleBoxFlat.new()
-  mcb_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
+  mcb_style.bg_color = Color(0.15, 0.12, 0.08, 0.8)
   mcb_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
   mcb_style.set_border_width_all(1)
   mcb_style.set_corner_radius_all(6)
@@ -128,7 +96,8 @@ func _show_draft() -> void:
   mcb_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
   my_cards_btn.add_theme_stylebox_override("hover", mcb_hover)
   my_cards_btn.pressed.connect(_show_draft_deck_viewer)
-  bar_hbox.add_child(my_cards_btn)
+  my_cards_btn.position = Vector2(1700, 15)
+  _overlay.add_child(my_cards_btn)
   _draft_card_count_label = my_cards_btn
 
   # === Round dots ===
