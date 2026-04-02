@@ -16,6 +16,7 @@ var _overlay: Control = null
 var _battle_instance: Node2D = null
 var _current_monsters: Array = []  # [{id, hp}]
 var _pending_node: Dictionary = {}
+var _persistent_hud_canvas: CanvasLayer = null
 
 # Draft state
 var _draft_round: int = 0
@@ -59,11 +60,12 @@ func _build_ui() -> void:
   _overlay.visible = false
   overlay_canvas.add_child(_overlay)
   # Persistent HUD — always visible across all phases (CanvasLayer above everything)
-  var hud_canvas := CanvasLayer.new()
-  hud_canvas.name = "PersistentHUD"
-  hud_canvas.layer = 20  # Above overlay (10) and battle HUD (1)
-  add_child(hud_canvas)
-  _build_persistent_hud(hud_canvas)
+  _persistent_hud_canvas = CanvasLayer.new()
+  _persistent_hud_canvas.name = "PersistentHUD"
+  _persistent_hud_canvas.layer = 20  # Above overlay (10) and battle HUD (1)
+  _persistent_hud_canvas.visible = false  # Hidden initially (shown on map)
+  add_child(_persistent_hud_canvas)
+  _build_persistent_hud(_persistent_hud_canvas)
 
 func _build_persistent_hud(canvas: CanvasLayer) -> void:
   var hud := PanelContainer.new()
@@ -337,6 +339,8 @@ func _show_map() -> void:
   phase = Phase.MAP
   _map_layer.visible = true
   _overlay.visible = false
+  if _persistent_hud_canvas:
+    _persistent_hud_canvas.visible = true
   if _battle_instance:
     _battle_instance.queue_free()
     _battle_instance = null
@@ -540,6 +544,8 @@ func _on_node_pressed(key: String) -> void:
 func _start_battle(nd: Dictionary) -> void:
   phase = Phase.BATTLE
   _map_layer.visible = false
+  if _persistent_hud_canvas:
+    _persistent_hud_canvas.visible = false  # Battle has its own HUD
 
   # Load battle scene
   var battle_scene := load("res://scenes/battle.tscn")
