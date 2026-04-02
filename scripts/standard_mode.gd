@@ -653,18 +653,26 @@ var _reward_btn_gold: Button = null
 var _reward_btn_h1: Button = null
 var _reward_btn_h2: Button = null
 var _reward_card_overlay: Control = null
+var _reward_skip_btn: Button = null
+var _reward_gold_collected: bool = false
+var _reward_h1_collected: bool = false
+var _reward_h2_collected: bool = false
 
 func _show_rewards() -> void:
   phase = Phase.REWARD
+  _reward_gold_collected = false
+  _reward_h1_collected = false
+  _reward_h2_collected = false
   # Keep battle scene visible behind reward overlay (STS style)
   _map_layer.visible = false
   _overlay.visible = true
   _clear_children(_overlay)
 
-  # Semi-transparent dark overlay (battle still visible behind)
+  # Dark overlay covering everything below the top status bar (y=60)
   var bg := ColorRect.new()
-  bg.color = Color(0, 0, 0, 0.5)
+  bg.color = Color(0, 0, 0, 0.85)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.offset_top = 60  # Leave top status bar visible
   bg.mouse_filter = Control.MOUSE_FILTER_STOP
   _overlay.add_child(bg)
 
@@ -729,29 +737,29 @@ func _show_rewards() -> void:
   _reward_btn_h2.pressed.connect(_on_reward_h2_clicked)
   vbox.add_child(_reward_btn_h2)
 
-  # === Skip rewards button (bottom-right, STS style) ===
-  var skip_btn := Button.new()
-  skip_btn.text = "跳过奖励 →"
-  skip_btn.custom_minimum_size = Vector2(200, 50)
-  skip_btn.add_theme_font_size_override("font_size", 22)
-  skip_btn.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+  # === Skip/Continue button (bottom-right, STS style) ===
+  _reward_skip_btn = Button.new()
+  _reward_skip_btn.text = "跳过奖励 →"
+  _reward_skip_btn.custom_minimum_size = Vector2(200, 50)
+  _reward_skip_btn.add_theme_font_size_override("font_size", 22)
+  _reward_skip_btn.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
   var skip_style := StyleBoxFlat.new()
   skip_style.bg_color = Color(0.3, 0.25, 0.1, 0.8)
   skip_style.border_color = Color(0.6, 0.5, 0.2)
   skip_style.set_border_width_all(1)
   skip_style.set_corner_radius_all(8)
-  skip_btn.add_theme_stylebox_override("normal", skip_style)
+  _reward_skip_btn.add_theme_stylebox_override("normal", skip_style)
   var skip_hover := skip_style.duplicate() as StyleBoxFlat
   skip_hover.bg_color = Color(0.4, 0.35, 0.15, 0.9)
-  skip_btn.add_theme_stylebox_override("hover", skip_hover)
-  skip_btn.position = Vector2(1620, 680)
-  skip_btn.pressed.connect(func():
+  _reward_skip_btn.add_theme_stylebox_override("hover", skip_hover)
+  _reward_skip_btn.position = Vector2(1620, 680)
+  _reward_skip_btn.pressed.connect(func():
     if _battle_instance:
       _battle_instance.queue_free()
       _battle_instance = null
     _show_map()
   )
-  _overlay.add_child(skip_btn)
+  _overlay.add_child(_reward_skip_btn)
 
   # Card overlay (for showing 3 cards when a hero button is clicked)
   _reward_card_overlay = Control.new()
@@ -781,10 +789,23 @@ func _reward_row(icon: String, text: String, color: Color) -> Button:
   btn.add_theme_stylebox_override("hover", hover)
   return btn
 
+func _update_reward_skip_btn() -> void:
+  if _reward_skip_btn == null:
+    return
+  if _reward_gold_collected and _reward_h1_collected and _reward_h2_collected:
+    _reward_skip_btn.text = "前进 →"
+  elif _reward_gold_collected and not _reward_h1_collected and not _reward_h2_collected:
+    _reward_skip_btn.text = "跳过卡牌 →"
+  elif _reward_gold_collected:
+    _reward_skip_btn.text = "跳过剩余 →"
+  else:
+    _reward_skip_btn.text = "跳过奖励 →"
+
 func _on_reward_gold_clicked() -> void:
   run.add_gold(_reward_gold_amount)
+  _reward_gold_collected = true
   _reward_btn_gold.disabled = true
-  _reward_btn_gold.text = "💰 已获取 %d 金币 (总计: %d)" % [_reward_gold_amount, run.gold]
+  _reward_btn_gold.text = "  💰   已获取 %d 金币 (总计: %d)" % [_reward_gold_amount, run.gold]
   _reward_btn_gold.modulate = Color(0.5, 0.5, 0.5, 0.7)
   # Animate gold fly to top-right
   var gold_fly := Label.new()
@@ -801,14 +822,15 @@ func _on_reward_gold_clicked() -> void:
   tween.tween_callback(func(): gold_fly.queue_free())
   # Update HUD gold display
   _update_hud_labels()
+  _update_reward_skip_btn()
 
 func _on_reward_h1_clicked() -> void:
-  _show_card_pick_overlay(run.hero1_id, _reward_btn_h1)
+  _show_card_pick_overlay(run.hero1_id, _reward_btn_h1, "h1")
 
 func _on_reward_h2_clicked() -> void:
-  _show_card_pick_overlay(run.hero2_id, _reward_btn_h2)
+  _show_card_pick_overlay(run.hero2_id, _reward_btn_h2, "h2")
 
-func _show_card_pick_overlay(hero_id: String, btn: Button) -> void:
+func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = "") -> void:
   _reward_card_overlay.visible = true
   _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
   _clear_children(_reward_card_overlay)
@@ -850,8 +872,13 @@ func _show_card_pick_overlay(hero_id: String, btn: Button) -> void:
       if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
         run.add_card(card_data["id"])
         btn.disabled = true
-        btn.text = "✓ 已选择: %s" % _card_display_name(card_data)
+        btn.text = "  ✓   已选择: %s" % _card_display_name(card_data)
         btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+        if hero_key == "h1":
+          _reward_h1_collected = true
+        elif hero_key == "h2":
+          _reward_h2_collected = true
+        _update_reward_skip_btn()
         _reward_card_overlay.visible = false
         _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
     )
