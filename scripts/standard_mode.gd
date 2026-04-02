@@ -545,6 +545,8 @@ func _on_node_pressed(key: String) -> void:
 func _start_battle(nd: Dictionary) -> void:
   phase = Phase.BATTLE
   _map_layer.visible = false
+  _overlay.visible = false  # Hide any overlay from previous phase
+  _clear_children(_overlay)
   if _persistent_hud_canvas:
     _persistent_hud_canvas.visible = false  # Hide: battle has its own TopStatusBar
 
