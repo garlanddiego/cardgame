@@ -105,23 +105,65 @@ func _initialize() -> void:
 	energy_label.add_theme_color_override("font_color", Color(0.200, 0.600, 1.0, 1.0))  # energy_blue
 	energy_container.add_child(energy_label)
 
-	# Draw pile label (bottom left) — styled by battle_manager at runtime
+	# Draw pile (bottom left, STS-style: card stack icon + number)
+	var draw_panel = Panel.new()
+	draw_panel.name = "DrawPanel"
+	draw_panel.position = Vector2(20, 910)
+	draw_panel.size = Vector2(70, 70)
+	var draw_style = StyleBoxFlat.new()
+	draw_style.bg_color = Color(0.12, 0.15, 0.25, 0.9)
+	draw_style.border_color = Color(0.4, 0.5, 0.8)
+	draw_style.set_border_width_all(2)
+	draw_style.set_corner_radius_all(8)
+	draw_panel.add_theme_stylebox_override("panel", draw_style)
+	draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud.add_child(draw_panel)
 	var draw_pile_label = Label.new()
 	draw_pile_label.name = "DrawPileLabel"
-	draw_pile_label.text = "抽牌: 0"
-	draw_pile_label.position = Vector2(60, 900)
-	draw_pile_label.add_theme_font_size_override("font_size", 18)
-	draw_pile_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
-	hud.add_child(draw_pile_label)
+	draw_pile_label.text = "0"
+	draw_pile_label.position = Vector2(0, 20)
+	draw_pile_label.size = Vector2(70, 40)
+	draw_pile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	draw_pile_label.add_theme_font_size_override("font_size", 28)
+	draw_pile_label.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
+	draw_panel.add_child(draw_pile_label)
+	var draw_icon = Label.new()
+	draw_icon.text = "🂠"
+	draw_icon.position = Vector2(0, 0)
+	draw_icon.size = Vector2(70, 24)
+	draw_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	draw_icon.add_theme_font_size_override("font_size", 18)
+	draw_panel.add_child(draw_icon)
 
-	# Discard pile (bottom right)
+	# Discard pile (bottom right, STS-style: card stack icon + number)
+	var discard_panel = Panel.new()
+	discard_panel.name = "DiscardPanel"
+	discard_panel.position = Vector2(1830, 910)
+	discard_panel.size = Vector2(70, 70)
+	var discard_style = StyleBoxFlat.new()
+	discard_style.bg_color = Color(0.25, 0.12, 0.12, 0.9)
+	discard_style.border_color = Color(0.8, 0.4, 0.4)
+	discard_style.set_border_width_all(2)
+	discard_style.set_corner_radius_all(8)
+	discard_panel.add_theme_stylebox_override("panel", discard_style)
+	discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud.add_child(discard_panel)
 	var discard_label = Label.new()
 	discard_label.name = "DiscardPileLabel"
-	discard_label.text = "Discard: 0"
-	discard_label.position = Vector2(1740, 900)
-	discard_label.add_theme_font_size_override("font_size", 18)
-	discard_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.7))
-	hud.add_child(discard_label)
+	discard_label.text = "0"
+	discard_label.position = Vector2(0, 20)
+	discard_label.size = Vector2(70, 40)
+	discard_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	discard_label.add_theme_font_size_override("font_size", 28)
+	discard_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.7))
+	discard_panel.add_child(discard_label)
+	var discard_icon = Label.new()
+	discard_icon.text = "🂠"
+	discard_icon.position = Vector2(0, 0)
+	discard_icon.size = Vector2(70, 24)
+	discard_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	discard_icon.add_theme_font_size_override("font_size", 18)
+	discard_panel.add_child(discard_icon)
 
 	# End turn button — per spec section 4.6: 220x56, positioned at 1680,762
 	var end_turn_btn = Button.new()
