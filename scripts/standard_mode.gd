@@ -289,7 +289,7 @@ func _show_draft_deck_viewer() -> void:
     var card_w: float = 200.0
     var card_h: float = 280.0
     var gap: float = 20.0
-    var cols: int = mini(_draft_picked_cards.size(), 6)
+    var cols: int = mini(_draft_picked_cards.size(), 5)
     var total_w: float = cols * card_w + (cols - 1) * gap
     var sx: float = (1920.0 - total_w) / 2.0
     for i in range(_draft_picked_cards.size()):
@@ -1032,7 +1032,7 @@ func _show_upgrade_selection() -> void:
   var card_h: float = 260.0
   var gap_x: float = 16.0
   var gap_y: float = 16.0
-  var cols: int = 7
+  var cols: int = 5
   var total_w: float = cols * card_w + (cols - 1) * gap_x
   var start_x: float = (1920.0 - total_w) / 2.0
   var start_y: float = 110.0
@@ -1396,9 +1396,10 @@ func _show_deck_viewer() -> void:
   _overlay.add_child(scroll)
 
   var grid := GridContainer.new()
-  grid.columns = 6
+  grid.columns = 5
   grid.add_theme_constant_override("h_separation", 10)
   grid.add_theme_constant_override("v_separation", 10)
+  grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
   scroll.add_child(grid)
 
   for card_id in run.deck:
