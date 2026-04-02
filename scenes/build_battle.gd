@@ -36,7 +36,7 @@ func _initialize() -> void:
 	var card_hand = Node2D.new()
 	card_hand.name = "CardHand"
 	card_hand.set_script(load("res://scripts/card_hand.gd"))
-	card_hand.position = Vector2(0, 700)
+	card_hand.position = Vector2(0, 715)  # Shifted down 15px per user request
 	root.add_child(card_hand)
 
 	# HUD layer
@@ -105,24 +105,22 @@ func _initialize() -> void:
 	energy_label.add_theme_color_override("font_color", Color(0.200, 0.600, 1.0, 1.0))  # energy_blue
 	energy_container.add_child(energy_label)
 
-	# Draw pile label (bottom left) — original layout from morning
+	# Draw pile label (bottom left) — styled by battle_manager at runtime
 	var draw_pile_label = Label.new()
 	draw_pile_label.name = "DrawPileLabel"
 	draw_pile_label.text = "抽牌: 0"
 	draw_pile_label.position = Vector2(60, 900)
 	draw_pile_label.add_theme_font_size_override("font_size", 18)
 	draw_pile_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
-	draw_pile_label.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud.add_child(draw_pile_label)
 
-	# Discard pile label (bottom right) — original layout from morning
+	# Discard pile (bottom right)
 	var discard_label = Label.new()
 	discard_label.name = "DiscardPileLabel"
-	discard_label.text = "弃牌: 0"
+	discard_label.text = "Discard: 0"
 	discard_label.position = Vector2(1740, 900)
 	discard_label.add_theme_font_size_override("font_size", 18)
 	discard_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.7))
-	discard_label.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud.add_child(discard_label)
 
 	# End turn button — per spec section 4.6: 220x56, positioned at 1680,762
