@@ -332,7 +332,9 @@ func _setup_second_player(character_id: String, gm: Node) -> void:
 	_second_character_id = character_id
 	second_player = _create_entity_node(false)
 	var char_data = gm.character_data[character_id]
-	var hp: int = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
+	var hp: int = get_meta("standard_hero2_hp", 0) as int
+	if hp <= 0:
+		hp = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
 	second_player.init_entity(hp, false)
 	# Back row: positioned to the left of front row
 	second_player.position = Vector2(-230, 0)

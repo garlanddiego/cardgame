@@ -254,6 +254,14 @@ func _show_map() -> void:
   _clear_children(_map_layer)
   _draw_map()
 
+func _update_hud_labels() -> void:
+  if _hud_gold_label:
+    _hud_gold_label.text = "💰 %d" % run.gold
+  if _hud_hp1_label:
+    _hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp]
+  if _hud_hp2_label:
+    _hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
+
 func _draw_map() -> void:
   # HUD bar at top
   var hud := PanelContainer.new()
@@ -556,6 +564,14 @@ func _on_battle_lost() -> void:
 # REWARDS
 # ═══════════════════════════════════════════════════════════════════════════
 
+# Reward state
+var _reward_gold_amount: int = 0
+var _reward_dialog: PanelContainer = null
+var _reward_btn_gold: Button = null
+var _reward_btn_h1: Button = null
+var _reward_btn_h2: Button = null
+var _reward_card_overlay: Control = null
+
 func _show_rewards() -> void:
   phase = Phase.REWARD
   if _battle_instance:
@@ -570,80 +586,197 @@ func _show_rewards() -> void:
   var bg := ColorRect.new()
   bg.color = Color(0, 0, 0, 0.85)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.add_child(bg)
 
-  var center := CenterContainer.new()
-  center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  _overlay.add_child(center)
+  # Calculate gold reward (don't add yet — wait for click)
+  _reward_gold_amount = 15 + randi() % 15 + run.floor_num * 3
+
+  # Dialog box
+  _reward_dialog = PanelContainer.new()
+  var dialog_style := StyleBoxFlat.new()
+  dialog_style.bg_color = Color(0.1, 0.08, 0.06, 0.95)
+  dialog_style.border_color = Color(0.6, 0.5, 0.2)
+  dialog_style.set_border_width_all(2)
+  dialog_style.set_corner_radius_all(12)
+  dialog_style.content_margin_left = 30
+  dialog_style.content_margin_right = 30
+  dialog_style.content_margin_top = 24
+  dialog_style.content_margin_bottom = 24
+  _reward_dialog.add_theme_stylebox_override("panel", dialog_style)
+  _reward_dialog.set_anchors_preset(Control.PRESET_CENTER)
+  _reward_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
+  _reward_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
+  _reward_dialog.custom_minimum_size = Vector2(500, 0)
+  _overlay.add_child(_reward_dialog)
 
   var vbox := VBoxContainer.new()
-  vbox.add_theme_constant_override("separation", 20)
-  vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  center.add_child(vbox)
+  vbox.add_theme_constant_override("separation", 16)
+  _reward_dialog.add_child(vbox)
 
   # Title
   var title := Label.new()
   title.text = "战斗胜利！"
-  title.add_theme_font_size_override("font_size", 48)
+  title.add_theme_font_size_override("font_size", 40)
   title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   vbox.add_child(title)
 
-  # Gold reward
-  var gold_amount: int = 15 + randi() % 15 + run.floor_num * 3
-  run.add_gold(gold_amount)
-  var gold_label := Label.new()
-  gold_label.text = "获得 %d 金币 (总计: %d)" % [gold_amount, run.gold]
-  gold_label.add_theme_font_size_override("font_size", 28)
-  gold_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
-  gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(gold_label)
+  vbox.add_child(_spacer(8))
 
-  # Spacer
-  vbox.add_child(_spacer(20))
+  # Button 1: Gold
+  _reward_btn_gold = _reward_button("💰 获取 %d 金币" % _reward_gold_amount, Color(0.9, 0.75, 0.15))
+  _reward_btn_gold.pressed.connect(_on_reward_gold_clicked)
+  vbox.add_child(_reward_btn_gold)
 
-  # Card rewards — Hero 1
-  var h1_label := Label.new()
-  h1_label.text = "%s 卡牌奖励:" % _hero_name(run.hero1_id)
-  h1_label.add_theme_font_size_override("font_size", 24)
-  h1_label.add_theme_color_override("font_color", _hero_color(run.hero1_id))
-  h1_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(h1_label)
+  # Button 2: Ironclad card
+  _reward_btn_h1 = _reward_button("⚔ %s 卡牌" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
+  _reward_btn_h1.pressed.connect(_on_reward_h1_clicked)
+  vbox.add_child(_reward_btn_h1)
 
-  var h1_cards := _random_cards_for_hero(run.hero1_id, 3)
-  var h1_row := _create_card_reward_row(h1_cards)
-  vbox.add_child(h1_row)
+  # Button 3: Silent card
+  _reward_btn_h2 = _reward_button("🗡 %s 卡牌" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
+  _reward_btn_h2.pressed.connect(_on_reward_h2_clicked)
+  vbox.add_child(_reward_btn_h2)
 
-  # Card rewards — Hero 2
-  var h2_label := Label.new()
-  h2_label.text = "%s 卡牌奖励:" % _hero_name(run.hero2_id)
-  h2_label.add_theme_font_size_override("font_size", 24)
-  h2_label.add_theme_color_override("font_color", _hero_color(run.hero2_id))
-  h2_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(h2_label)
+  vbox.add_child(_spacer(8))
 
-  var h2_cards := _random_cards_for_hero(run.hero2_id, 3)
-  var h2_row := _create_card_reward_row(h2_cards)
-  vbox.add_child(h2_row)
+  # Continue button (skip remaining)
+  var continue_btn := _reward_button("继续 →", Color(0.5, 0.5, 0.5))
+  continue_btn.pressed.connect(_show_map)
+  vbox.add_child(continue_btn)
+
+  # Card overlay (for showing 3 cards when a hero button is clicked)
+  _reward_card_overlay = Control.new()
+  _reward_card_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  _reward_card_overlay.visible = false
+  _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  _overlay.add_child(_reward_card_overlay)
+
+func _reward_button(text: String, color: Color) -> Button:
+  var btn := Button.new()
+  btn.text = text
+  btn.custom_minimum_size = Vector2(440, 56)
+  btn.add_theme_font_size_override("font_size", 24)
+  var style := StyleBoxFlat.new()
+  style.bg_color = Color(color.r, color.g, color.b, 0.2)
+  style.border_color = Color(color.r, color.g, color.b, 0.6)
+  style.set_border_width_all(1)
+  style.set_corner_radius_all(8)
+  style.content_margin_left = 16
+  style.content_margin_right = 16
+  btn.add_theme_stylebox_override("normal", style)
+  var hover := style.duplicate() as StyleBoxFlat
+  hover.bg_color = Color(color.r, color.g, color.b, 0.4)
+  btn.add_theme_stylebox_override("hover", hover)
+  return btn
+
+func _on_reward_gold_clicked() -> void:
+  run.add_gold(_reward_gold_amount)
+  _reward_btn_gold.disabled = true
+  _reward_btn_gold.text = "💰 已获取 %d 金币 (总计: %d)" % [_reward_gold_amount, run.gold]
+  _reward_btn_gold.modulate = Color(0.5, 0.5, 0.5, 0.7)
+  # Animate gold fly to top-right
+  var gold_fly := Label.new()
+  gold_fly.text = "+%d" % _reward_gold_amount
+  gold_fly.add_theme_font_size_override("font_size", 32)
+  gold_fly.add_theme_color_override("font_color", Color(1, 0.9, 0.2))
+  gold_fly.position = _reward_btn_gold.global_position + Vector2(200, 0)
+  _overlay.add_child(gold_fly)
+  var tween := create_tween()
+  tween.set_ease(Tween.EASE_OUT)
+  tween.set_trans(Tween.TRANS_CUBIC)
+  tween.tween_property(gold_fly, "position", Vector2(1800, 10), 0.6)
+  tween.parallel().tween_property(gold_fly, "modulate:a", 0.0, 0.5).set_delay(0.3)
+  tween.tween_callback(func(): gold_fly.queue_free())
+  # Update HUD gold display
+  _update_hud_labels()
+
+func _on_reward_h1_clicked() -> void:
+  _show_card_pick_overlay(run.hero1_id, _reward_btn_h1)
+
+func _on_reward_h2_clicked() -> void:
+  _show_card_pick_overlay(run.hero2_id, _reward_btn_h2)
+
+func _show_card_pick_overlay(hero_id: String, btn: Button) -> void:
+  _reward_card_overlay.visible = true
+  _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+  _clear_children(_reward_card_overlay)
+
+  # Dark overlay bg
+  var overlay_bg := ColorRect.new()
+  overlay_bg.color = Color(0, 0, 0, 0.8)
+  overlay_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  overlay_bg.mouse_filter = Control.MOUSE_FILTER_STOP
+  _reward_card_overlay.add_child(overlay_bg)
+
+  # Title
+  var pick_title := Label.new()
+  pick_title.text = "选择一张 %s 卡牌" % _hero_name(hero_id)
+  pick_title.add_theme_font_size_override("font_size", 36)
+  pick_title.add_theme_color_override("font_color", _hero_color(hero_id))
+  pick_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  pick_title.position = Vector2(0, 100)
+  pick_title.size = Vector2(1920, 50)
+  _reward_card_overlay.add_child(pick_title)
+
+  # 3 random cards
+  var cards := _random_cards_for_hero(hero_id, 3)
+  var card_w: float = 280.0
+  var card_h: float = 400.0
+  var gap: float = 60.0
+  var total_w: float = cards.size() * card_w + (cards.size() - 1) * gap
+  var start_x: float = (1920.0 - total_w) / 2.0
+  var card_y: float = 200.0
+  var loc = get_node_or_null("/root/Loc")
+
+  for i in range(cards.size()):
+    var card_data: Dictionary = cards[i]
+    var container := Control.new()
+    container.position = Vector2(start_x + i * (card_w + gap), card_y)
+    container.size = Vector2(card_w, card_h)
+    container.mouse_filter = Control.MOUSE_FILTER_STOP
+    container.gui_input.connect(func(event: InputEvent):
+      if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+        run.add_card(card_data["id"])
+        btn.disabled = true
+        btn.text = "✓ 已选择: %s" % _card_display_name(card_data)
+        btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+        _reward_card_overlay.visible = false
+        _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    )
+    _reward_card_overlay.add_child(container)
+    var visual := CardScript.create_card_visual(card_data, Vector2(card_w, card_h), loc)
+    container.add_child(visual)
+    container.mouse_entered.connect(func(): container.modulate = Color(1.2, 1.2, 1.2))
+    container.mouse_exited.connect(func(): container.modulate = Color(1, 1, 1))
 
   # Skip button
-  vbox.add_child(_spacer(10))
-  var skip_btn := _styled_button("跳过 → 继续", Color(0.5, 0.5, 0.5))
-  skip_btn.pressed.connect(_show_map)
-  vbox.add_child(skip_btn)
+  var skip_btn := Button.new()
+  skip_btn.text = "跳过"
+  skip_btn.custom_minimum_size = Vector2(180, 50)
+  skip_btn.add_theme_font_size_override("font_size", 22)
+  skip_btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+  var skip_style := StyleBoxFlat.new()
+  skip_style.bg_color = Color(0.15, 0.15, 0.15, 0.7)
+  skip_style.set_border_width_all(1)
+  skip_style.border_color = Color(0.3, 0.3, 0.3)
+  skip_style.set_corner_radius_all(8)
+  skip_btn.add_theme_stylebox_override("normal", skip_style)
+  skip_btn.position = Vector2((1920.0 - 180.0) / 2.0, card_y + card_h + 40.0)
+  skip_btn.pressed.connect(func():
+    _reward_card_overlay.visible = false
+    _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  )
+  _reward_card_overlay.add_child(skip_btn)
 
-func _create_card_reward_row(cards: Array) -> HBoxContainer:
-  var row := HBoxContainer.new()
-  row.add_theme_constant_override("separation", 20)
-  row.alignment = BoxContainer.ALIGNMENT_CENTER
-  for card_data in cards:
-    var btn := _create_card_button(card_data)
-    btn.pressed.connect(func():
-      run.add_card(card_data["id"])
-      _show_map()
-    )
-    row.add_child(btn)
-  return row
+func _card_display_name(card_data: Dictionary) -> String:
+  var loc = get_node_or_null("/root/Loc")
+  if loc:
+    var cn: String = loc.card_name(card_data)
+    if cn != "":
+      return cn
+  return card_data.get("name", card_data.get("id", "?"))
 
 func _create_card_button(card_data: Dictionary) -> Button:
   var btn := Button.new()
