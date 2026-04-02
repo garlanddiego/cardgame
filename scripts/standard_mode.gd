@@ -1231,31 +1231,48 @@ func _show_shop() -> void:
   grid.add_theme_constant_override("v_separation", 15)
   scroll.add_child(grid)
 
+  var loc = get_node_or_null("/root/Loc")
+  var card_w: float = 200.0
+  var card_h: float = 280.0
+
   for card in shop_cards:
     var card_id: String = card["id"]
     var price: int = card["_shop_price"]
     var is_upgraded: bool = card.get("_shop_upgraded", false)
+    var display_cd: Dictionary = card
+    if is_upgraded:
+      var upg: Dictionary = gm.get_upgraded_card(card_id)
+      if not upg.is_empty():
+        display_cd = upg
 
-    var btn := _create_card_button(card)
-    # Add price label
-    var price_label := Label.new()
-    var suffix := " ★" if is_upgraded else ""
-    price_label.text = "%d金%s" % [price, suffix]
-    price_label.add_theme_font_size_override("font_size", 16)
-    price_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
-    btn.add_child(price_label)
+    var slot := Control.new()
+    slot.custom_minimum_size = Vector2(card_w, card_h + 30)
+    grid.add_child(slot)
 
+    var container := Control.new()
+    container.position = Vector2(0, 0)
+    container.size = Vector2(card_w, card_h)
+    container.mouse_filter = Control.MOUSE_FILTER_STOP
     var add_id: String = card_id + "+" if is_upgraded else card_id
-    btn.pressed.connect(func():
-      if run.spend_gold(price):
-        run.add_card(add_id)
-        btn.disabled = true
-        btn.modulate = Color(0.5, 0.5, 0.5, 0.5)
-        var gl: Label = _overlay.get_node_or_null("ShopGold")
-        if gl:
-          gl.text = "金币: %d" % run.gold
+    container.gui_input.connect(func(event: InputEvent):
+      if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+        _show_shop_buy_detail(display_cd, price, add_id, slot)
     )
-    grid.add_child(btn)
+    slot.add_child(container)
+    var visual := CardScript.create_card_visual(display_cd, Vector2(card_w, card_h), loc)
+    container.add_child(visual)
+    container.mouse_entered.connect(func(): container.modulate = Color(1.2, 1.2, 1.2))
+    container.mouse_exited.connect(func(): container.modulate = Color(1, 1, 1))
+
+    # Price tag below card
+    var price_label := Label.new()
+    price_label.text = "💰 %d" % price
+    price_label.add_theme_font_size_override("font_size", 18)
+    price_label.add_theme_color_override("font_color", Color(1, 0.85, 0.2) if run.gold >= price else Color(0.6, 0.3, 0.3))
+    price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    price_label.position = Vector2(0, card_h + 4)
+    price_label.size = Vector2(card_w, 24)
+    slot.add_child(price_label)
 
   # Leave button
   var leave := _styled_button("离开商店", Color(0.5, 0.5, 0.5))
@@ -1265,6 +1282,85 @@ func _show_shop() -> void:
   leave.offset_bottom = 1070
   leave.pressed.connect(_show_map)
   _overlay.add_child(leave)
+
+func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, slot: Control) -> void:
+  var detail := Control.new()
+  detail.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  _overlay.add_child(detail)
+
+  var dbg := ColorRect.new()
+  dbg.color = Color(0.05, 0.04, 0.03, 1.0)
+  dbg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  dbg.mouse_filter = Control.MOUSE_FILTER_STOP
+  detail.add_child(dbg)
+
+  var loc = get_node_or_null("/root/Loc")
+
+  # Large card preview (centered)
+  var big_card := Control.new()
+  big_card.position = Vector2(720, 100)
+  big_card.size = Vector2(320, 450)
+  detail.add_child(big_card)
+  big_card.add_child(CardScript.create_card_visual(card_data, Vector2(320, 450), loc))
+
+  # Card name
+  var name_label := Label.new()
+  name_label.text = _card_display_name(card_data)
+  name_label.add_theme_font_size_override("font_size", 32)
+  name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.75))
+  name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  name_label.position = Vector2(0, 570)
+  name_label.size = Vector2(1920, 40)
+  detail.add_child(name_label)
+
+  # Price
+  var price_lbl := Label.new()
+  price_lbl.text = "💰 %d 金币" % price
+  price_lbl.add_theme_font_size_override("font_size", 28)
+  price_lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
+  price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  price_lbl.position = Vector2(0, 620)
+  price_lbl.size = Vector2(1920, 40)
+  detail.add_child(price_lbl)
+
+  # Buy button
+  var buy_btn := Button.new()
+  buy_btn.text = "购买" if run.gold >= price else "金币不足"
+  buy_btn.disabled = run.gold < price
+  buy_btn.custom_minimum_size = Vector2(180, 56)
+  buy_btn.add_theme_font_size_override("font_size", 26)
+  var buy_style := StyleBoxFlat.new()
+  buy_style.bg_color = Color(0.15, 0.5, 0.15, 0.9)
+  buy_style.set_corner_radius_all(8)
+  buy_btn.add_theme_stylebox_override("normal", buy_style)
+  var buy_hover := buy_style.duplicate() as StyleBoxFlat
+  buy_hover.bg_color = Color(0.2, 0.65, 0.2, 0.95)
+  buy_btn.add_theme_stylebox_override("hover", buy_hover)
+  buy_btn.position = Vector2(760, 680)
+  buy_btn.pressed.connect(func():
+    if run.spend_gold(price):
+      run.add_card(add_id)
+      slot.modulate = Color(0.3, 0.3, 0.3, 0.5)
+      for child in slot.get_children():
+        if child is Control:
+          child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      _update_hud_labels()
+    detail.queue_free()
+  )
+  detail.add_child(buy_btn)
+
+  # Cancel button
+  var cancel := Button.new()
+  cancel.text = "取消"
+  cancel.custom_minimum_size = Vector2(140, 50)
+  cancel.add_theme_font_size_override("font_size", 22)
+  var cancel_style := StyleBoxFlat.new()
+  cancel_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
+  cancel_style.set_corner_radius_all(8)
+  cancel.add_theme_stylebox_override("normal", cancel_style)
+  cancel.position = Vector2(980, 685)
+  cancel.pressed.connect(func(): detail.queue_free())
+  detail.add_child(cancel)
 
 func _card_price(card: Dictionary) -> int:
   var base: int = 50
