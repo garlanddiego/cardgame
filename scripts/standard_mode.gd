@@ -76,16 +76,12 @@ func _show_draft() -> void:
   var hero_name: String = "铁甲战士" if hero_id == "ironclad" else "沉默猎手"
   var hero_color: Color = Color(0.85, 0.2, 0.2) if hero_id == "ironclad" else Color(0.2, 0.7, 0.3)
 
-  # === Top status bar ===
+  # === Top status bar (same style as battle/map HUD) ===
   var top_bar := PanelContainer.new()
   var bar_style := StyleBoxFlat.new()
-  bar_style.bg_color = Color(0.08, 0.06, 0.04, 0.95)
-  bar_style.border_color = Color(0.4, 0.3, 0.15)
+  bar_style.bg_color = Color(0.1, 0.08, 0.06, 0.95)
+  bar_style.border_color = Color(0.4, 0.3, 0.2)
   bar_style.border_width_bottom = 2
-  bar_style.content_margin_left = 20
-  bar_style.content_margin_right = 20
-  bar_style.content_margin_top = 10
-  bar_style.content_margin_bottom = 10
   top_bar.add_theme_stylebox_override("panel", bar_style)
   top_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
   top_bar.offset_bottom = 60
@@ -93,35 +89,32 @@ func _show_draft() -> void:
 
   var bar_hbox := HBoxContainer.new()
   bar_hbox.add_theme_constant_override("separation", 30)
+  bar_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
   top_bar.add_child(bar_hbox)
 
-  # Round indicator
-  var round_label := Label.new()
-  round_label.text = "第 %d/%d 轮" % [_draft_round, _draft_total_rounds]
-  round_label.add_theme_font_size_override("font_size", 24)
-  round_label.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
-  bar_hbox.add_child(round_label)
+  # HP labels (same as map HUD)
+  var hp1_lbl := _hud_label("♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp])
+  bar_hbox.add_child(hp1_lbl)
+  var hp2_lbl := _hud_label("♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp])
+  bar_hbox.add_child(hp2_lbl)
 
-  # Hero name for this round
-  var hero_label := Label.new()
-  hero_label.text = hero_name
-  hero_label.add_theme_font_size_override("font_size", 24)
-  hero_label.add_theme_color_override("font_color", hero_color)
-  bar_hbox.add_child(hero_label)
+  # Gold
+  var gold_lbl := _hud_label("💰 %d" % run.gold)
+  bar_hbox.add_child(gold_lbl)
 
   # Spacer
   var spacer_ctrl := Control.new()
   spacer_ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   bar_hbox.add_child(spacer_ctrl)
 
-  # My cards button (right side, clickable)
+  # My cards button (right side — card fly target)
   var my_cards_btn := Button.new()
   my_cards_btn.text = "我的卡牌 (%d)" % _draft_picked_cards.size()
   my_cards_btn.add_theme_font_size_override("font_size", 22)
-  my_cards_btn.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
+  my_cards_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
   var mcb_style := StyleBoxFlat.new()
   mcb_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
-  mcb_style.border_color = Color(0.5, 0.4, 0.2)
+  mcb_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
   mcb_style.set_border_width_all(1)
   mcb_style.set_corner_radius_all(6)
   mcb_style.content_margin_left = 12
