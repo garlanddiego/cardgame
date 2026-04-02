@@ -21,55 +21,35 @@ corner_radius_top_right = 36
 corner_radius_bottom_right = 36
 corner_radius_bottom_left = 36
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnNormal"]
-bg_color = Color(0.6, 0.298, 0.102, 0.851)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.902, 0.722, 0.29, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnHover"]
-bg_color = Color(0.702, 0.361, 0.133, 0.902)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.902, 0.722, 0.29, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnPressed"]
-bg_color = Color(0.478, 0.239, 0.078, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.902, 0.722, 0.29, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnDisabled"]
-bg_color = Color(0.2, 0.133, 0.067, 0.6)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.902, 0.722, 0.29, 0.5)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yahae"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+bg_color = Color(0.1, 0.15, 0.25, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.5, 0.8, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v7i3o"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+bg_color = Color(0.25, 0.1, 0.1, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.4, 0.4, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_66ngm"]
 content_margin_left = 12.0
 content_margin_top = 4.0
 content_margin_right = 12.0
@@ -85,10 +65,10 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="Battle" type="Node2D" unique_id=914844819]
+[node name="Battle" type="Node2D" unique_id=1485215016]
 script = ExtResource("1_a12nh")
 
-[node name="Background" type="TextureRect" parent="." unique_id=98033923]
+[node name="Background" type="TextureRect" parent="." unique_id=1787027934]
 z_index = -10
 offset_right = 2560.0
 offset_bottom = 1080.0
@@ -96,32 +76,32 @@ mouse_filter = 2
 texture = ExtResource("2_lpir7")
 expand_mode = 1
 
-[node name="PlayerArea" type="Node2D" parent="." unique_id=2088287070]
+[node name="PlayerArea" type="Node2D" parent="." unique_id=622989302]
 position = Vector2(480, 480)
 
-[node name="EnemyArea" type="Node2D" parent="." unique_id=1060608240]
+[node name="EnemyArea" type="Node2D" parent="." unique_id=1211209365]
 position = Vector2(1200, 480)
 
-[node name="CardHand" type="Node2D" parent="." unique_id=715394904]
+[node name="CardHand" type="Node2D" parent="." unique_id=1032613688]
 position = Vector2(0, 700)
 script = ExtResource("3_6vh42")
 
-[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1416117008]
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=638168596]
 
-[node name="DarkOverlay" type="ColorRect" parent="HUDLayer" unique_id=2046284998]
+[node name="DarkOverlay" type="ColorRect" parent="HUDLayer" unique_id=1278383723]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0.05, 0.05)
 
-[node name="HUD" type="Control" parent="HUDLayer" unique_id=1469298636]
+[node name="HUD" type="Control" parent="HUDLayer" unique_id=1660655862]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=883893957]
+[node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1973806934]
 custom_minimum_size = Vector2(120, 72)
 layout_mode = 0
 offset_left = 24.0
@@ -130,71 +110,70 @@ offset_right = 24.0
 offset_bottom = 822.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_f4pi3")
 
-[node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=1061353732]
+[node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=898907180]
 layout_mode = 2
 alignment = 1
 
-[node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=1562571062]
+[node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=901119271]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 texture = ExtResource("4_4k1nj")
 expand_mode = 3
 stretch_mode = 5
 
-[node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=492027916]
+[node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=839549634]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.2, 0.6, 1, 1)
 text = "3/3"
 
-[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD" unique_id=2147413934]
+[node name="DrawPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1943208191]
 layout_mode = 0
-offset_left = 60.0
-offset_top = 900.0
-offset_right = 60.0
-offset_bottom = 900.0
-theme_override_font_sizes/font_size = 18
+offset_left = 30.0
+offset_top = 880.0
+offset_right = 190.0
+offset_bottom = 930.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_yahae")
+
+[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=228817942]
+layout_mode = 0
+theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
 text = "抽牌: 0"
 
-[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD" unique_id=1250496464]
+[node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1523102623]
 layout_mode = 0
-offset_left = 1740.0
-offset_top = 900.0
-offset_right = 1740.0
-offset_bottom = 900.0
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.9, 0.7, 0.7, 1)
-text = "Discard: 0"
+offset_left = 1700.0
+offset_top = 880.0
+offset_right = 1890.0
+offset_bottom = 930.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_v7i3o")
 
-[node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=766442249]
+[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=1902634822]
+layout_mode = 0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.7, 0.7, 1)
+text = "弃牌: 0"
+
+[node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=192443362]
 custom_minimum_size = Vector2(240, 70)
 layout_mode = 0
-offset_left = 1620.0
-offset_top = 590.0
-offset_right = 1860.0
-offset_bottom = 660.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_disabled_color = Color(0.478, 0.447, 0.376, 0.8)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 26
-theme_override_styles/normal = SubResource("StyleBoxFlat_endTurnNormal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_endTurnHover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_endTurnPressed")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_endTurnDisabled")
+offset_left = 1640.0
+offset_top = 400.0
+offset_right = 1640.0
+offset_bottom = 400.0
 text = "End Turn"
 
-[node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1829918889]
+[node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=596764127]
 custom_minimum_size = Vector2(260, 50)
 layout_mode = 0
 offset_left = 830.0
 offset_top = 10.0
 offset_right = 830.0
 offset_bottom = 10.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_yahae")
+theme_override_styles/panel = SubResource("StyleBoxFlat_66ngm")
 
-[node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=242839455]
+[node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=730471240]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.27, 0.8, 0.4, 1)
