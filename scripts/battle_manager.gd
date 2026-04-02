@@ -1982,8 +1982,11 @@ func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, us
 		for enemy in enemies:
 			if enemy.alive:
 				enemy.take_damage(actual_dmg)
+				_swap_enemy_hit_sprite(enemy)
 	elif target != null and target.alive:
 		target.take_damage(actual_dmg)
+		if target.is_enemy:
+			_swap_enemy_hit_sprite(target)
 
 func end_player_turn() -> void:
 	if not battle_active or not is_player_turn:
@@ -2246,19 +2249,7 @@ func _swap_enemy_attack_sprite(enemy_node: Node2D) -> void:
 	if sprite == null:
 		return
 	var original_tex: Texture2D = sprite.texture
-	# Determine enemy type from name or texture path
-	var attack_path: String = ""
-	var tex_path: String = ""
-	if original_tex and original_tex.resource_path:
-		tex_path = original_tex.resource_path
-	if "slime" in tex_path:
-		attack_path = "res://assets/img/anim/slime_attack.png"
-	elif "cultist" in tex_path:
-		attack_path = "res://assets/img/anim/cultist_attack.png"
-	elif "jaw_worm" in tex_path:
-		attack_path = "res://assets/img/anim/jaw_worm_attack.png"
-	elif "guardian" in tex_path:
-		attack_path = "res://assets/img/anim/guardian_attack.png"
+	var attack_path: String = _get_enemy_sprite_path(enemy_node, "attack")
 	if attack_path == "" or not ResourceLoader.exists(attack_path):
 		return
 	var attack_tex: Texture2D = load(attack_path)
@@ -2269,6 +2260,56 @@ func _swap_enemy_attack_sprite(enemy_node: Node2D) -> void:
 		if is_instance_valid(sprite) and is_instance_valid(enemy_node):
 			sprite.texture = original_tex
 	)
+
+func _swap_enemy_hit_sprite(enemy_node: Node2D) -> void:
+	"""Swap enemy sprite to hit/damage pose temporarily."""
+	if enemy_node == null or not is_instance_valid(enemy_node):
+		return
+	var sprite: Sprite2D = enemy_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var original_tex: Texture2D = sprite.texture
+	var hit_path: String = _get_enemy_sprite_path(enemy_node, "hit")
+	if hit_path == "" or not ResourceLoader.exists(hit_path):
+		return
+	var hit_tex: Texture2D = load(hit_path)
+	sprite.texture = hit_tex
+	var tw = create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		if is_instance_valid(sprite) and is_instance_valid(enemy_node):
+			sprite.texture = original_tex
+	)
+
+func _get_enemy_sprite_path(enemy_node: Node2D, pose: String) -> String:
+	"""Get attack/hit sprite path for an enemy from monster DB or legacy paths."""
+	var etype: String = enemy_node.enemy_type if enemy_node.has_method("get") else ""
+	if etype == "":
+		etype = enemy_node.get("enemy_type") if "enemy_type" in enemy_node else ""
+	# Check monster database first
+	var _monsters_script = load("res://scripts/monsters.gd") if ResourceLoader.exists("res://scripts/monsters.gd") else null
+	if _monsters_script:
+		var monsters_db: Dictionary = _monsters_script.get_all()
+		if etype in monsters_db:
+			var key: String = "attack_sprite" if pose == "attack" else "hit_sprite"
+			return monsters_db[etype].get(key, "")
+	# Legacy fallback
+	var legacy := {
+		"slime": {"attack": "res://assets/img/anim/slime_attack.png", "hit": "res://assets/img/anim/slime_hit.png"},
+		"cultist": {"attack": "res://assets/img/anim/cultist_attack.png", "hit": "res://assets/img/anim/cultist_hit.png"},
+		"jaw_worm": {"attack": "res://assets/img/anim/jaw_worm_attack.png", "hit": "res://assets/img/anim/jaw_worm_hit.png"},
+		"guardian": {"attack": "res://assets/img/anim/guardian_attack.png", "hit": "res://assets/img/anim/guardian_hit.png"},
+	}
+	if etype in legacy:
+		return legacy[etype].get(pose, "")
+	# Try to match from texture path
+	var sprite: Sprite2D = enemy_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite and sprite.texture and sprite.texture.resource_path:
+		var tex_path: String = sprite.texture.resource_path
+		for key in legacy:
+			if key in tex_path:
+				return legacy[key].get(pose, "")
+	return ""
 
 func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	## Check if attacked hero has reactive powers (caltrops, flame_barrier) and apply
