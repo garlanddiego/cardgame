@@ -114,6 +114,7 @@ var _discard_hand_bg: ColorRect = null  # Dark rect behind hand cards during dis
 var _discard_selected_cards: Array = []  # indices into hand array
 var _discard_required_count: int = 0
 var _discard_callback: Callable
+var _discard_as_exhaust: bool = false  # Burning Pact: exhaust instead of discard
 var _discard_confirm_btn: Button = null
 var _discard_title_label: Label = null
 
@@ -1443,14 +1444,14 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					player.heal(total_healed)
 		"burning_pact":
 			if not hand.is_empty():
-				var idx: int = randi() % hand.size()
-				var exhausted = hand[idx]
-				hand.remove_at(idx)
-				_exhaust_card(exhausted)
-				if card_hand:
-					card_hand.clear_hand()
-					for c in hand:
-						card_hand.add_card(c)
+				var draw_count: int = card_data.get("draw", 2)
+				_discard_as_exhaust = true
+				_show_discard_selection(1, func():
+					draw_cards(draw_count)
+				)
+				if _discard_title_label:
+					_discard_title_label.text = "选择 1 张牌消耗"
+				return  # Wait for selection
 			draw_cards(card_data.get("draw", 2))
 		"infernal_blade":
 			var gm = _get_game_manager()
@@ -3988,7 +3989,9 @@ func _on_discard_confirm() -> void:
 	for idx in sorted_indices:
 		if idx < hand.size():
 			var card_data = hand[idx]
-			if _setup_mode:
+			if _discard_as_exhaust:
+				_exhaust_card(card_data)
+			elif _setup_mode:
 				# Setup: put on top of draw pile instead of discard
 				draw_pile.append(card_data)
 			else:
@@ -3996,6 +3999,7 @@ func _on_discard_confirm() -> void:
 				_check_sly_on_discard(card_data)
 			hand.remove_at(idx)
 	_setup_mode = false
+	_discard_as_exhaust = false
 	# Rebuild hand display (no draw animation — cards stay in place)
 	if card_hand:
 		card_hand.clear_hand()
