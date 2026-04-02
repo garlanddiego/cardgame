@@ -656,16 +656,18 @@ func _show_rewards() -> void:
   _reward_gold_collected = false
   _reward_h1_collected = false
   _reward_h2_collected = false
-  # Keep battle scene visible behind reward overlay (STS style)
+  # Destroy battle scene completely so reward overlay is clean
+  if _battle_instance:
+    _battle_instance.queue_free()
+    _battle_instance = null
   _map_layer.visible = false
   _overlay.visible = true
   _clear_children(_overlay)
 
-  # Dark overlay covering everything below the top status bar (y=60)
+  # Full-screen dark background (battle fully covered)
   var bg := ColorRect.new()
-  bg.color = Color(0, 0, 0, 0.85)
+  bg.color = Color(0.05, 0.04, 0.03, 1.0)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  bg.offset_top = 60  # Leave top status bar visible
   bg.mouse_filter = Control.MOUSE_FILTER_STOP
   _overlay.add_child(bg)
 
@@ -746,12 +748,7 @@ func _show_rewards() -> void:
   skip_hover.bg_color = Color(0.4, 0.35, 0.15, 0.9)
   _reward_skip_btn.add_theme_stylebox_override("hover", skip_hover)
   _reward_skip_btn.position = Vector2(1620, 680)
-  _reward_skip_btn.pressed.connect(func():
-    if _battle_instance:
-      _battle_instance.queue_free()
-      _battle_instance = null
-    _show_map()
-  )
+  _reward_skip_btn.pressed.connect(_show_map)
   _overlay.add_child(_reward_skip_btn)
 
   # Card overlay (for showing 3 cards when a hero button is clicked)
@@ -828,9 +825,9 @@ func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = ""
   _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
   _clear_children(_reward_card_overlay)
 
-  # Dark overlay bg
+  # Fully opaque dark overlay bg
   var overlay_bg := ColorRect.new()
-  overlay_bg.color = Color(0, 0, 0, 0.8)
+  overlay_bg.color = Color(0.05, 0.04, 0.03, 1.0)
   overlay_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   overlay_bg.mouse_filter = Control.MOUSE_FILTER_STOP
   _reward_card_overlay.add_child(overlay_bg)
