@@ -656,77 +656,102 @@ var _reward_card_overlay: Control = null
 
 func _show_rewards() -> void:
   phase = Phase.REWARD
-  if _battle_instance:
-    _battle_instance.queue_free()
-    _battle_instance = null
-
+  # Keep battle scene visible behind reward overlay (STS style)
   _map_layer.visible = false
   _overlay.visible = true
   _clear_children(_overlay)
 
-  # Dark background
+  # Semi-transparent dark overlay (battle still visible behind)
   var bg := ColorRect.new()
-  bg.color = Color(0, 0, 0, 0.85)
+  bg.color = Color(0, 0, 0, 0.5)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  bg.mouse_filter = Control.MOUSE_FILTER_STOP
   _overlay.add_child(bg)
 
   # Calculate gold reward (don't add yet — wait for click)
   _reward_gold_amount = 15 + randi() % 15 + run.floor_num * 3
 
-  # Dialog box
+  # === Title banner (parchment-style) ===
+  var banner := PanelContainer.new()
+  var banner_style := StyleBoxFlat.new()
+  banner_style.bg_color = Color(0.65, 0.58, 0.42, 0.95)
+  banner_style.border_color = Color(0.45, 0.38, 0.25)
+  banner_style.set_border_width_all(2)
+  banner_style.set_corner_radius_all(6)
+  banner_style.content_margin_left = 40
+  banner_style.content_margin_right = 40
+  banner_style.content_margin_top = 8
+  banner_style.content_margin_bottom = 8
+  banner.add_theme_stylebox_override("panel", banner_style)
+  banner.position = Vector2(660, 100)
+  banner.size = Vector2(600, 60)
+  _overlay.add_child(banner)
+
+  var title := Label.new()
+  title.text = "好好搜刮！"
+  title.add_theme_font_size_override("font_size", 36)
+  title.add_theme_color_override("font_color", Color(0.2, 0.15, 0.05))
+  title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  banner.add_child(title)
+
+  # === Reward panel (dark, centered) ===
   _reward_dialog = PanelContainer.new()
   var dialog_style := StyleBoxFlat.new()
-  dialog_style.bg_color = Color(0.1, 0.08, 0.06, 0.95)
-  dialog_style.border_color = Color(0.6, 0.5, 0.2)
+  dialog_style.bg_color = Color(0.12, 0.12, 0.15, 0.92)
+  dialog_style.border_color = Color(0.3, 0.3, 0.35)
   dialog_style.set_border_width_all(2)
-  dialog_style.set_corner_radius_all(12)
-  dialog_style.content_margin_left = 30
-  dialog_style.content_margin_right = 30
-  dialog_style.content_margin_top = 24
-  dialog_style.content_margin_bottom = 24
+  dialog_style.set_corner_radius_all(10)
+  dialog_style.content_margin_left = 20
+  dialog_style.content_margin_right = 20
+  dialog_style.content_margin_top = 20
+  dialog_style.content_margin_bottom = 20
   _reward_dialog.add_theme_stylebox_override("panel", dialog_style)
-  _reward_dialog.set_anchors_preset(Control.PRESET_CENTER)
-  _reward_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
-  _reward_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
-  _reward_dialog.custom_minimum_size = Vector2(500, 0)
+  _reward_dialog.position = Vector2(510, 180)
+  _reward_dialog.size = Vector2(900, 450)
   _overlay.add_child(_reward_dialog)
 
   var vbox := VBoxContainer.new()
-  vbox.add_theme_constant_override("separation", 16)
+  vbox.add_theme_constant_override("separation", 12)
   _reward_dialog.add_child(vbox)
 
-  # Title
-  var title := Label.new()
-  title.text = "战斗胜利！"
-  title.add_theme_font_size_override("font_size", 40)
-  title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
-  title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  vbox.add_child(title)
-
-  vbox.add_child(_spacer(8))
-
-  # Button 1: Gold
-  _reward_btn_gold = _reward_button("💰 获取 %d 金币" % _reward_gold_amount, Color(0.9, 0.75, 0.15))
+  # Gold reward row
+  _reward_btn_gold = _reward_row("💰", "%d 金币" % _reward_gold_amount, Color(0.9, 0.8, 0.3))
   _reward_btn_gold.pressed.connect(_on_reward_gold_clicked)
   vbox.add_child(_reward_btn_gold)
 
-  # Button 2: Ironclad card
-  _reward_btn_h1 = _reward_button("⚔ %s 卡牌" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
+  # Hero 1 card reward row
+  _reward_btn_h1 = _reward_row("🃏", "将一张 %s 卡牌加入牌组" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
   _reward_btn_h1.pressed.connect(_on_reward_h1_clicked)
   vbox.add_child(_reward_btn_h1)
 
-  # Button 3: Silent card
-  _reward_btn_h2 = _reward_button("🗡 %s 卡牌" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
+  # Hero 2 card reward row
+  _reward_btn_h2 = _reward_row("🃏", "将一张 %s 卡牌加入牌组" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
   _reward_btn_h2.pressed.connect(_on_reward_h2_clicked)
   vbox.add_child(_reward_btn_h2)
 
-  vbox.add_child(_spacer(8))
-
-  # Continue button (skip remaining)
-  var continue_btn := _reward_button("继续 →", Color(0.5, 0.5, 0.5))
-  continue_btn.pressed.connect(_show_map)
-  vbox.add_child(continue_btn)
+  # === Skip rewards button (bottom-right, STS style) ===
+  var skip_btn := Button.new()
+  skip_btn.text = "跳过奖励 →"
+  skip_btn.custom_minimum_size = Vector2(200, 50)
+  skip_btn.add_theme_font_size_override("font_size", 22)
+  skip_btn.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+  var skip_style := StyleBoxFlat.new()
+  skip_style.bg_color = Color(0.3, 0.25, 0.1, 0.8)
+  skip_style.border_color = Color(0.6, 0.5, 0.2)
+  skip_style.set_border_width_all(1)
+  skip_style.set_corner_radius_all(8)
+  skip_btn.add_theme_stylebox_override("normal", skip_style)
+  var skip_hover := skip_style.duplicate() as StyleBoxFlat
+  skip_hover.bg_color = Color(0.4, 0.35, 0.15, 0.9)
+  skip_btn.add_theme_stylebox_override("hover", skip_hover)
+  skip_btn.position = Vector2(1620, 680)
+  skip_btn.pressed.connect(func():
+    if _battle_instance:
+      _battle_instance.queue_free()
+      _battle_instance = null
+    _show_map()
+  )
+  _overlay.add_child(skip_btn)
 
   # Card overlay (for showing 3 cards when a hero button is clicked)
   _reward_card_overlay = Control.new()
@@ -735,21 +760,24 @@ func _show_rewards() -> void:
   _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.add_child(_reward_card_overlay)
 
-func _reward_button(text: String, color: Color) -> Button:
+func _reward_row(icon: String, text: String, color: Color) -> Button:
+  """Create a reward row button (STS style — icon + text on a dark row)."""
   var btn := Button.new()
-  btn.text = text
-  btn.custom_minimum_size = Vector2(440, 56)
-  btn.add_theme_font_size_override("font_size", 24)
+  btn.text = "  %s   %s" % [icon, text]
+  btn.custom_minimum_size = Vector2(860, 52)
+  btn.add_theme_font_size_override("font_size", 22)
+  btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
+  btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
   var style := StyleBoxFlat.new()
-  style.bg_color = Color(color.r, color.g, color.b, 0.2)
-  style.border_color = Color(color.r, color.g, color.b, 0.6)
+  style.bg_color = Color(0.18, 0.18, 0.22, 0.9)
+  style.border_color = Color(0.3, 0.3, 0.35)
   style.set_border_width_all(1)
-  style.set_corner_radius_all(8)
-  style.content_margin_left = 16
-  style.content_margin_right = 16
+  style.set_corner_radius_all(6)
+  style.content_margin_left = 12
   btn.add_theme_stylebox_override("normal", style)
   var hover := style.duplicate() as StyleBoxFlat
-  hover.bg_color = Color(color.r, color.g, color.b, 0.4)
+  hover.bg_color = Color(color.r * 0.3, color.g * 0.3, color.b * 0.3, 0.9)
+  hover.border_color = Color(color.r * 0.6, color.g * 0.6, color.b * 0.6)
   btn.add_theme_stylebox_override("hover", hover)
   return btn
 
