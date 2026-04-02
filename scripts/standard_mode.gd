@@ -129,8 +129,9 @@ func _show_draft() -> void:
   _clear_children(_overlay)
 
   var bg := ColorRect.new()
-  bg.color = Color(0, 0, 0, 0.9)
+  bg.color = Color(0.05, 0.04, 0.03, 1.0)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.offset_top = 55  # Below persistent HUD
   bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.add_child(bg)
 
