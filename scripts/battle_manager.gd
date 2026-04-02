@@ -2375,7 +2375,8 @@ func _on_ai_recommend() -> void:
 	ai_btn.disabled = true
 	ai_btn.text = "..."
 	# Run solver (synchronous — fast enough for typical hand sizes)
-	var result: Dictionary = BattleSim.solve(self)
+	var _BattleSim = load("res://scripts/battle_sim.gd")
+	var result: Dictionary = _BattleSim.solve(self)
 	ai_btn.text = "AI"
 	ai_btn.disabled = false
 	_show_ai_overlay(result)
