@@ -1,9 +1,10 @@
 .claude
 CLAUDE.md
-assets
+assets/glb
+assets/img/card_art
+assets/img/sts_cards
 screenshots
 .godot
-*.import
 *.uid
 *.mp4
 reference.png
