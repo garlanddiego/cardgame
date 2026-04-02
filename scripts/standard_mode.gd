@@ -48,12 +48,16 @@ func _build_ui() -> void:
   _map_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   _map_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
   add_child(_map_layer)
-  # Overlay layer (for rewards, rest, shop popups)
+  # Overlay layer (for rewards, rest, shop popups) — on a CanvasLayer to render above battle
+  var overlay_canvas := CanvasLayer.new()
+  overlay_canvas.name = "OverlayCanvas"
+  overlay_canvas.layer = 10  # Above battle's HUDLayer (layer 1)
+  add_child(overlay_canvas)
   _overlay = Control.new()
   _overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   _overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.visible = false
-  add_child(_overlay)
+  overlay_canvas.add_child(_overlay)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # INITIAL DRAFT (3 rounds of card picking before map)
@@ -656,8 +660,13 @@ func _show_rewards() -> void:
   _reward_gold_collected = false
   _reward_h1_collected = false
   _reward_h2_collected = false
-  # Destroy battle scene completely so reward overlay is clean
+  # Hide and destroy battle scene completely so reward overlay is clean
   if _battle_instance:
+    _battle_instance.visible = false
+    # Also hide the HUD CanvasLayer which renders above everything
+    var hud_layer = _battle_instance.get_node_or_null("HUDLayer")
+    if hud_layer:
+      hud_layer.visible = false
     _battle_instance.queue_free()
     _battle_instance = null
   _map_layer.visible = false
