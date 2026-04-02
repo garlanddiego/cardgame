@@ -2833,6 +2833,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				_clear_all_enemy_highlights()
 				_hovered_enemy = null
 				card_hand.play_selected_on(enemies[0])
+			elif target_type == "random_enemy":
+				var alive = _get_alive_enemies()
+				if not alive.is_empty():
+					_clear_damage_previews()
+					_clear_all_enemy_highlights()
+					_hovered_enemy = null
+					card_hand.play_selected_on(alive[randi() % alive.size()])
 			elif target_type == "all_heroes":
 				_clear_damage_previews()
 				_unhighlight_heroes()
