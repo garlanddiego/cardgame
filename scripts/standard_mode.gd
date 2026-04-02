@@ -58,9 +58,65 @@ func _build_ui() -> void:
   _overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.visible = false
   overlay_canvas.add_child(_overlay)
+  # Persistent HUD — always visible across all phases (CanvasLayer above everything)
+  var hud_canvas := CanvasLayer.new()
+  hud_canvas.name = "PersistentHUD"
+  hud_canvas.layer = 20  # Above overlay (10) and battle HUD (1)
+  add_child(hud_canvas)
+  _build_persistent_hud(hud_canvas)
+
+func _build_persistent_hud(canvas: CanvasLayer) -> void:
+  var hud := PanelContainer.new()
+  var hud_style := StyleBoxFlat.new()
+  hud_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
+  hud_style.border_color = Color(0.4, 0.3, 0.2)
+  hud_style.border_width_bottom = 2
+  hud.add_theme_stylebox_override("panel", hud_style)
+  hud.offset_right = 1920
+  hud.offset_bottom = 50
+  canvas.add_child(hud)
+
+  var hbox := HBoxContainer.new()
+  hbox.add_theme_constant_override("separation", 30)
+  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  hud.add_child(hbox)
+
+  _hud_hp1_label = _hud_label("♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp])
+  hbox.add_child(_hud_hp1_label)
+
+  _hud_hp2_label = _hud_label("♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp])
+  hbox.add_child(_hud_hp2_label)
+
+  _hud_gold_label = _hud_label("💰 %d" % run.gold)
+  hbox.add_child(_hud_gold_label)
+
+  var spacer := Control.new()
+  spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  hbox.add_child(spacer)
+
+  _hud_floor_label = _hud_label("")
+  hbox.add_child(_hud_floor_label)
+
+  _hud_deck_btn = Button.new()
+  _hud_deck_btn.text = "卡组 (%d)" % run.deck.size()
+  _hud_deck_btn.add_theme_font_size_override("font_size", 20)
+  _hud_deck_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+  var deck_style := StyleBoxFlat.new()
+  deck_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
+  deck_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+  deck_style.set_border_width_all(1)
+  deck_style.set_corner_radius_all(6)
+  deck_style.content_margin_left = 8
+  deck_style.content_margin_right = 8
+  _hud_deck_btn.add_theme_stylebox_override("normal", deck_style)
+  var deck_hover := deck_style.duplicate() as StyleBoxFlat
+  deck_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+  _hud_deck_btn.add_theme_stylebox_override("hover", deck_hover)
+  _hud_deck_btn.pressed.connect(_show_deck_viewer)
+  hbox.add_child(_hud_deck_btn)
 
 # ═══════════════════════════════════════════════════════════════════════════
-# INITIAL DRAFT (3 rounds of card picking before map)
+# INITIAL DRAFT (4 rounds of card picking before map)
 # ═══════════════════════════════════════════════════════════════════════════
 
 func _show_draft() -> void:
@@ -79,26 +135,11 @@ func _show_draft() -> void:
   var hero_id: String = _draft_hero_order[_draft_round - 1]
   var hero_color: Color = Color(0.85, 0.2, 0.2) if hero_id == "ironclad" else Color(0.2, 0.7, 0.3)
 
-  # "My cards" button — top-right corner (card fly target)
-  var my_cards_btn := Button.new()
-  my_cards_btn.text = "我的卡牌 (%d)" % _draft_picked_cards.size()
-  my_cards_btn.add_theme_font_size_override("font_size", 22)
-  my_cards_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-  var mcb_style := StyleBoxFlat.new()
-  mcb_style.bg_color = Color(0.15, 0.12, 0.08, 0.8)
-  mcb_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
-  mcb_style.set_border_width_all(1)
-  mcb_style.set_corner_radius_all(6)
-  mcb_style.content_margin_left = 12
-  mcb_style.content_margin_right = 12
-  my_cards_btn.add_theme_stylebox_override("normal", mcb_style)
-  var mcb_hover := mcb_style.duplicate() as StyleBoxFlat
-  mcb_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
-  my_cards_btn.add_theme_stylebox_override("hover", mcb_hover)
-  my_cards_btn.pressed.connect(_show_draft_deck_viewer)
-  my_cards_btn.position = Vector2(1700, 15)
-  _overlay.add_child(my_cards_btn)
-  _draft_card_count_label = my_cards_btn
+  # Use persistent HUD deck button as card fly target
+  # Update the deck button text for draft phase
+  if _hud_deck_btn:
+    _hud_deck_btn.text = "卡组 (%d)" % run.deck.size()
+  _draft_card_count_label = _hud_deck_btn
 
   # === Round dots ===
   _draft_status_bar = HBoxContainer.new()
@@ -195,7 +236,7 @@ func _on_draft_card_clicked(event: InputEvent, card_data: Dictionary, container:
 
   # Update card count button
   if _draft_card_count_label:
-    _draft_card_count_label.text = "我的卡牌 (%d)" % _draft_picked_cards.size()
+    _draft_card_count_label.text = "卡组 (%d)" % run.deck.size()
 
   # Fly animation: card flies to "My Cards" button (top-right corner)
   var target_pos := Vector2(1920.0 - 120.0, 10.0)
@@ -311,54 +352,16 @@ func _update_hud_labels() -> void:
     _hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
 
 func _draw_map() -> void:
-  # HUD bar at top
-  var hud := PanelContainer.new()
-  var hud_style := StyleBoxFlat.new()
-  hud_style.bg_color = Color(0.1, 0.08, 0.06, 0.95)
-  hud_style.border_color = Color(0.4, 0.3, 0.2)
-  hud_style.border_width_bottom = 2
-  hud.add_theme_stylebox_override("panel", hud_style)
-  hud.offset_right = 1920
-  hud.offset_bottom = 60
-  _map_layer.add_child(hud)
+  # Update persistent HUD for map phase
+  _update_hud_labels()
+  if _hud_floor_label:
+    _hud_floor_label.text = "第 %d 层" % run.floor_num if run.floor_num > 0 else "选择起点"
+  if _hud_deck_btn:
+    _hud_deck_btn.text = "卡组 (%d)" % run.deck.size()
 
-  var hbox := HBoxContainer.new()
-  hbox.add_theme_constant_override("separation", 40)
-  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  hud.add_child(hbox)
-
-  _hud_floor_label = _hud_label("第 %d 层" % run.floor_num if run.floor_num > 0 else "选择起点")
-  hbox.add_child(_hud_floor_label)
-
-  _hud_gold_label = _hud_label("💰 %d" % run.gold)
-  hbox.add_child(_hud_gold_label)
-
-  _hud_hp1_label = _hud_label("♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp])
-  hbox.add_child(_hud_hp1_label)
-
-  _hud_hp2_label = _hud_label("♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp])
-  hbox.add_child(_hud_hp2_label)
-
-  _hud_deck_btn = Button.new()
-  _hud_deck_btn.text = "卡组 (%d)" % run.deck.size()
-  _hud_deck_btn.add_theme_font_size_override("font_size", 20)
-  _hud_deck_btn.pressed.connect(_show_deck_viewer)
-  hbox.add_child(_hud_deck_btn)
-
-  # Back button
-  var back_btn := Button.new()
-  back_btn.text = "放弃"
-  back_btn.add_theme_font_size_override("font_size", 20)
-  back_btn.add_theme_color_override("font_color", Color(0.8, 0.3, 0.3))
-  back_btn.pressed.connect(func():
-    run.end_run(false)
-    get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
-  )
-  hbox.add_child(back_btn)
-
-  # Scrollable map area
+  # Scrollable map area (below persistent HUD)
   _map_scroll = ScrollContainer.new()
-  _map_scroll.offset_top = 65
+  _map_scroll.offset_top = 55
   _map_scroll.offset_right = 1920
   _map_scroll.offset_bottom = 1080
   _map_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
