@@ -34,18 +34,21 @@ var _shield_dim_tex: Texture2D = null
 var _target_highlight: Node2D = null  # Yellow border when targeted
 var intent_icon: TextureRect = null
 var intent_label: Label = null
-var status_container: HBoxContainer = null
+var status_container: Control = null
 var name_label: Label = null
 var _active_tooltip: Label = null  # Currently shown status tooltip
 
 # Chinese names for status effects and powers
 const STATUS_NAMES: Dictionary = {
+	"intangible": "无实体",
 	"strength": "力量",
 	"dexterity": "敏捷",
 	"vulnerable": "易伤",
 	"weak": "虚弱",
 	"poison": "中毒",
 }
+# Priority order for status effect display (listed before power icons)
+const STATUS_DISPLAY_ORDER: Array = ["intangible", "strength", "dexterity", "vulnerable", "weak"]
 const POWER_NAMES: Dictionary = {
 	"demon_form": "恶魔形态",
 	"caltrops": "蒺藜",
@@ -80,7 +83,7 @@ func _setup_visuals() -> void:
 	block_label = get_node_or_null("BlockLabel") as Label
 	intent_icon = get_node_or_null("IntentIcon") as TextureRect
 	intent_label = get_node_or_null("IntentLabel") as Label
-	status_container = get_node_or_null("StatusContainer") as HBoxContainer
+	status_container = get_node_or_null("StatusContainer") as Control
 	name_label = get_node_or_null("NameLabel") as Label
 	# Shield icon and textures — use scene node if available, or load textures
 	_shield_icon = get_node_or_null("ShieldIcon") as TextureRect
@@ -328,18 +331,21 @@ func _update_status_display() -> void:
 	_update_poison_preview()
 	if status_container == null:
 		return
-	# Clear existing status icons (not PowerIcon_ — those are managed by _update_power_display)
-	var status_to_remove: Array = []
+	# Clear ALL children — rebuild with flow layout
 	for child in status_container.get_children():
-		if not child.name.begins_with("PowerIcon_"):
-			status_to_remove.append(child)
-	for child in status_to_remove:
 		status_container.remove_child(child)
 		child.free()
-	# Add status icons
-	for status_type in status_effects:
-		if status_effects[status_type] <= 0:
-			continue
+	# Collect all icon items: status effects (priority order) then power icons
+	var items: Array = []  # Array of {node, width}
+	# --- Status effects in priority order ---
+	var ordered_statuses: Array = []
+	for s in STATUS_DISPLAY_ORDER:
+		if status_effects.has(s) and status_effects[s] > 0:
+			ordered_statuses.append(s)
+	for s in status_effects:
+		if s not in ordered_statuses and status_effects[s] > 0:
+			ordered_statuses.append(s)
+	for status_type in ordered_statuses:
 		var icon_path: String = "res://assets/img/ui_icons/" + status_type + ".png"
 		var tex = load(icon_path)
 		if tex == null:
@@ -351,22 +357,76 @@ func _update_status_display() -> void:
 		container.gui_input.connect(_on_status_icon_clicked.bind(container, status_name, stacks))
 		var icon = TextureRect.new()
 		icon.texture = tex
-		icon.custom_minimum_size = Vector2(32, 32)
-		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		icon.custom_minimum_size = Vector2(28, 28)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(icon)
 		var lbl = Label.new()
-		lbl.text = str(status_effects[status_type])
+		lbl.text = str(stacks)
 		lbl.add_theme_font_size_override("font_size", 14)
 		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if status_type == "poison":
 			lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		elif status_type == "intangible":
+			lbl.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 		else:
 			lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.7))
 		container.add_child(lbl)
-		status_container.add_child(container)
-	# Power icons are handled by _update_power_display() — not duplicated here
+		items.append({"node": container, "width": 42})  # 28 icon + ~14 label
+	# --- Power icons ---
+	for power_id in active_powers:
+		var stacks: int = active_powers[power_id]
+		if stacks <= 0:
+			continue
+		var container = HBoxContainer.new()
+		container.name = "PowerIcon_" + power_id
+		container.mouse_filter = Control.MOUSE_FILTER_PASS
+		container.focus_mode = Control.FOCUS_NONE
+		var power_name: String = POWER_NAMES.get(power_id, power_id)
+		container.gui_input.connect(_on_power_icon_clicked.bind(container, power_name, power_id, stacks))
+		container.mouse_entered.connect(_on_icon_hover_enter.bind(container, power_name, power_id, stacks))
+		container.mouse_exited.connect(_on_icon_hover_exit)
+		var icon_path: String = "res://assets/img/power_icons/" + power_id + ".png"
+		var tex = load(icon_path) if ResourceLoader.exists(icon_path) else null
+		if tex:
+			var icon = TextureRect.new()
+			icon.texture = tex
+			icon.custom_minimum_size = Vector2(28, 28)
+			icon.size = Vector2(28, 28)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			container.add_child(icon)
+		else:
+			var fallback = ColorRect.new()
+			fallback.custom_minimum_size = Vector2(28, 28)
+			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
+			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			container.add_child(fallback)
+		if stacks >= 1:
+			var lbl = Label.new()
+			lbl.text = str(stacks)
+			lbl.add_theme_font_size_override("font_size", 14)
+			lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			container.add_child(lbl)
+		items.append({"node": container, "width": 42})
+	# --- Flow layout: wrap into rows that fit within HP bar width ---
+	var max_width: float = 198.0  # Must match HP bar width
+	var spacing: float = 4.0
+	var row_height: float = 30.0
+	var cur_x: float = 0.0
+	var cur_y: float = 0.0
+	for item in items:
+		var w: float = item["width"]
+		if cur_x > 0 and cur_x + w > max_width:
+			cur_x = 0.0
+			cur_y += row_height
+		var node: Control = item["node"]
+		node.position = Vector2(cur_x, cur_y)
+		status_container.add_child(node)
+		cur_x += w + spacing
 
 func update_intent_display() -> void:
 	if intent.is_empty():
@@ -679,61 +739,11 @@ func add_power(power_id: String, stacks: int = 1) -> void:
 		active_powers[power_id] += stacks
 	else:
 		active_powers[power_id] = stacks
-	_update_status_display()
-	_update_power_display()
+	_update_status_display()  # This rebuilds everything: status effects then power icons
 
 func _update_power_display() -> void:
-	if status_container == null:
-		return
-	# Remove old power icons (they have "PowerIcon_" prefix) — use free() not queue_free()
-	var to_remove: Array = []
-	for child in status_container.get_children():
-		if child.name.begins_with("PowerIcon_"):
-			to_remove.append(child)
-	for child in to_remove:
-		status_container.remove_child(child)
-		child.free()
-	# Add power icons
-	for power_id in active_powers:
-		var stacks: int = active_powers[power_id]
-		if stacks <= 0:
-			continue
-		var container = HBoxContainer.new()
-		container.name = "PowerIcon_" + power_id
-		container.mouse_filter = Control.MOUSE_FILTER_PASS
-		container.focus_mode = Control.FOCUS_NONE
-		var power_name: String = POWER_NAMES.get(power_id, power_id)
-		container.gui_input.connect(_on_power_icon_clicked.bind(container, power_name, power_id, stacks))
-		container.mouse_entered.connect(_on_icon_hover_enter.bind(container, power_name, power_id, stacks))
-		container.mouse_exited.connect(_on_icon_hover_exit)
-		# Try loading power-specific icon
-		var icon_path: String = "res://assets/img/power_icons/" + power_id + ".png"
-		var tex = load(icon_path) if ResourceLoader.exists(icon_path) else null
-		if tex:
-			var icon = TextureRect.new()
-			icon.texture = tex
-			icon.custom_minimum_size = Vector2(28, 28)
-			icon.size = Vector2(28, 28)
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			container.add_child(icon)
-		else:
-			# Fallback: purple square
-			var fallback = ColorRect.new()
-			fallback.custom_minimum_size = Vector2(28, 28)
-			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
-			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			container.add_child(fallback)
-		# Show stack number for all powers with stacks >= 1
-		if stacks >= 1:
-			var lbl = Label.new()
-			lbl.text = str(stacks)
-			lbl.add_theme_font_size_override("font_size", 16)
-			lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
-			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			container.add_child(lbl)
-		status_container.add_child(container)
+	# Power icons are now rendered as part of _update_status_display() flow layout
+	pass
 
 var _tooltip_hover: bool = false
 var _tooltip_hide_tween: Tween = null

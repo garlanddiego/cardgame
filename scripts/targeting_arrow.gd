@@ -4,6 +4,7 @@ extends Node2D
 var start_pos: Vector2 = Vector2.ZERO
 var end_pos: Vector2 = Vector2.ZERO
 var active: bool = false
+var arrow_mode: String = "red"  # "red" for enemy, "green" for self/hero
 
 func _draw() -> void:
 	if not active:
@@ -23,17 +24,31 @@ func _draw() -> void:
 		# Vary size: smaller at ends, larger in middle, with slight pulse
 		var size_factor: float = sin(t * PI)
 		var radius: float = 5.0 + size_factor * 4.0
-		# Color gradient: darker red at start, brighter at tip
-		var color: Color = Color(0.8, 0.15, 0.1).lerp(Color(1.0, 0.3, 0.15), t)
+		# Color gradient based on arrow mode
+		var color: Color
+		var highlight: Color
+		if arrow_mode == "green":
+			color = Color(0.1, 0.7, 0.2).lerp(Color(0.2, 1.0, 0.3), t)
+			highlight = Color(0.4, 1.0, 0.5, 0.5)
+		else:
+			color = Color(0.8, 0.15, 0.1).lerp(Color(1.0, 0.3, 0.15), t)
+			highlight = Color(1.0, 0.5, 0.3, 0.5)
 		draw_circle(point, radius, color)
 		# Inner highlight for depth
-		draw_circle(point, radius * 0.45, Color(1.0, 0.5, 0.3, 0.5))
+		draw_circle(point, radius * 0.45, highlight)
 	# Arrowhead at tip
 	var pre_tip: Vector2 = _bezier(start_pos, control, end_pos, 0.94)
 	var dir: Vector2 = (end_pos - pre_tip).normalized()
 	var perp: Vector2 = Vector2(-dir.y, dir.x)
 	var tip: Vector2 = end_pos + dir * 16.0
-	var arrow_color: Color = Color(0.9, 0.2, 0.1)
+	var arrow_color: Color
+	var arrow_highlight: Color
+	if arrow_mode == "green":
+		arrow_color = Color(0.15, 0.85, 0.2)
+		arrow_highlight = Color(0.3, 1.0, 0.4, 0.5)
+	else:
+		arrow_color = Color(0.9, 0.2, 0.1)
+		arrow_highlight = Color(1.0, 0.45, 0.25, 0.5)
 	draw_colored_polygon(
 		PackedVector2Array([tip, end_pos + perp * 13.0, end_pos - perp * 13.0]),
 		arrow_color
@@ -41,7 +56,7 @@ func _draw() -> void:
 	# Inner highlight on arrowhead
 	draw_colored_polygon(
 		PackedVector2Array([tip - dir * 2.0, end_pos + perp * 7.0, end_pos - perp * 7.0]),
-		Color(1.0, 0.45, 0.25, 0.5)
+		arrow_highlight
 	)
 
 func _bezier(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vector2:
@@ -60,9 +75,10 @@ func _approx_bezier_length(p0: Vector2, p1: Vector2, p2: Vector2) -> float:
 		prev = curr
 	return length
 
-func update_arrow(from: Vector2, to: Vector2) -> void:
+func update_arrow(from: Vector2, to: Vector2, mode: String = "red") -> void:
 	start_pos = from
 	end_pos = to
+	arrow_mode = mode
 	active = true
 	queue_redraw()
 

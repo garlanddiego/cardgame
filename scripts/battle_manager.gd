@@ -21,7 +21,7 @@ var _second_character_id: String = ""  # Character ID of back-row hero
 @export var player_sprite_scale_height: float = 359.0  ## Target height in pixels for player sprite (+5% from 342)
 @export var enemy_sprite_scale_height: float = 280.0  ## Target height in pixels for enemy sprite (was 350)
 @export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
-@export var hp_bar_width: float = 180.0  ## Width of entity HP bars
+@export var hp_bar_width: float = 198.0  ## Width of entity HP bars (180 * 1.1)
 
 # Entity template scene
 var _entity_template: PackedScene = null
@@ -41,7 +41,7 @@ var turn_number: int = 0
 # Power effect tracking
 var demon_form_active: bool = false
 var caltrops_active: bool = false
-var envenom_active: bool = false
+var envenom_stacks: int = 0
 var flame_barrier_active: bool = false
 var flame_barrier_damage: int = 4
 var corruption_active: bool = false
@@ -50,7 +50,6 @@ var feel_no_pain_active: bool = false
 var feel_no_pain_block: int = 3
 var juggernaut_active: bool = false
 var juggernaut_damage: int = 5
-var evolve_active: bool = false
 var rage_active: bool = false
 var rage_block: int = 3
 var barricade_active: bool = false
@@ -92,6 +91,8 @@ var energy_label: Label = null
 var draw_pile_label: Label = null
 var discard_label: Label = null
 var end_turn_btn: Button = null
+var ai_btn: Button = null
+var _ai_overlay: Control = null
 var turn_label: Label = null
 var player_area: Node2D = null
 var enemy_area: Node2D = null
@@ -141,6 +142,9 @@ func _ready() -> void:
 		var loc = _get_loc()
 		if loc:
 			end_turn_btn.text = loc.t("end_turn")
+
+	# AI Recommend button — below End Turn
+	_create_ai_button()
 
 	# Connect draw/discard panel click signals (panels are pre-styled in scene)
 	if draw_panel:
@@ -236,13 +240,13 @@ func start_battle(character_id: String) -> void:
 func _reset_all_powers() -> void:
 	demon_form_active = false
 	caltrops_active = false
-	envenom_active = false
+	envenom_stacks = 0
 	flame_barrier_active = false
 	corruption_active = false
 	berserk_active = false
 	feel_no_pain_active = false
 	juggernaut_active = false
-	evolve_active = false
+
 	rage_active = false
 	barricade_active = false
 	metallicize_active = false
@@ -644,10 +648,11 @@ func start_player_turn() -> void:
 		player.apply_status("dexterity", -anticipate_dex_to_remove)
 		anticipate_dex_to_remove = 0
 
-	# Berserk: +1 energy per turn (check all heroes)
+	# Berserk: +energy per turn (check all heroes)
 	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("berserk", 0) > 0:
-			current_energy += 1
+		var berserk_stacks: int = hero.active_powers.get("berserk", 0)
+		if berserk_stacks > 0:
+			current_energy += berserk_stacks
 
 	# Power effects at start of turn — apply to the hero that has each power
 	for hero in _get_all_alive_heroes():
@@ -709,24 +714,6 @@ func start_player_turn() -> void:
 		_double_damage_next_turn = false
 	else:
 		_double_damage_this_turn = false
-
-	# Brutality: lose 1 HP and draw 1 at start of turn
-	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("brutality", 0) > 0:
-			hero.take_damage_direct(1)
-			draw_cards(1)
-
-	# Tools of the Trade: draw 1 at start of turn (discard 1 after)
-	var _tools_need_discard: bool = false
-	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("tools_of_the_trade", 0) > 0:
-			draw_cards(1)
-			_tools_need_discard = true
-
-	# Wraith Form: lose 1 Dexterity each turn (intangible not yet supported)
-	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("wraith_form", 0) > 0:
-			hero.apply_status("dexterity", -1)
 
 	# Bullet Time: no draw if flagged
 	var draw_count: int = cards_per_draw
@@ -791,14 +778,19 @@ func draw_cards(count: int) -> void:
 				card_hand.add_card(card_data)
 		drawn_count += 1
 		# Evolve: draw extra on Status draw
-		if evolve_active and card_data.get("type", 0) == 3:  # STATUS type
-			draw_cards(1)
-		# Fire Breathing: deal 6 damage to ALL on Status/Curse draw
-		if card_data.get("type", 0) == 3 and player:  # STATUS type
-			if player.active_powers.get("fire_breathing", 0) > 0:
-				for enemy in enemies:
-					if enemy.alive:
-						enemy.take_damage(6)
+		if card_data.get("type", 0) == 3:  # STATUS type
+			for _h in _get_all_alive_heroes():
+				var evolve_draw: int = _h.active_powers.get("evolve", 0)
+				if evolve_draw > 0:
+					draw_cards(evolve_draw)
+		# Fire Breathing: deal damage to ALL on Status/Curse draw
+		if card_data.get("type", 0) == 3:  # STATUS type
+			for _h in _get_all_alive_heroes():
+				var fb_dmg: int = _h.active_powers.get("fire_breathing", 0)
+				if fb_dmg > 0:
+					for enemy in enemies:
+						if enemy.alive:
+							enemy.take_damage(fb_dmg)
 	_update_pile_labels()
 	# Psi Surge: gain energy when drawing 3+ cards at once
 	if count >= 3 and player:
@@ -918,17 +910,19 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 				hero.add_block(rage_block)
 				_trigger_juggernaut()
 
-	# A Thousand Cuts: deal 1 damage to ALL enemies on card play
+	# A Thousand Cuts: deal damage to ALL enemies on card play
 	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("a_thousand_cuts", 0) > 0:
+		var atc_stacks: int = hero.active_powers.get("a_thousand_cuts", 0)
+		if atc_stacks > 0:
 			for enemy in enemies:
 				if enemy.alive:
-					enemy.take_damage(1)
+					enemy.take_damage(atc_stacks)
 
-	# After Image: gain 1 Block on card play
+	# After Image: gain Block on card play
 	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("after_image", 0) > 0:
-			hero.add_block(1)
+		var ai_stacks: int = hero.active_powers.get("after_image", 0)
+		if ai_stacks > 0:
+			hero.add_block(ai_stacks)
 			_trigger_juggernaut()
 
 	# Determine where the card goes after play
@@ -1060,9 +1054,16 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"block":
 				var blk: int = action.get("value", card_data.get("block", 0))
 				if blk > 0:
-					if target_type == "all_heroes":
+					var buff_target_override: String = action.get("buff_target", "")
+					if target_type == "all_heroes" or buff_target_override == "all_heroes":
 						for hero in _get_all_alive_heroes():
 							hero.add_block(blk)
+							_trigger_juggernaut()
+					elif target_type == "enemy" and card_data.get("type", 0) == 0:
+						# Attack cards: block goes to the card's own hero
+						var block_target = card_hero if card_hero else player
+						if block_target:
+							block_target.add_block(blk)
 							_trigger_juggernaut()
 					else:
 						var block_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
@@ -1199,8 +1200,9 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				if amount > 0 and player:
 					player.take_damage_direct(amount)
 					# Rupture: gain strength on self HP loss from card
-					if player.active_powers.get("rupture", 0) > 0:
-						player.apply_status("strength", 1)
+					var rupture_str: int = player.active_powers.get("rupture", 0)
+					if rupture_str > 0:
+						player.apply_status("strength", rupture_str)
 					# Blood Fury: next attack deals double damage
 					if player.active_powers.get("blood_fury", 0) > 0:
 						_double_damage_this_turn = true
@@ -1210,7 +1212,7 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var power_name: String = action.get("power", "")
 				if power_name != "":
 					var power_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
-					_activate_power(power_name, power_target)
+					_activate_power(power_name, power_target, card_data.get("per_turn", {}))
 
 			# ---- Call named action function (for complex card behaviors) ----
 			"call":
@@ -1446,16 +1448,17 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			_update_pile_labels()
 			draw_cards(gamble_count)
 		"feed":
+			var feed_hero: Node2D = _get_card_hero(card_data) if _get_card_hero(card_data) else player
 			var base_dmg: int = card_data.get("damage", 10)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if feed_hero:
+				base_dmg = feed_hero.get_attack_damage(base_dmg)
 			if target and target.alive:
 				var before_hp: int = target.current_hp
 				target.take_damage(base_dmg)
-				if not target.alive and player:
+				if not target.alive and feed_hero:
 					var hp_gain: int = card_data.get("max_hp_gain", 3)
-					player.max_hp += hp_gain
-					player.heal(hp_gain)
+					feed_hero.max_hp += hp_gain
+					feed_hero.heal(hp_gain)
 		"rampage":
 			var rampage_bonus: int = card_data.get("_rampage_bonus", 0)
 			var base_dmg: int = card_data.get("damage", 8) + rampage_bonus
@@ -1497,11 +1500,12 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					card_hand.add_card(retrieved)
 		"spot_weakness":
-			if target and target.alive and player:
+			if target and target.alive:
 				var enemy_intent: String = target.intent.get("intent", "")
 				if enemy_intent == "attack" or enemy_intent == "attack_buff" or enemy_intent == "attack_debuff":
 					var str_gain: int = card_data.get("spot_str", 3)
-					player.apply_status("strength", str_gain)
+					for hero in _get_all_alive_heroes():
+						hero.apply_status("strength", str_gain)
 		"true_grit":
 			if not hand.is_empty():
 				var idx: int = randi() % hand.size()
@@ -1704,20 +1708,20 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 				else:
 					enemy.take_damage(dmg)
 				# Envenom: apply 1 poison on hit
-				if envenom_active and enemy.alive:
-					enemy.apply_status("poison", 1)
+				if envenom_stacks > 0 and enemy.alive:
+					enemy.apply_status("poison", envenom_stacks)
 				delay += 0.12
 	elif target_type == "random_enemy":
 		var alive = _get_alive_enemies()
 		if not alive.is_empty():
 			var rand_target = alive[randi() % alive.size()]
 			rand_target.take_damage(dmg)
-			if envenom_active and rand_target.alive:
-				rand_target.apply_status("poison", 1)
+			if envenom_stacks > 0 and rand_target.alive:
+				rand_target.apply_status("poison", envenom_stacks)
 	elif target != null and target.alive:
 		target.take_damage(dmg)
-		if envenom_active and target.alive and target.is_enemy:
-			target.apply_status("poison", 1)
+		if envenom_stacks > 0 and target.alive and target.is_enemy:
+			target.apply_status("poison", envenom_stacks)
 
 func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
 	# First hit immediately
@@ -1736,7 +1740,7 @@ func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionar
 	if draw_count > 0:
 		draw_cards(draw_count)
 
-func _activate_power(power_name: String, power_target: Node2D = null) -> void:
+func _activate_power(power_name: String, power_target: Node2D = null, per_turn: Dictionary = {}) -> void:
 	# Normalize _plus suffix — upgraded powers use same logic with boosted values
 	var is_plus: bool = power_name.ends_with("_plus")
 	var base_name: String = power_name.trim_suffix("_plus") if is_plus else power_name
@@ -1755,7 +1759,7 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			caltrops_active = true
 			power_stacks = 5 if is_plus else 3  # Damage reflected per hit
 		"envenom":
-			envenom_active = true
+			envenom_stacks = 2 if is_plus else 1
 			power_stacks = 2 if is_plus else 1  # Poison per unblocked hit
 		"flame_barrier":
 			flame_barrier_active = true
@@ -1780,7 +1784,6 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			juggernaut_damage = 7 if is_plus else 5
 			power_stacks = juggernaut_damage
 		"evolve":
-			evolve_active = true
 			power_stacks = 2 if is_plus else 1  # Cards drawn per status
 		"rage":
 			rage_active = true
@@ -1832,6 +1835,13 @@ func _activate_power(power_name: String, power_target: Node2D = null) -> void:
 			pass  # Handled on draw_cards
 		"blood_fury":
 			pass  # Handled on self HP loss from card
+
+	# Accumulate per_turn effects on hero metadata for simulator snapshot
+	if not per_turn.is_empty() and hero and hero.has_method("set_meta"):
+		var pt: Dictionary = hero.get_meta("sim_per_turn") if hero.has_meta("sim_per_turn") else {}
+		for key in per_turn:
+			pt[key] = pt.get(key, 0) + per_turn[key]
+		hero.set_meta("sim_per_turn", pt)
 
 	# Add power icon with correct stack value
 	if show_icon and hero:
@@ -1889,10 +1899,11 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 		var shiv = gm.get_card_data("si_shiv")
 		if shiv.is_empty():
 			continue
-		# Accuracy: boost shiv damage
-		if player and player.active_powers.get("accuracy", 0) > 0:
-			var accuracy_stacks: int = player.active_powers["accuracy"]
-			shiv["damage"] = shiv.get("damage", 4) + accuracy_stacks * 4
+		# Accuracy: boost shiv damage (stacks = bonus damage)
+		for _h in _get_all_alive_heroes():
+			var acc_bonus: int = _h.active_powers.get("accuracy", 0)
+			if acc_bonus > 0:
+				shiv["damage"] = shiv.get("damage", 4) + acc_bonus
 		hand.append(shiv)
 		if card_hand:
 			# Stagger shiv animation and fly from screen center
@@ -1960,20 +1971,27 @@ func end_player_turn() -> void:
 		if card_data.get("end_turn_damage", 0) > 0 and front:
 			front.take_damage_direct(card_data["end_turn_damage"])
 
-	# Exhaust ethereal cards (Dazed, Ghostly Armor, Carnage, etc.)
+	# Exhaust ethereal cards with shatter animation (Dazed, Ghostly Armor, Carnage, etc.)
 	var ethereal_cards: Array = []
 	for card_data in hand:
 		if card_data.get("ethereal", false):
 			ethereal_cards.append(card_data)
 	if not ethereal_cards.is_empty():
+		# Animate ethereal card nodes shattering before removing data
+		if card_hand:
+			var ethereal_nodes: Array = []
+			for card_node in card_hand.cards.duplicate():
+				if is_instance_valid(card_node) and card_node.card_data.get("ethereal", false):
+					ethereal_nodes.append(card_node)
+			for card_node in ethereal_nodes:
+				card_hand._shatter_card(card_node)
+				card_hand.remove_card(card_node)
+			if not ethereal_nodes.is_empty():
+				await get_tree().create_timer(0.7).timeout
+		# Update hand data
 		for card_data in ethereal_cards:
 			hand.erase(card_data)
 			_exhaust_card(card_data)
-		# Rebuild card_hand visual to reflect removed cards
-		if card_hand:
-			card_hand.clear_hand()
-			for c in hand:
-				card_hand.add_card(c, false)
 
 	# Check for Retain (Well-Laid Plans): let player keep cards in hand
 	var retain_count: int = 0
@@ -2210,8 +2228,9 @@ func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 		return
 	if attacked_hero.active_powers.get("flame_barrier", 0) > 0:
 		enemy.take_damage(flame_barrier_damage)
-	if attacked_hero.active_powers.get("caltrops", 0) > 0:
-		enemy.take_damage(3)
+	var caltrops_dmg: int = attacked_hero.active_powers.get("caltrops", 0)
+	if caltrops_dmg > 0:
+		enemy.take_damage(caltrops_dmg)
 
 func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 	var front = get_front_player()
@@ -2289,6 +2308,184 @@ func _on_card_played(card_data: Dictionary, target: Node2D) -> void:
 func _on_end_turn() -> void:
 	end_player_turn()
 
+# ---------------------------------------------------------------------------
+# AI Recommend — solve best play sequence
+# ---------------------------------------------------------------------------
+
+func _create_ai_button() -> void:
+	var hud = get_node_or_null("HUDLayer/HUD")
+	if hud == null:
+		return
+	ai_btn = Button.new()
+	ai_btn.name = "AIButton"
+	ai_btn.text = "AI推荐"
+	ai_btn.custom_minimum_size = Vector2(160, 50)
+	if end_turn_btn:
+		ai_btn.position = end_turn_btn.position + Vector2(0, 80)
+	else:
+		ai_btn.position = Vector2(1640, 480)
+	ai_btn.add_theme_font_size_override("font_size", 20)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.35, 0.65, 0.9)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	style.border_width_left = 2; style.border_width_right = 2
+	style.border_width_top = 2; style.border_width_bottom = 2
+	style.border_color = Color(0.3, 0.6, 1.0, 0.8)
+	ai_btn.add_theme_stylebox_override("normal", style)
+	var hover_style := style.duplicate() as StyleBoxFlat
+	hover_style.bg_color = Color(0.2, 0.45, 0.75, 0.95)
+	ai_btn.add_theme_stylebox_override("hover", hover_style)
+	ai_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	ai_btn.pressed.connect(_on_ai_recommend)
+	hud.add_child(ai_btn)
+
+func _on_ai_recommend() -> void:
+	if not battle_active or not is_player_turn:
+		return
+	ai_btn.disabled = true
+	ai_btn.text = "分析中..."
+	# Run solver (synchronous — fast enough for typical hand sizes)
+	var result: Dictionary = BattleSim.solve(self)
+	ai_btn.text = "AI推荐"
+	ai_btn.disabled = false
+	_show_ai_overlay(result)
+
+func _show_ai_overlay(result: Dictionary) -> void:
+	# Remove old overlay
+	if _ai_overlay and is_instance_valid(_ai_overlay):
+		_ai_overlay.queue_free()
+	var hud = get_node_or_null("HUDLayer/HUD")
+	if hud == null:
+		return
+
+	_ai_overlay = Control.new()
+	_ai_overlay.name = "AIOverlay"
+	_ai_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_ai_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud.add_child(_ai_overlay)
+
+	# Semi-transparent background
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.6)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	_ai_overlay.add_child(bg)
+
+	# Content panel
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(700, 500)
+	panel.position = Vector2(610, 200)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.08, 0.1, 0.15, 0.95)
+	panel_style.corner_radius_top_left = 12
+	panel_style.corner_radius_top_right = 12
+	panel_style.corner_radius_bottom_left = 12
+	panel_style.corner_radius_bottom_right = 12
+	panel_style.border_width_left = 2; panel_style.border_width_right = 2
+	panel_style.border_width_top = 2; panel_style.border_width_bottom = 2
+	panel_style.border_color = Color(0.3, 0.6, 1.0, 0.6)
+	panel_style.content_margin_left = 24; panel_style.content_margin_right = 24
+	panel_style.content_margin_top = 20; panel_style.content_margin_bottom = 20
+	panel.add_theme_stylebox_override("panel", panel_style)
+	_ai_overlay.add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	panel.add_child(vbox)
+
+	# Title
+	var title := Label.new()
+	title.text = "AI 最优出牌方案"
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	# Sequence display
+	var seq: Array = result.get("sequence", [])
+	if seq.is_empty():
+		var no_play := Label.new()
+		no_play.text = "建议: 不出牌，直接结束回合"
+		no_play.add_theme_font_size_override("font_size", 22)
+		no_play.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
+		vbox.add_child(no_play)
+	else:
+		var seq_title := Label.new()
+		seq_title.text = "出牌顺序:"
+		seq_title.add_theme_font_size_override("font_size", 20)
+		seq_title.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+		vbox.add_child(seq_title)
+		# Look up card names from hand/game manager
+		var gm = _get_game_manager()
+		for i in range(seq.size()):
+			var card_id: String = seq[i]
+			var card_name: String = card_id
+			if gm and gm.card_database.has(card_id):
+				card_name = gm.card_database[card_id].get("name", card_id)
+			var line := Label.new()
+			line.text = "  %d. %s" % [i + 1, card_name]
+			line.add_theme_font_size_override("font_size", 22)
+			line.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
+			vbox.add_child(line)
+
+	# Detail text — parse all info lines
+	var detail_text: String = result.get("detail", "")
+	var detail_lines: Array = detail_text.split("\n")
+	for line_str in detail_lines:
+		# Skip title and sequence lines (already shown above)
+		if line_str.begins_with("===") or line_str.begins_with("出牌顺序") or line_str.begins_with("建议"):
+			continue
+		if line_str.begins_with("  %d" % 1) or line_str.begins_with("  %d" % 2):
+			continue
+		# Show all other info lines
+		if line_str.strip_edges().is_empty():
+			continue
+		if line_str.begins_with("搜索"):
+			continue
+		var lbl := Label.new()
+		lbl.text = line_str
+		lbl.add_theme_font_size_override("font_size", 18)
+		if "英雄HP" in line_str or "力量" in line_str:
+			lbl.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
+		elif "敌人" in line_str:
+			lbl.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
+		elif "毒" in line_str:
+			lbl.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+		elif "全局" in line_str or "预计" in line_str:
+			lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		elif "HP损失" in line_str:
+			lbl.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		elif "无额外" in line_str:
+			lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
+		else:
+			lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+		vbox.add_child(lbl)
+
+	# Close button
+	var close_btn := Button.new()
+	close_btn.text = "关闭"
+	close_btn.custom_minimum_size = Vector2(120, 40)
+	close_btn.add_theme_font_size_override("font_size", 20)
+	close_btn.pressed.connect(func():
+		if _ai_overlay and is_instance_valid(_ai_overlay):
+			_ai_overlay.queue_free()
+			_ai_overlay = null
+	)
+	var center_h := CenterContainer.new()
+	center_h.add_child(close_btn)
+	vbox.add_child(center_h)
+
+	# Also close on background click
+	bg.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed:
+			if _ai_overlay and is_instance_valid(_ai_overlay):
+				_ai_overlay.queue_free()
+				_ai_overlay = null
+	)
+
 func _on_exit_battle() -> void:
 	## Return to main menu
 	battle_active = false
@@ -2357,11 +2554,20 @@ func _update_pile_labels() -> void:
 		_deck_count_btn.text = "🃏 %d" % total
 
 func _on_deck_count_clicked() -> void:
-	## Show all cards in the current battle deck using the pile viewer
+	## Show all cards in the current battle deck (including exhausted cards)
+	var active_cards: Array = []
+	active_cards.append_array(draw_pile)
+	active_cards.append_array(hand)
+	active_cards.append_array(discard_pile)
+	# Mark exhausted cards
+	var exhausted_cards: Array = []
+	for cd in exhaust_pile:
+		var marked = cd.duplicate()
+		marked["_exhausted"] = true
+		exhausted_cards.append(marked)
 	var all_cards: Array = []
-	all_cards.append_array(draw_pile)
-	all_cards.append_array(hand)
-	all_cards.append_array(discard_pile)
+	all_cards.append_array(active_cards)
+	all_cards.append_array(exhausted_cards)
 	# Sort by type then name
 	all_cards.sort_custom(func(a, b):
 		if a.get("type", 0) != b.get("type", 0):
@@ -2414,7 +2620,11 @@ func _process(_delta: float) -> void:
 			# Arrow starts from top edge of card (not center)
 			var card_pos: Vector2 = card_hand.selected_card.global_position + Vector2(148, -10)
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
-			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow)
+			# Green arrow for self/hero targets, red for enemy targets
+			var arrow_mode: String = "red"
+			if target_type == "self" or target_type == "all_heroes":
+				arrow_mode = "green"
+			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow, arrow_mode)
 			_targeting_arrow.visible = true
 		if target_type == "enemy":
 			var mouse_pos: Vector2 = get_viewport().get_mouse_position()
@@ -3503,6 +3713,18 @@ func _show_pile_viewer(title: String, pile: Array) -> void:
 		card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
 		# Click to open card detail
 		card_visual.gui_input.connect(_on_pile_card_clicked.bind(sorted_pile, i))
+		# Dim exhausted cards with a semi-transparent overlay and label
+		if cd.get("_exhausted", false):
+			card_visual.modulate = Color(0.5, 0.5, 0.5, 0.7)
+			var exhaust_label = Label.new()
+			exhaust_label.text = "已消耗"
+			exhaust_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			exhaust_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			exhaust_label.size = mini_size
+			exhaust_label.add_theme_font_size_override("font_size", 24)
+			exhaust_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+			exhaust_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card_visual.add_child(exhaust_label)
 		grid.add_child(card_visual)
 
 func _on_pile_card_clicked(event: InputEvent, pile: Array, index: int) -> void:

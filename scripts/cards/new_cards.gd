@@ -17,6 +17,7 @@ static func get_cards() -> Dictionary:
 		"description": "At the start of each\nturn, gain Strength\nequal to total enemy\nPoison ÷ 4.",
 		"art": "", "target": "self", "version": "new",
 		"power_effect": "venomous_might",
+		"power_stacks": 1,
 		"actions": [{"type": "power_effect", "power": "venomous_might"}]
 	}
 
@@ -27,6 +28,7 @@ static func get_cards() -> Dictionary:
 		"description": "Whenever you draw 3+\ncards in a single\naction, gain 1 Energy.",
 		"art": "", "target": "self", "version": "new",
 		"power_effect": "psi_surge",
+		"power_stacks": 1,
 		"actions": [{"type": "power_effect", "power": "psi_surge"}]
 	}
 
@@ -37,6 +39,7 @@ static func get_cards() -> Dictionary:
 		"description": "Whenever you lose HP\nfrom a card, your\nnext Attack deals\ndouble damage.",
 		"art": "", "target": "self", "version": "new",
 		"power_effect": "blood_fury",
+		"power_stacks": 1,
 		"actions": [{"type": "power_effect", "power": "blood_fury"}]
 	}
 
@@ -50,6 +53,7 @@ static func get_cards() -> Dictionary:
 		"type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0,
 		"description": "Deal 3 damage to ALL\nenemies X times.\nApply 1 Poison each\nhit.",
 		"art": "", "target": "all_enemies", "version": "new",
+		"poison_per_hit": 1,
 		"actions": [{"type": "call", "fn": "toxic_storm"}]
 	}
 
@@ -59,6 +63,7 @@ static func get_cards() -> Dictionary:
 		"type": CardType.ATTACK, "character": "neutral", "damage": 5, "block": 0,
 		"description": "Deal 5 damage.\nHit once more for\neach Attack played\nthis turn.",
 		"art": "", "target": "enemy", "version": "new",
+		"hits_per_attack": true,
 		"actions": [{"type": "call", "fn": "echo_slash"}]
 	}
 
@@ -68,6 +73,7 @@ static func get_cards() -> Dictionary:
 		"type": CardType.ATTACK, "character": "silent", "damage": 0, "block": 0,
 		"description": "Deal damage equal to\nhand size × 3.\nDiscard 1 card.",
 		"art": "", "target": "enemy", "version": "new",
+		"damage_per_hand": 3,
 		"actions": [{"type": "call", "fn": "gamblers_blade"}]
 	}
 
@@ -81,6 +87,7 @@ static func get_cards() -> Dictionary:
 		"type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0,
 		"description": "Gain Block equal to\ntotal Poison on all\nenemies.",
 		"art": "", "target": "self", "version": "new",
+		"block_from_enemy_poison": true,
 		"actions": [{"type": "call", "fn": "poison_shield"}]
 	}
 
@@ -99,6 +106,7 @@ static func get_cards() -> Dictionary:
 		"type": CardType.SKILL, "character": "neutral", "damage": 0, "block": 0,
 		"description": "Consume all Energy.\nDraw 2 cards per\nEnergy consumed.\nExhaust.",
 		"art": "", "target": "self", "exhaust": true, "version": "new",
+		"consume_energy": true, "draw_per_energy": 2,
 		"actions": [{"type": "call", "fn": "all_in"}]
 	}
 

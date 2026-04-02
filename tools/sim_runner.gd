@@ -50,7 +50,8 @@ func _init() -> void:
 	# Build card pool
 	var pool: Array = []
 	var basic_ids := ["ic_strike", "ic_defend", "si_strike", "si_defend",
-					  "status_wound", "status_burn", "status_dazed"]
+					  "status_wound", "status_burn", "status_dazed",
+					  "si_shiv", "si_shiv_plus"]  # Exclude tokens
 	for card_id in gm.card_database:
 		if card_id in basic_ids:
 			continue

@@ -1,800 +1,167 @@
 {
 	"cards": {
-		"ic_strike": {
-			"id": "ic_strike",
-			"name": "Strike",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_bash": {
-			"id": "ic_bash",
-			"name": "Bash",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage.\nApply 2 Vulnerable.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "vulnerable",
-				"stacks": 2
-			},
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_iron_wave": {
-			"id": "ic_iron_wave",
-			"name": "Iron Wave",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 5,
-			"block": 5,
-			"description": "Deal 5 damage.\nGain 5 Block.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_body_slam": {
-			"id": "ic_body_slam",
-			"name": "Body Slam",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Deal damage equal\nto your Block.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "body_slam"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
 		"ic_anger": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"card_id": "ic_anger",
+					"type": "copy_to_discard"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 6,
+			"description": "Deal 6 damage.\nAdd a copy to\nyour discard pile.",
 			"id": "ic_anger",
 			"name": "Anger",
-			"cost": 0,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage.\nAdd a copy to\nyour discard pile.",
-			"art": "",
+			"status": "active",
 			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "copy_to_discard",
-					"card_id": "ic_anger"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_cleave": {
-			"id": "ic_cleave",
-			"name": "Cleave",
-			"cost": 1,
 			"type": 0,
-			"character": "ironclad",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage to\nALL enemies.",
-			"art": "",
-			"target": "all_enemies",
-			"actions": [
-				{
-					"type": "damage_all"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_twin_strike": {
-			"id": "ic_twin_strike",
-			"name": "Twin Strike",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 5,
-			"block": 0,
-			"description": "Deal 5 damage twice.",
-			"art": "",
-			"target": "enemy",
-			"times": 2,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_wild_strike": {
-			"id": "ic_wild_strike",
-			"name": "Wild Strike",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 12,
-			"block": 0,
-			"description": "Deal 12 damage.\nShuffle a Wound into\nyour draw pile.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "add_card_to_draw",
-					"card_id": "status_wound"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_pommel_strike": {
-			"id": "ic_pommel_strike",
-			"name": "Pommel Strike",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 9,
-			"block": 0,
-			"description": "Deal 9 damage.\nDraw 1 card.",
-			"art": "",
-			"target": "enemy",
-			"draw": 1,
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "draw"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_headbutt": {
-			"id": "ic_headbutt",
-			"name": "Headbutt",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 9,
-			"block": 0,
-			"description": "Deal 9 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_pummel": {
-			"id": "ic_pummel",
-			"name": "Pummel",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 2,
-			"block": 0,
-			"description": "Deal 2 damage x4.",
-			"art": "",
-			"target": "enemy",
-			"times": 4,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_uppercut": {
-			"id": "ic_uppercut",
-			"name": "Uppercut",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 13,
-			"block": 0,
-			"description": "Deal 13 damage.\nApply 1 Weak.\nApply 1 Vulnerable.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "vulnerable",
-				"stacks": 1
-			},
-			"apply_status_2": {
-				"type": "weak",
-				"stacks": 1
-			},
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status_2"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_immolate": {
-			"id": "ic_immolate",
-			"name": "Immolate",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 21,
-			"block": 0,
-			"description": "Deal 21 damage to\nALL enemies.\nAdd a Burn to discard.",
-			"art": "",
-			"target": "all_enemies",
-			"actions": [
-				{
-					"type": "damage_all"
-				},
-				{
-					"type": "add_card_to_discard",
-					"card_id": "status_burn"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_fiend_fire": {
-			"id": "ic_fiend_fire",
-			"name": "Fiend Fire",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 7,
-			"block": 0,
-			"description": "Exhaust your hand.\nDeal 7 damage for\neach card exhausted.",
-			"art": "",
-			"target": "enemy",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "fiend_fire"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_reaper": {
-			"id": "ic_reaper",
-			"name": "Reaper",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 4,
-			"block": 0,
-			"description": "Deal 4 damage to\nALL enemies.\nHeal for unblocked damage.",
-			"art": "",
-			"target": "all_enemies",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "reaper"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_heavy_blade": {
-			"id": "ic_heavy_blade",
-			"name": "Heavy Blade",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 14,
-			"block": 0,
-			"description": "Deal 14 damage.\nStrength applies x3.",
-			"art": "",
-			"target": "enemy",
-			"str_mult": 3,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "heavy_blade"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_thunderclap": {
-			"id": "ic_thunderclap",
-			"name": "Thunderclap",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 4,
-			"block": 0,
-			"description": "Deal 4 damage to\nALL enemies.\nApply 1 Vulnerable.",
-			"art": "",
-			"target": "all_enemies",
-			"apply_status": {
-				"type": "vulnerable",
-				"stacks": 1
-			},
-			"actions": [
-				{
-					"type": "damage_all"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_hemokinesis": {
-			"id": "ic_hemokinesis",
-			"name": "Hemokinesis",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 15,
-			"block": 0,
-			"description": "Lose 2 HP.\nDeal 15 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "self_damage",
-					"value": 2
-				},
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_reckless_charge": {
-			"id": "ic_reckless_charge",
-			"name": "Reckless Charge",
-			"cost": 0,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 7,
-			"block": 0,
-			"description": "Deal 7 damage.\nShuffle a Dazed into\nyour draw pile.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "add_card_to_draw",
-					"card_id": "status_dazed"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_clash": {
-			"id": "ic_clash",
-			"name": "Clash",
-			"cost": 0,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 14,
-			"block": 0,
-			"description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 14 damage.",
-			"art": "",
-			"target": "enemy",
-			"special": "clash",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_perfected_strike": {
-			"id": "ic_perfected_strike",
-			"name": "Perfected Strike",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage. Deals\n2 additional damage\nfor each \"Strike\" card\nin your deck.",
-			"art": "",
-			"target": "enemy",
-			"strike_bonus": 2,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "perfected_strike"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_bludgeon": {
-			"id": "ic_bludgeon",
-			"name": "Bludgeon",
-			"cost": 3,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 32,
-			"block": 0,
-			"description": "Deal 32 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_sword_boomerang": {
-			"id": "ic_sword_boomerang",
-			"name": "Sword Boomerang",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 3,
-			"block": 0,
-			"description": "Deal 3 damage to a\nrandom enemy 3 times.",
-			"art": "",
-			"target": "random_enemy",
-			"times": 3,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_searing_blow": {
-			"id": "ic_searing_blow",
-			"name": "Searing Blow",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 12,
-			"block": 0,
-			"description": "Deal 12 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_whirlwind": {
-			"id": "ic_whirlwind",
-			"name": "Whirlwind",
-			"cost": -1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 5,
-			"block": 0,
-			"description": "Deal 5 damage to ALL\nenemies X times.\n(X = current Energy)",
-			"art": "",
-			"target": "all_enemies",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "whirlwind"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_dropkick": {
-			"id": "ic_dropkick",
-			"name": "Dropkick",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 5,
-			"block": 0,
-			"description": "Deal 5 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "dropkick"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_carnage": {
-			"id": "ic_carnage",
-			"name": "Carnage",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 20,
-			"block": 0,
-			"description": "Ethereal.\nDeal 20 damage.",
-			"art": "",
-			"target": "enemy",
-			"ethereal": true,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_clothesline": {
-			"id": "ic_clothesline",
-			"name": "Clothesline",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 12,
-			"block": 0,
-			"description": "Deal 12 damage.\nApply 2 Weak.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "weak",
-				"stacks": 2
-			},
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_feed": {
-			"id": "ic_feed",
-			"name": "Feed",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 10,
-			"block": 0,
-			"description": "Deal 10 damage.\nIf this kills, gain\n3 Max HP. Exhaust.",
-			"art": "",
-			"target": "enemy",
-			"exhaust": true,
-			"max_hp_gain": 3,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "feed"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_rampage": {
-			"id": "ic_rampage",
-			"name": "Rampage",
-			"cost": 1,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage.\nIncreases by 5\neach time played.",
-			"art": "",
-			"target": "enemy",
-			"rampage_inc": 5,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "rampage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_sever_soul": {
-			"id": "ic_sever_soul",
-			"name": "Sever Soul",
-			"cost": 2,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 16,
-			"block": 0,
-			"description": "Exhaust all non-Attack\ncards in hand.\nDeal 16 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "sever_soul"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_blood_for_blood": {
-			"id": "ic_blood_for_blood",
-			"name": "Blood for Blood",
-			"cost": 4,
-			"type": 0,
-			"character": "ironclad",
-			"damage": 18,
-			"block": 0,
-			"description": "Costs 1 less for each\ntime you lose HP this\ncombat. Deal 18 dmg.",
-			"art": "",
-			"target": "enemy",
-			"status": "incomplete",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "blood_for_blood"
-				}
-			],
 			"version": "old"
 		},
-		"ic_defend": {
-			"id": "ic_defend",
-			"name": "Defend",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
+		"ic_armaments": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
 			"block": 5,
-			"description": "Gain 5 Block.",
-			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_shrug_it_off": {
-			"id": "ic_shrug_it_off",
-			"name": "Shrug It Off",
+			"character": "ironclad",
 			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
 			"damage": 0,
-			"block": 8,
-			"description": "Gain 8 Block.\nDraw 1 card.",
-			"art": "",
+			"description": "Gain 5 Block.",
+			"id": "ic_armaments",
+			"name": "Armaments",
+			"status": "active",
 			"target": "self",
-			"draw": 1,
-			"actions": [
-				{
-					"type": "block"
-				},
-				{
-					"type": "draw"
-				}
-			],
-			"version": "old",
-			"status": "active"
+			"type": 1,
+			"version": "old"
 		},
-		"ic_flame_barrier": {
-			"id": "ic_flame_barrier",
-			"name": "Flame Barrier",
-			"cost": 2,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 12,
-			"description": "Gain 12 Block.\nWhen attacked this turn,\ndeal 4 damage back.",
-			"art": "",
-			"target": "self",
-			"power_effect": "flame_barrier",
+		"ic_barricade": {
 			"actions": [
 				{
-					"type": "block"
-				},
-				{
-					"type": "power_effect",
-					"power": "flame_barrier"
+					"power": "barricade",
+					"type": "power_effect"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 3,
+			"damage": 0,
+			"description": "Block is not removed\nat the start of\nyour turn.",
+			"id": "ic_barricade",
+			"name": "Barricade",
+			"power_effect": "barricade",
+			"power_stacks": 1,
+			"retain_block": true,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_bash": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 2,
+				"type": "vulnerable"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 8,
+			"description": "Deal 8 damage.\nApply 2 Vulnerable.",
+			"id": "ic_bash",
+			"name": "Bash",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
 		},
 		"ic_battle_trance": {
-			"id": "ic_battle_trance",
-			"name": "Battle Trance",
-			"cost": 0,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Draw 3 cards.",
-			"art": "",
-			"target": "self",
-			"draw": 3,
 			"actions": [
 				{
 					"type": "draw"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Draw 3 cards.",
+			"draw": 3,
+			"id": "ic_battle_trance",
+			"name": "Battle Trance",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_berserk": {
+			"actions": [
+				{
+					"power": "berserk",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Gain 1 Vulnerable.\nAt the start of each\nturn, gain 1 Energy.",
+			"id": "ic_berserk",
+			"name": "Berserk",
+			"per_turn": {
+				"energy": 1
+			},
+			"power_effect": "berserk",
+			"power_self_debuff": {
+				"stacks": 1,
+				"type": "vulnerable"
+			},
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_blood_for_blood": {
+			"actions": [
+				{
+					"fn": "blood_for_blood",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 4,
+			"damage": 18,
+			"description": "Costs 1 less for each\ntime you lose HP this\ncombat. Deal 18 dmg.",
+			"id": "ic_blood_for_blood",
+			"name": "Blood for Blood",
+			"status": "incomplete",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
 		},
 		"ic_bloodletting": {
-			"id": "ic_bloodletting",
-			"name": "Bloodletting",
-			"cost": 0,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Lose 3 HP.\nGain 2 Energy.",
-			"art": "",
-			"target": "self",
 			"actions": [
 				{
 					"type": "self_damage",
@@ -805,159 +172,909 @@
 					"value": 2
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_flex": {
-			"id": "ic_flex",
-			"name": "Flex",
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
 			"cost": 0,
-			"type": 1,
-			"character": "ironclad",
 			"damage": 0,
-			"block": 0,
-			"description": "Gain 2 Strength.\nAt end of turn,\nlose 2 Strength.",
-			"art": "",
+			"description": "Lose 3 HP.\nGain 2 Energy.",
+			"id": "ic_bloodletting",
+			"name": "Bloodletting",
+			"status": "active",
 			"target": "self",
-			"flex_stacks": 2,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "flex"
-				}
-			],
-			"version": "old",
-			"status": "active"
+			"type": 1,
+			"version": "old"
 		},
-		"ic_limit_break": {
-			"id": "ic_limit_break",
-			"name": "Limit Break",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Double your Strength.\nExhaust.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
+		"ic_bludgeon": {
 			"actions": [
 				{
-					"type": "call",
-					"fn": "limit_break"
+					"type": "damage"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 3,
+			"damage": 32,
+			"description": "Deal 32 damage.",
+			"id": "ic_bludgeon",
+			"name": "Bludgeon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_body_slam": {
+			"actions": [
+				{
+					"fn": "body_slam",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"damage_from_block": true,
+			"description": "Deal damage equal\nto your Block.",
+			"id": "ic_body_slam",
+			"name": "Body Slam",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_brutality": {
+			"actions": [
+				{
+					"power": "brutality",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.",
+			"id": "ic_brutality",
+			"name": "Brutality",
+			"per_turn": {
+				"draw": 1,
+				"self_damage": 1
+			},
+			"power_effect": "brutality",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_burning_pact": {
+			"actions": [
+				{
+					"fn": "burning_pact",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Exhaust 1 card.\nDraw 2 cards.",
+			"draw": 2,
+			"id": "ic_burning_pact",
+			"name": "Burning Pact",
+			"random_exhaust": true,
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_carnage": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 20,
+			"description": "Ethereal.\nDeal 20 damage.",
+			"ethereal": true,
+			"id": "ic_carnage",
+			"name": "Carnage",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_clash": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 14,
+			"description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 14 damage.",
+			"id": "ic_clash",
+			"name": "Clash",
+			"special": "clash",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_cleave": {
+			"actions": [
+				{
+					"type": "damage_all"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 8,
+			"description": "Deal 8 damage to\nALL enemies.",
+			"id": "ic_cleave",
+			"name": "Cleave",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_clothesline": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 12,
+			"description": "Deal 12 damage.\nApply 2 Weak.",
+			"id": "ic_clothesline",
+			"name": "Clothesline",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_combust": {
+			"actions": [
+				{
+					"power": "combust",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "At the end of your\nturn, lose 1 HP and\ndeal 5 damage to ALL\nenemies.",
+			"id": "ic_combust",
+			"name": "Combust",
+			"per_turn": {
+				"damage_all": 5,
+				"self_damage": 1
+			},
+			"power_effect": "combust",
+			"power_stacks": 5,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_corruption": {
+			"actions": [
+				{
+					"power": "corruption",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 3,
+			"damage": 0,
+			"description": "Skills cost 0.\nWhenever you play a\nSkill, Exhaust it.",
+			"id": "ic_corruption",
+			"name": "Corruption",
+			"power_effect": "corruption",
+			"power_stacks": 1,
+			"skills_cost_zero": true,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_dark_embrace": {
+			"actions": [
+				{
+					"power": "dark_embrace",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 0,
+			"description": "Whenever a card is\nExhausted, draw 1.",
+			"id": "ic_dark_embrace",
+			"name": "Dark Embrace",
+			"power_effect": "dark_embrace",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_defend": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
+			"block": 5,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 5 Block.",
+			"id": "ic_defend",
+			"name": "Defend",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_demon_form": {
+			"actions": [
+				{
+					"power": "demon_form",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 3,
+			"damage": 0,
+			"description": "At the start of\neach turn, gain 2\nStrength.",
+			"id": "ic_demon_form",
+			"name": "Demon Form",
+			"per_turn": {
+				"strength": 2
+			},
+			"power_effect": "demon_form",
+			"power_stacks": 2,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_disarm": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": -2,
+				"type": "strength"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Enemy loses 2\nStrength. Exhaust.",
+			"exhaust": true,
+			"id": "ic_disarm",
+			"name": "Disarm",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_double_tap": {
+			"actions": [
+				{
+					"power": "double_tap",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "This turn, your next\nAttack is played twice.",
+			"double_next_attack": true,
+			"id": "ic_double_tap",
+			"name": "Double Tap",
+			"power_effect": "double_tap",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_dropkick": {
+			"actions": [
+				{
+					"fn": "dropkick",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"conditional_on_status": {
+				"draw": 1,
+				"energy": 1,
+				"status": "vulnerable"
+			},
+			"cost": 1,
+			"damage": 5,
+			"description": "Deal 5 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1.",
+			"id": "ic_dropkick",
+			"name": "Dropkick",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_dual_wield": {
+			"actions": [
+				{
+					"fn": "dual_wield",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"copies": 1,
+			"cost": 1,
+			"damage": 0,
+			"description": "Copy an Attack or\nPower card in hand.",
+			"id": "ic_dual_wield",
+			"name": "Dual Wield",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
 		},
 		"ic_entrench": {
+			"actions": [
+				{
+					"fn": "entrench",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 0,
+			"description": "Double your Block.",
+			"double_block": true,
 			"id": "ic_entrench",
 			"name": "Entrench",
-			"cost": 2,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Double your Block.",
-			"art": "",
+			"status": "active",
 			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_evolve": {
 			"actions": [
 				{
-					"type": "call",
-					"fn": "entrench"
+					"power": "evolve",
+					"type": "power_effect"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_shockwave": {
-			"id": "ic_shockwave",
-			"name": "Shockwave",
-			"cost": 2,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Apply 3 Weak and\n3 Vulnerable to\nALL enemies. Exhaust.",
 			"art": "",
-			"target": "all_enemies",
-			"apply_status": {
-				"type": "weak",
-				"stacks": 3
-			},
-			"apply_status_2": {
-				"type": "vulnerable",
-				"stacks": 3
-			},
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Whenever you draw a\nStatus card, draw 1.",
+			"id": "ic_evolve",
+			"name": "Evolve",
+			"power_effect": "evolve",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_exhume": {
+			"actions": [
+				{
+					"fn": "exhume",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust.",
 			"exhaust": true,
+			"id": "ic_exhume",
+			"name": "Exhume",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_feed": {
 			"actions": [
 				{
-					"type": "apply_status",
-					"source": "apply_status"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status_2"
+					"fn": "feed",
+					"type": "call"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_armaments": {
-			"id": "ic_armaments",
-			"name": "Armaments",
-			"cost": 1,
-			"type": 1,
+			"art": "",
+			"block": 0,
 			"character": "ironclad",
+			"cost": 1,
+			"damage": 10,
+			"description": "Deal 10 damage.\nIf this kills, gain\n3 Max HP. Exhaust.",
+			"exhaust": true,
+			"id": "ic_feed",
+			"max_hp_gain": 3,
+			"name": "Feed",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_feel_no_pain": {
+			"actions": [
+				{
+					"power": "feel_no_pain",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
 			"damage": 0,
+			"description": "Whenever a card is\nExhausted, gain\n3 Block.",
+			"id": "ic_feel_no_pain",
+			"name": "Feel No Pain",
+			"power_effect": "feel_no_pain",
+			"power_stacks": 3,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_fiend_fire": {
+			"actions": [
+				{
+					"fn": "fiend_fire",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 7,
+			"description": "Exhaust your hand.\nDeal 7 damage for\neach card exhausted.",
+			"exhaust": true,
+			"exhaust_hand_damage": true,
+			"id": "ic_fiend_fire",
+			"name": "Fiend Fire",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_fire_breathing": {
+			"actions": [
+				{
+					"power": "fire_breathing",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Whenever you draw a\nStatus or Curse, deal\n6 damage to ALL.",
+			"id": "ic_fire_breathing",
+			"name": "Fire Breathing",
+			"power_effect": "fire_breathing",
+			"power_stacks": 6,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_flame_barrier": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"power": "flame_barrier",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 12,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 0,
+			"description": "Gain 12 Block.\nWhen attacked this turn,\ndeal 4 damage back.",
+			"id": "ic_flame_barrier",
+			"name": "Flame Barrier",
+			"power_effect": "flame_barrier",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_flex": {
+			"actions": [
+				{
+					"fn": "flex",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Gain 2 Strength.\nAt end of turn,\nlose 2 Strength.",
+			"flex_stacks": 2,
+			"id": "ic_flex",
+			"name": "Flex",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_ghostly_armor": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
+			"block": 10,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Ethereal.\nGain 10 Block.",
+			"ethereal": true,
+			"id": "ic_ghostly_armor",
+			"name": "Ghostly Armor",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_havoc": {
+			"actions": [
+				{
+					"fn": "havoc",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Play the top card of\nyour draw pile and\nExhaust it.",
+			"exhaust": true,
+			"id": "ic_havoc",
+			"name": "Havoc",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_headbutt": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 9,
+			"description": "Deal 9 damage.",
+			"id": "ic_headbutt",
+			"name": "Headbutt",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_heavy_blade": {
+			"actions": [
+				{
+					"fn": "heavy_blade",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 14,
+			"description": "Deal 14 damage.\nStrength applies x3.",
+			"id": "ic_heavy_blade",
+			"name": "Heavy Blade",
+			"status": "active",
+			"str_mult": 3,
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_hemokinesis": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 2
+				},
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 15,
+			"description": "Lose 2 HP.\nDeal 15 damage.",
+			"id": "ic_hemokinesis",
+			"name": "Hemokinesis",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_immolate": {
+			"actions": [
+				{
+					"type": "damage_all"
+				},
+				{
+					"card_id": "status_burn",
+					"type": "add_card_to_discard"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 21,
+			"description": "Deal 21 damage to\nALL enemies.\nAdd a Burn to discard.",
+			"id": "ic_immolate",
+			"name": "Immolate",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_impervious": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
+			"block": 30,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 0,
+			"description": "Gain 30 Block.\nExhaust.",
+			"exhaust": true,
+			"id": "ic_impervious",
+			"name": "Impervious",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_infernal_blade": {
+			"actions": [
+				{
+					"fn": "infernal_blade",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust.",
+			"exhaust": true,
+			"id": "ic_infernal_blade",
+			"name": "Infernal Blade",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_inflame": {
+			"actions": [
+				{
+					"stacks": 2,
+					"status": "strength",
+					"type": "apply_self_status"
+				}
+			],
+			"apply_self_status": {
+				"stacks": 2,
+				"type": "strength"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 2 Strength.",
+			"id": "ic_inflame",
+			"name": "Inflame",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_intimidate": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "weak"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Apply 1 Weak to\nALL enemies. Exhaust.",
+			"exhaust": true,
+			"id": "ic_intimidate",
+			"name": "Intimidate",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_iron_wave": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
 			"block": 5,
-			"description": "Gain 5 Block.",
-			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_power_through": {
-			"id": "ic_power_through",
-			"name": "Power Through",
-			"cost": 1,
-			"type": 1,
 			"character": "ironclad",
-			"damage": 0,
-			"block": 15,
-			"description": "Gain 15 Block.\nAdd 2 Wounds to\nyour hand.",
-			"art": "",
-			"target": "self",
+			"cost": 1,
+			"damage": 5,
+			"description": "Deal 5 damage.\nGain 5 Block.",
+			"id": "ic_iron_wave",
+			"name": "Iron Wave",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_juggernaut": {
 			"actions": [
 				{
-					"type": "block"
-				},
-				{
-					"type": "add_card_to_hand",
-					"card_id": "status_wound",
-					"count": 2
+					"power": "juggernaut",
+					"type": "power_effect"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 0,
+			"description": "Whenever you gain\nBlock, deal 5 damage\nto a random enemy.",
+			"id": "ic_juggernaut",
+			"name": "Juggernaut",
+			"power_effect": "juggernaut",
+			"power_stacks": 5,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_limit_break": {
+			"actions": [
+				{
+					"fn": "limit_break",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Double your Strength.\nExhaust.",
+			"double_strength": true,
+			"exhaust": true,
+			"id": "ic_limit_break",
+			"name": "Limit Break",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_metallicize": {
+			"actions": [
+				{
+					"power": "metallicize",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "At the end of your\nturn, gain 3 Block.",
+			"id": "ic_metallicize",
+			"name": "Metallicize",
+			"per_turn": {
+				"block": 3
+			},
+			"power_effect": "metallicize",
+			"power_stacks": 3,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
 		},
 		"ic_offering": {
-			"id": "ic_offering",
-			"name": "Offering",
-			"cost": 0,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Lose 6 HP.\nGain 2 Energy.\nDraw 3 cards.\nExhaust.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
 			"actions": [
 				{
 					"type": "self_damage",
@@ -972,1033 +1089,736 @@
 					"value": 3
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_war_cry": {
-			"id": "ic_war_cry",
-			"name": "War Cry",
-			"cost": 0,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Draw 1 card.\nExhaust.",
 			"art": "",
-			"target": "self",
-			"draw": 1,
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Lose 6 HP.\nGain 2 Energy.\nDraw 3 cards.\nExhaust.",
 			"exhaust": true,
+			"id": "ic_offering",
+			"name": "Offering",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_perfected_strike": {
 			"actions": [
+				{
+					"fn": "perfected_strike",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 6,
+			"description": "Deal 6 damage. Deals\n2 additional damage\nfor each \"Strike\" card\nin your deck.",
+			"id": "ic_perfected_strike",
+			"name": "Perfected Strike",
+			"status": "active",
+			"strike_bonus": 2,
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_pommel_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				},
 				{
 					"type": "draw"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_burning_pact": {
-			"id": "ic_burning_pact",
-			"name": "Burning Pact",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Exhaust 1 card.\nDraw 2 cards.",
 			"art": "",
-			"target": "self",
-			"draw": 2,
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 9,
+			"description": "Deal 9 damage.\nDraw 1 card.",
+			"draw": 1,
+			"id": "ic_pommel_strike",
+			"name": "Pommel Strike",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_power_through": {
 			"actions": [
 				{
-					"type": "call",
-					"fn": "burning_pact"
+					"type": "block"
+				},
+				{
+					"card_id": "status_wound",
+					"count": 2,
+					"type": "add_card_to_hand"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 15,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 15 Block.\nAdd 2 Wounds to\nyour hand.",
+			"id": "ic_power_through",
+			"name": "Power Through",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_pummel": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 2,
+			"description": "Deal 2 damage x4.",
+			"id": "ic_pummel",
+			"name": "Pummel",
+			"status": "active",
+			"target": "enemy",
+			"times": 4,
+			"type": 0,
+			"version": "old"
+		},
+		"ic_rage": {
+			"actions": [
+				{
+					"power": "rage",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Whenever you play an\nAttack this turn,\ngain 3 Block.",
+			"id": "ic_rage",
+			"name": "Rage",
+			"power_effect": "rage",
+			"power_stacks": 3,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_rampage": {
+			"actions": [
+				{
+					"fn": "rampage",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 8,
+			"description": "Deal 8 damage.\nIncreases by 5\neach time played.",
+			"id": "ic_rampage",
+			"name": "Rampage",
+			"rampage_inc": 5,
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_reaper": {
+			"actions": [
+				{
+					"fn": "reaper",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 4,
+			"description": "Deal 4 damage to\nALL enemies.\nHeal for unblocked damage.",
+			"exhaust": true,
+			"id": "ic_reaper",
+			"name": "Reaper",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_reckless_charge": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"card_id": "status_dazed",
+					"type": "add_card_to_draw"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 7,
+			"description": "Deal 7 damage.\nShuffle a Dazed into\nyour draw pile.",
+			"id": "ic_reckless_charge",
+			"name": "Reckless Charge",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_rupture": {
+			"actions": [
+				{
+					"power": "rupture",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Whenever you lose HP\nfrom a card, gain\n1 Strength.",
+			"id": "ic_rupture",
+			"name": "Rupture",
+			"power_effect": "rupture",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"ic_searing_blow": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 12,
+			"description": "Deal 12 damage.",
+			"id": "ic_searing_blow",
+			"name": "Searing Blow",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_second_wind": {
+			"actions": [
+				{
+					"fn": "second_wind",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"block_per": 5,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Exhaust all non-Attack\ncards in hand. Gain\n5 Block for each.",
+			"id": "ic_second_wind",
+			"name": "Second Wind",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
 		},
 		"ic_seeing_red": {
-			"id": "ic_seeing_red",
-			"name": "Seeing Red",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain 2 Energy.\nExhaust.",
-			"art": "",
-			"target": "self",
-			"energy_gain": 2,
-			"exhaust": true,
 			"actions": [
 				{
 					"type": "gain_energy",
 					"value": 2
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_second_wind": {
-			"id": "ic_second_wind",
-			"name": "Second Wind",
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
 			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
 			"damage": 0,
-			"block": 0,
-			"description": "Exhaust all non-Attack\ncards in hand. Gain\n5 Block for each.",
-			"art": "",
-			"target": "self",
-			"block_per": 5,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "second_wind"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_intimidate": {
-			"id": "ic_intimidate",
-			"name": "Intimidate",
-			"cost": 0,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Apply 1 Weak to\nALL enemies. Exhaust.",
-			"art": "",
-			"target": "all_enemies",
-			"apply_status": {
-				"type": "weak",
-				"stacks": 1
-			},
+			"description": "Gain 2 Energy.\nExhaust.",
+			"energy_gain": 2,
 			"exhaust": true,
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_infernal_blade": {
-			"id": "ic_infernal_blade",
-			"name": "Infernal Blade",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust.",
-			"art": "",
+			"id": "ic_seeing_red",
+			"name": "Seeing Red",
+			"status": "active",
 			"target": "self",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "infernal_blade"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_dual_wield": {
-			"id": "ic_dual_wield",
-			"name": "Dual Wield",
-			"cost": 1,
 			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Copy an Attack or\nPower card in hand.",
-			"art": "",
-			"target": "self",
-			"copies": 1,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "dual_wield"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_ghostly_armor": {
-			"id": "ic_ghostly_armor",
-			"name": "Ghostly Armor",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 10,
-			"description": "Ethereal.\nGain 10 Block.",
-			"art": "",
-			"target": "self",
-			"ethereal": true,
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_havoc": {
-			"id": "ic_havoc",
-			"name": "Havoc",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Play the top card of\nyour draw pile and\nExhaust it.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "havoc"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_impervious": {
-			"id": "ic_impervious",
-			"name": "Impervious",
-			"cost": 2,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 30,
-			"description": "Gain 30 Block.\nExhaust.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_exhume": {
-			"id": "ic_exhume",
-			"name": "Exhume",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "exhume"
-				}
-			],
-			"version": "old",
-			"status": "active"
+			"version": "old"
 		},
 		"ic_sentinel": {
-			"id": "ic_sentinel",
-			"name": "Sentinel",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 5,
-			"description": "Gain 5 Block.\nIf this card is\nExhausted, gain\n2 Energy.",
-			"art": "",
-			"target": "self",
-			"status": "incomplete",
 			"actions": [
 				{
 					"type": "block"
 				}
 			],
+			"art": "",
+			"block": 5,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 5 Block.\nIf this card is\nExhausted, gain\n2 Energy.",
+			"id": "ic_sentinel",
+			"name": "Sentinel",
+			"status": "incomplete",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_sever_soul": {
+			"actions": [
+				{
+					"fn": "sever_soul",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 16,
+			"description": "Exhaust all non-Attack\ncards in hand.\nDeal 16 damage.",
+			"exhaust_non_attacks": true,
+			"id": "ic_sever_soul",
+			"name": "Sever Soul",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_shockwave": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				},
+				{
+					"source": "apply_status_2",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 3,
+				"type": "weak"
+			},
+			"apply_status_2": {
+				"stacks": 3,
+				"type": "vulnerable"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 2,
+			"damage": 0,
+			"description": "Apply 3 Weak and\n3 Vulnerable to\nALL enemies. Exhaust.",
+			"exhaust": true,
+			"id": "ic_shockwave",
+			"name": "Shockwave",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_shrug_it_off": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"type": "draw"
+				}
+			],
+			"art": "",
+			"block": 8,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 8 Block.\nDraw 1 card.",
+			"draw": 1,
+			"id": "ic_shrug_it_off",
+			"name": "Shrug It Off",
+			"status": "active",
+			"target": "self",
+			"type": 1,
 			"version": "old"
 		},
 		"ic_spot_weakness": {
+			"actions": [
+				{
+					"fn": "spot_weakness",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "If the enemy intends\nto attack, all heroes\ngain 3 Strength.",
 			"id": "ic_spot_weakness",
 			"name": "Spot Weakness",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "If the enemy intends\nto attack, gain\n3 Strength.",
-			"art": "",
-			"target": "enemy",
 			"spot_str": 3,
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_strike": {
 			"actions": [
 				{
-					"type": "call",
-					"fn": "spot_weakness"
+					"type": "damage"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 6,
+			"description": "Deal 6 damage.",
+			"id": "ic_strike",
+			"name": "Strike",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_sword_boomerang": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 3,
+			"description": "Deal 3 damage to a\nrandom enemy 3 times.",
+			"id": "ic_sword_boomerang",
+			"name": "Sword Boomerang",
+			"status": "active",
+			"target": "random_enemy",
+			"times": 3,
+			"type": 0,
+			"version": "old"
+		},
+		"ic_thunderclap": {
+			"actions": [
+				{
+					"type": "damage_all"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "vulnerable"
+			},
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 4,
+			"description": "Deal 4 damage to\nALL enemies.\nApply 1 Vulnerable.",
+			"id": "ic_thunderclap",
+			"name": "Thunderclap",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
 		},
 		"ic_true_grit": {
-			"id": "ic_True_grit",
-			"name": "True Grit",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"fn": "true_grit",
+					"type": "call"
+				}
+			],
+			"art": "",
 			"block": 7,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
 			"description": "Gain 7 Block.\nExhaust a random\ncard in your hand.",
-			"art": "",
+			"id": "ic_true_grit",
+			"name": "True Grit",
+			"random_exhaust": true,
+			"status": "active",
 			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				},
-				{
-					"type": "call",
-					"fn": "True_grit"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_disarm": {
-			"id": "ic_disarm",
-			"name": "Disarm",
-			"cost": 1,
 			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Enemy loses 2\nStrength. Exhaust.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "strength",
-				"stacks": -2
-			},
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
+			"version": "old"
 		},
-		"ic_double_tap": {
-			"id": "ic_double_tap",
-			"name": "Double Tap",
-			"cost": 1,
-			"type": 1,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "This turn, your next\nAttack is played twice.",
-			"art": "",
-			"target": "self",
-			"power_effect": "double_tap",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "double_tap"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_demon_form": {
-			"id": "ic_demon_form",
-			"name": "Demon Form",
-			"cost": 3,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "At the start of\neach turn, gain 2\nStrength.",
-			"art": "",
-			"target": "self",
-			"power_effect": "demon_form",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "demon_form"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_corruption": {
-			"id": "ic_corruption",
-			"name": "Corruption",
-			"cost": 3,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Skills cost 0.\nWhenever you play a\nSkill, Exhaust it.",
-			"art": "",
-			"target": "self",
-			"power_effect": "corruption",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "corruption"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_berserk": {
-			"id": "ic_berserk",
-			"name": "Berserk",
-			"cost": 0,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain 1 Vulnerable.\nAt the start of each\nturn, gain 1 Energy.",
-			"art": "",
-			"target": "self",
-			"power_effect": "berserk",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "berserk"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_feel_no_pain": {
-			"id": "ic_feel_no_pain",
-			"name": "Feel No Pain",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever a card is\nExhausted, gain\n3 Block.",
-			"art": "",
-			"target": "self",
-			"power_effect": "feel_no_pain",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "feel_no_pain"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_juggernaut": {
-			"id": "ic_juggernaut",
-			"name": "Juggernaut",
-			"cost": 2,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you gain\nBlock, deal 5 damage\nto a random enemy.",
-			"art": "",
-			"target": "self",
-			"power_effect": "juggernaut",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "juggernaut"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_evolve": {
-			"id": "ic_evolve",
-			"name": "Evolve",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you draw a\nStatus card, draw 1.",
-			"art": "",
-			"target": "self",
-			"power_effect": "evolve",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "evolve"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_rage": {
-			"id": "ic_rage",
-			"name": "Rage",
-			"cost": 0,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you play an\nAttack this turn,\ngain 3 Block.",
-			"art": "",
-			"target": "self",
-			"power_effect": "rage",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "rage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_barricade": {
-			"id": "ic_barricade",
-			"name": "Barricade",
-			"cost": 3,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Block is not removed\nat the start of\nyour turn.",
-			"art": "",
-			"target": "self",
-			"power_effect": "barricade",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "barricade"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_inflame": {
-			"id": "ic_inflame",
-			"name": "Inflame",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain 2 Strength.",
-			"art": "",
-			"target": "self",
-			"apply_self_status": {
-				"type": "strength",
-				"stacks": 2
-			},
-			"actions": [
-				{
-					"type": "apply_self_status",
-					"status": "strength",
-					"stacks": 2
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_metallicize": {
-			"id": "ic_metallicize",
-			"name": "Metallicize",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "At the end of your\nturn, gain 3 Block.",
-			"art": "",
-			"target": "self",
-			"power_effect": "metallicize",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "metallicize"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_brutality": {
-			"id": "ic_brutality",
-			"name": "Brutality",
-			"cost": 0,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.",
-			"art": "",
-			"target": "self",
-			"power_effect": "brutality",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "brutality"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_combust": {
-			"id": "ic_combust",
-			"name": "Combust",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "At the end of your\nturn, lose 1 HP and\ndeal 5 damage to ALL\nenemies.",
-			"art": "",
-			"target": "self",
-			"power_effect": "combust",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "combust"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_dark_embrace": {
-			"id": "ic_dark_embrace",
-			"name": "Dark Embrace",
-			"cost": 2,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever a card is\nExhausted, draw 1.",
-			"art": "",
-			"target": "self",
-			"power_effect": "dark_embrace",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "dark_embrace"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_rupture": {
-			"id": "ic_rupture",
-			"name": "Rupture",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you lose HP\nfrom a card, gain\n1 Strength.",
-			"art": "",
-			"target": "self",
-			"power_effect": "rupture",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "rupture"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"ic_fire_breathing": {
-			"id": "ic_fire_breathing",
-			"name": "Fire Breathing",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you draw a\nStatus or Curse, deal\n6 damage to ALL.",
-			"art": "",
-			"target": "self",
-			"power_effect": "fire_breathing",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "fire_breathing"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_strike": {
-			"id": "si_strike",
-			"name": "Strike",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage.",
-			"art": "",
-			"target": "enemy",
+		"ic_twin_strike": {
 			"actions": [
 				{
 					"type": "damage"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_defend": {
-			"id": "si_defend",
-			"name": "Defend",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 5,
-			"description": "Gain 5 Block.",
 			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_neutralize": {
-			"id": "si_neutralize",
-			"name": "Neutralize",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 3,
 			"block": 0,
-			"description": "Deal 3 damage.\nApply 1 Weak.",
-			"art": "",
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 5,
+			"description": "Deal 5 damage twice.",
+			"id": "ic_twin_strike",
+			"name": "Twin Strike",
+			"status": "active",
 			"target": "enemy",
-			"apply_status": {
-				"type": "weak",
-				"stacks": 1
-			},
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_survivor": {
-			"id": "si_survivor",
-			"name": "Survivor",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 8,
-			"description": "Gain 8 Block.\nDiscard 1 card.",
-			"art": "",
-			"target": "self",
-			"discard": 1,
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_slice": {
-			"id": "si_slice",
-			"name": "Slice",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_dagger_spray": {
-			"id": "si_dagger_spray",
-			"name": "Dagger Spray",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 4,
-			"block": 0,
-			"description": "Deal 4 damage to ALL\nenemies twice.",
-			"art": "",
-			"target": "all_enemies",
 			"times": 2,
-			"actions": [
-				{
-					"type": "damage_all"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_dagger_throw": {
-			"id": "si_dagger_throw",
-			"name": "Dagger Throw",
-			"cost": 1,
 			"type": 0,
-			"character": "silent",
-			"damage": 9,
-			"block": 0,
-			"description": "Deal 9 damage.\nDraw 1, Discard 1.",
-			"art": "",
-			"target": "enemy",
-			"draw": 1,
-			"discard": 1,
+			"version": "old"
+		},
+		"ic_uppercut": {
 			"actions": [
 				{
 					"type": "damage"
 				},
 				{
-					"type": "draw"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_flick_flack": {
-			"id": "si_flick_flack",
-			"name": "Flick-Flack",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 7,
-			"block": 0,
-			"description": "Sly. Deal 7 damage\nto ALL enemies.",
-			"art": "",
-			"target": "all_enemies",
-			"special": "sly",
-			"actions": [
-				{
-					"type": "damage_all"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_leading_strike": {
-			"id": "si_leading_strike",
-			"name": "Leading Strike",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 7,
-			"block": 0,
-			"description": "Deal 7 damage.\nAdd 1 Shiv to hand.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
+					"source": "apply_status",
+					"type": "apply_status"
 				},
 				{
-					"type": "add_shiv",
-					"value": 1
+					"source": "apply_status_2",
+					"type": "apply_status"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_poisoned_stab": {
-			"id": "si_poisoned_stab",
-			"name": "Poisoned Stab",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage.\nApply 3 Poison.",
-			"art": "",
-			"target": "enemy",
 			"apply_status": {
-				"type": "poison",
-				"stacks": 3
+				"stacks": 1,
+				"type": "vulnerable"
 			},
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_sucker_punch": {
-			"id": "si_sucker_punch",
-			"name": "Sucker Punch",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage.\nApply 1 Weak.",
+			"apply_status_2": {
+				"stacks": 1,
+				"type": "weak"
+			},
 			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "weak",
-				"stacks": 1
-			},
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_ricochet": {
-			"id": "si_ricochet",
-			"name": "Ricochet",
+			"block": 0,
+			"character": "ironclad",
 			"cost": 2,
-			"type": 0,
-			"character": "silent",
-			"damage": 3,
-			"block": 0,
-			"description": "Sly. Deal 3 damage\nto random enemy 4x.",
-			"art": "",
-			"target": "random_enemy",
-			"times": 4,
-			"special": "sly",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_quick_slash": {
-			"id": "si_quick_slash",
-			"name": "Quick Slash",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage.\nDraw 1 card.",
-			"art": "",
+			"damage": 13,
+			"description": "Deal 13 damage.\nApply 1 Weak.\nApply 1 Vulnerable.",
+			"id": "ic_uppercut",
+			"name": "Uppercut",
+			"status": "active",
 			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_war_cry": {
+			"actions": [
+				{
+					"type": "draw"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 0,
+			"damage": 0,
+			"description": "Draw 1 card.\nExhaust.",
 			"draw": 1,
+			"exhaust": true,
+			"id": "ic_war_cry",
+			"name": "War Cry",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"ic_whirlwind": {
+			"actions": [
+				{
+					"fn": "whirlwind",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": -1,
+			"damage": 5,
+			"description": "Deal 5 damage to ALL\nenemies X times.\n(X = current Energy)",
+			"id": "ic_whirlwind",
+			"name": "Whirlwind",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
+		},
+		"ic_wild_strike": {
 			"actions": [
 				{
 					"type": "damage"
 				},
 				{
-					"type": "draw"
+					"card_id": "status_wound",
+					"type": "add_card_to_draw"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_anticipate": {
-			"id": "si_anticipate",
-			"name": "Anticipate",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
+			"art": "",
 			"block": 0,
-			"description": "Gain 3 Dexterity\nthis turn.",
-			"art": "",
-			"target": "self",
-			"temp_dex": 3,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "anticipate"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_deflect": {
-			"id": "si_deflect",
-			"name": "Deflect",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 4,
-			"description": "Gain 4 Block.",
-			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_prepared": {
-			"id": "si_prepared",
-			"name": "Prepared",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Draw 1, Discard 1.",
-			"art": "",
-			"target": "self",
-			"draw": 1,
-			"discard": 1,
-			"actions": [
-				{
-					"type": "draw"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_backflip": {
-			"id": "si_backflip",
-			"name": "Backflip",
+			"character": "ironclad",
 			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 5,
-			"description": "Gain 5 Block.\nDraw 2 cards.",
+			"damage": 12,
+			"description": "Deal 12 damage.\nShuffle a Wound into\nyour draw pile.",
+			"id": "ic_wild_strike",
+			"name": "Wild Strike",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"nw_all_in": {
+			"actions": [
+				{
+					"fn": "all_in",
+					"type": "call"
+				}
+			],
 			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"consume_energy": true,
+			"cost": 0,
+			"damage": 0,
+			"description": "Consume all Energy.\nDraw 2 cards per\nEnergy consumed.\nExhaust.",
+			"draw_per_energy": 2,
+			"exhaust": true,
+			"id": "nw_all_in",
+			"name": "All In",
+			"status": "active",
 			"target": "self",
-			"draw": 2,
+			"type": 1,
+			"version": "new"
+		},
+		"nw_blood_fury": {
+			"actions": [
+				{
+					"power": "blood_fury",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "ironclad",
+			"cost": 1,
+			"damage": 0,
+			"description": "Whenever you lose HP\nfrom a card, your\nnext Attack deals\ndouble damage.",
+			"id": "nw_blood_fury",
+			"name": "Blood Fury",
+			"power_effect": "blood_fury",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"nw_echo_slash": {
+			"actions": [
+				{
+					"fn": "echo_slash",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"cost": 2,
+			"damage": 5,
+			"description": "Deal 5 damage.\nHit once more for\neach Attack played\nthis turn.",
+			"hits_per_attack": true,
+			"id": "nw_echo_slash",
+			"name": "Echo Slash",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"nw_gamblers_blade": {
+			"actions": [
+				{
+					"fn": "gamblers_blade",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"damage_per_hand": 3,
+			"description": "Deal damage equal to\nhand size × 3.\nDiscard 1 card.",
+			"id": "nw_gamblers_blade",
+			"name": "Gambler's Blade",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"nw_poison_shield": {
+			"actions": [
+				{
+					"fn": "poison_shield",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"block_from_enemy_poison": true,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain Block equal to\ntotal Poison on all\nenemies.",
+			"id": "nw_poison_shield",
+			"name": "Poison Shield",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"nw_psi_surge": {
+			"actions": [
+				{
+					"power": "psi_surge",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"cost": 2,
+			"damage": 0,
+			"description": "Whenever you draw 3+\ncards in a single\naction, gain 1 Energy.",
+			"id": "nw_psi_surge",
+			"name": "Psi Surge",
+			"power_effect": "psi_surge",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"nw_tactical_retreat": {
 			"actions": [
 				{
 					"type": "block"
@@ -2007,443 +1827,284 @@
 					"type": "draw"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_dodge_and_roll": {
-			"id": "si_dodge_and_roll",
-			"name": "Dodge and Roll",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 4,
-			"description": "Gain 4 Block this\nturn and next.",
 			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				},
-				{
-					"type": "next_turn",
-					"effect": {
-						"type": "block",
-						"value": 4
-					}
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_cloak_and_dagger": {
-			"id": "si_cloak_and_dagger",
-			"name": "Cloak and Dagger",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
 			"block": 6,
-			"description": "Gain 6 Block.\nAdd 1 Shiv to hand.",
-			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "block"
-				},
-				{
-					"type": "add_shiv",
-					"value": 1
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_outmaneuver": {
-			"id": "si_outmaneuver",
-			"name": "Outmaneuver",
+			"character": "neutral",
 			"cost": 1,
-			"type": 1,
-			"character": "silent",
 			"damage": 0,
-			"block": 0,
-			"description": "Gain 2 Energy\nnext turn.",
-			"art": "",
+			"description": "Gain 6 Block.\nDraw 2 cards.\nDiscard 1 card.",
+			"discard": 1,
+			"draw": 2,
+			"id": "nw_tactical_retreat",
+			"name": "Tactical Retreat",
+			"status": "active",
 			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"nw_toxic_storm": {
 			"actions": [
 				{
-					"type": "next_turn",
-					"effect": {
-						"type": "gain_energy",
-						"value": 2
-					}
+					"fn": "toxic_storm",
+					"type": "call"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": -1,
+			"damage": 3,
+			"description": "Deal 3 damage to ALL\nenemies X times.\nApply 1 Poison each\nhit.",
+			"id": "nw_toxic_storm",
+			"name": "Toxic Storm",
+			"poison_per_hit": 1,
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"nw_venomous_might": {
+			"actions": [
+				{
+					"power": "venomous_might",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"cost": 1,
+			"damage": 0,
+			"description": "At the start of each\nturn, gain Strength\nequal to total enemy\nPoison ÷ 4.",
+			"id": "nw_venomous_might",
+			"name": "Venomous Might",
+			"power_effect": "venomous_might",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"si_a_thousand_cuts": {
+			"actions": [
+				{
+					"power": "a_thousand_cuts",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Whenever you play a\ncard, deal 1 damage\nto ALL enemies.",
+			"id": "si_a_thousand_cuts",
+			"name": "A Thousand Cuts",
+			"power_effect": "a_thousand_cuts",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_accuracy": {
+			"actions": [
+				{
+					"power": "accuracy",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Shivs deal 4 more\ndamage.",
+			"id": "si_accuracy",
+			"name": "Accuracy",
+			"power_effect": "accuracy",
+			"power_stacks": 4,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
 		},
 		"si_acrobatics": {
-			"id": "si_acrobatics",
-			"name": "Acrobatics",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Draw 3 cards.\nDiscard 1.",
-			"art": "",
-			"target": "self",
-			"draw": 3,
-			"discard": 1,
 			"actions": [
 				{
 					"type": "draw"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Draw 3 cards.\nDiscard 1.",
+			"discard": 1,
+			"draw": 3,
+			"id": "si_acrobatics",
+			"name": "Acrobatics",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_adrenaline": {
+			"actions": [
+				{
+					"type": "gain_energy",
+					"value": 1
+				},
+				{
+					"type": "draw"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Gain 1 Energy.\nDraw 2 cards.\nExhaust.",
+			"draw": 2,
+			"energy_gain": 1,
+			"exhaust": true,
+			"id": "si_adrenaline",
+			"name": "Adrenaline",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_after_image": {
+			"actions": [
+				{
+					"power": "after_image",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Whenever you play a\ncard, gain 1 Block.",
+			"id": "si_after_image",
+			"name": "After Image",
+			"power_effect": "after_image",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_alchemize": {
+			"actions": [
+				{
+					"fn": "alchemize",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Obtain a random\npotion. Exhaust.",
+			"exhaust": true,
+			"id": "si_alchemize",
+			"name": "Alchemize",
+			"status": "incomplete",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_anticipate": {
+			"actions": [
+				{
+					"fn": "anticipate",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Gain 3 Dexterity\nthis turn.",
+			"id": "si_anticipate",
+			"name": "Anticipate",
+			"status": "active",
+			"target": "self",
+			"temp_dex": 3,
+			"type": 1,
+			"version": "old"
+		},
+		"si_backflip": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"type": "draw"
+				}
+			],
+			"art": "",
+			"block": 5,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 5 Block.\nDraw 2 cards.",
+			"draw": 2,
+			"id": "si_backflip",
+			"name": "Backflip",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_backstab": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 11,
+			"description": "Deal 11 damage.\nInnate. Exhaust.",
+			"exhaust": true,
+			"id": "si_backstab",
+			"innate": true,
+			"name": "Backstab",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
 		},
 		"si_blade_dance": {
-			"id": "si_blade_dance",
-			"name": "Blade Dance",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Add 3 Shivs to\nyour hand.",
-			"art": "",
-			"target": "self",
 			"actions": [
 				{
 					"type": "add_shiv",
 					"value": 3
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_escape_plan": {
-			"id": "si_escape_plan",
-			"name": "Escape Plan",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Draw 1 card. If it\nis a Skill, gain\n3 Block.",
 			"art": "",
-			"target": "self",
-			"escape_block": 3,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "escape_plan"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_calculated_gamble": {
-			"id": "si_calculated_gamble",
-			"name": "Calculated Gamble",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
 			"block": 0,
-			"description": "Discard your hand.\nDraw that many cards.",
-			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "calculated_gamble"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_concentrate": {
-			"id": "si_concentrate",
-			"name": "Concentrate",
-			"cost": 0,
-			"type": 1,
 			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Discard 3 cards.\nGain 2 Energy.",
-			"art": "",
-			"target": "self",
-			"discard_count": 3,
-			"energy_gain_val": 2,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "concentrate"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_predator": {
-			"id": "si_predator",
-			"name": "Predator",
-			"cost": 2,
-			"type": 0,
-			"character": "silent",
-			"damage": 15,
-			"block": 0,
-			"description": "Deal 15 damage.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_masterful_stab": {
-			"id": "si_masterful_stab",
-			"name": "Masterful Stab",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 12,
-			"block": 0,
-			"description": "Innate.\nDeal 12 damage.",
-			"art": "",
-			"target": "enemy",
-			"innate": true,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_skewer": {
-			"id": "si_skewer",
-			"name": "Skewer",
-			"cost": -1,
-			"type": 0,
-			"character": "silent",
-			"damage": 7,
-			"block": 0,
-			"description": "Deal 7 damage X times.\n(X = current Energy)",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "skewer"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_die_die_die": {
-			"id": "si_die_die_die",
-			"name": "Die Die Die",
 			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 13,
-			"block": 0,
-			"description": "Deal 13 damage to\nALL enemies. Exhaust.",
-			"art": "",
-			"target": "all_enemies",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "damage_all"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_endless_agony": {
-			"id": "si_endless_agony",
-			"name": "Endless Agony",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 4,
-			"block": 0,
-			"description": "Deal 4 damage.\nExhaust. When drawn,\nadd copy to hand.",
-			"art": "",
-			"target": "enemy",
-			"exhaust": true,
-			"status": "incomplete",
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
+			"damage": 0,
+			"description": "Add 3 Shivs to\nyour hand.",
+			"id": "si_blade_dance",
+			"name": "Blade Dance",
+			"status": "active",
+			"target": "self",
+			"type": 1,
 			"version": "old"
 		},
-		"si_eviscerate": {
-			"id": "si_eviscerate",
-			"name": "Eviscerate",
-			"cost": 3,
-			"type": 0,
-			"character": "silent",
-			"damage": 7,
-			"block": 0,
-			"description": "Deal 7 damage\n3 times.",
-			"art": "",
-			"target": "enemy",
-			"times": 3,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_finisher": {
-			"id": "si_finisher",
-			"name": "Finisher",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage for\neach Attack played\nthis turn.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "finisher"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_flying_knee": {
-			"id": "si_flying_knee",
-			"name": "Flying Knee",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage.\nGain 1 Energy\nnext turn.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "damage"
-				},
-				{
-					"type": "next_turn",
-					"effect": {
-						"type": "gain_energy",
-						"value": 1
-					}
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_heel_hook": {
-			"id": "si_heel_hook",
-			"name": "Heel Hook",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 5,
-			"block": 0,
-			"description": "Deal 5 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "heel_hook"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_glass_knife": {
-			"id": "si_glass_knife",
-			"name": "Glass Knife",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 8,
-			"block": 0,
-			"description": "Deal 8 damage twice.\nDamage decreases by 2\neach use.",
-			"art": "",
-			"target": "enemy",
-			"times": 2,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "glass_knife"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_choke": {
-			"id": "si_choke",
-			"name": "Choke",
-			"cost": 2,
-			"type": 0,
-			"character": "silent",
-			"damage": 12,
-			"block": 0,
-			"description": "Deal 12 damage.\nWhenever enemy plays\na card, take 3 damage.",
-			"art": "",
-			"target": "enemy",
-			"choke_stacks": 3,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "choke"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_riddle_with_holes": {
-			"id": "si_riddle_with_holes",
-			"name": "Riddle with Holes",
-			"cost": 2,
-			"type": 0,
-			"character": "silent",
-			"damage": 3,
-			"block": 0,
-			"description": "Deal 3 damage\n5 times.",
-			"art": "",
-			"target": "enemy",
-			"times": 5,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
 		"si_blur": {
-			"id": "si_blur",
-			"name": "Blur",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 5,
-			"description": "Gain 5 Block.\nBlock not removed\nnext turn.",
-			"art": "",
-			"target": "self",
 			"actions": [
 				{
 					"type": "block"
@@ -2452,1235 +2113,1653 @@
 					"type": "blur"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_dash": {
-			"id": "si_dash",
-			"name": "Dash",
-			"cost": 2,
-			"type": 1,
-			"character": "silent",
-			"damage": 10,
-			"block": 10,
-			"description": "Gain 10 Block.\nDeal 10 damage.",
 			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "block"
-				},
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_terror": {
-			"id": "si_terror",
-			"name": "Terror",
+			"block": 5,
+			"character": "silent",
 			"cost": 1,
-			"type": 1,
-			"character": "silent",
 			"damage": 0,
-			"block": 0,
-			"description": "Apply 99 Vulnerable.\nExhaust.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "vulnerable",
-				"stacks": 99
-			},
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_distraction": {
-			"id": "si_distraction",
-			"name": "Distraction",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Add a random Skill\nto your hand.\nExhaust.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "distraction"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_expertise": {
-			"id": "si_expertise",
-			"name": "Expertise",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Draw cards until you\nhave 6 in hand.",
-			"art": "",
-			"target": "self",
-			"target_hand_size": 6,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "expertise"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_leg_sweep": {
-			"id": "si_leg_sweep",
-			"name": "Leg Sweep",
-			"cost": 2,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 11,
-			"description": "Apply 2 Weak.\nGain 11 Block.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "weak",
-				"stacks": 2
-			},
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				},
-				{
-					"type": "block"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_reflex": {
-			"id": "si_reflex",
-			"name": "Reflex",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Unplayable.\nWhen discarded,\ndraw 2 cards.",
-			"art": "",
-			"target": "self",
-			"unplayable": true,
-			"special": "reflex",
-			"actions": [],
-			"version": "old",
-			"status": "active"
-		},
-		"si_setup": {
-			"id": "si_setup",
-			"name": "Setup",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Put a card from hand\non top of draw pile.",
-			"art": "",
-			"target": "self",
+			"description": "Gain 5 Block.\nBlock not removed\nnext turn.",
+			"id": "si_blur",
+			"name": "Blur",
 			"status": "active",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "setup"
-				}
-			],
+			"target": "self",
+			"type": 1,
 			"version": "old"
 		},
-		"si_tactician": {
-			"id": "si_tactician",
-			"name": "Tactician",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Unplayable.\nWhen discarded,\ngain 1 Energy.",
-			"art": "",
-			"target": "self",
-			"unplayable": true,
-			"special": "tactician",
-			"actions": [],
-			"version": "old",
-			"status": "active"
-		},
 		"si_bouncing_flask": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 3,
+				"type": "poison"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Apply 3 Poison to\nrandom enemies 3x.",
 			"id": "si_bouncing_flask",
 			"name": "Bouncing Flask",
-			"cost": 2,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Apply 3 Poison to\nrandom enemies 3x.",
-			"art": "",
+			"status": "active",
 			"target": "random_enemy",
-			"apply_status": {
-				"type": "poison",
-				"stacks": 3
-			},
 			"times": 3,
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_catalyst": {
-			"id": "si_catalyst",
-			"name": "Catalyst",
-			"cost": 1,
 			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Double a target's\nPoison. Exhaust.",
-			"art": "",
-			"target": "enemy",
-			"exhaust": true,
-			"poison_mult": 2,
-			"actions": [
-				{
-					"type": "call",
-					"fn": "catalyst"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_crippling_cloud": {
-			"id": "si_crippling_cloud",
-			"name": "Crippling Cloud",
-			"cost": 2,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Apply 4 Poison and\n2 Weak to ALL enemies.",
-			"art": "",
-			"target": "all_enemies",
-			"apply_status": {
-				"type": "poison",
-				"stacks": 4
-			},
-			"apply_status_2": {
-				"type": "weak",
-				"stacks": 2
-			},
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				},
-				{
-					"type": "apply_status",
-					"source": "apply_status_2"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_deadly_poison": {
-			"id": "si_deadly_poison",
-			"name": "Deadly Poison",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Apply 5 Poison.",
-			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "poison",
-				"stacks": 5
-			},
-			"actions": [
-				{
-					"type": "apply_status",
-					"source": "apply_status"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_noxious_fumes": {
-			"id": "si_noxious_fumes",
-			"name": "Noxious Fumes",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "At start of turn,\napply 2 Poison to\nALL enemies.",
-			"art": "",
-			"target": "self",
-			"power_effect": "noxious_fumes",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "noxious_fumes"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_infinite_blades": {
-			"id": "si_infinite_blades",
-			"name": "Infinite Blades",
-			"cost": 1,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "At start of turn,\nadd a Shiv to hand.",
-			"art": "",
-			"target": "self",
-			"power_effect": "infinite_blades",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "infinite_blades"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_accuracy": {
-			"id": "si_accuracy",
-			"name": "Accuracy",
-			"cost": 1,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Shivs deal 4 more\ndamage.",
-			"art": "",
-			"target": "self",
-			"power_effect": "accuracy",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "accuracy"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_caltrops": {
-			"id": "si_caltrops",
-			"name": "Caltrops",
-			"cost": 1,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "When attacked, deal\n3 damage back.",
-			"art": "",
-			"target": "self",
-			"power_effect": "caltrops",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "caltrops"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_a_thousand_cuts": {
-			"id": "si_a_thousand_cuts",
-			"name": "A Thousand Cuts",
-			"cost": 2,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you play a\ncard, deal 1 damage\nto ALL enemies.",
-			"art": "",
-			"target": "self",
-			"power_effect": "a_thousand_cuts",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "a_thousand_cuts"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_envenom": {
-			"id": "si_envenom",
-			"name": "Envenom",
-			"cost": 2,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you deal\nunblocked damage,\napply 1 Poison.",
-			"art": "",
-			"target": "self",
-			"power_effect": "envenom",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "envenom"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_footwork": {
-			"id": "si_footwork",
-			"name": "Footwork",
-			"cost": 1,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain 2 Dexterity.",
-			"art": "",
-			"target": "self",
-			"apply_self_status": {
-				"type": "dexterity",
-				"stacks": 2
-			},
-			"actions": [
-				{
-					"type": "apply_self_status",
-					"status": "dexterity",
-					"stacks": 2
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_tools_of_the_trade": {
-			"id": "si_tools_of_the_trade",
-			"name": "Tools of the Trade",
-			"cost": 1,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "At start of turn,\ndraw 1, discard 1.",
-			"art": "",
-			"target": "self",
-			"power_effect": "tools_of_the_trade",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "tools_of_the_trade"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_backstab": {
-			"id": "si_backstab",
-			"name": "Backstab",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 11,
-			"block": 0,
-			"description": "Deal 11 damage.\nInnate. Exhaust.",
-			"art": "",
-			"target": "enemy",
-			"innate": true,
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "damage"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_grand_finale": {
-			"id": "si_grand_finale",
-			"name": "Grand Finale",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 50,
-			"block": 0,
-			"description": "Can only play if draw\npile is empty.\nDeal 50 damage.",
-			"art": "",
-			"target": "enemy",
-			"special": "grand_finale",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "grand_finale"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_unload": {
-			"id": "si_unload",
-			"name": "Unload",
-			"cost": 1,
-			"type": 0,
-			"character": "silent",
-			"damage": 14,
-			"block": 0,
-			"description": "Deal 14 damage.\nDiscard all non-Attack\ncards in hand.",
-			"art": "",
-			"target": "enemy",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "unload"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_adrenaline": {
-			"id": "si_adrenaline",
-			"name": "Adrenaline",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain 1 Energy.\nDraw 2 cards.\nExhaust.",
-			"art": "",
-			"target": "self",
-			"draw": 2,
-			"energy_gain": 1,
-			"exhaust": true,
-			"actions": [
-				{
-					"type": "gain_energy",
-					"value": 1
-				},
-				{
-					"type": "draw"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_alchemize": {
-			"id": "si_alchemize",
-			"name": "Alchemize",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Obtain a random\npotion. Exhaust.",
-			"art": "",
-			"target": "self",
-			"exhaust": true,
-			"status": "incomplete",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "alchemize"
-				}
-			],
 			"version": "old"
 		},
 		"si_bullet_time": {
-			"id": "si_bullet_time",
-			"name": "Bullet Time",
-			"cost": 3,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Cards cost 0 this\nturn. No draw\nnext turn.",
-			"art": "",
-			"target": "self",
 			"actions": [
 				{
 					"type": "bullet_time"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 3,
+			"damage": 0,
+			"description": "Cards cost 0 this\nturn. No draw\nnext turn.",
+			"id": "si_bullet_time",
+			"name": "Bullet Time",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
 		},
 		"si_burst": {
-			"id": "si_burst",
-			"name": "Burst",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Next Skill is played\ntwice.",
-			"art": "",
-			"target": "self",
 			"actions": [
 				{
 					"type": "burst"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_corpse_explosion": {
-			"id": "si_corpse_explosion",
-			"name": "Corpse Explosion",
-			"cost": 2,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Apply 6 Poison.\nWhen enemy dies, deal\ndamage to ALL.",
 			"art": "",
-			"target": "enemy",
-			"apply_status": {
-				"type": "poison",
-				"stacks": 6
-			},
-			"status": "incomplete",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Next Skill is played\ntwice.",
+			"id": "si_burst",
+			"name": "Burst",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_calculated_gamble": {
 			"actions": [
 				{
-					"type": "apply_status",
-					"source": "apply_status"
-				},
-				{
-					"type": "call",
-					"fn": "corpse_explosion"
+					"fn": "calculated_gamble",
+					"type": "call"
 				}
 			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Discard your hand.\nDraw that many cards.",
+			"discard_hand_redraw": true,
+			"id": "si_calculated_gamble",
+			"name": "Calculated Gamble",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_caltrops": {
+			"actions": [
+				{
+					"power": "caltrops",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "When attacked, deal\n3 damage back.",
+			"id": "si_caltrops",
+			"name": "Caltrops",
+			"power_effect": "caltrops",
+			"power_stacks": 3,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_catalyst": {
+			"actions": [
+				{
+					"fn": "catalyst",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Double a target's\nPoison. Exhaust.",
+			"exhaust": true,
+			"id": "si_catalyst",
+			"name": "Catalyst",
+			"poison_mult": 2,
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"si_choke": {
+			"actions": [
+				{
+					"fn": "choke",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"choke_stacks": 3,
+			"cost": 2,
+			"damage": 12,
+			"description": "Deal 12 damage.\nWhenever enemy plays\na card, take 3 damage.",
+			"id": "si_choke",
+			"name": "Choke",
+			"status": "incomplete",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_cloak_and_dagger": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"type": "add_shiv",
+					"value": 1
+				}
+			],
+			"art": "",
+			"block": 6,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 6 Block.\nAdd 1 Shiv to hand.",
+			"id": "si_cloak_and_dagger",
+			"name": "Cloak and Dagger",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_concentrate": {
+			"actions": [
+				{
+					"fn": "concentrate",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Discard 3 cards.\nGain 2 Energy.",
+			"discard_count": 3,
+			"energy_gain_val": 2,
+			"id": "si_concentrate",
+			"name": "Concentrate",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_corpse_explosion": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				},
+				{
+					"fn": "corpse_explosion",
+					"type": "call"
+				}
+			],
+			"apply_status": {
+				"stacks": 6,
+				"type": "poison"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Apply 6 Poison.\nWhen enemy dies, deal\ndamage to ALL.\nExhaust.",
+			"exhaust": true,
+			"id": "si_corpse_explosion",
+			"name": "Corpse Explosion",
+			"status": "incomplete",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"si_crippling_cloud": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				},
+				{
+					"source": "apply_status_2",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 4,
+				"type": "poison"
+			},
+			"apply_status_2": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Apply 4 Poison and\n2 Weak to ALL enemies.",
+			"id": "si_crippling_cloud",
+			"name": "Crippling Cloud",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 1,
+			"version": "old"
+		},
+		"si_dagger_spray": {
+			"actions": [
+				{
+					"type": "damage_all"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 4,
+			"description": "Deal 4 damage to ALL\nenemies twice.",
+			"id": "si_dagger_spray",
+			"name": "Dagger Spray",
+			"status": "active",
+			"target": "all_enemies",
+			"times": 2,
+			"type": 0,
+			"version": "old"
+		},
+		"si_dagger_throw": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"type": "draw"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 9,
+			"description": "Deal 9 damage.\nDraw 1, Discard 1.",
+			"discard": 1,
+			"draw": 1,
+			"id": "si_dagger_throw",
+			"name": "Dagger Throw",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_dash": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 10,
+			"character": "silent",
+			"cost": 2,
+			"damage": 10,
+			"description": "Front hero gains\n10 Block.\nDeal 10 damage.",
+			"id": "si_dash",
+			"name": "Dash",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"si_deadly_poison": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 5,
+				"type": "poison"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Apply 5 Poison.",
+			"id": "si_deadly_poison",
+			"name": "Deadly Poison",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"si_defend": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
+			"block": 5,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 5 Block.",
+			"id": "si_defend",
+			"name": "Defend",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_deflect": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
+			"block": 4,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Gain 4 Block.",
+			"id": "si_deflect",
+			"name": "Deflect",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_die_die_die": {
+			"actions": [
+				{
+					"type": "damage_all"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 13,
+			"description": "Deal 13 damage to\nALL enemies. Exhaust.",
+			"exhaust": true,
+			"id": "si_die_die_die",
+			"name": "Die Die Die",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
+		},
+		"si_distraction": {
+			"actions": [
+				{
+					"fn": "distraction",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Add a random Skill\nto your hand.\nExhaust.",
+			"exhaust": true,
+			"id": "si_distraction",
+			"name": "Distraction",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_dodge_and_roll": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"effect": {
+						"type": "block",
+						"value": 4
+					},
+					"type": "next_turn"
+				}
+			],
+			"art": "",
+			"block": 4,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 4 Block this\nturn and next.",
+			"id": "si_dodge_and_roll",
+			"name": "Dodge and Roll",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_endless_agony": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 4,
+			"description": "Deal 4 damage.\nExhaust. When drawn,\nadd copy to hand.",
+			"exhaust": true,
+			"id": "si_endless_agony",
+			"name": "Endless Agony",
+			"status": "incomplete",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_envenom": {
+			"actions": [
+				{
+					"power": "envenom",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Whenever you deal\nunblocked damage,\napply 1 Poison.",
+			"id": "si_envenom",
+			"name": "Envenom",
+			"power_effect": "envenom",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_escape_plan": {
+			"actions": [
+				{
+					"fn": "escape_plan",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Draw 1 card. If it\nis a Skill, gain\n3 Block.",
+			"escape_block": 3,
+			"id": "si_escape_plan",
+			"name": "Escape Plan",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_eviscerate": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 3,
+			"damage": 7,
+			"description": "Deal 7 damage\n3 times.",
+			"id": "si_eviscerate",
+			"name": "Eviscerate",
+			"status": "active",
+			"target": "enemy",
+			"times": 3,
+			"type": 0,
+			"version": "old"
+		},
+		"si_expertise": {
+			"actions": [
+				{
+					"fn": "expertise",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Draw cards until you\nhave 6 in hand.",
+			"id": "si_expertise",
+			"name": "Expertise",
+			"status": "active",
+			"target": "self",
+			"target_hand_size": 6,
+			"type": 1,
+			"version": "old"
+		},
+		"si_finisher": {
+			"actions": [
+				{
+					"fn": "finisher",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 6,
+			"description": "Deal 6 damage for\neach Attack played\nthis turn.",
+			"hits_per_attack": true,
+			"id": "si_finisher",
+			"name": "Finisher",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_flick_flack": {
+			"actions": [
+				{
+					"type": "damage_all"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 7,
+			"description": "Sly. Deal 7 damage\nto ALL enemies.",
+			"id": "si_flick_flack",
+			"name": "Flick-Flack",
+			"special": "sly",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "old"
+		},
+		"si_flying_knee": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"effect": {
+						"type": "gain_energy",
+						"value": 1
+					},
+					"type": "next_turn"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 8,
+			"description": "Deal 8 damage.\nGain 1 Energy\nnext turn.",
+			"id": "si_flying_knee",
+			"name": "Flying Knee",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_footwork": {
+			"actions": [
+				{
+					"stacks": 2,
+					"status": "dexterity",
+					"type": "apply_self_status"
+				}
+			],
+			"apply_self_status": {
+				"stacks": 2,
+				"type": "dexterity"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 2 Dexterity.",
+			"id": "si_footwork",
+			"name": "Footwork",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_glass_knife": {
+			"actions": [
+				{
+					"fn": "glass_knife",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 8,
+			"damage_degrade": 2,
+			"description": "Deal 8 damage twice.\nDamage decreases by 2\neach use.",
+			"id": "si_glass_knife",
+			"name": "Glass Knife",
+			"status": "active",
+			"target": "enemy",
+			"times": 2,
+			"type": 0,
+			"version": "old"
+		},
+		"si_grand_finale": {
+			"actions": [
+				{
+					"fn": "grand_finale",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 50,
+			"description": "Can only play if draw\npile is empty.\nDeal 50 damage.",
+			"id": "si_grand_finale",
+			"name": "Grand Finale",
+			"special": "grand_finale",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_heel_hook": {
+			"actions": [
+				{
+					"fn": "heel_hook",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"conditional_on_status": {
+				"draw": 1,
+				"energy": 1,
+				"status": "weak"
+			},
+			"cost": 1,
+			"damage": 5,
+			"description": "Deal 5 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1.",
+			"id": "si_heel_hook",
+			"name": "Heel Hook",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_infinite_blades": {
+			"actions": [
+				{
+					"power": "infinite_blades",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "At start of turn,\nadd a Shiv to hand.",
+			"id": "si_infinite_blades",
+			"name": "Infinite Blades",
+			"power_effect": "infinite_blades",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_leading_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"type": "add_shiv",
+					"value": 1
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 7,
+			"description": "Deal 7 damage.\nAdd 1 Shiv to hand.",
+			"id": "si_leading_strike",
+			"name": "Leading Strike",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_leg_sweep": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				},
+				{
+					"buff_target": "all_heroes",
+					"type": "block"
+				}
+			],
+			"apply_status": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"art": "",
+			"block": 11,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Apply 2 Weak.\nAll heroes gain\n11 Block.",
+			"id": "si_leg_sweep",
+			"name": "Leg Sweep",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
 			"version": "old"
 		},
 		"si_malaise": {
-			"id": "si_malaise",
-			"name": "Malaise",
-			"cost": -1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Enemy loses X Strength.\nApply X Weak.",
-			"art": "",
-			"target": "enemy",
 			"actions": [
 				{
-					"type": "call",
-					"fn": "malaise"
+					"fn": "malaise",
+					"type": "call"
 				}
 			],
-			"version": "old",
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": -1,
+			"damage": 0,
+			"description": "Enemy loses X Strength.\nApply X Weak. Exhaust.",
+			"exhaust": true,
+			"id": "si_malaise",
+			"name": "Malaise",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"si_masterful_stab": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 12,
+			"description": "Innate.\nDeal 12 damage.",
+			"id": "si_masterful_stab",
+			"innate": true,
+			"name": "Masterful Stab",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_neutralize": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "weak"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 3,
+			"description": "Deal 3 damage.\nApply 1 Weak.",
+			"id": "si_neutralize",
+			"name": "Neutralize",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
 		},
 		"si_nightmare": {
-			"id": "si_nightmare",
-			"name": "Nightmare",
-			"cost": 3,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Choose a card. Add\n3 copies to hand\nnext turn.",
-			"art": "",
-			"target": "self",
-			"status": "incomplete",
 			"actions": [
 				{
 					"type": "draw",
 					"value": 0
 				}
 			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 3,
+			"damage": 0,
+			"description": "Choose a card. Add\n3 copies to hand\nnext turn. Exhaust.",
+			"exhaust": true,
+			"id": "si_nightmare",
+			"name": "Nightmare",
+			"status": "incomplete",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_noxious_fumes": {
+			"actions": [
+				{
+					"power": "noxious_fumes",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "At start of turn,\napply 2 Poison to\nALL enemies.",
+			"id": "si_noxious_fumes",
+			"name": "Noxious Fumes",
+			"per_turn": {
+				"poison_all": 2
+			},
+			"power_effect": "noxious_fumes",
+			"power_stacks": 2,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_outmaneuver": {
+			"actions": [
+				{
+					"effect": {
+						"type": "gain_energy",
+						"value": 2
+					},
+					"type": "next_turn"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 2 Energy\nnext turn.",
+			"id": "si_outmaneuver",
+			"name": "Outmaneuver",
+			"status": "active",
+			"target": "self",
+			"type": 1,
 			"version": "old"
 		},
 		"si_phantasmal_killer": {
-			"id": "si_phantasmal_killer",
-			"name": "Phantasmal Killer",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Next turn, deal\ndouble damage.",
-			"art": "",
-			"target": "self",
 			"actions": [
 				{
 					"type": "phantasmal_killer"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_after_image": {
-			"id": "si_after_image",
-			"name": "After Image",
+			"art": "",
+			"block": 0,
+			"character": "silent",
 			"cost": 1,
-			"type": 2,
-			"character": "silent",
 			"damage": 0,
-			"block": 0,
-			"description": "Whenever you play a\ncard, gain 1 Block.",
-			"art": "",
+			"description": "Next turn, deal\ndouble damage.",
+			"id": "si_phantasmal_killer",
+			"name": "Phantasmal Killer",
+			"status": "active",
 			"target": "self",
-			"power_effect": "after_image",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "after_image"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_well_laid_plans": {
-			"id": "si_well_laid_plans",
-			"name": "Well-Laid Plans",
-			"cost": 1,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "At end of turn,\nRetain up to 1 card.",
-			"art": "",
-			"target": "self",
-			"power_effect": "well_laid_plans",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "well_laid_plans"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_wraith_form": {
-			"id": "si_wraith_form",
-			"name": "Wraith Form",
-			"cost": 3,
-			"type": 2,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain 2 Intangible.\nLose 1 Dexterity\nper turn.",
-			"art": "",
-			"target": "self",
-			"power_effect": "wraith_form",
-			"status": "incomplete",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "wraith_form"
-				}
-			],
+			"type": 1,
 			"version": "old"
 		},
-		"si_storm_of_steel": {
-			"id": "si_storm_of_steel",
-			"name": "Storm of Steel",
-			"cost": 0,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Discard your hand.\nAdd a Shiv per card\ndiscarded.",
-			"art": "",
-			"target": "self",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "storm_of_steel"
-				}
-			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_shiv": {
-			"id": "si_shiv",
-			"name": "Shiv",
-			"cost": 0,
-			"type": 0,
-			"character": "silent",
-			"damage": 4,
-			"block": 0,
-			"description": "Deal 4 damage.\nExhaust.",
-			"art": "",
-			"target": "enemy",
-			"exhaust": true,
+		"si_poisoned_stab": {
 			"actions": [
 				{
 					"type": "damage"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"si_shiv_plus": {
-			"id": "si_shiv_plus",
-			"name": "Shiv+",
-			"cost": 0,
-			"type": 0,
+			"apply_status": {
+				"stacks": 3,
+				"type": "poison"
+			},
+			"art": "",
+			"block": 0,
 			"character": "silent",
+			"cost": 1,
 			"damage": 6,
-			"block": 0,
-			"description": "Deal 6 damage.\nExhaust.",
-			"art": "",
+			"description": "Deal 6 damage.\nApply 3 Poison.",
+			"id": "si_poisoned_stab",
+			"name": "Poisoned Stab",
+			"status": "active",
 			"target": "enemy",
-			"exhaust": true,
-			"upgraded": true,
+			"type": 0,
+			"version": "old"
+		},
+		"si_predator": {
 			"actions": [
 				{
 					"type": "damage"
 				}
 			],
-			"version": "old",
-			"status": "active"
-		},
-		"status_wound": {
-			"id": "status_wound",
-			"name": "Wound",
-			"cost": -2,
-			"type": 3,
-			"character": "neutral",
-			"damage": 0,
-			"block": 0,
-			"description": "Unplayable.",
 			"art": "",
-			"target": "none",
-			"unplayable": true,
-			"version": "old",
-			"status": "active"
-		},
-		"status_burn": {
-			"id": "status_burn",
-			"name": "Burn",
-			"cost": -2,
-			"type": 3,
-			"character": "neutral",
-			"damage": 0,
 			"block": 0,
-			"description": "Unplayable.\nTake 2 damage at\nend of turn.",
-			"art": "",
-			"target": "none",
-			"unplayable": true,
-			"end_turn_damage": 2,
-			"version": "old",
-			"status": "active"
-		},
-		"status_dazed": {
-			"id": "status_dazed",
-			"name": "Dazed",
-			"cost": -2,
-			"type": 3,
-			"character": "neutral",
-			"damage": 0,
-			"block": 0,
-			"description": "Unplayable.\nEthereal.",
-			"art": "",
-			"target": "none",
-			"unplayable": true,
-			"ethereal": true,
-			"version": "old",
-			"status": "active"
-		},
-		"nw_venomous_might": {
-			"id": "nw_venomous_might",
-			"name": "Venomous Might",
-			"cost": 1,
-			"type": 2,
-			"character": "neutral",
-			"damage": 0,
-			"block": 0,
-			"description": "At the start of each\nturn, gain Strength\nequal to total enemy\nPoison ÷ 4.",
-			"art": "",
-			"target": "self",
-			"version": "new",
-			"power_effect": "venomous_might",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "venomous_might"
-				}
-			],
-			"status": "active"
-		},
-		"nw_psi_surge": {
-			"id": "nw_psi_surge",
-			"name": "Psi Surge",
-			"cost": 2,
-			"type": 2,
-			"character": "neutral",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you draw 3+\ncards in a single\naction, gain 1 Energy.",
-			"art": "",
-			"target": "self",
-			"version": "new",
-			"power_effect": "psi_surge",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "psi_surge"
-				}
-			],
-			"status": "active"
-		},
-		"nw_blood_fury": {
-			"id": "nw_blood_fury",
-			"name": "Blood Fury",
-			"cost": 1,
-			"type": 2,
-			"character": "ironclad",
-			"damage": 0,
-			"block": 0,
-			"description": "Whenever you lose HP\nfrom a card, your\nnext Attack deals\ndouble damage.",
-			"art": "",
-			"target": "self",
-			"version": "new",
-			"power_effect": "blood_fury",
-			"actions": [
-				{
-					"type": "power_effect",
-					"power": "blood_fury"
-				}
-			],
-			"status": "active"
-		},
-		"nw_toxic_storm": {
-			"id": "nw_toxic_storm",
-			"name": "Toxic Storm",
-			"cost": -1,
-			"type": 0,
 			"character": "silent",
-			"damage": 3,
-			"block": 0,
-			"description": "Deal 3 damage to ALL\nenemies X times.\nApply 1 Poison each\nhit.",
-			"art": "",
-			"target": "all_enemies",
-			"version": "new",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "toxic_storm"
-				}
-			],
-			"status": "active"
-		},
-		"nw_echo_slash": {
-			"id": "nw_echo_slash",
-			"name": "Echo Slash",
 			"cost": 2,
-			"type": 0,
-			"character": "neutral",
-			"damage": 5,
-			"block": 0,
-			"description": "Deal 5 damage.\nHit once more for\neach Attack played\nthis turn.",
-			"art": "",
+			"damage": 15,
+			"description": "Deal 15 damage.",
+			"id": "si_predator",
+			"name": "Predator",
+			"status": "active",
 			"target": "enemy",
-			"version": "new",
+			"type": 0,
+			"version": "old"
+		},
+		"si_prepared": {
 			"actions": [
 				{
-					"type": "call",
-					"fn": "echo_slash"
+					"type": "draw"
 				}
 			],
-			"status": "active"
-		},
-		"nw_gamblers_blade": {
-			"id": "nw_gamblers_blade",
-			"name": "Gambler's Blade",
+			"art": "",
+			"block": 0,
+			"character": "silent",
 			"cost": 0,
-			"type": 0,
-			"character": "silent",
 			"damage": 0,
-			"block": 0,
-			"description": "Deal damage equal to\nhand size × 3.\nDiscard 1 card.",
-			"art": "",
-			"target": "enemy",
-			"version": "new",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "gamblers_blade"
-				}
-			],
-			"status": "active"
-		},
-		"nw_poison_shield": {
-			"id": "nw_poison_shield",
-			"name": "Poison Shield",
-			"cost": 1,
-			"type": 1,
-			"character": "silent",
-			"damage": 0,
-			"block": 0,
-			"description": "Gain Block equal to\ntotal Poison on all\nenemies.",
-			"art": "",
-			"target": "self",
-			"version": "new",
-			"actions": [
-				{
-					"type": "call",
-					"fn": "poison_shield"
-				}
-			],
-			"status": "active"
-		},
-		"nw_tactical_retreat": {
-			"id": "nw_tactical_retreat",
-			"name": "Tactical Retreat",
-			"cost": 1,
-			"type": 1,
-			"character": "neutral",
-			"damage": 0,
-			"block": 6,
-			"description": "Gain 6 Block.\nDraw 2 cards.\nDiscard 1 card.",
-			"art": "",
-			"target": "self",
-			"draw": 2,
+			"description": "Draw 1, Discard 1.",
 			"discard": 1,
-			"version": "new",
+			"draw": 1,
+			"id": "si_prepared",
+			"name": "Prepared",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_quick_slash": {
 			"actions": [
 				{
-					"type": "block"
+					"type": "damage"
 				},
 				{
 					"type": "draw"
 				}
 			],
-			"status": "active"
-		},
-		"nw_all_in": {
-			"id": "nw_all_in",
-			"name": "All In",
-			"cost": 0,
-			"type": 1,
-			"character": "neutral",
-			"damage": 0,
-			"block": 0,
-			"description": "Consume all Energy.\nDraw 2 cards per\nEnergy consumed.\nExhaust.",
 			"art": "",
-			"target": "self",
-			"exhaust": true,
-			"version": "new",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 8,
+			"description": "Deal 8 damage.\nDraw 1 card.",
+			"draw": 1,
+			"id": "si_quick_slash",
+			"name": "Quick Slash",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_reflex": {
 			"actions": [
 				{
-					"type": "call",
-					"fn": "all_in"
+					"type": "draw"
 				}
 			],
-			"status": "active"
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 0,
+			"description": "Sly. Draw 2 cards.",
+			"draw": 2,
+			"id": "si_reflex",
+			"name": "Reflex",
+			"special": "sly",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_ricochet": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 3,
+			"description": "Sly. Deal 3 damage\nto random enemy 4x.",
+			"id": "si_ricochet",
+			"name": "Ricochet",
+			"special": "sly",
+			"status": "active",
+			"target": "random_enemy",
+			"times": 4,
+			"type": 0,
+			"version": "old"
+		},
+		"si_riddle_with_holes": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 2,
+			"damage": 3,
+			"description": "Deal 3 damage\n5 times.",
+			"id": "si_riddle_with_holes",
+			"name": "Riddle with Holes",
+			"status": "active",
+			"target": "enemy",
+			"times": 5,
+			"type": 0,
+			"version": "old"
+		},
+		"si_setup": {
+			"actions": [
+				{
+					"fn": "setup",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Put a card from hand\non top of draw pile.",
+			"id": "si_setup",
+			"name": "Setup",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_shiv": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 4,
+			"description": "Deal 4 damage.\nExhaust.",
+			"exhaust": true,
+			"id": "si_shiv",
+			"name": "Shiv",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_shiv_plus": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 6,
+			"description": "Deal 6 damage.\nExhaust.",
+			"exhaust": true,
+			"id": "si_shiv_plus",
+			"name": "Shiv+",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"upgraded": true,
+			"version": "old"
+		},
+		"si_skewer": {
+			"actions": [
+				{
+					"fn": "skewer",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": -1,
+			"damage": 7,
+			"description": "Deal 7 damage X times.\n(X = current Energy)",
+			"id": "si_skewer",
+			"name": "Skewer",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_slice": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 6,
+			"description": "Deal 6 damage.",
+			"id": "si_slice",
+			"name": "Slice",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_storm_of_steel": {
+			"actions": [
+				{
+					"fn": "storm_of_steel",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 0,
+			"damage": 0,
+			"description": "Discard your hand.\nAdd a Shiv per card\ndiscarded.",
+			"discard_hand_generate": true,
+			"generate_damage": 4,
+			"id": "si_storm_of_steel",
+			"name": "Storm of Steel",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 6,
+			"description": "Deal 6 damage.",
+			"id": "si_strike",
+			"name": "Strike",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_sucker_punch": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "weak"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 8,
+			"description": "Deal 8 damage.\nApply 1 Weak.",
+			"id": "si_sucker_punch",
+			"name": "Sucker Punch",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_survivor": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "",
+			"block": 8,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Gain 8 Block.\nDiscard 1 card.",
+			"discard": 1,
+			"id": "si_survivor",
+			"name": "Survivor",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_tactician": {
+			"actions": [
+				{
+					"type": "gain_energy",
+					"value": 1
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 3,
+			"damage": 0,
+			"description": "Sly. Gain 1 Energy.",
+			"id": "si_tactician",
+			"name": "Tactician",
+			"special": "sly",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "old"
+		},
+		"si_terror": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 99,
+				"type": "vulnerable"
+			},
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "Apply 99 Vulnerable.\nExhaust.",
+			"exhaust": true,
+			"id": "si_terror",
+			"name": "Terror",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "old"
+		},
+		"si_tools_of_the_trade": {
+			"actions": [
+				{
+					"power": "tools_of_the_trade",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "At start of turn,\ndraw 1, discard 1.",
+			"id": "si_tools_of_the_trade",
+			"name": "Tools of the Trade",
+			"power_effect": "tools_of_the_trade",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_unload": {
+			"actions": [
+				{
+					"fn": "unload",
+					"type": "call"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 14,
+			"description": "Deal 14 damage.\nDiscard all non-Attack\ncards in hand.",
+			"exhaust_non_attacks": true,
+			"id": "si_unload",
+			"name": "Unload",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "old"
+		},
+		"si_well_laid_plans": {
+			"actions": [
+				{
+					"power": "well_laid_plans",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 1,
+			"damage": 0,
+			"description": "At end of turn,\nRetain up to 1 card.",
+			"id": "si_well_laid_plans",
+			"name": "Well-Laid Plans",
+			"power_effect": "well_laid_plans",
+			"power_stacks": 1,
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"si_wraith_form": {
+			"actions": [
+				{
+					"power": "wraith_form",
+					"type": "power_effect"
+				}
+			],
+			"art": "",
+			"block": 0,
+			"character": "silent",
+			"cost": 3,
+			"damage": 0,
+			"description": "Gain 2 Intangible.\nLose 1 Dexterity\nper turn.",
+			"id": "si_wraith_form",
+			"name": "Wraith Form",
+			"power_effect": "wraith_form",
+			"power_stacks": 2,
+			"status": "incomplete",
+			"target": "self",
+			"type": 2,
+			"version": "old"
+		},
+		"status_burn": {
+			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"cost": -2,
+			"damage": 0,
+			"description": "Unplayable.\nTake 2 damage at\nend of turn.",
+			"end_turn_damage": 2,
+			"id": "status_burn",
+			"name": "Burn",
+			"status": "active",
+			"target": "none",
+			"type": 3,
+			"unplayable": true,
+			"version": "old"
+		},
+		"status_dazed": {
+			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"cost": -2,
+			"damage": 0,
+			"description": "Unplayable.\nEthereal.",
+			"ethereal": true,
+			"id": "status_dazed",
+			"name": "Dazed",
+			"status": "active",
+			"target": "none",
+			"type": 3,
+			"unplayable": true,
+			"version": "old"
+		},
+		"status_wound": {
+			"art": "",
+			"block": 0,
+			"character": "neutral",
+			"cost": -2,
+			"damage": 0,
+			"description": "Unplayable.",
+			"id": "status_wound",
+			"name": "Wound",
+			"status": "active",
+			"target": "none",
+			"type": 3,
+			"unplayable": true,
+			"version": "old"
 		}
 	},
 	"upgrades": {
-		"ic_strike": {
-			"damage": 9,
-			"description": "Deal 9 damage."
-		},
-		"ic_iron_wave": {
-			"damage": 7,
-			"block": 7,
-			"description": "Deal 7 damage.\nGain 7 Block."
-		},
-		"ic_body_slam": {
-			"cost": 0,
-			"description": "Deal damage equal\nto your Block."
-		},
 		"ic_anger": {
 			"damage": 8,
 			"description": "Deal 8 damage.\nAdd a copy to\nyour discard pile."
-		},
-		"ic_cleave": {
-			"damage": 11,
-			"description": "Deal 11 damage to\nALL enemies."
-		},
-		"ic_twin_strike": {
-			"damage": 7,
-			"description": "Deal 7 damage twice."
-		},
-		"ic_wild_strike": {
-			"damage": 17,
-			"description": "Deal 17 damage.\nShuffle a Wound into\nyour draw pile."
-		},
-		"ic_pommel_strike": {
-			"damage": 10,
-			"draw": 2,
-			"description": "Deal 10 damage.\nDraw 2 cards."
-		},
-		"ic_headbutt": {
-			"damage": 12,
-			"description": "Deal 12 damage."
-		},
-		"ic_pummel": {
-			"damage": 2,
-			"times": 5,
-			"description": "Deal 2 damage x5."
-		},
-		"apply_status_2": {
-			"type": "weak",
-			"stacks": 3
-		},
-		"ic_immolate": {
-			"damage": 28,
-			"description": "Deal 28 damage to\nALL enemies.\nAdd a Burn to discard."
-		},
-		"ic_fiend_fire": {
-			"damage": 10,
-			"description": "Exhaust your hand.\nDeal 10 damage for\neach card exhausted."
-		},
-		"ic_reaper": {
-			"damage": 5,
-			"description": "Deal 5 damage to\nALL enemies.\nHeal for unblocked damage."
-		},
-		"ic_heavy_blade": {
-			"damage": 18,
-			"str_mult": 5,
-			"description": "Deal 18 damage.\nStrength applies x5."
-		},
-		"ic_thunderclap": {
-			"damage": 7,
-			"description": "Deal 7 damage to\nALL enemies.\nApply 1 Vulnerable."
-		},
-		"ic_hemokinesis": {
-			"damage": 20,
-			"description": "Lose 2 HP.\nDeal 20 damage."
-		},
-		"ic_reckless_charge": {
-			"damage": 10,
-			"description": "Deal 10 damage.\nShuffle a Dazed into\nyour draw pile."
-		},
-		"ic_clash": {
-			"damage": 18,
-			"description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 18 damage."
-		},
-		"ic_perfected_strike": {
-			"damage": 6,
-			"strike_bonus": 3,
-			"description": "Deal 6 damage. Deals\n3 additional damage\nfor each \"Strike\" card\nin your deck."
-		},
-		"ic_bludgeon": {
-			"damage": 42,
-			"description": "Deal 42 damage."
-		},
-		"ic_sword_boomerang": {
-			"times": 4,
-			"description": "Deal 3 damage to a\nrandom enemy 4 times."
-		},
-		"ic_searing_blow": {
-			"damage": 16,
-			"description": "Deal 16 damage."
-		},
-		"ic_whirlwind": {
-			"damage": 8,
-			"description": "Deal 8 damage to ALL\nenemies X times.\n(X = current Energy)"
-		},
-		"ic_dropkick": {
-			"damage": 8,
-			"description": "Deal 8 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1."
-		},
-		"ic_carnage": {
-			"damage": 28,
-			"description": "Ethereal.\nDeal 28 damage."
-		},
-		"ic_feed": {
-			"damage": 12,
-			"max_hp_gain": 4,
-			"description": "Deal 12 damage.\nIf this kills, gain\n4 Max HP. Exhaust."
-		},
-		"ic_rampage": {
-			"damage": 8,
-			"rampage_inc": 8,
-			"description": "Deal 8 damage.\nIncreases by 8\neach time played."
-		},
-		"ic_sever_soul": {
-			"damage": 22,
-			"description": "Exhaust all non-Attack\ncards in hand.\nDeal 22 damage."
-		},
-		"ic_blood_for_blood": {
-			"damage": 22,
-			"description": "Costs 1 less for each\ntime you lose HP.\nDeal 22 damage."
-		},
-		"ic_defend": {
-			"block": 8,
-			"description": "Gain 8 Block."
-		},
-		"ic_shrug_it_off": {
-			"block": 11,
-			"description": "Gain 11 Block.\nDraw 1 card."
-		},
-		"ic_flame_barrier": {
-			"block": 16,
-			"description": "Gain 16 Block.\nWhen attacked this turn,\ndeal 6 damage back."
-		},
-		"ic_battle_trance": {
-			"draw": 4,
-			"description": "Draw 4 cards."
-		},
-		"ic_flex": {
-			"flex_stacks": 4,
-			"description": "Gain 4 Strength.\nAt end of turn,\nlose 4 Strength."
-		},
-		"ic_limit_break": {
-			"exhaust": false,
-			"description": "Double your Strength."
-		},
-		"ic_entrench": {
-			"cost": 1,
-			"description": "Double your Block."
 		},
 		"ic_armaments": {
 			"block": 5,
 			"description": "Gain 5 Block.\nUpgrade ALL cards\nin hand."
 		},
-		"ic_power_through": {
-			"block": 20,
-			"description": "Gain 20 Block.\nAdd 2 Wounds to\nyour hand."
+		"ic_barricade": {
+			"cost": 2,
+			"description": "Block is not removed\nat the start of\nyour turn."
 		},
-		"ic_war_cry": {
-			"draw": 2,
-			"description": "Draw 2 cards.\nExhaust."
+		"ic_bash": {
+			"apply_status": {
+				"stacks": 3,
+				"type": "vulnerable"
+			},
+			"damage": 10,
+			"description": "Deal 10 damage.\nApply 3 Vulnerable."
+		},
+		"ic_battle_trance": {
+			"description": "Draw 4 cards.",
+			"draw": 4
+		},
+		"ic_berserk": {
+			"description": "Gain 1 Vulnerable.\nAt the start of each\nturn, gain 2 Energy.",
+			"per_turn": {
+				"energy": 2
+			},
+			"power_effect": "berserk_plus",
+			"power_stacks": 2
+		},
+		"ic_blood_for_blood": {
+			"damage": 22,
+			"description": "Costs 1 less for each\ntime you lose HP.\nDeal 22 damage."
+		},
+		"ic_bloodletting": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 3
+				},
+				{
+					"type": "gain_energy",
+					"value": 3
+				}
+			],
+			"description": "Lose 3 HP.\nGain 3 Energy."
+		},
+		"ic_bludgeon": {
+			"damage": 42,
+			"description": "Deal 42 damage."
+		},
+		"ic_body_slam": {
+			"cost": 0,
+			"description": "Deal damage equal\nto your Block."
+		},
+		"ic_brutality": {
+			"description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.\nInnate.",
+			"innate": true,
+			"power_effect": "brutality"
 		},
 		"ic_burning_pact": {
-			"draw": 3,
-			"description": "Exhaust 1 card.\nDraw 3 cards."
+			"description": "Exhaust 1 card.\nDraw 3 cards.",
+			"draw": 3
 		},
-		"ic_seeing_red": {
-			"cost": 0,
-			"description": "Gain 2 Energy.\nExhaust."
+		"ic_carnage": {
+			"damage": 28,
+			"description": "Ethereal.\nDeal 28 damage."
 		},
-		"ic_second_wind": {
-			"block_per": 7,
-			"description": "Exhaust all non-Attack\ncards in hand. Gain\n7 Block for each."
+		"ic_clash": {
+			"damage": 18,
+			"description": "Can only be played if\nevery card in hand\nis an Attack.\nDeal 18 damage."
 		},
-		"ic_infernal_blade": {
-			"cost": 0,
-			"description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust."
+		"ic_cleave": {
+			"damage": 11,
+			"description": "Deal 11 damage to\nALL enemies."
+		},
+		"ic_clothesline": {
+			"apply_status": {
+				"stacks": 3,
+				"type": "weak"
+			},
+			"damage": 14,
+			"description": "Deal 14 damage.\nApply 3 Weak."
+		},
+		"ic_combust": {
+			"description": "At the end of your\nturn, lose 1 HP and\ndeal 7 damage to ALL\nenemies.",
+			"per_turn": {
+				"damage_all": 7,
+				"self_damage": 1
+			},
+			"power_effect": "combust_plus",
+			"power_stacks": 7
+		},
+		"ic_corruption": {
+			"cost": 2,
+			"description": "Skills cost 0.\nWhenever you play a\nSkill, Exhaust it."
+		},
+		"ic_dark_embrace": {
+			"cost": 1,
+			"description": "Whenever a card is\nExhausted, draw 1."
+		},
+		"ic_defend": {
+			"block": 8,
+			"description": "Gain 8 Block."
+		},
+		"ic_demon_form": {
+			"description": "At the start of\neach turn, gain 3\nStrength.",
+			"per_turn": {
+				"strength": 3
+			},
+			"power_effect": "demon_form_plus",
+			"power_stacks": 3
+		},
+		"ic_disarm": {
+			"apply_status": {
+				"stacks": -3,
+				"type": "strength"
+			},
+			"description": "Enemy loses 3\nStrength. Exhaust."
+		},
+		"ic_double_tap": {
+			"description": "This turn, your next\n2 Attacks are played\ntwice."
+		},
+		"ic_dropkick": {
+			"damage": 8,
+			"description": "Deal 8 damage.\nIf enemy is Vulnerable:\ngain 1 Energy, draw 1."
 		},
 		"ic_dual_wield": {
 			"copies": 2,
 			"description": "Copy an Attack or\nPower card in hand\n2 times."
+		},
+		"ic_entrench": {
+			"cost": 1,
+			"description": "Double your Block."
+		},
+		"ic_evolve": {
+			"description": "Whenever you draw a\nStatus card, draw 2.",
+			"power_effect": "evolve_plus"
+		},
+		"ic_exhume": {
+			"cost": 0,
+			"description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust."
+		},
+		"ic_feed": {
+			"damage": 12,
+			"description": "Deal 12 damage.\nIf this kills, gain\n4 Max HP. Exhaust.",
+			"max_hp_gain": 4
+		},
+		"ic_feel_no_pain": {
+			"description": "Whenever a card is\nExhausted, gain\n4 Block.",
+			"power_effect": "feel_no_pain_plus",
+			"power_stacks": 4
+		},
+		"ic_fiend_fire": {
+			"damage": 10,
+			"description": "Exhaust your hand.\nDeal 10 damage for\neach card exhausted."
+		},
+		"ic_fire_breathing": {
+			"description": "Whenever you draw a\nStatus or Curse, deal\n10 damage to ALL."
+		},
+		"ic_flame_barrier": {
+			"block": 16,
+			"description": "Gain 16 Block.\nWhen attacked this turn,\ndeal 6 damage back."
+		},
+		"ic_flex": {
+			"description": "Gain 4 Strength.\nAt end of turn,\nlose 4 Strength.",
+			"flex_stacks": 4
 		},
 		"ic_ghostly_armor": {
 			"block": 13,
@@ -3690,100 +3769,331 @@
 			"cost": 0,
 			"description": "Play the top card of\nyour draw pile and\nExhaust it."
 		},
+		"ic_headbutt": {
+			"damage": 12,
+			"description": "Deal 12 damage."
+		},
+		"ic_heavy_blade": {
+			"damage": 18,
+			"description": "Deal 18 damage.\nStrength applies x5.",
+			"str_mult": 5
+		},
+		"ic_hemokinesis": {
+			"damage": 20,
+			"description": "Lose 2 HP.\nDeal 20 damage."
+		},
+		"ic_immolate": {
+			"damage": 28,
+			"description": "Deal 28 damage to\nALL enemies.\nAdd a Burn to discard."
+		},
 		"ic_impervious": {
 			"block": 40,
 			"description": "Gain 40 Block.\nExhaust."
 		},
-		"ic_exhume": {
+		"ic_infernal_blade": {
 			"cost": 0,
-			"description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust."
+			"description": "Add a random Attack\nto your hand. It\ncosts 0. Exhaust."
 		},
-		"ic_sentinel": {
-			"block": 8,
-			"description": "Gain 8 Block.\nIf this card is\nExhausted, gain\n3 Energy."
+		"ic_inflame": {
+			"apply_self_status": {
+				"stacks": 3,
+				"type": "strength"
+			},
+			"description": "Gain 3 Strength."
 		},
-		"ic_spot_weakness": {
-			"spot_str": 4,
-			"description": "If the enemy intends\nto attack, gain\n4 Strength."
+		"ic_intimidate": {
+			"apply_status": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"description": "Apply 2 Weak to\nALL enemies. Exhaust."
 		},
-		"ic_true_grit": {
-			"block": 9,
-			"description": "Gain 9 Block.\nExhaust a card in\nyour hand."
-		},
-		"ic_double_tap": {
-			"description": "This turn, your next\n2 Attacks are played\ntwice."
-		},
-		"ic_demon_form": {
-			"description": "At the start of\neach turn, gain 3\nStrength.",
-			"power_effect": "demon_form_plus"
-		},
-		"ic_corruption": {
-			"cost": 2,
-			"description": "Skills cost 0.\nWhenever you play a\nSkill, Exhaust it."
-		},
-		"ic_berserk": {
-			"description": "Gain 1 Vulnerable.\nAt the start of each\nturn, gain 2 Energy.",
-			"power_effect": "berserk_plus"
-		},
-		"ic_feel_no_pain": {
-			"description": "Whenever a card is\nExhausted, gain\n4 Block.",
-			"power_effect": "feel_no_pain_plus"
+		"ic_iron_wave": {
+			"block": 7,
+			"damage": 7,
+			"description": "Deal 7 damage.\nGain 7 Block."
 		},
 		"ic_juggernaut": {
 			"description": "Whenever you gain\nBlock, deal 7 damage\nto a random enemy.",
 			"power_effect": "juggernaut_plus"
 		},
-		"ic_evolve": {
-			"description": "Whenever you draw a\nStatus card, draw 2.",
-			"power_effect": "evolve_plus"
+		"ic_limit_break": {
+			"description": "Double your Strength.",
+			"exhaust": false
+		},
+		"ic_metallicize": {
+			"description": "At the end of your\nturn, gain 4 Block.",
+			"per_turn": {
+				"block": 4
+			},
+			"power_effect": "metallicize_plus",
+			"power_stacks": 4
+		},
+		"ic_offering": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 6
+				},
+				{
+					"type": "gain_energy",
+					"value": 2
+				},
+				{
+					"type": "draw",
+					"value": 5
+				}
+			],
+			"description": "Lose 6 HP.\nGain 2 Energy.\nDraw 5 cards.\nExhaust."
+		},
+		"ic_perfected_strike": {
+			"damage": 6,
+			"description": "Deal 6 damage. Deals\n3 additional damage\nfor each \"Strike\" card\nin your deck.",
+			"strike_bonus": 3
+		},
+		"ic_pommel_strike": {
+			"damage": 10,
+			"description": "Deal 10 damage.\nDraw 2 cards.",
+			"draw": 2
+		},
+		"ic_power_through": {
+			"block": 20,
+			"description": "Gain 20 Block.\nAdd 2 Wounds to\nyour hand."
+		},
+		"ic_pummel": {
+			"damage": 2,
+			"description": "Deal 2 damage x5.",
+			"times": 5
 		},
 		"ic_rage": {
 			"description": "Whenever you play an\nAttack this turn,\ngain 5 Block.",
 			"power_effect": "rage_plus"
 		},
-		"ic_barricade": {
-			"cost": 2,
-			"description": "Block is not removed\nat the start of\nyour turn."
+		"ic_rampage": {
+			"damage": 8,
+			"description": "Deal 8 damage.\nIncreases by 8\neach time played.",
+			"rampage_inc": 8
 		},
-		"ic_metallicize": {
-			"description": "At the end of your\nturn, gain 4 Block.",
-			"power_effect": "metallicize_plus"
+		"ic_reaper": {
+			"damage": 5,
+			"description": "Deal 5 damage to\nALL enemies.\nHeal for unblocked damage."
 		},
-		"ic_brutality": {
-			"description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.\nInnate.",
-			"power_effect": "brutality",
-			"innate": true
-		},
-		"ic_combust": {
-			"description": "At the end of your\nturn, lose 1 HP and\ndeal 7 damage to ALL\nenemies.",
-			"power_effect": "combust_plus"
-		},
-		"ic_dark_embrace": {
-			"cost": 1,
-			"description": "Whenever a card is\nExhausted, draw 1."
+		"ic_reckless_charge": {
+			"damage": 10,
+			"description": "Deal 10 damage.\nShuffle a Dazed into\nyour draw pile."
 		},
 		"ic_rupture": {
 			"description": "Whenever you lose HP\nfrom a card, gain\n2 Strength.",
 			"power_effect": "rupture_plus"
 		},
-		"ic_fire_breathing": {
-			"description": "Whenever you draw a\nStatus or Curse, deal\n10 damage to ALL."
+		"ic_searing_blow": {
+			"damage": 16,
+			"description": "Deal 16 damage."
 		},
-		"si_strike": {
-			"damage": 9,
-			"description": "Deal 9 damage."
+		"ic_second_wind": {
+			"block_per": 7,
+			"description": "Exhaust all non-Attack\ncards in hand. Gain\n7 Block for each."
 		},
-		"si_defend": {
+		"ic_seeing_red": {
+			"cost": 0,
+			"description": "Gain 2 Energy.\nExhaust."
+		},
+		"ic_sentinel": {
 			"block": 8,
-			"description": "Gain 8 Block."
+			"description": "Gain 8 Block.\nIf this card is\nExhausted, gain\n3 Energy."
 		},
-		"si_survivor": {
+		"ic_sever_soul": {
+			"damage": 22,
+			"description": "Exhaust all non-Attack\ncards in hand.\nDeal 22 damage."
+		},
+		"ic_shockwave": {
+			"apply_status": {
+				"stacks": 5,
+				"type": "weak"
+			},
+			"apply_status_2": {
+				"stacks": 5,
+				"type": "vulnerable"
+			},
+			"description": "Apply 5 Weak and\n5 Vulnerable to\nALL enemies. Exhaust."
+		},
+		"ic_shrug_it_off": {
 			"block": 11,
-			"description": "Gain 11 Block.\nDiscard 1 card."
+			"description": "Gain 11 Block.\nDraw 1 card."
 		},
-		"si_slice": {
+		"ic_spot_weakness": {
+			"description": "If the enemy intends\nto attack, all heroes\ngain 4 Strength.",
+			"spot_str": 4
+		},
+		"ic_strike": {
 			"damage": 9,
 			"description": "Deal 9 damage."
+		},
+		"ic_sword_boomerang": {
+			"description": "Deal 3 damage to a\nrandom enemy 4 times.",
+			"times": 4
+		},
+		"ic_thunderclap": {
+			"damage": 7,
+			"description": "Deal 7 damage to\nALL enemies.\nApply 1 Vulnerable."
+		},
+		"ic_true_grit": {
+			"block": 9,
+			"description": "Gain 9 Block.\nExhaust a card in\nyour hand."
+		},
+		"ic_twin_strike": {
+			"damage": 7,
+			"description": "Deal 7 damage twice."
+		},
+		"ic_uppercut": {
+			"apply_status": {
+				"stacks": 2,
+				"type": "vulnerable"
+			},
+			"apply_status_2": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"damage": 16,
+			"description": "Deal 16 damage.\nApply 2 Weak.\nApply 2 Vulnerable."
+		},
+		"ic_war_cry": {
+			"description": "Draw 2 cards.\nExhaust.",
+			"draw": 2
+		},
+		"ic_whirlwind": {
+			"damage": 8,
+			"description": "Deal 8 damage to ALL\nenemies X times.\n(X = current Energy)"
+		},
+		"ic_wild_strike": {
+			"damage": 17,
+			"description": "Deal 17 damage.\nShuffle a Wound into\nyour draw pile."
+		},
+		"si_a_thousand_cuts": {
+			"description": "Whenever you play a\ncard, deal 2 damage\nto ALL enemies.",
+			"power_effect": "a_thousand_cuts_plus",
+			"power_stacks": 2
+		},
+		"si_accuracy": {
+			"description": "Shivs deal 6 more\ndamage.",
+			"power_effect": "accuracy_plus",
+			"power_stacks": 6
+		},
+		"si_acrobatics": {
+			"description": "Draw 4 cards.\nDiscard 1.",
+			"draw": 4
+		},
+		"si_adrenaline": {
+			"actions": [
+				{
+					"type": "gain_energy",
+					"value": 2
+				},
+				{
+					"type": "draw"
+				}
+			],
+			"description": "Gain 2 Energy.\nDraw 3 cards.\nExhaust.",
+			"draw": 3,
+			"energy_gain": 2
+		},
+		"si_after_image": {
+			"description": "Whenever you play a\ncard, gain 1 Block."
+		},
+		"si_alchemize": {
+			"cost": 0,
+			"description": "Obtain a random\npotion. Exhaust."
+		},
+		"si_anticipate": {
+			"description": "Gain 5 Dexterity\nthis turn.",
+			"temp_dex": 5
+		},
+		"si_backflip": {
+			"block": 8,
+			"description": "Gain 8 Block.\nDraw 2 cards."
+		},
+		"si_backstab": {
+			"damage": 15,
+			"description": "Deal 15 damage.\nInnate. Exhaust."
+		},
+		"si_blade_dance": {
+			"actions": [
+				{
+					"type": "add_shiv",
+					"value": 4
+				}
+			],
+			"description": "Add 4 Shivs to\nyour hand."
+		},
+		"si_blur": {
+			"block": 8,
+			"description": "Gain 8 Block.\nBlock not removed\nnext turn."
+		},
+		"si_bouncing_flask": {
+			"apply_status": {
+				"stacks": 4,
+				"type": "poison"
+			},
+			"description": "Apply 4 Poison to\nrandom enemies 3x."
+		},
+		"si_bullet_time": {
+			"cost": 2,
+			"description": "Cards cost 0 this\nturn. No draw\nnext turn."
+		},
+		"si_burst": {
+			"description": "Next 2 Skills are\nplayed twice."
+		},
+		"si_calculated_gamble": {
+			"description": "Discard your hand.\nDraw that many +1."
+		},
+		"si_caltrops": {
+			"description": "When attacked, deal\n5 damage back.",
+			"power_effect": "caltrops_plus",
+			"power_stacks": 5
+		},
+		"si_catalyst": {
+			"description": "Triple a target's\nPoison. Exhaust.",
+			"poison_mult": 3
+		},
+		"si_choke": {
+			"choke_stacks": 4,
+			"damage": 16,
+			"description": "Deal 16 damage.\nWhenever enemy plays\na card, take 4 damage."
+		},
+		"si_cloak_and_dagger": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"type": "add_shiv",
+					"value": 2
+				}
+			],
+			"block": 6,
+			"description": "Gain 6 Block.\nAdd 2 Shivs to hand."
+		},
+		"si_concentrate": {
+			"description": "Discard 2 cards.\nGain 2 Energy.",
+			"discard_count": 2
+		},
+		"si_corpse_explosion": {
+			"apply_status": {
+				"stacks": 9,
+				"type": "poison"
+			},
+			"description": "Apply 9 Poison.\nWhen enemy dies, deal\ndamage to ALL."
+		},
+		"si_crippling_cloud": {
+			"apply_status": {
+				"stacks": 7,
+				"type": "poison"
+			},
+			"apply_status_2": {
+				"stacks": 3,
+				"type": "weak"
+			},
+			"description": "Apply 7 Poison and\n3 Weak to ALL enemies."
 		},
 		"si_dagger_spray": {
 			"damage": 6,
@@ -3793,205 +4103,253 @@
 			"damage": 12,
 			"description": "Deal 12 damage.\nDraw 1, Discard 1."
 		},
-		"si_flick_flack": {
-			"damage": 10,
-			"description": "Sly. Deal 10 damage\nto ALL enemies."
+		"si_dash": {
+			"block": 13,
+			"damage": 13,
+			"description": "Front hero gains\n13 Block.\nDeal 13 damage."
 		},
-		"si_leading_strike": {
-			"damage": 10,
-			"description": "Deal 10 damage.\nAdd 1 Shiv to hand."
+		"si_deadly_poison": {
+			"apply_status": {
+				"stacks": 7,
+				"type": "poison"
+			},
+			"description": "Apply 7 Poison."
 		},
-		"si_ricochet": {
-			"damage": 4,
-			"description": "Sly. Deal 4 damage\nto random enemy 4x."
-		},
-		"si_quick_slash": {
-			"damage": 12,
-			"description": "Deal 12 damage.\nDraw 1 card."
-		},
-		"si_anticipate": {
-			"temp_dex": 5,
-			"description": "Gain 5 Dexterity\nthis turn."
+		"si_defend": {
+			"block": 8,
+			"description": "Gain 8 Block."
 		},
 		"si_deflect": {
 			"block": 7,
 			"description": "Gain 7 Block."
 		},
-		"si_prepared": {
-			"draw": 2,
-			"description": "Draw 2, Discard 1."
-		},
-		"si_backflip": {
-			"block": 8,
-			"description": "Gain 8 Block.\nDraw 2 cards."
-		},
-		"effect": {
-			"type": "block",
-			"value": 6
-		},
-		"si_acrobatics": {
-			"draw": 4,
-			"description": "Draw 4 cards.\nDiscard 1."
-		},
-		"si_escape_plan": {
-			"escape_block": 5,
-			"description": "Draw 1 card. If it\nis a Skill, gain\n5 Block."
-		},
-		"si_calculated_gamble": {
-			"description": "Discard your hand.\nDraw that many +1."
-		},
-		"si_concentrate": {
-			"discard_count": 2,
-			"description": "Discard 2 cards.\nGain 2 Energy."
-		},
-		"si_predator": {
-			"damage": 20,
-			"description": "Deal 20 damage."
-		},
-		"si_masterful_stab": {
-			"damage": 16,
-			"description": "Innate.\nDeal 16 damage."
-		},
-		"si_skewer": {
-			"damage": 10,
-			"description": "Deal 10 damage X times.\n(X = current Energy)"
-		},
 		"si_die_die_die": {
 			"damage": 17,
 			"description": "Deal 17 damage to\nALL enemies. Exhaust."
-		},
-		"si_endless_agony": {
-			"damage": 6,
-			"description": "Deal 6 damage.\nExhaust. When drawn,\nadd copy to hand."
-		},
-		"si_eviscerate": {
-			"damage": 9,
-			"description": "Deal 9 damage\n3 times."
-		},
-		"si_finisher": {
-			"damage": 8,
-			"description": "Deal 8 damage for\neach Attack played\nthis turn."
-		},
-		"si_flying_knee": {
-			"damage": 11,
-			"description": "Deal 11 damage.\nGain 1 Energy\nnext turn."
-		},
-		"si_heel_hook": {
-			"damage": 8,
-			"description": "Deal 8 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1."
-		},
-		"si_glass_knife": {
-			"damage": 12,
-			"description": "Deal 12 damage twice.\nDamage decreases by 2\neach use."
-		},
-		"si_choke": {
-			"damage": 16,
-			"choke_stacks": 4,
-			"description": "Deal 16 damage.\nWhenever enemy plays\na card, take 4 damage."
-		},
-		"si_riddle_with_holes": {
-			"damage": 4,
-			"description": "Deal 4 damage\n5 times."
-		},
-		"si_blur": {
-			"block": 8,
-			"description": "Gain 8 Block.\nBlock not removed\nnext turn."
-		},
-		"si_dash": {
-			"damage": 13,
-			"block": 13,
-			"description": "Gain 13 Block.\nDeal 13 damage."
-		},
-		"si_terror": {
-			"cost": 0,
-			"description": "Apply 99 Vulnerable.\nExhaust."
 		},
 		"si_distraction": {
 			"cost": 0,
 			"description": "Add a random Skill\nto your hand.\nExhaust."
 		},
-		"si_expertise": {
-			"target_hand_size": 7,
-			"description": "Draw cards until you\nhave 7 in hand."
+		"si_dodge_and_roll": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"effect": {
+						"type": "block",
+						"value": 6
+					},
+					"type": "next_turn"
+				}
+			],
+			"block": 6,
+			"description": "Gain 6 Block this\nturn and next."
 		},
-		"si_infinite_blades": {
-			"description": "At start of turn,\nadd a Shiv+ to hand."
-		},
-		"si_reflex": {
-			"description": "Unplayable.\nWhen discarded,\ndraw 3 cards."
-		},
-		"si_setup": {
-			"cost": 0,
-			"description": "Put a card from hand\non top of draw pile."
-		},
-		"si_tactician": {
-			"description": "Unplayable.\nWhen discarded,\ngain 2 Energy."
-		},
-		"si_catalyst": {
-			"poison_mult": 3,
-			"description": "Triple a target's\nPoison. Exhaust."
-		},
-		"si_noxious_fumes": {
-			"description": "At start of turn,\napply 3 Poison to\nALL enemies.",
-			"power_effect": "noxious_fumes_plus"
-		},
-		"si_accuracy": {
-			"description": "Shivs deal 6 more\ndamage.",
-			"power_effect": "accuracy_plus"
-		},
-		"si_caltrops": {
-			"description": "When attacked, deal\n5 damage back.",
-			"power_effect": "caltrops_plus"
-		},
-		"si_a_thousand_cuts": {
-			"description": "Whenever you play a\ncard, deal 2 damage\nto ALL enemies.",
-			"power_effect": "a_thousand_cuts_plus"
+		"si_endless_agony": {
+			"damage": 6,
+			"description": "Deal 6 damage.\nExhaust. When drawn,\nadd copy to hand."
 		},
 		"si_envenom": {
 			"description": "Whenever you deal\nunblocked damage,\napply 2 Poison.",
-			"power_effect": "envenom_plus"
+			"power_effect": "envenom_plus",
+			"power_stacks": 2
 		},
-		"si_tools_of_the_trade": {
-			"description": "At start of turn,\ndraw 1, discard 1."
+		"si_escape_plan": {
+			"description": "Draw 1 card. If it\nis a Skill, gain\n5 Block.",
+			"escape_block": 5
 		},
-		"si_backstab": {
-			"damage": 15,
-			"description": "Deal 15 damage.\nInnate. Exhaust."
+		"si_eviscerate": {
+			"damage": 9,
+			"description": "Deal 9 damage\n3 times."
+		},
+		"si_expertise": {
+			"description": "Draw cards until you\nhave 7 in hand.",
+			"target_hand_size": 7
+		},
+		"si_finisher": {
+			"damage": 8,
+			"description": "Deal 8 damage for\neach Attack played\nthis turn."
+		},
+		"si_flick_flack": {
+			"damage": 10,
+			"description": "Sly. Deal 10 damage\nto ALL enemies."
+		},
+		"si_flying_knee": {
+			"damage": 11,
+			"description": "Deal 11 damage.\nGain 1 Energy\nnext turn."
+		},
+		"si_footwork": {
+			"apply_self_status": {
+				"stacks": 3,
+				"type": "dexterity"
+			},
+			"description": "Gain 3 Dexterity."
+		},
+		"si_glass_knife": {
+			"damage": 12,
+			"damage_degrade": 2,
+			"description": "Deal 12 damage twice.\nDamage decreases by 2\neach use."
 		},
 		"si_grand_finale": {
 			"damage": 60,
 			"description": "Can only play if draw\npile is empty.\nDeal 60 damage."
 		},
-		"si_unload": {
-			"damage": 18,
-			"description": "Deal 18 damage.\nDiscard all non-Attack\ncards in hand."
+		"si_heel_hook": {
+			"damage": 8,
+			"description": "Deal 8 damage.\nIf enemy is Weak:\ngain 1 Energy, draw 1."
 		},
-		"si_alchemize": {
-			"cost": 0,
-			"description": "Obtain a random\npotion. Exhaust."
+		"si_infinite_blades": {
+			"description": "At start of turn,\nadd a Shiv+ to hand."
 		},
-		"si_bullet_time": {
-			"cost": 2,
-			"description": "Cards cost 0 this\nturn. No draw\nnext turn."
+		"si_leading_strike": {
+			"damage": 10,
+			"description": "Deal 10 damage.\nAdd 1 Shiv to hand."
 		},
-		"si_burst": {
-			"description": "Next 2 Skills are\nplayed twice."
+		"si_leg_sweep": {
+			"actions": [
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				},
+				{
+					"buff_target": "all_heroes",
+					"type": "block"
+				}
+			],
+			"apply_status": {
+				"stacks": 3,
+				"type": "weak"
+			},
+			"block": 14,
+			"description": "Apply 3 Weak.\nAll heroes gain\n14 Block."
 		},
 		"si_malaise": {
 			"description": "Enemy loses X+1\nStrength. Apply X+1\nWeak."
+		},
+		"si_masterful_stab": {
+			"damage": 16,
+			"description": "Innate.\nDeal 16 damage."
+		},
+		"si_neutralize": {
+			"apply_status": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"damage": 4,
+			"description": "Deal 4 damage.\nApply 2 Weak."
 		},
 		"si_nightmare": {
 			"cost": 2,
 			"description": "Choose a card. Add\n3 copies to hand\nnext turn."
 		},
+		"si_noxious_fumes": {
+			"description": "At start of turn,\napply 3 Poison to\nALL enemies.",
+			"per_turn": {
+				"poison_all": 3
+			},
+			"power_effect": "noxious_fumes_plus",
+			"power_stacks": 3
+		},
+		"si_outmaneuver": {
+			"actions": [
+				{
+					"effect": {
+						"type": "gain_energy",
+						"value": 3
+					},
+					"type": "next_turn"
+				}
+			],
+			"description": "Gain 3 Energy\nnext turn."
+		},
 		"si_phantasmal_killer": {
 			"description": "Next turn, deal\ndouble damage."
 		},
-		"si_after_image": {
-			"description": "Whenever you play a\ncard, gain 1 Block."
+		"si_poisoned_stab": {
+			"apply_status": {
+				"stacks": 4,
+				"type": "poison"
+			},
+			"damage": 8,
+			"description": "Deal 8 damage.\nApply 4 Poison."
+		},
+		"si_predator": {
+			"damage": 20,
+			"description": "Deal 20 damage."
+		},
+		"si_prepared": {
+			"description": "Draw 2, Discard 1.",
+			"draw": 2
+		},
+		"si_quick_slash": {
+			"damage": 12,
+			"description": "Deal 12 damage.\nDraw 1 card."
+		},
+		"si_reflex": {
+			"description": "Sly. Draw 3 cards.",
+			"draw": 3
+		},
+		"si_ricochet": {
+			"damage": 4,
+			"description": "Sly. Deal 4 damage\nto random enemy 4x."
+		},
+		"si_riddle_with_holes": {
+			"damage": 4,
+			"description": "Deal 4 damage\n5 times."
+		},
+		"si_setup": {
+			"cost": 0,
+			"description": "Put a card from hand\non top of draw pile."
+		},
+		"si_skewer": {
+			"damage": 10,
+			"description": "Deal 10 damage X times.\n(X = current Energy)"
+		},
+		"si_slice": {
+			"damage": 9,
+			"description": "Deal 9 damage."
 		},
 		"si_storm_of_steel": {
-			"description": "Discard your hand.\nAdd a Shiv+ per card\ndiscarded."
+			"description": "Discard your hand.\nAdd a Shiv+ per card\ndiscarded.",
+			"generate_damage": 6
+		},
+		"si_strike": {
+			"damage": 9,
+			"description": "Deal 9 damage."
+		},
+		"si_sucker_punch": {
+			"apply_status": {
+				"stacks": 2,
+				"type": "weak"
+			},
+			"damage": 11,
+			"description": "Deal 11 damage.\nApply 2 Weak."
+		},
+		"si_survivor": {
+			"block": 11,
+			"description": "Gain 11 Block.\nDiscard 1 card."
+		},
+		"si_tactician": {
+			"actions": [
+				{
+					"type": "gain_energy",
+					"value": 2
+				}
+			],
+			"description": "Sly. Gain 2 Energy."
+		},
+		"si_terror": {
+			"cost": 0,
+			"description": "Apply 99 Vulnerable.\nExhaust."
+		},
+		"si_tools_of_the_trade": {
+			"description": "At start of turn,\ndraw 1, discard 1."
+		},
+		"si_unload": {
+			"damage": 18,
+			"description": "Deal 18 damage.\nDiscard all non-Attack\ncards in hand."
 		},
 		"si_well_laid_plans": {
 			"description": "At end of turn,\nRetain up to 2 cards.",
@@ -3999,7 +4357,8 @@
 		},
 		"si_wraith_form": {
 			"description": "Gain 3 Intangible.\nLose 1 Dexterity\nper turn.",
-			"power_effect": "wraith_form_plus"
+			"power_effect": "wraith_form_plus",
+			"power_stacks": 3
 		}
 	}
 }

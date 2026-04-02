@@ -368,7 +368,12 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 
 	var cost_lbl = Label.new()
 	cost_lbl.name = "CostLabel"
-	cost_lbl.text = str(cost_val) if cost_val >= 0 else "X"
+	if cost_val >= 0:
+		cost_lbl.text = str(cost_val)
+	elif cost_val == -1:
+		cost_lbl.text = "X"
+	else:
+		cost_lbl.text = ""  # Status/unplayable — prohibition icon shown by card_hand
 	cost_lbl.position = Vector2(orb_cx - orb_r, orb_cy - orb_r)
 	cost_lbl.size = Vector2(orb_r * 2, orb_r * 2)
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

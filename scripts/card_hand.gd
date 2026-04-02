@@ -501,19 +501,25 @@ func update_card_playability(current_energy: int) -> void:
 			var is_blocked: bool = card_id in unplayable_ids or card.card_data.get("unplayable", false)
 			var affordable: bool = (cost <= current_energy) and not is_blocked
 			var cost_color: Color = Color(0.2, 0.85, 0.3) if affordable else Color(1.0, 0.2, 0.2)
-			# Show/remove slash indicator for blocked cards
-			var slash_node = card.card_visual.get_node_or_null("BlockedSlash")
-			if is_blocked and slash_node == null:
-				var slash = Label.new()
-				slash.name = "BlockedSlash"
-				slash.text = "/"
-				slash.add_theme_font_size_override("font_size", 40)
-				slash.add_theme_color_override("font_color", Color(1.0, 0.1, 0.1, 0.9))
-				slash.position = Vector2(4, -2)
-				slash.z_index = 20
-				card.card_visual.add_child(slash)
-			elif not is_blocked and slash_node:
-				slash_node.queue_free()
+			# Show/remove prohibition icon for blocked cards
+			var blocked_node = card.card_visual.get_node_or_null("BlockedIcon")
+			if is_blocked and blocked_node == null:
+				var icon = preload("res://scripts/blocked_icon.gd").new()
+				icon.name = "BlockedIcon"
+				var orb_bg = card.card_visual.get_node_or_null("CostOrbBG")
+				if orb_bg:
+					icon.position = orb_bg.position
+					icon.size = orb_bg.size
+				else:
+					icon.position = Vector2(4, 4)
+					icon.size = Vector2(40, 40)
+				icon.z_index = 20
+				icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				card.card_visual.add_child(icon)
+				if cost_lbl:
+					cost_lbl.text = ""
+			elif not is_blocked and blocked_node:
+				blocked_node.queue_free()
 			if cost_lbl:
 				cost_lbl.add_theme_color_override("font_color", cost_color)
 			# Update the cost orb background border color to match
