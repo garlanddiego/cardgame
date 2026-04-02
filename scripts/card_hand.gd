@@ -271,6 +271,12 @@ func _on_card_clicked(card_node: Area2D) -> void:
 	selected_card = card_node
 	card_node.set_selected(true)
 
+	# Auto-play random_enemy and all_enemies cards immediately (no targeting needed)
+	var card_target: String = card_data_val.get("target", "enemy")
+	if _can_afford_card(card_data_val) and card_target in ["random_enemy", "all_enemies"]:
+		card_played_tap.emit(card_node)
+		return
+
 	# Only enable targeting if card is playable
 	if _can_afford_card(card_data_val):
 		targeting_mode = true

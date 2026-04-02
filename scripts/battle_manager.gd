@@ -2523,12 +2523,17 @@ func _show_ai_overlay(result: Dictionary) -> void:
 		seq_title.add_theme_font_size_override("font_size", 20)
 		seq_title.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
 		vbox.add_child(seq_title)
-		# Look up card names from hand/game manager
+		# Look up card names from hand/game manager (use Chinese names via Loc)
 		var gm = _get_game_manager()
+		var loc = _get_loc()
 		for i in range(seq.size()):
 			var card_id: String = seq[i]
 			var card_name: String = card_id
-			if gm and gm.card_database.has(card_id):
+			if loc:
+				var cn: String = loc.card_name(gm.card_database.get(card_id, {})) if gm else ""
+				if cn != "":
+					card_name = cn
+			elif gm and gm.card_database.has(card_id):
 				card_name = gm.card_database[card_id].get("name", card_id)
 			var line := Label.new()
 			line.text = "  %d. %s" % [i + 1, card_name]
