@@ -360,6 +360,9 @@ func try_play_card_on_target(target: Node2D) -> bool:
 	elif card_target == "all_enemies":
 		_do_play(data, target)
 		return true
+	elif card_target == "random_enemy":
+		_do_play(data, target)
+		return true
 	elif card_target == "all_heroes" and not target.is_enemy:
 		_do_play(data, target)
 		return true
@@ -603,8 +606,8 @@ func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:
 	# Emit signal for battle_manager to resolve the target at release position
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
-	# All_enemies: auto-play on drag release anywhere
-	if target_type == "all_enemies":
+	# All_enemies / random_enemy: auto-play on drag release anywhere
+	if target_type in ["all_enemies", "random_enemy"]:
 		card_played_tap.emit(card_node)
 		return
 	# Self and enemy-targeted: let battle_manager resolve at release position
