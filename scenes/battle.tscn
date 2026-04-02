@@ -21,6 +21,54 @@ corner_radius_top_right = 36
 corner_radius_bottom_right = 36
 corner_radius_bottom_left = 36
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnNormal"]
+bg_color = Color(0.6, 0.298, 0.102, 0.851)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnHover"]
+bg_color = Color(0.702, 0.361, 0.133, 0.902)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnPressed"]
+bg_color = Color(0.478, 0.239, 0.078, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_endTurnDisabled"]
+bg_color = Color(0.2, 0.133, 0.067, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.902, 0.722, 0.29, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yahae"]
 content_margin_left = 12.0
 content_margin_top = 4.0
@@ -122,10 +170,19 @@ text = "Discard: 0"
 [node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=766442249]
 custom_minimum_size = Vector2(240, 70)
 layout_mode = 0
-offset_left = 1640.0
-offset_top = 400.0
-offset_right = 1640.0
-offset_bottom = 400.0
+offset_left = 1620.0
+offset_top = 590.0
+offset_right = 1860.0
+offset_bottom = 660.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.478, 0.447, 0.376, 0.8)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_endTurnNormal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_endTurnHover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_endTurnPressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_endTurnDisabled")
 text = "End Turn"
 
 [node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1829918889]

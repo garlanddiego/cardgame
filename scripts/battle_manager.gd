@@ -2318,13 +2318,13 @@ func _create_ai_button() -> void:
 		return
 	ai_btn = Button.new()
 	ai_btn.name = "AIButton"
-	ai_btn.text = "AI推荐"
-	ai_btn.custom_minimum_size = Vector2(160, 50)
+	ai_btn.text = "AI"
+	ai_btn.custom_minimum_size = Vector2(60, 50)
 	if end_turn_btn:
-		ai_btn.position = end_turn_btn.position + Vector2(0, 80)
+		ai_btn.position = end_turn_btn.position + Vector2(-70, 10)
 	else:
-		ai_btn.position = Vector2(1640, 480)
-	ai_btn.add_theme_font_size_override("font_size", 20)
+		ai_btn.position = Vector2(1550, 600)
+	ai_btn.add_theme_font_size_override("font_size", 18)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.35, 0.65, 0.9)
 	style.corner_radius_top_left = 8
@@ -2346,10 +2346,10 @@ func _on_ai_recommend() -> void:
 	if not battle_active or not is_player_turn:
 		return
 	ai_btn.disabled = true
-	ai_btn.text = "分析中..."
+	ai_btn.text = "..."
 	# Run solver (synchronous — fast enough for typical hand sizes)
 	var result: Dictionary = BattleSim.solve(self)
-	ai_btn.text = "AI推荐"
+	ai_btn.text = "AI"
 	ai_btn.disabled = false
 	_show_ai_overlay(result)
 
