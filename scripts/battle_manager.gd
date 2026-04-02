@@ -153,6 +153,11 @@ func _ready() -> void:
 	discard_panel = get_node_or_null("HUDLayer/HUD/DiscardPanel") as Panel
 	draw_pile_label = get_node_or_null("HUDLayer/HUD/DrawPanel/DrawPileLabel")
 	discard_label = get_node_or_null("HUDLayer/HUD/DiscardPanel/DiscardPileLabel")
+	# Fallback: labels may be directly under HUD (not inside Panel wrappers)
+	if draw_pile_label == null:
+		draw_pile_label = get_node_or_null("HUDLayer/HUD/DrawPileLabel")
+	if discard_label == null:
+		discard_label = get_node_or_null("HUDLayer/HUD/DiscardPileLabel")
 	end_turn_btn = get_node_or_null("HUDLayer/HUD/EndTurnButton")
 	turn_label = get_node_or_null("HUDLayer/HUD/TurnPanel/TurnLabel")
 	player_area = get_node_or_null("PlayerArea")
@@ -2856,6 +2861,10 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 				card_hand.play_selected_on(player)
 	elif target_type == "all_enemies" and not enemies.is_empty():
 		card_hand.play_selected_on(enemies[0])
+	elif target_type == "random_enemy":
+		var alive = _get_alive_enemies()
+		if not alive.is_empty():
+			card_hand.play_selected_on(alive[randi() % alive.size()])
 
 func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
 	# Handle drag release — check target based on card type
