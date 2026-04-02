@@ -413,7 +413,7 @@ func _update_status_display() -> void:
 			container.add_child(lbl)
 		items.append({"node": container, "width": 42})
 	# --- Flow layout: wrap into rows that fit within HP bar width ---
-	var max_width: float = 198.0  # Must match HP bar width
+	var max_width: float = hp_bar_bg.size.x if hp_bar_bg else 218.0
 	var spacing: float = 4.0
 	var row_height: float = 30.0
 	var cur_x: float = 0.0
