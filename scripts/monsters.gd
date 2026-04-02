@@ -109,13 +109,15 @@ static func get_monsters_for_floor(floor_num: int) -> Array:
   return result
 
 static func get_enemy_count_for_floor(floor_num: int) -> int:
-  ## Returns number of enemies for the fight (1-2)
+  ## Returns number of enemies (1-2). Multi-monster = ~20-40% of battles.
   if floor_num <= 2:
     return 1
-  elif floor_num <= 5:
-    return [1, 1, 2][randi() % 3]
+  elif floor_num <= 4:
+    return 2 if randi() % 5 == 0 else 1  # 20%
+  elif floor_num <= 6:
+    return [1, 1, 2][randi() % 3]  # 33%
   elif floor_num <= 8:
-    return [1, 2, 2][randi() % 3]
+    return [1, 2][randi() % 2]  # 50%
   elif floor_num == 10:
     return 1  # Boss is always solo
-  return 2
+  return [1, 2, 2][randi() % 3]  # Floor 9: 66%
