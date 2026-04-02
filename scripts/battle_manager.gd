@@ -254,8 +254,12 @@ func start_battle(character_id: String) -> void:
 		_update_swap_button_position()
 	# Build deck from both characters if dual hero mode
 	_build_deck(character_id, gm)
-	# Update top status bar with initial HP
+	# Update top status bar with initial HP and connect for real-time updates
 	_update_status_bar()
+	if player:
+		player.hp_changed.connect(func(_c, _m): _update_status_bar())
+	if second_player:
+		second_player.hp_changed.connect(func(_c, _m): _update_status_bar())
 	# Start first turn
 	start_player_turn()
 
