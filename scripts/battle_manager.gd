@@ -1445,10 +1445,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				draw_cards(1)
 		"flex":
 			var stacks: int = card_data.get("flex_stacks", 2)
-			var self_hero = target if (target != null and not target.is_enemy) else player
-			if self_hero:
-				self_hero.apply_status("strength", stacks)
-				flex_strength_to_remove += stacks
+			for hero in _get_all_alive_heroes():
+				hero.apply_status("strength", stacks)
+			flex_strength_to_remove += stacks
 		"anticipate":
 			var stacks: int = card_data.get("temp_dex", 3)
 			for hero in _get_all_alive_heroes():
@@ -2141,8 +2140,9 @@ func end_player_turn() -> void:
 		end_turn_btn.disabled = true
 
 	# Remove Flex temp strength
-	if flex_strength_to_remove > 0 and player:
-		player.apply_status("strength", -flex_strength_to_remove)
+	if flex_strength_to_remove > 0:
+		for hero in _get_all_alive_heroes():
+			hero.apply_status("strength", -flex_strength_to_remove)
 		flex_strength_to_remove = 0
 
 	# Metallicize: gain block at end of turn (apply to hero that has the power)
