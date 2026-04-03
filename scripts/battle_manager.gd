@@ -103,6 +103,9 @@ var enemy_area: Node2D = null
 var draw_panel: Panel = null
 var discard_panel: Panel = null
 
+# Delay for card-to-hand generation (wait for played card animation to finish)
+var _card_gen_delay: float = 0.0
+
 # Card detail overlay
 var _card_detail_overlay: Control = null
 
@@ -999,6 +1002,9 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	elif card_type_anim == 1:  # SKILL
 		_play_skill_effect(card_data, anim_hero)
 
+	# Delay card-to-hand generation until played card animation finishes
+	_card_gen_delay = 0.55
+
 	# Execute card effect (pass energy spent for X-cost cards)
 	_execute_card(card_data, target, cost)
 
@@ -1056,6 +1062,7 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	else:
 		discard_pile.append(card_data)
 
+	_card_gen_delay = 0.0  # Reset in case no generation effect consumed it
 	_update_pile_labels()
 	_refresh_enemy_intents()
 
@@ -1548,7 +1555,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					new_card["cost"] = 0
 					hand.append(new_card)
 					if card_hand:
-						card_hand.add_card(new_card)
+						_delayed_add_card(new_card)
 		"distraction":
 			var gm = _get_game_manager()
 			if gm:
@@ -1564,7 +1571,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					new_card["cost"] = 0
 					hand.append(new_card)
 					if card_hand:
-						card_hand.add_card(new_card)
+						_delayed_add_card(new_card)
 		"dual_wield":
 			var copies: int = card_data.get("copies", 1)
 			for _i in range(copies):
@@ -1574,7 +1581,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 						var copy = c.duplicate()
 						hand.append(copy)
 						if card_hand:
-							card_hand.add_card(copy)
+							_delayed_add_card(copy)
 						break
 		"calculated_gamble":
 			var gamble_count: int = hand.size()
@@ -2025,14 +2032,45 @@ func _add_status_card_to_hand(card_id: String) -> void:
 		if not card.is_empty():
 			hand.append(card)
 			if card_hand:
-				# Animate from screen center (where played card paused)
-				card_hand.add_card(card, false, Vector2(960, 400))
+				var delay: float = _card_gen_delay
+				_card_gen_delay = maxf(_card_gen_delay - 0.12, 0.0)  # Stagger subsequent cards
+				if delay > 0:
+					var card_copy = card
+					var t = create_tween()
+					t.tween_interval(delay)
+					t.tween_callback(func():
+						if card_hand and is_instance_valid(card_hand):
+							card_hand.add_card(card_copy, false, Vector2(960, 400))
+							_reset_hand_state()
+					)
+				else:
+					card_hand.add_card(card, false, Vector2(960, 400))
+
+func _delayed_add_card(card_data: Dictionary) -> void:
+	## Add a card visual to hand with delay if a card-play animation is in progress
+	var delay: float = _card_gen_delay
+	_card_gen_delay = maxf(_card_gen_delay - 0.12, 0.0)
+	if delay > 0:
+		var cd = card_data
+		var t = create_tween()
+		t.tween_interval(delay)
+		t.tween_callback(func():
+			if card_hand and is_instance_valid(card_hand):
+				card_hand.add_card(cd, false, Vector2(960, 400))
+				_reset_hand_state()
+		)
+	else:
+		card_hand.add_card(card_data, false, Vector2(960, 400))
+		_reset_hand_state()
 
 func _add_shiv_to_hand(count: int = 1) -> void:
 	var gm = _get_game_manager()
-	var actual_count: int = 0
+	# Consume delay — wait for played card animation before adding cards
+	var base_delay: float = _card_gen_delay
+	_card_gen_delay = 0.0
+	var shivs_to_add: Array = []
 	for i in range(count):
-		if hand.size() >= 10:
+		if hand.size() + shivs_to_add.size() >= 10:
 			if player:
 				player.show_speech("手上的牌太多啦", 1.2)
 			break
@@ -2044,23 +2082,27 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 			var acc_bonus: int = _h.active_powers.get("accuracy", 0)
 			if acc_bonus > 0:
 				shiv["damage"] = shiv.get("damage", 4) + acc_bonus
+		shivs_to_add.append(shiv)
+	# Add shiv data to hand immediately (for game state)
+	for shiv in shivs_to_add:
 		hand.append(shiv)
-		actual_count += 1
-		if card_hand:
-			# Stagger shiv animation and fly from screen center
-			if i > 0:
-				var delay_tween = create_tween()
-				var shiv_copy = shiv
-				var is_last: bool = (i == count - 1) or (hand.size() >= 10)
-				delay_tween.tween_interval(0.12 * i)
-				delay_tween.tween_callback(func():
+	# Add visual cards with delay (wait for played card to fly away first)
+	if card_hand and not shivs_to_add.is_empty():
+		for i in range(shivs_to_add.size()):
+			var shiv_copy = shivs_to_add[i]
+			var delay: float = base_delay + 0.12 * i
+			if delay > 0:
+				var t = create_tween()
+				t.tween_interval(delay)
+				t.tween_callback(func():
 					if card_hand and is_instance_valid(card_hand):
 						card_hand.add_card(shiv_copy, false, Vector2(960, 400))
 						_reset_hand_state()
 				)
 			else:
-				card_hand.add_card(shiv, false, Vector2(960, 400))
+				card_hand.add_card(shivs_to_add[i], false, Vector2(960, 400))
 	_reset_hand_state()
+	_update_pile_labels()
 
 func _reset_hand_state() -> void:
 	## Reset card interaction state and update playability
