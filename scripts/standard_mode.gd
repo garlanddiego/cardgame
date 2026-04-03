@@ -1290,6 +1290,7 @@ func _show_shop() -> void:
 
   # Scrollable grid
   var scroll := ScrollContainer.new()
+  scroll.name = "ShopScroll"
   scroll.offset_top = 155
   scroll.offset_right = 1920
   scroll.offset_bottom = 1020
@@ -1337,7 +1338,9 @@ func _show_shop() -> void:
 
     # Price tag below card
     var price_label := Label.new()
+    price_label.name = "PriceLabel"
     price_label.text = "💰 %d" % price
+    price_label.set_meta("price", price)
     price_label.add_theme_font_size_override("font_size", 18)
     price_label.add_theme_color_override("font_color", Color(1, 0.85, 0.2) if run.gold >= price else Color(0.9, 0.2, 0.2))
     price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1428,6 +1431,7 @@ func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, sl
         if child is Control:
           child.mouse_filter = Control.MOUSE_FILTER_IGNORE
       _update_hud_labels()
+      _refresh_shop_prices()
     detail.queue_free()
   )
   detail.add_child(buy_btn)
@@ -1456,6 +1460,24 @@ func _card_price(card: Dictionary) -> int:
   if card.get("_shop_upgraded", false):
     base = int(base * 1.5)
   return base + randi() % 20
+
+func _refresh_shop_prices() -> void:
+  ## Update shop gold display and all price label colors after a purchase
+  var gold_lbl = _overlay.get_node_or_null("ShopGold") as Label
+  if gold_lbl:
+    gold_lbl.text = "金币: %d" % run.gold
+  # Update all price labels — red if unaffordable
+  var scroll = _overlay.get_node_or_null("ShopScroll")
+  if scroll == null:
+    return
+  var grid = scroll.get_child(0) if scroll.get_child_count() > 0 else null
+  if grid == null:
+    return
+  for slot in grid.get_children():
+    var plbl = slot.get_node_or_null("PriceLabel") as Label
+    if plbl and plbl.has_meta("price"):
+      var p: int = plbl.get_meta("price")
+      plbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2) if run.gold >= p else Color(0.9, 0.2, 0.2))
 
 # ═══════════════════════════════════════════════════════════════════════════
 # VICTORY / DEFEAT
