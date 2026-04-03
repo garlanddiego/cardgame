@@ -178,11 +178,11 @@ text = "🂠"
 horizontal_alignment = 1
 
 [node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=1903286478]
-custom_minimum_size = Vector2(240, 70)
+custom_minimum_size = Vector2(150, 60)
 layout_mode = 0
-offset_left = 1640.0
+offset_left = 1730.0
 offset_top = 725.0
-offset_right = 1640.0
+offset_right = 1730.0
 offset_bottom = 725.0
 text = "End Turn"
 

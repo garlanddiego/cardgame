@@ -165,9 +165,32 @@ func _ready() -> void:
 	player_area = get_node_or_null("PlayerArea")
 	enemy_area = get_node_or_null("EnemyArea")
 
-	# EndTurnButton — styling is now in the scene; just connect signal and set localized text
+	# EndTurnButton — style + connect
 	if end_turn_btn:
 		end_turn_btn.pressed.connect(_on_end_turn)
+		end_turn_btn.add_theme_font_size_override("font_size", 26)
+		end_turn_btn.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
+		# Active style
+		var et_style := StyleBoxFlat.new()
+		et_style.bg_color = Color(0.6, 0.35, 0.1, 0.9)
+		et_style.border_color = Color(0.9, 0.7, 0.3)
+		et_style.set_border_width_all(2)
+		et_style.set_corner_radius_all(10)
+		end_turn_btn.add_theme_stylebox_override("normal", et_style)
+		var et_hover := et_style.duplicate() as StyleBoxFlat
+		et_hover.bg_color = Color(0.7, 0.45, 0.15, 0.95)
+		end_turn_btn.add_theme_stylebox_override("hover", et_hover)
+		var et_pressed := et_style.duplicate() as StyleBoxFlat
+		et_pressed.bg_color = Color(0.5, 0.28, 0.08, 0.95)
+		end_turn_btn.add_theme_stylebox_override("pressed", et_pressed)
+		# Disabled style (gray, enemy turn)
+		var et_disabled := StyleBoxFlat.new()
+		et_disabled.bg_color = Color(0.2, 0.2, 0.2, 0.6)
+		et_disabled.border_color = Color(0.35, 0.35, 0.35)
+		et_disabled.set_border_width_all(1)
+		et_disabled.set_corner_radius_all(10)
+		end_turn_btn.add_theme_stylebox_override("disabled", et_disabled)
+		end_turn_btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.4))
 		var loc = _get_loc()
 		if loc:
 			end_turn_btn.text = loc.t("end_turn")
