@@ -238,15 +238,15 @@ var _card_descs_zh: Dictionary = {
 	# IRONCLAD SKILLS
 	"ic_defend": "获得 5 点格挡。",
 	"ic_shrug_it_off": "获得 8 点格挡。\n抽 1 张牌。",
-	"ic_flame_barrier": "获得 12 点格挡。\n本回合受到攻击时，\n反弹 4 点伤害。",
+	"ic_flame_barrier": "{hero}获得 12 点格挡。\n本回合受到攻击时，\n反弹 4 点伤害。",
 	"ic_battle_trance": "抽 3 张牌。",
 	"ic_bloodletting": "失去 3 点生命。\n获得 2 点能量。",
-	"ic_flex": "获得 2 点力量。\n回合结束时，\n失去 2 点力量。",
-	"ic_limit_break": "使你的力量翻倍。\n消耗。",
+	"ic_flex": "{hero}获得 2 点力量。\n回合结束时，\n失去 2 点力量。",
+	"ic_limit_break": "使{hero}的力量翻倍。\n消耗。",
 	"ic_entrench": "使你的格挡翻倍。",
 	"ic_shockwave": "对所有敌人施加\n3 层虚弱和\n3 层易伤。消耗。",
 	"ic_armaments": "获得 5 点格挡。",
-	"ic_power_through": "获得 15 点格挡。\n将 2 张创伤\n加入手牌。",
+	"ic_power_through": "{hero}获得 15 点格挡。\n将 2 张创伤\n加入手牌。",
 	"ic_offering": "失去 6 点生命。\n获得 2 点能量。\n抽 3 张牌。消耗。",
 	"ic_war_cry": "抽 1 张牌。\n消耗。",
 	"ic_burning_pact": "消耗 1 张牌。\n抽 2 张牌。",
@@ -255,26 +255,26 @@ var _card_descs_zh: Dictionary = {
 	"ic_intimidate": "对所有敌人\n施加 1 层虚弱。消耗。",
 	"ic_infernal_blade": "将一张随机攻击牌\n加入手牌，其费用\n变为 0。消耗。",
 	"ic_dual_wield": "复制手牌中的一张\n攻击或能力牌。",
-	"ic_ghostly_armor": "虚无。\n获得 10 点格挡。",
+	"ic_ghostly_armor": "虚无。\n{hero}获得 10 点格挡。",
 	"ic_havoc": "打出抽牌堆顶部\n的牌并消耗它。",
-	"ic_impervious": "获得 30 点格挡。\n消耗。",
+	"ic_impervious": "{hero}获得 30 点格挡。\n消耗。",
 	"ic_exhume": "将消耗堆中的一张牌\n加入手牌。消耗。",
-	"ic_sentinel": "获得 5 点格挡。\n若本牌被消耗，\n获得 2 点能量。",
+	"ic_sentinel": "{hero}获得 5 点格挡。\n若本牌被消耗，\n获得 2 点能量。",
 	"ic_spot_weakness": "若敌人意图攻击，\n获得 3 点力量。",
-	"ic_true_grit": "获得 7 点格挡。\n随机消耗手牌中\n一张牌。",
+	"ic_true_grit": "{hero}获得 7 点格挡。\n随机消耗手牌中\n一张牌。",
 	"ic_disarm": "敌人失去 2 点\n力量。消耗。",
 	"ic_double_tap": "本回合你打出的\n下一张攻击牌\n会被打出两次。",
 	# IRONCLAD POWERS
-	"ic_demon_form": "每回合开始时，\n获得 2 点力量。",
+	"ic_demon_form": "每回合开始时，\n{hero}获得 2 点力量。",
 	"ic_corruption": "技能牌费用变为 0。\n打出技能牌时，\n将其消耗。",
 	"ic_berserk": "获得 1 层易伤。\n每回合开始时，\n获得 1 点能量。",
-	"ic_feel_no_pain": "每当有牌被消耗时，\n获得 3 点格挡。",
-	"ic_juggernaut": "每当你获得格挡时，\n对随机敌人造成\n5 点伤害。",
+	"ic_feel_no_pain": "每当有牌被消耗时，\n{hero}获得 3 点格挡。",
+	"ic_juggernaut": "每当{hero}获得格挡时，\n对随机敌人造成\n5 点伤害。",
 	"ic_evolve": "每当你抽到状态牌时，\n抽 1 张牌。",
-	"ic_rage": "本回合每当你打出\n攻击牌时，\n获得 3 点格挡。",
-	"ic_barricade": "你的格挡不再在\n回合开始时移除。",
+	"ic_rage": "本回合每当打出\n攻击牌时，\n{hero}获得 3 点格挡。",
+	"ic_barricade": "{hero}的格挡不再在\n回合开始时移除。",
 	"ic_inflame": "获得 2 点力量。",
-	"ic_metallicize": "回合结束时，\n获得 3 点格挡。",
+	"ic_metallicize": "回合结束时，\n{hero}获得 3 点格挡。",
 	"ic_brutality": "回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
 	"ic_combust": "回合结束时，\n失去 1 点生命，\n对所有敌人造成\n5 点伤害。",
 	"ic_dark_embrace": "每当有牌被消耗时，\n抽 1 张牌。",
@@ -288,7 +288,7 @@ var _card_descs_zh: Dictionary = {
 	"si_strike": "造成 6 点伤害。",
 	"si_defend": "获得 5 点格挡。",
 	"si_neutralize": "造成 3 点伤害。\n施加 1 层虚弱。",
-	"si_survivor": "获得 8 点格挡。\n弃 1 张牌。",
+	"si_survivor": "{hero}获得 8 点格挡。\n弃 1 张牌。",
 	# SILENT COMMON ATTACKS
 	"si_slice": "造成 6 点伤害。",
 	"si_dagger_spray": "对所有敌人\n造成 4 点伤害两次。",
@@ -300,16 +300,16 @@ var _card_descs_zh: Dictionary = {
 	"si_ricochet": "奇巧。对随机敌人\n造成 3 点伤害 4 次。",
 	"si_quick_slash": "造成 8 点伤害。\n抽 1 张牌。",
 	# SILENT COMMON SKILLS
-	"si_anticipate": "本回合获得\n3 点敏捷。",
-	"si_deflect": "获得 4 点格挡。",
+	"si_anticipate": "本回合{hero}获得\n3 点敏捷。",
+	"si_deflect": "{hero}获得 4 点格挡。",
 	"si_prepared": "抽 1 张牌，弃 1 张牌。",
-	"si_backflip": "获得 5 点格挡。\n抽 2 张牌。",
-	"si_dodge_and_roll": "本回合和下回合\n获得 4 点格挡。",
-	"si_cloak_and_dagger": "获得 6 点格挡。\n将 1 张小刀加入手牌。",
+	"si_backflip": "{hero}获得 5 点格挡。\n抽 2 张牌。",
+	"si_dodge_and_roll": "本回合和下回合\n{hero}获得 4 点格挡。",
+	"si_cloak_and_dagger": "{hero}获得 6 点格挡。\n将 1 张小刀加入手牌。",
 	"si_outmaneuver": "下回合获得\n2 点能量。",
 	"si_acrobatics": "抽 3 张牌。\n弃 1 张牌。",
 	"si_blade_dance": "将 3 张小刀\n加入手牌。",
-	"si_escape_plan": "抽 1 张牌。若为\n技能牌则获得\n3 点格挡。",
+	"si_escape_plan": "抽 1 张牌。若为\n技能牌则{hero}获得\n3 点格挡。",
 	"si_calculated_gamble": "弃掉所有手牌。\n抽等量的牌。",
 	"si_concentrate": "弃 3 张牌。\n获得 2 点能量。",
 	# SILENT UNCOMMON ATTACKS
@@ -326,7 +326,7 @@ var _card_descs_zh: Dictionary = {
 	"si_choke": "造成 12 点伤害。\n敌人每打出一张牌\n受到 3 点伤害。",
 	"si_riddle_with_holes": "造成 3 点伤害 5 次。",
 	# SILENT UNCOMMON SKILLS
-	"si_blur": "获得 5 点格挡。\n格挡不在下回合\n开始时移除。",
+	"si_blur": "{hero}获得 5 点格挡。\n格挡不在下回合\n开始时移除。",
 	"si_dash": "获得 10 点格挡。\n造成 10 点伤害。",
 	"si_terror": "施加 99 层易伤。\n消耗。",
 	"si_distraction": "将一张随机技能牌\n加入手牌。消耗。",
@@ -343,9 +343,9 @@ var _card_descs_zh: Dictionary = {
 	"si_noxious_fumes": "每回合开始时\n对所有敌人施加\n2 层中毒。",
 	# SILENT UNCOMMON POWERS
 	"si_accuracy": "小刀额外造成\n4 点伤害。",
-	"si_caltrops": "每当你受到攻击时，\n反弹 3 点伤害。",
+	"si_caltrops": "每当{hero}受到攻击时，\n反弹 3 点伤害。",
 	"si_a_thousand_cuts": "每当你打出一张牌，\n对所有敌人造成\n1 点伤害。",
-	"si_envenom": "每当你造成未被格挡\n的伤害时，施加\n1 层中毒。",
+	"si_envenom": "每当{hero}造成未被格挡\n的伤害时，施加\n1 层中毒。",
 	"si_footwork": "获得 2 点敏捷。",
 	"si_tools_of_the_trade": "每回合开始时\n抽 1 张牌，弃 1 张牌。",
 	# SILENT RARE ATTACKS
@@ -362,10 +362,10 @@ var _card_descs_zh: Dictionary = {
 	"si_nightmare": "选择一张牌。\n下回合将 3 张复制\n加入手牌。",
 	"si_phantasmal_killer": "下回合造成\n双倍伤害。",
 	# SILENT RARE POWERS
-	"si_after_image": "每当你打出一张牌，\n获得 1 点格挡。",
+	"si_after_image": "每当打出一张牌，\n{hero}获得 1 点格挡。",
 	"si_storm_of_steel": "弃掉所有手牌。\n每弃一张牌将一张\n小刀加入手牌。",
 	"si_well_laid_plans": "回合结束时\n保留最多 1 张牌。",
-	"si_wraith_form": "获得 2 层无实体。\n每回合失去\n1 点敏捷。",
+	"si_wraith_form": "{hero}获得 2 层无实体。\n每回合失去\n1 点敏捷。",
 	# SILENT STATUS
 	"si_shiv": "造成 4 点伤害。\n消耗。",
 	"si_shiv_plus": "造成 6 点伤害。\n消耗。",
@@ -409,15 +409,15 @@ var _card_descs_zh_plus: Dictionary = {
 	# IRONCLAD SKILLS
 	"ic_defend": "获得 8 点格挡。",
 	"ic_shrug_it_off": "获得 11 点格挡。\n抽 1 张牌。",
-	"ic_flame_barrier": "获得 16 点格挡。\n本回合受到攻击时，\n反弹 6 点伤害。",
+	"ic_flame_barrier": "{hero}获得 16 点格挡。\n本回合受到攻击时，\n反弹 6 点伤害。",
 	"ic_battle_trance": "抽 4 张牌。",
 	"ic_bloodletting": "失去 3 点生命。\n获得 3 点能量。",
-	"ic_flex": "获得 4 点力量。\n回合结束时，\n失去 4 点力量。",
-	"ic_limit_break": "使你的力量翻倍。",
+	"ic_flex": "{hero}获得 4 点力量。\n回合结束时，\n失去 4 点力量。",
+	"ic_limit_break": "使{hero}的力量翻倍。",
 	"ic_entrench": "使你的格挡翻倍。",
 	"ic_shockwave": "对所有敌人施加\n5 层虚弱和\n5 层易伤。消耗。",
 	"ic_armaments": "获得 5 点格挡。\n升级手牌中所有牌。",
-	"ic_power_through": "获得 20 点格挡。\n将 2 张创伤\n加入手牌。",
+	"ic_power_through": "{hero}获得 20 点格挡。\n将 2 张创伤\n加入手牌。",
 	"ic_offering": "失去 6 点生命。\n获得 2 点能量。\n抽 5 张牌。消耗。",
 	"ic_war_cry": "抽 2 张牌。\n消耗。",
 	"ic_burning_pact": "消耗 1 张牌。\n抽 3 张牌。",
@@ -426,26 +426,26 @@ var _card_descs_zh_plus: Dictionary = {
 	"ic_intimidate": "对所有敌人\n施加 2 层虚弱。消耗。",
 	"ic_infernal_blade": "将一张随机攻击牌\n加入手牌，其费用\n变为 0。消耗。",
 	"ic_dual_wield": "复制手牌中的一张\n攻击或能力牌 2 次。",
-	"ic_ghostly_armor": "虚无。\n获得 13 点格挡。",
+	"ic_ghostly_armor": "虚无。\n{hero}获得 13 点格挡。",
 	"ic_havoc": "打出抽牌堆顶部\n的牌并消耗它。",
-	"ic_impervious": "获得 40 点格挡。\n消耗。",
+	"ic_impervious": "{hero}获得 40 点格挡。\n消耗。",
 	"ic_exhume": "将消耗堆中的一张牌\n加入手牌。消耗。",
-	"ic_sentinel": "获得 8 点格挡。\n若本牌被消耗，\n获得 3 点能量。",
+	"ic_sentinel": "{hero}获得 8 点格挡。\n若本牌被消耗，\n获得 3 点能量。",
 	"ic_spot_weakness": "若敌人意图攻击，\n获得 4 点力量。",
-	"ic_true_grit": "获得 9 点格挡。\n消耗手牌中一张牌。",
+	"ic_true_grit": "{hero}获得 9 点格挡。\n消耗手牌中一张牌。",
 	"ic_disarm": "敌人失去 3 点\n力量。消耗。",
 	"ic_double_tap": "本回合你打出的\n下 2 张攻击牌\n会被打出两次。",
 	# IRONCLAD POWERS
-	"ic_demon_form": "每回合开始时，\n获得 3 点力量。",
+	"ic_demon_form": "每回合开始时，\n{hero}获得 3 点力量。",
 	"ic_corruption": "技能牌费用变为 0。\n打出技能牌时，\n将其消耗。",
 	"ic_berserk": "获得 1 层易伤。\n每回合开始时，\n获得 2 点能量。",
-	"ic_feel_no_pain": "每当有牌被消耗时，\n获得 4 点格挡。",
-	"ic_juggernaut": "每当你获得格挡时，\n对随机敌人造成\n7 点伤害。",
+	"ic_feel_no_pain": "每当有牌被消耗时，\n{hero}获得 4 点格挡。",
+	"ic_juggernaut": "每当{hero}获得格挡时，\n对随机敌人造成\n7 点伤害。",
 	"ic_evolve": "每当你抽到状态牌时，\n抽 2 张牌。",
-	"ic_rage": "本回合每当你打出\n攻击牌时，\n获得 5 点格挡。",
-	"ic_barricade": "你的格挡不再在\n回合开始时移除。",
+	"ic_rage": "本回合每当打出\n攻击牌时，\n{hero}获得 5 点格挡。",
+	"ic_barricade": "{hero}的格挡不再在\n回合开始时移除。",
 	"ic_inflame": "获得 3 点力量。",
-	"ic_metallicize": "回合结束时，\n获得 4 点格挡。",
+	"ic_metallicize": "回合结束时，\n{hero}获得 4 点格挡。",
 	"ic_brutality": "固有。回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
 	"ic_combust": "回合结束时，\n失去 1 点生命，\n对所有敌人造成\n7 点伤害。",
 	"ic_dark_embrace": "每当有牌被消耗时，\n抽 1 张牌。",
@@ -455,7 +455,7 @@ var _card_descs_zh_plus: Dictionary = {
 	"si_strike": "造成 9 点伤害。",
 	"si_defend": "获得 8 点格挡。",
 	"si_neutralize": "造成 4 点伤害。\n施加 2 层虚弱。",
-	"si_survivor": "获得 11 点格挡。\n弃 1 张牌。",
+	"si_survivor": "{hero}获得 11 点格挡。\n弃 1 张牌。",
 	# SILENT COMMON ATTACKS
 	"si_slice": "造成 9 点伤害。",
 	"si_dagger_spray": "对所有敌人\n造成 6 点伤害两次。",
@@ -467,16 +467,16 @@ var _card_descs_zh_plus: Dictionary = {
 	"si_ricochet": "奇巧。对随机敌人\n造成 4 点伤害 4 次。",
 	"si_quick_slash": "造成 12 点伤害。\n抽 1 张牌。",
 	# SILENT COMMON SKILLS
-	"si_anticipate": "本回合获得\n5 点敏捷。",
-	"si_deflect": "获得 7 点格挡。",
+	"si_anticipate": "本回合{hero}获得\n5 点敏捷。",
+	"si_deflect": "{hero}获得 7 点格挡。",
 	"si_prepared": "抽 2 张牌，弃 1 张牌。",
-	"si_backflip": "获得 8 点格挡。\n抽 2 张牌。",
-	"si_dodge_and_roll": "本回合和下回合\n获得 6 点格挡。",
-	"si_cloak_and_dagger": "获得 6 点格挡。\n将 2 张小刀加入手牌。",
+	"si_backflip": "{hero}获得 8 点格挡。\n抽 2 张牌。",
+	"si_dodge_and_roll": "本回合和下回合\n{hero}获得 6 点格挡。",
+	"si_cloak_and_dagger": "{hero}获得 6 点格挡。\n将 2 张小刀加入手牌。",
 	"si_outmaneuver": "下回合获得\n3 点能量。",
 	"si_acrobatics": "抽 4 张牌。\n弃 1 张牌。",
 	"si_blade_dance": "将 4 张小刀\n加入手牌。",
-	"si_escape_plan": "抽 1 张牌。若为\n技能牌则获得\n5 点格挡。",
+	"si_escape_plan": "抽 1 张牌。若为\n技能牌则{hero}获得\n5 点格挡。",
 	"si_calculated_gamble": "弃掉所有手牌。\n抽等量 +1 的牌。",
 	"si_concentrate": "弃 2 张牌。\n获得 2 点能量。",
 	# SILENT UNCOMMON ATTACKS
@@ -493,7 +493,7 @@ var _card_descs_zh_plus: Dictionary = {
 	"si_choke": "造成 16 点伤害。\n敌人每打出一张牌\n受到 4 点伤害。",
 	"si_riddle_with_holes": "造成 4 点伤害 5 次。",
 	# SILENT UNCOMMON SKILLS
-	"si_blur": "获得 8 点格挡。\n格挡不在下回合\n开始时移除。",
+	"si_blur": "{hero}获得 8 点格挡。\n格挡不在下回合\n开始时移除。",
 	"si_dash": "获得 13 点格挡。\n造成 13 点伤害。",
 	"si_terror": "施加 99 层易伤。\n消耗。",
 	"si_distraction": "将一张随机技能牌\n加入手牌。消耗。",
@@ -510,9 +510,9 @@ var _card_descs_zh_plus: Dictionary = {
 	"si_noxious_fumes": "每回合开始时\n对所有敌人施加\n3 层中毒。",
 	# SILENT UNCOMMON POWERS
 	"si_accuracy": "小刀额外造成\n6 点伤害。",
-	"si_caltrops": "每当你受到攻击时，\n反弹 5 点伤害。",
+	"si_caltrops": "每当{hero}受到攻击时，\n反弹 5 点伤害。",
 	"si_a_thousand_cuts": "每当你打出一张牌，\n对所有敌人造成\n2 点伤害。",
-	"si_envenom": "每当你造成未被格挡\n的伤害时，施加\n2 层中毒。",
+	"si_envenom": "每当{hero}造成未被格挡\n的伤害时，施加\n2 层中毒。",
 	"si_footwork": "获得 3 点敏捷。",
 	"si_tools_of_the_trade": "每回合开始时\n抽 1 张牌，弃 1 张牌。",
 	# SILENT RARE ATTACKS
@@ -529,10 +529,10 @@ var _card_descs_zh_plus: Dictionary = {
 	"si_nightmare": "选择一张牌。\n下回合将 3 张复制\n加入手牌。",
 	"si_phantasmal_killer": "下回合造成\n双倍伤害。",
 	# SILENT RARE POWERS
-	"si_after_image": "每当你打出一张牌，\n获得 1 点格挡。",
+	"si_after_image": "每当打出一张牌，\n{hero}获得 1 点格挡。",
 	"si_storm_of_steel": "弃掉所有手牌。\n每弃一张牌将一张\n小刀+加入手牌。",
 	"si_well_laid_plans": "回合结束时\n保留最多 2 张牌。",
-	"si_wraith_form": "获得 3 层无实体。\n每回合失去\n1 点敏捷。",
+	"si_wraith_form": "{hero}获得 3 层无实体。\n每回合失去\n1 点敏捷。",
 }
 
 func t(key: String) -> String:
@@ -569,55 +569,15 @@ func card_desc(card_data: Dictionary) -> String:
 			desc = _card_descs_zh[base_id]
 	if desc == "":
 		desc = card_data.get("description", "")
-	# Inject hero/target name for cards with hero_target
+	# Template substitution: {hero} resolves from hero_target field
 	var ht: String = card_data.get("hero_target", "")
-	if ht != "" and current_lang == "zh":
-		var hero_name: String = ""
-		if ht == "target_hero":
-			hero_name = "目标英雄"
-		elif ht == "all_heroes":
-			hero_name = "所有英雄"
-		else:
-			hero_name = _hero_display_name(card_data.get("character", ""))
-		if hero_name != "":
-			desc = _inject_hero_name(desc, hero_name)
+	var hero_str: String = ""
+	if ht == "target_hero":
+		hero_str = "目标英雄" if current_lang == "zh" else "target hero"
+	elif ht == "all_heroes":
+		hero_str = "所有英雄" if current_lang == "zh" else "all heroes"
+	desc = desc.replace("{hero}", hero_str)
 	return desc
-
-func _hero_display_name(character_id: String) -> String:
-	match character_id:
-		"ironclad": return "铁甲战士"
-		"silent": return "沉默猎手"
-	return ""
-
-func _inject_hero_name(desc: String, hero_name: String) -> String:
-	## Insert hero name before the first hero-attribute verb in Chinese descriptions.
-	## Only injects on lines about hero-specific attributes (HP, block, strength, etc.)
-	## Skips universal mechanics (energy, draw, discard, exhaust, potions).
-	var lines: PackedStringArray = desc.split("\n")
-	var result: PackedStringArray = PackedStringArray()
-	var injected: bool = false
-	var hero_verbs: Array = ["造成", "获得", "失去", "恢复", "使你"]
-	# Lines containing these keywords are universal, not hero-specific
-	var skip_keywords: Array = ["能量", "张牌", "药水"]
-	for line in lines:
-		var trimmed: String = line.strip_edges()
-		if not injected:
-			var matched_verb: bool = false
-			for verb in hero_verbs:
-				if trimmed.begins_with(verb):
-					matched_verb = true
-					break
-			if matched_verb:
-				var is_universal: bool = false
-				for kw in skip_keywords:
-					if kw in trimmed:
-						is_universal = true
-						break
-				if not is_universal:
-					line = hero_name + trimmed
-					injected = true
-		result.append(line)
-	return "\n".join(result)
 
 func type_name(type_index: int) -> String:
 	match type_index:
