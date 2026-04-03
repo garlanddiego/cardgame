@@ -457,6 +457,8 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 					card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 			)
 		cards.erase(card_node)
+		# Disable input so animating card doesn't capture mouse events
+		card_node.input_pickable = false
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
 			card_node.card_clicked.disconnect(_on_card_clicked)

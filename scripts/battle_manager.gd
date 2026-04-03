@@ -2004,6 +2004,7 @@ func _add_status_card_to_hand(card_id: String) -> void:
 
 func _add_shiv_to_hand(count: int = 1) -> void:
 	var gm = _get_game_manager()
+	var actual_count: int = 0
 	for i in range(count):
 		if hand.size() >= 10:
 			if player:
@@ -2018,24 +2019,32 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 			if acc_bonus > 0:
 				shiv["damage"] = shiv.get("damage", 4) + acc_bonus
 		hand.append(shiv)
+		actual_count += 1
 		if card_hand:
 			# Stagger shiv animation and fly from screen center
 			if i > 0:
 				var delay_tween = create_tween()
 				var shiv_copy = shiv
+				var is_last: bool = (i == count - 1) or (hand.size() >= 10)
 				delay_tween.tween_interval(0.12 * i)
 				delay_tween.tween_callback(func():
 					if card_hand and is_instance_valid(card_hand):
 						card_hand.add_card(shiv_copy, false, Vector2(960, 400))
+						_reset_hand_state()
 				)
 			else:
 				card_hand.add_card(shiv, false, Vector2(960, 400))
-	# Reset card interaction state after adding cards mid-turn
+	_reset_hand_state()
+
+func _reset_hand_state() -> void:
+	## Reset card interaction state and update playability
 	if card_hand:
 		card_hand.selected_card = null
 		card_hand.focused_card = null
 		card_hand.targeting_mode = false
 		card_hand._any_card_dragging = false
+	_update_unplayable_ids()
+	if card_hand:
 		card_hand.update_card_playability(current_energy)
 	_update_pile_labels()
 
