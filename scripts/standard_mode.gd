@@ -75,13 +75,14 @@ func _build_ui() -> void:
   _build_persistent_hud(_persistent_hud_canvas)
 
 func _build_persistent_hud(canvas: CanvasLayer) -> void:
+  var vw: float = get_viewport_rect().size.x
   var hud := PanelContainer.new()
   var hud_style := StyleBoxFlat.new()
   hud_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
   hud_style.border_color = Color(0.4, 0.3, 0.2)
   hud_style.border_width_bottom = 2
   hud.add_theme_stylebox_override("panel", hud_style)
-  hud.offset_right = 1920
+  hud.offset_right = vw
   hud.offset_bottom = 50
   canvas.add_child(hud)
 
@@ -202,10 +203,11 @@ func _show_draft() -> void:
   _draft_card_count_label = _hud_deck_btn
 
   # === Round dots ===
+  var vw: float = get_viewport_rect().size.x
   _draft_status_bar = HBoxContainer.new()
   _draft_status_bar.add_theme_constant_override("separation", 12)
   _draft_status_bar.position = Vector2(0, 70)
-  _draft_status_bar.size = Vector2(1920, 30)
+  _draft_status_bar.size = Vector2(vw, 30)
   _draft_status_bar.alignment = BoxContainer.ALIGNMENT_CENTER
   _overlay.add_child(_draft_status_bar)
   for i in range(_draft_total_rounds):
@@ -229,7 +231,7 @@ func _show_draft() -> void:
   title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   title.position = Vector2(0, 120)
-  title.size = Vector2(1920, 50)
+  title.size = Vector2(vw, 50)
   _overlay.add_child(title)
 
   # === 3 card options (battle-style visuals) ===
@@ -238,7 +240,7 @@ func _show_draft() -> void:
   var card_h: float = 400.0
   var gap: float = 60.0
   var total_w: float = cards.size() * card_w + (cards.size() - 1) * gap
-  var start_x: float = (1920.0 - total_w) / 2.0
+  var start_x: float = (vw - total_w) / 2.0
   var card_y: float = 200.0
   var loc = get_node_or_null("/root/Loc")
 
@@ -282,7 +284,8 @@ func _on_draft_card_clicked(event: InputEvent, card_data: Dictionary, container:
     _draft_card_count_label.text = "卡组 (%d)" % run.deck.size()
 
   # Fly animation: card flies to "My Cards" button (top-right corner)
-  var target_pos := Vector2(1920.0 - 120.0, 10.0)
+  var vw: float = get_viewport_rect().size.x
+  var target_pos := Vector2(vw - 120.0, 10.0)
   if _draft_card_count_label:
     target_pos = _draft_card_count_label.global_position
   var tween := create_tween()
@@ -295,6 +298,7 @@ func _on_draft_card_clicked(event: InputEvent, card_data: Dictionary, container:
 
 func _show_draft_deck_viewer() -> void:
   # Show overlay with all picked cards so far
+  var vw: float = get_viewport_rect().size.x
   var viewer := Control.new()
   viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   _overlay.add_child(viewer)
@@ -311,7 +315,7 @@ func _show_draft_deck_viewer() -> void:
   vtitle.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
   vtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   vtitle.position = Vector2(0, 30)
-  vtitle.size = Vector2(1920, 50)
+  vtitle.size = Vector2(vw, 50)
   viewer.add_child(vtitle)
 
   if _draft_picked_cards.is_empty():
@@ -321,7 +325,7 @@ func _show_draft_deck_viewer() -> void:
     empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
     empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     empty_label.position = Vector2(0, 400)
-    empty_label.size = Vector2(1920, 50)
+    empty_label.size = Vector2(vw, 50)
     viewer.add_child(empty_label)
   else:
     var loc = get_node_or_null("/root/Loc")
@@ -330,7 +334,7 @@ func _show_draft_deck_viewer() -> void:
     var gap: float = 20.0
     var cols: int = mini(_draft_picked_cards.size(), 5)
     var total_w: float = cols * card_w + (cols - 1) * gap
-    var sx: float = (1920.0 - total_w) / 2.0
+    var sx: float = (vw - total_w) / 2.0
     for i in range(_draft_picked_cards.size()):
       var cd: Dictionary = _draft_picked_cards[i]
       var col: int = i % 6
@@ -352,7 +356,7 @@ func _show_draft_deck_viewer() -> void:
   close_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
   close_style.set_corner_radius_all(8)
   close_btn.add_theme_stylebox_override("normal", close_style)
-  close_btn.position = Vector2((1920.0 - 160.0) / 2.0, 1080.0 - 80.0)
+  close_btn.position = Vector2((vw - 160.0) / 2.0, 1080.0 - 80.0)
   close_btn.pressed.connect(func(): viewer.queue_free())
   viewer.add_child(close_btn)
 
@@ -408,9 +412,10 @@ func _draw_map() -> void:
     _hud_deck_btn.text = "卡组 (%d)" % run.deck.size()
 
   # Scrollable map area (below persistent HUD)
+  var vw: float = get_viewport_rect().size.x
   _map_scroll = ScrollContainer.new()
   _map_scroll.offset_top = 55
-  _map_scroll.offset_right = 1920
+  _map_scroll.offset_right = vw
   _map_scroll.offset_bottom = 1080
   _map_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
   _map_layer.add_child(_map_scroll)
@@ -418,7 +423,7 @@ func _draw_map() -> void:
   # Map canvas — draw nodes and paths
   var node_size := 80
   var floor_height := 120
-  var map_width := 1920
+  var map_width := int(vw)
   var total_height: int = 11 * floor_height + 100
   _map_canvas = Control.new()
   _map_canvas.custom_minimum_size = Vector2(map_width, total_height)
@@ -875,6 +880,7 @@ func _on_reward_h2_clicked() -> void:
   _show_card_pick_overlay(run.hero2_id, _reward_btn_h2, "h2")
 
 func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = "") -> void:
+  var vw: float = get_viewport_rect().size.x
   _reward_card_overlay.visible = true
   _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
   _clear_children(_reward_card_overlay)
@@ -893,7 +899,7 @@ func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = ""
   pick_title.add_theme_color_override("font_color", _hero_color(hero_id))
   pick_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   pick_title.position = Vector2(0, 100)
-  pick_title.size = Vector2(1920, 50)
+  pick_title.size = Vector2(vw, 50)
   _reward_card_overlay.add_child(pick_title)
 
   # 3 random cards
@@ -902,7 +908,7 @@ func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = ""
   var card_h: float = 400.0
   var gap: float = 60.0
   var total_w: float = cards.size() * card_w + (cards.size() - 1) * gap
-  var start_x: float = (1920.0 - total_w) / 2.0
+  var start_x: float = (vw - total_w) / 2.0
   var card_y: float = 200.0
   var loc = get_node_or_null("/root/Loc")
 
@@ -944,7 +950,7 @@ func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = ""
   skip_style.border_color = Color(0.3, 0.3, 0.3)
   skip_style.set_corner_radius_all(8)
   skip_btn.add_theme_stylebox_override("normal", skip_style)
-  skip_btn.position = Vector2((1920.0 - 180.0) / 2.0, card_y + card_h + 40.0)
+  skip_btn.position = Vector2((vw - 180.0) / 2.0, card_y + card_h + 40.0)
   skip_btn.pressed.connect(func():
     _reward_card_overlay.visible = false
     _reward_card_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1066,6 +1072,7 @@ func _show_rest() -> void:
   vbox.add_child(upgrade_btn)
 
 func _show_upgrade_selection() -> void:
+  var vw: float = get_viewport_rect().size.x
   _clear_children(_overlay)
 
   var bg := ColorRect.new()
@@ -1079,7 +1086,7 @@ func _show_upgrade_selection() -> void:
   title.add_theme_color_override("font_color", Color(0.3, 0.5, 0.9))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   title.offset_top = 60
-  title.offset_right = 1920
+  title.offset_right = vw
   _overlay.add_child(title)
 
   # Card grid with full card visuals
@@ -1100,7 +1107,7 @@ func _show_upgrade_selection() -> void:
   # Scrollable card area
   var scroll := ScrollContainer.new()
   scroll.offset_top = 105
-  scroll.offset_right = 1920
+  scroll.offset_right = vw
   scroll.offset_bottom = 980
   _overlay.add_child(scroll)
 
@@ -1135,7 +1142,7 @@ func _show_upgrade_selection() -> void:
   cancel_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
   cancel_style.set_corner_radius_all(8)
   cancel.add_theme_stylebox_override("normal", cancel_style)
-  cancel.position = Vector2((1920.0 - 160.0) / 2.0, 990.0)
+  cancel.position = Vector2((vw - 160.0) / 2.0, 990.0)
   cancel.pressed.connect(_show_rest)
   _overlay.add_child(cancel)
 
@@ -1148,16 +1155,17 @@ func _show_upgrade_detail(card_id: String) -> void:
   if old_detail:
     old_detail.queue_free()
 
+  var vw: float = get_viewport_rect().size.x
   var detail := Control.new()
   detail.name = "UpgradeDetailPanel"
-  detail.offset_right = 1920
+  detail.offset_right = vw
   detail.offset_bottom = 1080
   detail.mouse_filter = Control.MOUSE_FILTER_STOP
   _deck_viewer_canvas.add_child(detail)
 
   var dbg := ColorRect.new()
   dbg.color = Color(0.05, 0.04, 0.03, 1.0)
-  dbg.offset_right = 1920
+  dbg.offset_right = vw
   dbg.offset_bottom = 1080
   dbg.mouse_filter = Control.MOUSE_FILTER_STOP
   detail.add_child(dbg)
@@ -1244,6 +1252,7 @@ func _show_upgrade_detail(card_id: String) -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 
 func _show_shop() -> void:
+  var vw: float = get_viewport_rect().size.x
   phase = Phase.SHOP
   _map_layer.visible = false
   _overlay.visible = true
@@ -1260,7 +1269,7 @@ func _show_shop() -> void:
   title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   title.offset_top = 60
-  title.offset_right = 1920
+  title.offset_right = vw
   _overlay.add_child(title)
 
   var gold_label := Label.new()
@@ -1270,7 +1279,7 @@ func _show_shop() -> void:
   gold_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
   gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   gold_label.offset_top = 115
-  gold_label.offset_right = 1920
+  gold_label.offset_right = vw
   _overlay.add_child(gold_label)
 
   # Generate shop cards: 20 cards, 10 per hero, 90% base / 10% upgraded
@@ -1292,7 +1301,7 @@ func _show_shop() -> void:
   var scroll := ScrollContainer.new()
   scroll.name = "ShopScroll"
   scroll.offset_top = 155
-  scroll.offset_right = 1920
+  scroll.offset_right = vw
   scroll.offset_bottom = 1020
   _overlay.add_child(scroll)
 
@@ -1351,9 +1360,9 @@ func _show_shop() -> void:
   # Leave button — bottom-right corner
   var leave := _styled_button("离开商店", Color(0.5, 0.5, 0.5))
   leave.custom_minimum_size = Vector2(180, 50)
-  leave.offset_left = 1920 - 180 - 20
+  leave.offset_left = vw - 180 - 20
   leave.offset_top = 1080 - 50 - 20
-  leave.offset_right = 1920 - 20
+  leave.offset_right = vw - 20
   leave.offset_bottom = 1080 - 20
   leave.pressed.connect(_show_map)
   _overlay.add_child(leave)
@@ -1366,16 +1375,17 @@ func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, sl
   if old_detail:
     old_detail.queue_free()
 
+  var vw: float = get_viewport_rect().size.x
   var detail := Control.new()
   detail.name = "ShopBuyDetail"
-  detail.offset_right = 1920
+  detail.offset_right = vw
   detail.offset_bottom = 1080
   detail.mouse_filter = Control.MOUSE_FILTER_STOP
   _deck_viewer_canvas.add_child(detail)
 
   var dbg := ColorRect.new()
   dbg.color = Color(0.05, 0.04, 0.03, 1.0)
-  dbg.offset_right = 1920
+  dbg.offset_right = vw
   dbg.offset_bottom = 1080
   dbg.mouse_filter = Control.MOUSE_FILTER_STOP
   detail.add_child(dbg)
@@ -1567,6 +1577,7 @@ func _show_deck_viewer() -> void:
   if old_viewer:
     old_viewer.queue_free()
 
+  var vw: float = get_viewport_rect().size.x
   var viewer := Control.new()
   viewer.name = "DeckViewerPanel"
   viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -1591,14 +1602,14 @@ func _show_deck_viewer() -> void:
   title.add_theme_color_override("font_color", Color(1, 1, 0.8))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   title.position = Vector2(0, 60)
-  title.size = Vector2(1920, 50)
+  title.size = Vector2(vw, 50)
   title.mouse_filter = Control.MOUSE_FILTER_IGNORE
   viewer.add_child(title)
 
   # Scroll container for card grid
   var scroll := ScrollContainer.new()
   scroll.position = Vector2(60, 110)
-  scroll.size = Vector2(1800, 920)
+  scroll.size = Vector2(vw - 120, 920)
   scroll.mouse_filter = Control.MOUSE_FILTER_PASS
   viewer.add_child(scroll)
 
@@ -1633,7 +1644,7 @@ func _show_deck_viewer() -> void:
   # Close button (X) top-right
   var close_btn := Button.new()
   close_btn.text = "✕"
-  close_btn.position = Vector2(1920 - 80, 55)
+  close_btn.position = Vector2(vw - 80, 55)
   close_btn.custom_minimum_size = Vector2(60, 60)
   close_btn.add_theme_font_size_override("font_size", 32)
   close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -1656,6 +1667,7 @@ func _show_map_viewer() -> void:
   if old_viewer:
     old_viewer.queue_free()
 
+  var vw: float = get_viewport_rect().size.x
   var viewer := Control.new()
   viewer.name = "MapViewerPanel"
   viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -1676,14 +1688,14 @@ func _show_map_viewer() -> void:
   title.add_theme_color_override("font_color", Color(1, 1, 0.8))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   title.position = Vector2(0, 60)
-  title.size = Vector2(1920, 50)
+  title.size = Vector2(vw, 50)
   title.mouse_filter = Control.MOUSE_FILTER_IGNORE
   viewer.add_child(title)
 
   # Scroll container for map
   var scroll := ScrollContainer.new()
   scroll.position = Vector2(60, 110)
-  scroll.size = Vector2(1800, 920)
+  scroll.size = Vector2(vw - 120, 920)
   scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
   scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
   scroll.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -1692,7 +1704,7 @@ func _show_map_viewer() -> void:
   # Map canvas
   var node_size := 80
   var floor_height := 120
-  var map_width := 1800
+  var map_width := int(vw - 120)
   var total_height: int = 11 * floor_height + 100
   var map_canvas := Control.new()
   map_canvas.custom_minimum_size = Vector2(map_width, total_height)
@@ -1739,7 +1751,7 @@ func _show_map_viewer() -> void:
   # Close button (X) top-right
   var close_btn := Button.new()
   close_btn.text = "✕"
-  close_btn.position = Vector2(1920 - 80, 55)
+  close_btn.position = Vector2(vw - 80, 55)
   close_btn.custom_minimum_size = Vector2(60, 60)
   close_btn.add_theme_font_size_override("font_size", 32)
   close_btn.add_theme_color_override("font_color", Color(1, 1, 1))

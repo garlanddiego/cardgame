@@ -2030,35 +2030,39 @@ func _add_status_card_to_hand(card_id: String) -> void:
 		if not card.is_empty():
 			hand.append(card)
 			if card_hand:
+				var vw: float = get_viewport_rect().size.x
 				var delay: float = _card_gen_delay
 				_card_gen_delay = maxf(_card_gen_delay - 0.12, 0.0)  # Stagger subsequent cards
 				if delay > 0:
 					var card_copy = card
+					var spawn_center := Vector2(vw / 2.0, 400)
 					var t = create_tween()
 					t.tween_interval(delay)
 					t.tween_callback(func():
 						if card_hand and is_instance_valid(card_hand):
-							card_hand.add_card(card_copy, false, Vector2(960, 400))
+							card_hand.add_card(card_copy, false, spawn_center)
 							_reset_hand_state()
 					)
 				else:
-					card_hand.add_card(card, false, Vector2(960, 400))
+					card_hand.add_card(card, false, Vector2(vw / 2.0, 400))
 
 func _delayed_add_card(card_data: Dictionary) -> void:
 	## Add a card visual to hand with delay if a card-play animation is in progress
+	var vw: float = get_viewport_rect().size.x
 	var delay: float = _card_gen_delay
 	_card_gen_delay = maxf(_card_gen_delay - 0.12, 0.0)
 	if delay > 0:
 		var cd = card_data
+		var spawn_center := Vector2(vw / 2.0, 400)
 		var t = create_tween()
 		t.tween_interval(delay)
 		t.tween_callback(func():
 			if card_hand and is_instance_valid(card_hand):
-				card_hand.add_card(cd, false, Vector2(960, 400))
+				card_hand.add_card(cd, false, spawn_center)
 				_reset_hand_state()
 		)
 	else:
-		card_hand.add_card(card_data, false, Vector2(960, 400))
+		card_hand.add_card(card_data, false, Vector2(vw / 2.0, 400))
 		_reset_hand_state()
 
 func _add_shiv_to_hand(count: int = 1) -> void:
@@ -2086,19 +2090,21 @@ func _add_shiv_to_hand(count: int = 1) -> void:
 		hand.append(shiv)
 	# Add visual cards with delay (wait for played card to fly away first)
 	if card_hand and not shivs_to_add.is_empty():
+		var vw: float = get_viewport_rect().size.x
 		for i in range(shivs_to_add.size()):
 			var shiv_copy = shivs_to_add[i]
 			var delay: float = base_delay + 0.12 * i
 			if delay > 0:
+				var spawn_center := Vector2(vw / 2.0, 400)
 				var t = create_tween()
 				t.tween_interval(delay)
 				t.tween_callback(func():
 					if card_hand and is_instance_valid(card_hand):
-						card_hand.add_card(shiv_copy, false, Vector2(960, 400))
+						card_hand.add_card(shiv_copy, false, spawn_center)
 						_reset_hand_state()
 				)
 			else:
-				card_hand.add_card(shivs_to_add[i], false, Vector2(960, 400))
+				card_hand.add_card(shivs_to_add[i], false, Vector2(vw / 2.0, 400))
 	_reset_hand_state()
 	_update_pile_labels()
 
@@ -2270,7 +2276,8 @@ func _animate_hand_discard() -> void:
 	if not card_hand or card_hand.cards.is_empty():
 		_after_hand_discard()
 		return
-	var discard_target: Vector2 = card_hand.to_local(Vector2(1825, 985))
+	var vw: float = get_viewport_rect().size.x
+	var discard_target: Vector2 = card_hand.to_local(Vector2(vw - 95, 985))
 	var card_nodes: Array = card_hand.cards.duplicate()
 	# Reverse so rightmost card goes first
 	card_nodes.reverse()
@@ -2559,7 +2566,8 @@ func _create_ai_button() -> void:
 	if end_turn_btn:
 		ai_btn.position = end_turn_btn.position + Vector2(-70, 10)
 	else:
-		ai_btn.position = Vector2(1550, 600)
+		var vw: float = get_viewport_rect().size.x
+		ai_btn.position = Vector2(vw - 370, 600)
 	ai_btn.add_theme_font_size_override("font_size", 18)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.35, 0.65, 0.9)
@@ -3600,7 +3608,8 @@ func _show_turn_banner(text: String, color: Color) -> void:
 
 func _animate_reshuffle() -> void:
 	## Visual: small card-shaped rectangles fly from discard pile to draw pile
-	var discard_pos := Vector2(1860, 950)  # Discard pile position (bottom right)
+	var vw: float = get_viewport_rect().size.x
+	var discard_pos := Vector2(vw - 60, 950)  # Discard pile position (bottom right)
 	var draw_pos := Vector2(60, 950)  # Draw pile position (bottom left)
 	var count: int = mini(5, draw_pile.size())  # Show max 5 card fragments
 	for i in range(count):
@@ -3860,9 +3869,10 @@ func _setup_pile_viewer() -> void:
 	var hud_ctrl = get_node_or_null("HUDLayer/HUD")
 	if hud_ctrl == null:
 		return
+	var vw: float = get_viewport_rect().size.x
 	_pile_viewer = Control.new()
 	_pile_viewer.name = "PileViewer"
-	_pile_viewer.size = Vector2(1920, 1080)
+	_pile_viewer.size = Vector2(vw, 1080)
 	_pile_viewer.visible = false
 	_pile_viewer.z_index = 500
 	_pile_viewer.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -3871,7 +3881,7 @@ func _setup_pile_viewer() -> void:
 	# Dark background
 	var bg = ColorRect.new()
 	bg.name = "BG"
-	bg.size = Vector2(1920, 1080)
+	bg.size = Vector2(vw, 1080)
 	bg.color = Color(0, 0, 0, 0.85)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	bg.gui_input.connect(_on_pile_viewer_bg_clicked)
@@ -3881,7 +3891,7 @@ func _setup_pile_viewer() -> void:
 	var title = Label.new()
 	title.name = "Title"
 	title.position = Vector2(0, 60)
-	title.size = Vector2(1920, 50)
+	title.size = Vector2(vw, 50)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 32)
 	title.add_theme_color_override("font_color", Color(1, 1, 0.8))
@@ -3892,7 +3902,7 @@ func _setup_pile_viewer() -> void:
 	var scroll = ScrollContainer.new()
 	scroll.name = "Scroll"
 	scroll.position = Vector2(60, 115)
-	scroll.size = Vector2(1800, 905)
+	scroll.size = Vector2(vw - 120, 905)
 	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_pile_viewer.add_child(scroll)
 
@@ -3908,7 +3918,7 @@ func _setup_pile_viewer() -> void:
 	var close_btn = Button.new()
 	close_btn.name = "CloseButton"
 	close_btn.text = "✕"
-	close_btn.position = Vector2(1920 - 80, 55)
+	close_btn.position = Vector2(vw - 80, 55)
 	close_btn.custom_minimum_size = Vector2(60, 60)
 	close_btn.add_theme_font_size_override("font_size", 32)
 	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -4002,6 +4012,7 @@ func _setup_discard_overlay() -> void:
 	var hud_layer = get_node_or_null("HUDLayer")
 	if hud_layer == null:
 		return
+	var vw: float = get_viewport_rect().size.x
 	_discard_overlay = Control.new()
 	_discard_overlay.name = "DiscardOverlay"
 	_discard_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -4015,7 +4026,7 @@ func _setup_discard_overlay() -> void:
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
 	bg.position = Vector2(0, 60)
-	bg.size = Vector2(1920, 640)
+	bg.size = Vector2(vw, 640)
 	bg.color = Color(0, 0, 0, 0.6)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(bg)
@@ -4025,7 +4036,7 @@ func _setup_discard_overlay() -> void:
 	_discard_title_label.name = "Title"
 	_discard_title_label.text = ""
 	_discard_title_label.position = Vector2(0, 80)
-	_discard_title_label.size = Vector2(1920, 50)
+	_discard_title_label.size = Vector2(vw, 50)
 	_discard_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_discard_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_discard_title_label.add_theme_font_size_override("font_size", 36)
@@ -4040,7 +4051,7 @@ func _setup_discard_overlay() -> void:
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
 	_discard_confirm_btn.text = "确认"
-	_discard_confirm_btn.position = Vector2(1920 - 320, 512)
+	_discard_confirm_btn.position = Vector2(vw - 320, 512)
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
 	_discard_confirm_btn.visible = false
 	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
@@ -4053,7 +4064,7 @@ func _setup_discard_overlay() -> void:
 	_discard_hand_bg = ColorRect.new()
 	_discard_hand_bg.name = "DiscardHandBG"
 	_discard_hand_bg.position = Vector2(0, 700)
-	_discard_hand_bg.size = Vector2(1920, 380)
+	_discard_hand_bg.size = Vector2(vw, 380)
 	_discard_hand_bg.color = Color(0, 0, 0, 0.6)
 	_discard_hand_bg.z_index = -1  # Below hand cards
 	_discard_hand_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Don't block card clicks
@@ -4309,10 +4320,11 @@ func _show_pile_selection(pile: Array, title: String, count: int, callback: Call
 	_pile_selection_overlay.add_child(bg)
 
 	# Title
+	var vw: float = get_viewport_rect().size.x
 	var title_lbl = Label.new()
 	title_lbl.text = title
 	title_lbl.position = Vector2(0, 30)
-	title_lbl.size = Vector2(1920, 60)
+	title_lbl.size = Vector2(vw, 60)
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_lbl.add_theme_font_size_override("font_size", 36)
 	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
@@ -4325,7 +4337,7 @@ func _show_pile_selection(pile: Array, title: String, count: int, callback: Call
 	# Scroll + Grid for cards
 	var scroll = ScrollContainer.new()
 	scroll.position = Vector2(60, 110)
-	scroll.size = Vector2(1800, 800)
+	scroll.size = Vector2(vw - 120, 800)
 	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_pile_selection_overlay.add_child(scroll)
 
