@@ -31,7 +31,7 @@ static func get_cards() -> Dictionary:
 	# =========================================================================
 	# COMMON SKILLS (12 cards)
 	# =========================================================================
-	db["si_anticipate"] = {"id": "si_anticipate", "name": "Anticipate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 3 Dexterity\nthis turn.", "art": "", "target": "self", "temp_dex": 3, "actions": [{"type": "call", "fn": "anticipate"}]}
+	db["si_anticipate"] = {"id": "si_anticipate", "name": "Anticipate", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Gain 3 Dexterity\nthis turn.", "art": "", "target": "self", "hero_target": "all_heroes", "temp_dex": 3, "actions": [{"type": "call", "fn": "anticipate"}]}
 	db["si_deflect"] = {"id": "si_deflect", "name": "Deflect", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 4, "description": "Gain 4 Block.", "art": "", "target": "self", "actions": [{"type": "block"}]}
 	db["si_prepared"] = {"id": "si_prepared", "name": "Prepared", "cost": 0, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 0, "description": "Draw 1, Discard 1.", "art": "", "target": "self", "draw": 1, "discard": 1, "actions": [{"type": "draw"}]}
 	db["si_backflip"] = {"id": "si_backflip", "name": "Backflip", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.\nDraw 2 cards.", "art": "", "target": "self", "draw": 2, "actions": [{"type": "block"}, {"type": "draw"}]}
@@ -142,7 +142,7 @@ static func get_upgrade_overrides() -> Dictionary:
 		"si_ricochet": {"damage": 4, "description": "Sly. Deal 4 damage\nto random enemy 4x."},
 		"si_quick_slash": {"damage": 12, "description": "Deal 12 damage.\nDraw 1 card."},
 		# COMMON SKILLS
-		"si_anticipate": {"temp_dex": 5, "description": "Gain 5 Dexterity\nthis turn."},
+		"si_anticipate": {"temp_dex": 5, "hero_target": "all_heroes", "description": "Gain 5 Dexterity\nthis turn."},
 		"si_deflect": {"block": 7, "description": "Gain 7 Block."},
 		"si_prepared": {"draw": 2, "description": "Draw 2, Discard 1."},
 		"si_backflip": {"block": 8, "description": "Gain 8 Block.\nDraw 2 cards."},

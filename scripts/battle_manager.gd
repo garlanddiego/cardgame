@@ -732,9 +732,10 @@ func start_player_turn() -> void:
 	hp_lost_this_turn = 0
 	cards_exhausted_this_turn = 0
 
-	# Remove Anticipate temp dexterity from previous turn
-	if anticipate_dex_to_remove > 0 and player:
-		player.apply_status("dexterity", -anticipate_dex_to_remove)
+	# Remove Anticipate temp dexterity from previous turn (all heroes)
+	if anticipate_dex_to_remove > 0:
+		for hero in _get_all_alive_heroes():
+			hero.apply_status("dexterity", -anticipate_dex_to_remove)
 		anticipate_dex_to_remove = 0
 
 	# Berserk: +energy per turn (check all heroes)
@@ -1449,11 +1450,10 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				self_hero.apply_status("strength", stacks)
 				flex_strength_to_remove += stacks
 		"anticipate":
-			var self_hero = target if (target != null and not target.is_enemy) else player
-			if self_hero:
-				var stacks: int = card_data.get("temp_dex", 3)
-				self_hero.apply_status("dexterity", stacks)
-				anticipate_dex_to_remove += stacks
+			var stacks: int = card_data.get("temp_dex", 3)
+			for hero in _get_all_alive_heroes():
+				hero.apply_status("dexterity", stacks)
+			anticipate_dex_to_remove += stacks
 		"limit_break":
 			var self_hero = target if (target != null and not target.is_enemy) else player
 			if self_hero:
