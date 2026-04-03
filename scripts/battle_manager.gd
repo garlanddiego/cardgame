@@ -1396,7 +1396,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					card_hand.clear_hand()
 					for c in hand:
-						card_hand.add_card(c)
+						card_hand.add_card(c, false)
 		"perfected_strike":
 			var strike_count: int = 0
 			for c in draw_pile:
@@ -1541,7 +1541,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if card_hand:
 				card_hand.clear_hand()
 				for c in hand:
-					card_hand.add_card(c)
+					card_hand.add_card(c, false)
 			var base_dmg: int = card_data.get("damage", 16)
 			if player:
 				base_dmg = player.get_attack_damage(base_dmg)
@@ -1554,7 +1554,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					card_hand.clear_hand()
 					for c in hand:
-						card_hand.add_card(c)
+						card_hand.add_card(c, false)
 				_update_pile_labels()
 		"exhume":
 			if not exhaust_pile.is_empty():
@@ -1578,7 +1578,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					card_hand.clear_hand()
 					for c in hand:
-						card_hand.add_card(c)
+						card_hand.add_card(c, false)
 		"escape_plan":
 			if not draw_pile.is_empty():
 				var drawn = draw_pile.pop_back()
@@ -1661,7 +1661,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if card_hand:
 				card_hand.clear_hand()
 				for c in hand:
-					card_hand.add_card(c)
+					card_hand.add_card(c, false)
 			_update_pile_labels()
 		"storm_of_steel":
 			var shiv_count: int = hand.size()
@@ -1737,7 +1737,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					card_hand.clear_hand()
 					for c in hand:
-						card_hand.add_card(c)
+						card_hand.add_card(c, false)
 		"poison_shield":
 			# Gain block = total poison on all enemies
 			var total_poison: int = 0
@@ -4098,7 +4098,7 @@ func _auto_discard(count: int) -> void:
 	if card_hand:
 		card_hand.clear_hand()
 		for c in hand:
-			card_hand.add_card(c)
+			card_hand.add_card(c, false)
 	_update_pile_labels()
 
 func _check_sly_on_discard(card_data: Dictionary) -> void:
