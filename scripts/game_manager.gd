@@ -50,14 +50,10 @@ func _build_card_database() -> void:
 			card_database[card_id]["version"] = "old"
 		if not card_database[card_id].has("status"):
 			card_database[card_id]["status"] = "active"
-		# hero_target: determines which hero a card is associated with
-		#   "self" — card's own hero (matching character), auto-set for attacks & self-targeting cards
-		# All attack cards have a hero who performs the attack
-		var card_type: int = card_database[card_id].get("type", 0)
-		if card_type == 0 and not card_database[card_id].has("hero_target"):  # ATTACK
-			card_database[card_id]["hero_target"] = "self"
-		# Self-targeting skill/power cards also have a hero
-		if card_database[card_id].get("target", "") == "self" and not card_database[card_id].has("hero_target"):
+		# hero_target: every card with a character belongs to a hero
+		# Status cards (wound/burn/dazed) have no character, so they're excluded
+		var card_char: String = card_database[card_id].get("character", "")
+		if card_char != "" and not card_database[card_id].has("hero_target"):
 			card_database[card_id]["hero_target"] = "self"
 	# Load and merge locally saved card modifications/additions
 	_load_custom_cards()

@@ -583,23 +583,21 @@ func _hero_display_name(character_id: String) -> String:
 	return ""
 
 func _inject_hero_name(desc: String, hero_name: String) -> String:
-	## Insert hero name before hero-relevant verbs in Chinese descriptions.
+	## Insert hero name before the first hero-relevant verb in Chinese descriptions.
 	## e.g., "造成 8 点伤害" → "铁甲战士造成 8 点伤害"
-	## Lines about enemy effects (施加) or card mechanics (抽/弃) are left as-is.
+	## Only the first matching line gets the hero name prefix.
 	var lines: PackedStringArray = desc.split("\n")
 	var result: PackedStringArray = PackedStringArray()
-	# Verbs that indicate the hero performs or receives the action
+	var injected: bool = false
 	var hero_verbs: Array = ["造成", "获得", "失去", "恢复", "使你"]
 	for line in lines:
 		var trimmed: String = line.strip_edges()
-		# Skip lines that already start with a prefix like "对所有敌人", "每当", "若敌人", etc.
-		var should_inject: bool = false
-		for verb in hero_verbs:
-			if trimmed.begins_with(verb):
-				should_inject = true
-				break
-		if should_inject:
-			line = hero_name + trimmed
+		if not injected:
+			for verb in hero_verbs:
+				if trimmed.begins_with(verb):
+					line = hero_name + trimmed
+					injected = true
+					break
 		result.append(line)
 	return "\n".join(result)
 
