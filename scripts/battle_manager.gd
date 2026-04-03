@@ -1119,7 +1119,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var blk: int = action.get("value", card_data.get("block", 0))
 				if blk > 0:
 					var buff_target_override: String = action.get("buff_target", "")
-					if target_type == "all_heroes" or buff_target_override == "all_heroes":
+					var hero_tgt: String = card_data.get("hero_target", "self")
+					if target_type == "all_heroes" or buff_target_override == "all_heroes" or hero_tgt == "all_heroes":
 						for hero in _get_all_alive_heroes():
 							hero.add_block(blk)
 							_trigger_juggernaut()
@@ -1130,7 +1131,10 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 							block_target.add_block(blk)
 							_trigger_juggernaut()
 					else:
-						var block_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+						# "self" or "target_hero": block goes to the target hero
+						var block_target = target if (target_type == "self" and target != null and not target.is_enemy) else card_hero
+						if block_target == null:
+							block_target = player
 						if block_target:
 							block_target.add_block(blk)
 							_trigger_juggernaut()
@@ -1174,12 +1178,15 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"apply_self_status":
 				var status_type: String = action.get("status", "")
 				var stacks: int = action.get("stacks", 1)
-				if target_type == "all_heroes":
+				var hero_tgt: String = card_data.get("hero_target", "self")
+				if target_type == "all_heroes" or hero_tgt == "all_heroes":
 					for hero in _get_all_alive_heroes():
 						if status_type != "":
 							hero.apply_status(status_type, stacks)
 				else:
-					var self_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
+					var self_target = target if (target_type == "self" and target != null and not target.is_enemy) else card_hero
+					if self_target == null:
+						self_target = player
 					if status_type != "" and self_target:
 						self_target.apply_status(status_type, stacks)
 
@@ -1221,8 +1228,17 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			# ---- Heal ----
 			"heal":
 				var amount: int = action.get("value", 0)
-				if amount > 0 and player:
-					player.heal(amount)
+				if amount > 0:
+					var hero_tgt: String = card_data.get("hero_target", "self")
+					if hero_tgt == "all_heroes":
+						for hero in _get_all_alive_heroes():
+							hero.heal(amount)
+					else:
+						var heal_target = target if (target_type == "self" and target != null and not target.is_enemy) else card_hero
+						if heal_target == null:
+							heal_target = player
+						if heal_target:
+							heal_target.heal(amount)
 
 			# ---- Add shiv cards to hand ----
 			"add_shiv":
@@ -1275,8 +1291,15 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"power_effect":
 				var power_name: String = action.get("power", "")
 				if power_name != "":
-					var power_target = target if (target_type == "self" and target != null and not target.is_enemy) else player
-					_activate_power(power_name, power_target, card_data.get("per_turn", {}))
+					var hero_tgt: String = card_data.get("hero_target", "self")
+					if hero_tgt == "all_heroes":
+						for hero in _get_all_alive_heroes():
+							_activate_power(power_name, hero, card_data.get("per_turn", {}))
+					else:
+						var power_target = target if (target_type == "self" and target != null and not target.is_enemy) else card_hero
+						if power_target == null:
+							power_target = player
+						_activate_power(power_name, power_target, card_data.get("per_turn", {}))
 
 			# ---- Call named action function (for complex card behaviors) ----
 			"call":
@@ -2749,9 +2772,17 @@ func _process(_delta: float) -> void:
 			if _damage_preview_labels.is_empty():
 				_show_damage_previews()
 		elif target_type == "self" and dual_hero_mode:
-			# In dual hero mode, self-target cards need hero selection
-			# Highlight heroes to indicate they're clickable targets
-			_highlight_heroes()
+			# hero_target routing: "self" = card's own hero, "all_heroes" = all, "target_hero" = user picks
+			var ht: String = card_data.get("hero_target", "self")
+			if ht == "target_hero":
+				_highlight_heroes()
+			elif ht == "all_heroes":
+				_highlight_heroes()
+			else:
+				# "self" — highlight only the card's own hero
+				var own_hero = _get_card_hero(card_data)
+				if own_hero and own_hero.has_method("show_target_highlight"):
+					own_hero.show_target_highlight()
 		elif target_type == "all_enemies":
 			# Highlight all enemies
 			if _hovered_enemy == null:
@@ -2820,15 +2851,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			var target_type: String = card_data.get("target", "enemy")
 			if target_type == "self":
 				_clear_damage_previews()
-				if dual_hero_mode:
-					# In dual hero mode, must click on a specific hero
+				var ht: String = card_data.get("hero_target", "self")
+				if ht == "target_hero" and dual_hero_mode:
+					# Player must click on a specific hero
 					var click_pos: Vector2 = event.global_position
-					var hero_target = _get_closest_hero(click_pos)
-					if hero_target:
+					var clicked_hero = _get_closest_hero(click_pos)
+					if clicked_hero:
 						_unhighlight_heroes()
-						card_hand.play_selected_on(hero_target)
-				elif player:
-					card_hand.play_selected_on(player)
+						card_hand.play_selected_on(clicked_hero)
+				elif ht == "all_heroes":
+					# Auto-play on player; execution will apply to all heroes
+					_unhighlight_heroes()
+					if player:
+						card_hand.play_selected_on(player)
+				else:
+					# "self" — auto-play on card's own hero
+					_unhighlight_heroes()
+					var own_hero = _get_card_hero(card_data)
+					if own_hero:
+						card_hand.play_selected_on(own_hero)
+					elif player:
+						card_hand.play_selected_on(player)
 			elif target_type == "all_enemies" and not enemies.is_empty():
 				_clear_damage_previews()
 				_clear_all_enemy_highlights()
@@ -2868,14 +2911,23 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
 	if target_type == "self":
-		if dual_hero_mode:
-			# Enter targeting mode — highlight heroes for selection
+		var ht: String = card_data.get("hero_target", "self")
+		if ht == "target_hero" and dual_hero_mode:
+			# Enter targeting mode — player must select a hero
 			card_hand.selected_card = card_node
 			card_node.set_selected(true)
 			card_hand.targeting_mode = true
 			_highlight_heroes()
-		else:
+		elif ht == "all_heroes":
+			# Auto-play on player; execution applies to all heroes
 			if player:
+				card_hand.play_selected_on(player)
+		else:
+			# "self" — auto-play on card's own hero
+			var own_hero = _get_card_hero(card_data)
+			if own_hero:
+				card_hand.play_selected_on(own_hero)
+			elif player:
 				card_hand.play_selected_on(player)
 	elif target_type == "all_enemies" and not enemies.is_empty():
 		card_hand.play_selected_on(enemies[0])
@@ -2898,12 +2950,19 @@ func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> voi
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
 	if target_type == "self":
-		# Self-targeting: find closest hero at release position
+		var ht: String = card_data.get("hero_target", "self")
 		var hero_target: Node2D = null
-		if dual_hero_mode:
+		if ht == "target_hero" and dual_hero_mode:
+			# Player selects hero by drag position
 			hero_target = _get_closest_hero(release_position)
-		else:
+		elif ht == "all_heroes":
+			# Auto-target player; execution applies to all
 			hero_target = player
+		else:
+			# "self" — card's own hero
+			hero_target = _get_card_hero(card_data)
+			if hero_target == null:
+				hero_target = player
 		if hero_target:
 			card_hand.play_card_on(card_node, hero_target)
 		else:

@@ -50,6 +50,12 @@ func _build_card_database() -> void:
 			card_database[card_id]["version"] = "old"
 		if not card_database[card_id].has("status"):
 			card_database[card_id]["status"] = "active"
+		# hero_target: determines which hero(es) a self-targeting card affects
+		#   "self"        — card's own hero (matching character color), no selection needed
+		#   "all_heroes"  — all alive heroes, no selection needed
+		#   "target_hero" — player must select which hero
+		if card_database[card_id].get("target", "") == "self" and not card_database[card_id].has("hero_target"):
+			card_database[card_id]["hero_target"] = "self"
 	# Load and merge locally saved card modifications/additions
 	_load_custom_cards()
 
