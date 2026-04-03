@@ -1028,15 +1028,8 @@ func _show_upgrade_selection() -> void:
 
   # Card grid with full card visuals
   var loc = get_node_or_null("/root/Loc")
-  var card_w: float = 180.0
-  var card_h: float = 260.0
-  var gap_x: float = 16.0
-  var gap_y: float = 16.0
-  var cols: int = 5
-  var total_w: float = cols * card_w + (cols - 1) * gap_x
-  var start_x: float = (1920.0 - total_w) / 2.0
-  var start_y: float = 110.0
-  var idx: int = 0
+  var card_w: float = 280.0
+  var card_h: float = 400.0
 
   var upgradeable_cards: Array = []
   for card_id in run.deck:
@@ -1048,24 +1041,34 @@ func _show_upgrade_selection() -> void:
       continue
     upgradeable_cards.append(card_id)
 
+  # Scrollable card area
+  var scroll := ScrollContainer.new()
+  scroll.offset_top = 80
+  scroll.offset_right = 1920
+  scroll.offset_bottom = 980
+  _overlay.add_child(scroll)
+
+  var grid := GridContainer.new()
+  grid.columns = 5
+  grid.add_theme_constant_override("h_separation", 20)
+  grid.add_theme_constant_override("v_separation", 20)
+  grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+  scroll.add_child(grid)
+
   for card_id in upgradeable_cards:
     var cd: Dictionary = gm.card_database[card_id]
-    var col: int = idx % cols
-    var row: int = idx / cols
-    var container := Control.new()
-    container.position = Vector2(start_x + col * (card_w + gap_x), start_y + row * (card_h + gap_y))
-    container.size = Vector2(card_w, card_h)
-    container.mouse_filter = Control.MOUSE_FILTER_STOP
-    container.gui_input.connect(func(event: InputEvent):
+    var slot := Control.new()
+    slot.custom_minimum_size = Vector2(card_w, card_h)
+    slot.mouse_filter = Control.MOUSE_FILTER_STOP
+    slot.gui_input.connect(func(event: InputEvent):
       if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
         _show_upgrade_detail(card_id)
     )
-    _overlay.add_child(container)
+    grid.add_child(slot)
     var visual := CardScript.create_card_visual(cd, Vector2(card_w, card_h), loc)
-    container.add_child(visual)
-    container.mouse_entered.connect(func(): container.modulate = Color(1.2, 1.2, 1.2))
-    container.mouse_exited.connect(func(): container.modulate = Color(1, 1, 1))
-    idx += 1
+    slot.add_child(visual)
+    slot.mouse_entered.connect(func(): slot.modulate = Color(1.2, 1.2, 1.2))
+    slot.mouse_exited.connect(func(): slot.modulate = Color(1, 1, 1))
 
   # Cancel button
   var cancel := Button.new()
@@ -1076,7 +1079,7 @@ func _show_upgrade_selection() -> void:
   cancel_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
   cancel_style.set_corner_radius_all(8)
   cancel.add_theme_stylebox_override("normal", cancel_style)
-  cancel.position = Vector2((1920.0 - 160.0) / 2.0, 1010.0)
+  cancel.position = Vector2((1920.0 - 160.0) / 2.0, 990.0)
   cancel.pressed.connect(_show_rest)
   _overlay.add_child(cancel)
 
