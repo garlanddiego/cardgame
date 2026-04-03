@@ -830,6 +830,10 @@ func start_player_turn() -> void:
 		end_turn_btn.disabled = false
 	_show_turn_banner("YOUR TURN", Color(0.27, 0.8, 0.4))
 	if card_hand:
+		card_hand._any_card_dragging = false
+		card_hand.selected_card = null
+		card_hand.focused_card = null
+		card_hand.targeting_mode = false
 		card_hand.current_battle_energy = current_energy
 		card_hand.update_card_playability(current_energy)
 	turn_started.emit(true)

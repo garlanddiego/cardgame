@@ -95,6 +95,9 @@ func clear_hand() -> void:
 	selected_card = null
 	focused_card = null
 	targeting_mode = false
+	_any_card_dragging = false
+	hovered_card = null
+	discard_mode = false
 
 func snap_layout() -> void:
 	## Position all cards instantly (no tween animation)
@@ -457,8 +460,12 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 					card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 			)
 		cards.erase(card_node)
-		# Disable input so animating card doesn't capture mouse events
+		# Fully disable played card: no input, no processing
 		card_node.input_pickable = false
+		card_node.set_process(false)
+		card_node.set_process_unhandled_input(false)
+		card_node._is_pressed = false
+		card_node._is_dragging = false
 		# Disconnect signals before freeing
 		if card_node.card_clicked.is_connected(_on_card_clicked):
 			card_node.card_clicked.disconnect(_on_card_clicked)
