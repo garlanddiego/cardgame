@@ -446,7 +446,7 @@ var _card_descs_zh_plus: Dictionary = {
 	"ic_barricade": "你的格挡不再在\n回合开始时移除。",
 	"ic_inflame": "获得 3 点力量。",
 	"ic_metallicize": "回合结束时，\n获得 4 点格挡。",
-	"ic_brutality": "天赋。回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
+	"ic_brutality": "固有。回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
 	"ic_combust": "回合结束时，\n失去 1 点生命，\n对所有敌人造成\n7 点伤害。",
 	"ic_dark_embrace": "每当有牌被消耗时，\n抽 1 张牌。",
 	"ic_rupture": "每当你因打牌\n而失去生命时，\n获得 2 点力量。",

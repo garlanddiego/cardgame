@@ -3135,7 +3135,7 @@ const KEYWORD_DEFS: Dictionary = {
 	"exhaust": {"name": "消耗 Exhaust", "desc": "打出后移除，不进入弃牌堆。"},
 	"ethereal": {"name": "虚无 Ethereal", "desc": "回合结束时，若在手中则消耗。"},
 	"block": {"name": "格挡 Block", "desc": "在生命值之前吸收伤害。\n下回合开始时清除。"},
-	"innate": {"name": "天赋 Innate", "desc": "战斗开始时必定被抽到。"},
+	"innate": {"name": "固有 Innate", "desc": "战斗开始时必定被抽到。"},
 	"sly": {"name": "奇巧 Sly", "desc": "被弃牌时触发卡牌效果。"},
 	"retain": {"name": "保留 Retain", "desc": "回合结束时保留在手中，不被弃掉。"},
 	"intangible": {"name": "无实体 Intangible", "desc": "受到的伤害和失去的HP减少到1。"},
