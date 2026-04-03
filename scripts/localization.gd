@@ -569,9 +569,16 @@ func card_desc(card_data: Dictionary) -> String:
 			desc = _card_descs_zh[base_id]
 	if desc == "":
 		desc = card_data.get("description", "")
-	# Inject hero name for cards with hero_target
-	if card_data.get("hero_target", "") != "" and current_lang == "zh":
-		var hero_name: String = _hero_display_name(card_data.get("character", ""))
+	# Inject hero/target name for cards with hero_target
+	var ht: String = card_data.get("hero_target", "")
+	if ht != "" and current_lang == "zh":
+		var hero_name: String = ""
+		if ht == "target_hero":
+			hero_name = "目标英雄"
+		elif ht == "all_heroes":
+			hero_name = "所有英雄"
+		else:
+			hero_name = _hero_display_name(card_data.get("character", ""))
 		if hero_name != "":
 			desc = _inject_hero_name(desc, hero_name)
 	return desc
