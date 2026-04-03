@@ -20,6 +20,8 @@ var alive: bool = true
 var power_effects: Array = []
 var active_powers: Dictionary = {}  # power_id -> stack count
 var _previous_block: int = 0  # Track previous block value for break detection
+var _hp_drain_bar: ColorRect = null  # Trailing yellow bar for damage animation
+var _hp_drain_tween: Tween = null
 
 # Node references
 var sprite_node: Sprite2D = null
@@ -91,6 +93,35 @@ func _setup_visuals() -> void:
 		_shield_tex = load("res://assets/img/ui_icons/shield.png")
 	if ResourceLoader.exists("res://assets/img/ui_icons/shield_dim.png"):
 		_shield_dim_tex = load("res://assets/img/ui_icons/shield_dim.png")
+	# Resize HP bar: base 262px (+20%), extra 10px per 10 HP above 100
+	if hp_bar_bg:
+		var base_width: float = 262.0
+		if max_hp > 100:
+			base_width += float((max_hp - 100) / 10) * 10.0
+		var half_w: float = base_width / 2.0
+		hp_bar_bg.offset_left = -half_w
+		hp_bar_bg.offset_right = half_w
+		hp_bar_bg.size.x = base_width
+		if hp_bar_fill:
+			hp_bar_fill.size.x = base_width
+		if poison_preview:
+			poison_preview.size.x = 0
+		# Create trailing drain bar (yellow, behind red fill)
+		_hp_drain_bar = ColorRect.new()
+		_hp_drain_bar.name = "HPDrainBar"
+		_hp_drain_bar.color = Color(0.95, 0.75, 0.15, 0.9)
+		_hp_drain_bar.size = Vector2(base_width, hp_bar_bg.size.y)
+		_hp_drain_bar.position = Vector2.ZERO
+		hp_bar_bg.add_child(_hp_drain_bar)
+		hp_bar_bg.move_child(_hp_drain_bar, 0)  # Behind fill
+		# Also resize HP label to match
+		if hp_label:
+			hp_label.offset_left = -half_w
+			hp_label.offset_right = half_w
+		# Resize name label
+		if name_label:
+			name_label.offset_left = -half_w + 10
+			name_label.offset_right = half_w - 10
 	# Create target highlight border (hidden by default)
 	_target_highlight = Node2D.new()
 	_target_highlight.name = "TargetHighlight"
@@ -266,8 +297,11 @@ func get_attack_damage(base_damage: int) -> int:
 func _update_hp_bar() -> void:
 	if hp_bar_fill == null or hp_bar_bg == null:
 		return
+	var bar_width: float = hp_bar_bg.size.x
 	var ratio: float = float(current_hp) / float(max_hp) if max_hp > 0 else 0.0
-	hp_bar_fill.size.x = hp_bar_bg.size.x * ratio
+	var new_fill: float = bar_width * ratio
+	var old_fill: float = hp_bar_fill.size.x
+	hp_bar_fill.size.x = new_fill
 	# Color gradient per spec: red base, orange-red when critical (<25%)
 	if ratio > 0.5:
 		hp_bar_fill.color = Color(0.800, 0.133, 0.133, 1.0)  # Standard red
@@ -275,6 +309,17 @@ func _update_hp_bar() -> void:
 		hp_bar_fill.color = Color(0.9, 0.5, 0.1, 1.0)  # Yellow-orange warning
 	else:
 		hp_bar_fill.color = Color(1.0, 0.4, 0.1, 1.0)  # Orange-red critical per spec
+	# Animate trailing drain bar (yellow) on damage
+	if _hp_drain_bar and new_fill < old_fill:
+		_hp_drain_bar.size.x = old_fill
+		_hp_drain_bar.visible = true
+		if _hp_drain_tween and _hp_drain_tween.is_running():
+			_hp_drain_tween.kill()
+		_hp_drain_tween = create_tween()
+		_hp_drain_tween.tween_property(_hp_drain_bar, "size:x", new_fill, 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	elif _hp_drain_bar and new_fill >= old_fill:
+		# Healing: snap drain bar to match
+		_hp_drain_bar.size.x = new_fill
 	if hp_label:
 		hp_label.text = str(current_hp) + "/" + str(max_hp)
 	_update_poison_preview()
