@@ -492,17 +492,39 @@ func set_selected(selected: bool) -> void:
 		else:
 			card_visual.modulate = Color.WHITE
 
+var _arc_start: Vector2 = Vector2.ZERO
+var _arc_end: Vector2 = Vector2.ZERO
+var _arc_height: float = 0.0
+
 func move_to(target_pos: Vector2, target_rot: float, target_scale: Vector2, duration: float = 0.15) -> void:
 	# Cancel any in-progress tween
 	if _current_tween and _current_tween.is_valid():
 		_current_tween.kill()
-	_current_tween = create_tween()
-	_current_tween.set_parallel(true)
-	_current_tween.set_ease(Tween.EASE_OUT)
-	_current_tween.set_trans(Tween.TRANS_CUBIC)
-	_current_tween.tween_property(self, "position", target_pos, duration)
-	_current_tween.tween_property(self, "rotation_degrees", target_rot, duration)
-	_current_tween.tween_property(self, "scale", target_scale, duration)
+	# Use arc for longer movements (fly-in from draw/discard pile)
+	var dist: float = position.distance_to(target_pos)
+	if dist > 200 and duration >= 0.3:
+		_arc_start = position
+		_arc_end = target_pos
+		_arc_height = minf(120.0, dist * 0.15)
+		_current_tween = create_tween()
+		_current_tween.set_ease(Tween.EASE_IN_OUT)
+		_current_tween.set_trans(Tween.TRANS_CUBIC)
+		_current_tween.tween_method(_arc_position, 0.0, 1.0, duration)
+		_current_tween.set_parallel(true)
+		_current_tween.tween_property(self, "rotation_degrees", target_rot, duration)
+		_current_tween.tween_property(self, "scale", target_scale, duration)
+	else:
+		_current_tween = create_tween()
+		_current_tween.set_parallel(true)
+		_current_tween.set_ease(Tween.EASE_OUT)
+		_current_tween.set_trans(Tween.TRANS_CUBIC)
+		_current_tween.tween_property(self, "position", target_pos, duration)
+		_current_tween.tween_property(self, "rotation_degrees", target_rot, duration)
+		_current_tween.tween_property(self, "scale", target_scale, duration)
+
+func _arc_position(t: float) -> void:
+	var mid: Vector2 = (_arc_start + _arc_end) / 2.0 + Vector2(0, -_arc_height)
+	position = (1 - t) * (1 - t) * _arc_start + 2 * (1 - t) * t * mid + t * t * _arc_end
 
 func set_state(new_state: int) -> void:
 	card_state = new_state
