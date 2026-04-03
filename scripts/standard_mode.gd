@@ -17,6 +17,7 @@ var _battle_instance: Node2D = null
 var _current_monsters: Array = []  # [{id, hp}]
 var _pending_node: Dictionary = {}
 var _persistent_hud_canvas: CanvasLayer = null
+var _deck_viewer_canvas: CanvasLayer = null
 var _main_bg: ColorRect = null
 
 # Draft state
@@ -60,6 +61,11 @@ func _build_ui() -> void:
   _overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.visible = false
   overlay_canvas.add_child(_overlay)
+  # Deck viewer layer — above overlay but below persistent HUD
+  _deck_viewer_canvas = CanvasLayer.new()
+  _deck_viewer_canvas.name = "DeckViewerCanvas"
+  _deck_viewer_canvas.layer = 15
+  add_child(_deck_viewer_canvas)
   # Persistent HUD — always visible across all phases (CanvasLayer above everything)
   _persistent_hud_canvas = CanvasLayer.new()
   _persistent_hud_canvas.name = "PersistentHUD"
@@ -1488,11 +1494,11 @@ func _show_defeat() -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 
 func _show_deck_viewer() -> void:
-  # Use a separate container on PersistentHUD so it doesn't destroy the current phase UI
-  if _persistent_hud_canvas == null:
+  # Render on DeckViewerCanvas (layer 15) — below PersistentHUD (20), above overlay (10)
+  if _deck_viewer_canvas == null:
     return
   # Remove previous deck viewer if open
-  var old_viewer = _persistent_hud_canvas.get_node_or_null("DeckViewerPanel")
+  var old_viewer = _deck_viewer_canvas.get_node_or_null("DeckViewerPanel")
   if old_viewer:
     old_viewer.queue_free()
 
@@ -1500,7 +1506,7 @@ func _show_deck_viewer() -> void:
   viewer.name = "DeckViewerPanel"
   viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   viewer.mouse_filter = Control.MOUSE_FILTER_STOP
-  _persistent_hud_canvas.add_child(viewer)
+  _deck_viewer_canvas.add_child(viewer)
 
   # Dark background — click to close
   var bg := ColorRect.new()
