@@ -777,12 +777,12 @@ func _show_rewards() -> void:
   vbox.add_child(_reward_btn_gold)
 
   # Hero 1 card reward row
-  _reward_btn_h1 = _reward_row("🃏", "将一张 %s 卡牌加入牌组" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
+  _reward_btn_h1 = _reward_row("🃏", "%s 卡牌" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
   _reward_btn_h1.pressed.connect(_on_reward_h1_clicked)
   vbox.add_child(_reward_btn_h1)
 
   # Hero 2 card reward row
-  _reward_btn_h2 = _reward_row("🃏", "将一张 %s 卡牌加入牌组" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
+  _reward_btn_h2 = _reward_row("🃏", "%s 卡牌" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
   _reward_btn_h2.pressed.connect(_on_reward_h2_clicked)
   vbox.add_child(_reward_btn_h2)
 
@@ -816,7 +816,7 @@ func _reward_row(icon: String, text: String, color: Color) -> Button:
   """Create a reward row button (STS style — icon + text on a dark row)."""
   var btn := Button.new()
   btn.text = "  %s   %s" % [icon, text]
-  btn.custom_minimum_size = Vector2(860, 52)
+  btn.custom_minimum_size = Vector2(400, 52)
   btn.add_theme_font_size_override("font_size", 22)
   btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85))
   btn.alignment = HORIZONTAL_ALIGNMENT_LEFT

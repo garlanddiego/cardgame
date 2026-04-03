@@ -2708,7 +2708,7 @@ func _check_battle_end() -> void:
 		_play_enemy_death_anims()
 
 func _play_enemy_death_anims() -> void:
-	## Swap to death sprite and fade out all dead enemies, then emit victory
+	## Show fallen sprite first, then swap to death sprite and fade out
 	var monsters_db: Dictionary = Monsters.get_all()
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
@@ -2716,18 +2716,36 @@ func _play_enemy_death_anims() -> void:
 		var sprite: Sprite2D = enemy.get_node_or_null("Sprite") as Sprite2D
 		if sprite == null:
 			continue
-		# Swap to death sprite
+		var etype: String = enemy.get("enemy_type") if "enemy_type" in enemy else ""
+		# Phase 1: swap to fallen sprite (knocked down)
+		if etype in monsters_db and monsters_db[etype].has("fallen_sprite"):
+			var fallen_tex = load(monsters_db[etype]["fallen_sprite"])
+			if fallen_tex:
+				sprite.texture = fallen_tex
+	# Hold fallen pose for 0.6s, then start dissolve
+	var timer = get_tree().create_timer(0.6)
+	timer.timeout.connect(_play_death_dissolve)
+
+func _play_death_dissolve() -> void:
+	## Phase 2: swap to death sprite and fade out
+	var monsters_db: Dictionary = Monsters.get_all()
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		var sprite: Sprite2D = enemy.get_node_or_null("Sprite") as Sprite2D
+		if sprite == null:
+			continue
 		var etype: String = enemy.get("enemy_type") if "enemy_type" in enemy else ""
 		if etype in monsters_db and monsters_db[etype].has("death_sprite"):
 			var death_tex = load(monsters_db[etype]["death_sprite"])
 			if death_tex:
 				sprite.texture = death_tex
-		# Animate: fade out + fall down
+		# Fade out + sink
 		var tween = create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(enemy, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN)
 		tween.tween_property(enemy, "position:y", enemy.position.y + 30, 0.8).set_ease(Tween.EASE_IN)
-	# Wait for animation, then show victory
+	# Wait for dissolve, then victory
 	var timer = get_tree().create_timer(1.0)
 	timer.timeout.connect(_on_death_anim_complete)
 
