@@ -561,12 +561,47 @@ func card_name(card_data: Dictionary) -> String:
 func card_desc(card_data: Dictionary) -> String:
 	var card_id: String = card_data.get("id", "")
 	var base_id: String = card_id.trim_suffix("+") if card_id.ends_with("+") else card_id
+	var desc: String = ""
 	if current_lang == "zh":
 		if card_data.get("upgraded", false) and _card_descs_zh_plus.has(base_id):
-			return _card_descs_zh_plus[base_id]
-		if _card_descs_zh.has(base_id):
-			return _card_descs_zh[base_id]
-	return card_data.get("description", "")
+			desc = _card_descs_zh_plus[base_id]
+		elif _card_descs_zh.has(base_id):
+			desc = _card_descs_zh[base_id]
+	if desc == "":
+		desc = card_data.get("description", "")
+	# Inject hero name for cards with hero_target
+	if card_data.get("hero_target", "") != "" and current_lang == "zh":
+		var hero_name: String = _hero_display_name(card_data.get("character", ""))
+		if hero_name != "":
+			desc = _inject_hero_name(desc, hero_name)
+	return desc
+
+func _hero_display_name(character_id: String) -> String:
+	match character_id:
+		"ironclad": return "铁甲战士"
+		"silent": return "沉默猎手"
+	return ""
+
+func _inject_hero_name(desc: String, hero_name: String) -> String:
+	## Insert hero name before hero-relevant verbs in Chinese descriptions.
+	## e.g., "造成 8 点伤害" → "铁甲战士造成 8 点伤害"
+	## Lines about enemy effects (施加) or card mechanics (抽/弃) are left as-is.
+	var lines: PackedStringArray = desc.split("\n")
+	var result: PackedStringArray = PackedStringArray()
+	# Verbs that indicate the hero performs or receives the action
+	var hero_verbs: Array = ["造成", "获得", "失去", "恢复", "使你"]
+	for line in lines:
+		var trimmed: String = line.strip_edges()
+		# Skip lines that already start with a prefix like "对所有敌人", "每当", "若敌人", etc.
+		var should_inject: bool = false
+		for verb in hero_verbs:
+			if trimmed.begins_with(verb):
+				should_inject = true
+				break
+		if should_inject:
+			line = hero_name + trimmed
+		result.append(line)
+	return "\n".join(result)
 
 func type_name(type_index: int) -> String:
 	match type_index:
