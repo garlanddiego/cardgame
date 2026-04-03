@@ -423,6 +423,7 @@ func _create_swap_button() -> void:
 	_swap_button.anchors_preset = 0
 	_swap_button.anchor_left = 0.0
 	_swap_button.anchor_top = 0.0
+	_swap_button.z_index = 50
 	_update_swap_button_position()
 	_swap_button.pressed.connect(_on_swap_heroes)
 	hud.add_child(_swap_button)
@@ -2739,12 +2740,17 @@ func _on_player_died() -> void:
 	# In dual hero mode, only end battle if both heroes are dead
 	if dual_hero_mode:
 		var any_alive: bool = false
+		var any_dead: bool = false
 		if player and player.alive:
 			any_alive = true
+		else:
+			any_dead = true
 		if second_player and second_player.alive:
 			any_alive = true
-		if any_alive:
-			# Remove swap button when one hero dies
+		else:
+			any_dead = true
+		if any_alive and any_dead:
+			# One hero died — remove swap button
 			if _swap_button and is_instance_valid(_swap_button):
 				_swap_button.queue_free()
 				_swap_button = null
