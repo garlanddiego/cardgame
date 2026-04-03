@@ -2749,6 +2749,8 @@ func _on_player_died() -> void:
 			any_alive = true
 		else:
 			any_dead = true
+		if any_alive and not any_dead:
+			return  # Both heroes alive, nothing to do
 		if any_alive and any_dead:
 			# One hero died — remove swap button
 			if _swap_button and is_instance_valid(_swap_button):
@@ -2801,7 +2803,8 @@ func _check_battle_end() -> void:
 
 func _play_enemy_death_anims() -> void:
 	## Show fallen sprite first, then swap to death sprite and fade out
-	var monsters_db: Dictionary = Monsters.get_all()
+	var _ms = load("res://scripts/monsters.gd") if ResourceLoader.exists("res://scripts/monsters.gd") else null
+	var monsters_db: Dictionary = _ms.get_all() if _ms else {}
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
 			continue
@@ -2820,7 +2823,8 @@ func _play_enemy_death_anims() -> void:
 
 func _play_death_dissolve() -> void:
 	## Phase 2: swap to death sprite and fade out
-	var monsters_db: Dictionary = Monsters.get_all()
+	var _ms = load("res://scripts/monsters.gd") if ResourceLoader.exists("res://scripts/monsters.gd") else null
+	var monsters_db: Dictionary = _ms.get_all() if _ms else {}
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
 			continue
