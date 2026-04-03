@@ -3860,7 +3860,7 @@ func _setup_discard_overlay() -> void:
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
 	_discard_confirm_btn.text = "确认弃牌"
-	_discard_confirm_btn.position = Vector2(1920 - 320, 700)
+	_discard_confirm_btn.position = Vector2(1920 - 320, 512)
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
 	_discard_confirm_btn.visible = false
 	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
@@ -3970,11 +3970,12 @@ func _on_discard_confirm() -> void:
 			hand.remove_at(idx)
 	_setup_mode = false
 	_discard_as_exhaust = false
-	# Rebuild hand display (no draw animation — cards stay in place)
+	# Rebuild hand display — snap to position without any animation
 	if card_hand:
 		card_hand.clear_hand()
 		for c in hand:
 			card_hand.add_card(c, false)
+		card_hand.snap_layout()
 	_discard_selected_cards.clear()
 	# Lower hand back to normal layer
 	if _discard_overlay:

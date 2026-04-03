@@ -96,6 +96,46 @@ func clear_hand() -> void:
 	focused_card = null
 	targeting_mode = false
 
+func snap_layout() -> void:
+	## Position all cards instantly (no tween animation)
+	if cards.is_empty():
+		return
+	var card_count: int = cards.size()
+	var vw: float = get_viewport_rect().size.x
+	var margin: float = 50.0
+	var available_width: float = vw - margin * 2.0
+	var base_scale: float = 1.0
+	if card_count > 8:
+		base_scale = 0.7
+	elif card_count > 6:
+		base_scale = 0.8
+	elif card_count > 4:
+		base_scale = 0.9
+	var scaled_card_w: float = CARD_WIDTH * base_scale
+	var step: float = scaled_card_w - CARD_OVERLAP * base_scale
+	var total_width: float = step * (card_count - 1) + scaled_card_w
+	if total_width > available_width and card_count > 1:
+		step = (available_width - scaled_card_w) / float(card_count - 1)
+		total_width = step * (card_count - 1) + scaled_card_w
+	var start_x: float = margin + (available_width - total_width) / 2.0
+	var base_y: float = HAND_Y
+	for i in range(card_count):
+		var card = cards[i]
+		if not is_instance_valid(card):
+			continue
+		var t: float = 0.5
+		if card_count > 1:
+			t = float(i) / float(card_count - 1)
+		var x_pos: float = start_x + i * step
+		var arc_t: float = (t - 0.5) * 2.0
+		var y_offset: float = ARC_HEIGHT * arc_t * arc_t
+		var rot: float = -MAX_ROTATION + t * MAX_ROTATION * 2.0
+		card.position = Vector2(x_pos, base_y + y_offset)
+		card.rotation = rot
+		card.scale = Vector2(base_scale, base_scale)
+		card.z_index = i
+		card.base_z_index = i
+
 func update_layout() -> void:
 	if cards.is_empty():
 		return
