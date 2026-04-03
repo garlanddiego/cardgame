@@ -3636,7 +3636,7 @@ func _play_attack_effect(card_data: Dictionary, hero_node: Node2D, target_node: 
 		_generic_hit_effect(target_node)
 
 func _show_hero_fallen(hero_node: Node2D, char_id: String) -> void:
-	## Swap dead hero sprite to fallen pose (lying on ground, panting)
+	## Swap dead hero sprite to fallen/kneeling pose
 	if hero_node == null or not is_instance_valid(hero_node):
 		return
 	var sprite: Sprite2D = hero_node.get_node_or_null("Sprite") as Sprite2D
@@ -3653,15 +3653,6 @@ func _show_hero_fallen(hero_node: Node2D, char_id: String) -> void:
 	if fallen_tex == null:
 		return
 	sprite.texture = fallen_tex
-	# Dim the fallen hero
-	sprite.modulate = Color(0.7, 0.6, 0.6, 0.8)
-	# Hide HP bar and status icons
-	var hp_bar = hero_node.get_node_or_null("HPBar")
-	if hp_bar:
-		hp_bar.visible = false
-	var name_label = hero_node.get_node_or_null("NameLabel")
-	if name_label:
-		name_label.visible = false
 
 func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 	"""Swap hero sprite to attack pose, then swap back after delay."""
