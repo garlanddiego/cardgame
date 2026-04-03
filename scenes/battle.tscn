@@ -101,9 +101,9 @@ mouse_filter = 2
 custom_minimum_size = Vector2(120, 72)
 layout_mode = 0
 offset_left = 24.0
-offset_top = 772.0
+offset_top = 732.0
 offset_right = 24.0
-offset_bottom = 772.0
+offset_bottom = 732.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_f4pi3")
 
 [node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=594088769]
@@ -181,9 +181,9 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(240, 70)
 layout_mode = 0
 offset_left = 1640.0
-offset_top = 765.0
+offset_top = 725.0
 offset_right = 1640.0
-offset_bottom = 765.0
+offset_bottom = 725.0
 text = "End Turn"
 
 [node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=409131236]
