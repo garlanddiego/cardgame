@@ -552,8 +552,7 @@ func _start_battle(nd: Dictionary) -> void:
   _clear_children(_overlay)
   if _main_bg:
     _main_bg.visible = false  # Hide so battle's own background shows
-  if _persistent_hud_canvas:
-    _persistent_hud_canvas.visible = false  # Hide: battle has its own TopStatusBar
+  # Keep persistent HUD visible during battle — unified status bar across all phases
 
   # Load battle scene
   var battle_scene := load("res://scenes/battle.tscn")
@@ -602,6 +601,18 @@ func _start_battle(nd: Dictionary) -> void:
 
   # Start battle
   bm.start_battle(run.hero1_id)
+
+  # Connect battle entity HP signals to update persistent HUD in real-time
+  if bm.player:
+    bm.player.hp_changed.connect(func(_c, _m):
+      if _hud_hp1_label and bm.player:
+        _hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), bm.player.current_hp, bm.player.max_hp]
+    )
+  if bm.second_player:
+    bm.second_player.hp_changed.connect(func(_c, _m):
+      if _hud_hp2_label and bm.second_player:
+        _hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), bm.second_player.current_hp, bm.second_player.max_hp]
+    )
 
 func _on_battle_won() -> void:
   # Save HP back to run state
@@ -1043,7 +1054,7 @@ func _show_upgrade_selection() -> void:
 
   # Scrollable card area
   var scroll := ScrollContainer.new()
-  scroll.offset_top = 80
+  scroll.offset_top = 105
   scroll.offset_right = 1920
   scroll.offset_bottom = 980
   _overlay.add_child(scroll)
@@ -1192,7 +1203,7 @@ func _show_shop() -> void:
   title.add_theme_font_size_override("font_size", 48)
   title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  title.offset_top = 20
+  title.offset_top = 60
   title.offset_right = 1920
   _overlay.add_child(title)
 
@@ -1202,7 +1213,7 @@ func _show_shop() -> void:
   gold_label.add_theme_font_size_override("font_size", 28)
   gold_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
   gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  gold_label.offset_top = 75
+  gold_label.offset_top = 115
   gold_label.offset_right = 1920
   _overlay.add_child(gold_label)
 
@@ -1223,7 +1234,7 @@ func _show_shop() -> void:
 
   # Scrollable grid
   var scroll := ScrollContainer.new()
-  scroll.offset_top = 115
+  scroll.offset_top = 155
   scroll.offset_right = 1920
   scroll.offset_bottom = 1020
   _overlay.add_child(scroll)
@@ -1389,6 +1400,9 @@ func _show_victory() -> void:
   _map_layer.visible = false
   _overlay.visible = true
   _clear_children(_overlay)
+  if _persistent_hud_canvas:
+    _persistent_hud_canvas.visible = true
+  _update_hud_labels()
 
   var bg := ColorRect.new()
   bg.color = Color(0, 0, 0, 0.9)
@@ -1430,6 +1444,9 @@ func _show_defeat() -> void:
   _map_layer.visible = false
   _overlay.visible = true
   _clear_children(_overlay)
+  if _persistent_hud_canvas:
+    _persistent_hud_canvas.visible = true
+  _update_hud_labels()
 
   var bg := ColorRect.new()
   bg.color = Color(0, 0, 0, 0.9)
@@ -1484,12 +1501,12 @@ func _show_deck_viewer() -> void:
   title.add_theme_font_size_override("font_size", 36)
   title.add_theme_color_override("font_color", Color.WHITE)
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  title.offset_top = 20
+  title.offset_top = 60
   title.offset_right = 1920
   _overlay.add_child(title)
 
   var scroll := ScrollContainer.new()
-  scroll.offset_top = 70
+  scroll.offset_top = 110
   scroll.offset_right = 1920
   scroll.offset_bottom = 1020
   _overlay.add_child(scroll)

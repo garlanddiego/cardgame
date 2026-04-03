@@ -188,9 +188,9 @@ text = "End Turn"
 custom_minimum_size = Vector2(260, 50)
 layout_mode = 0
 offset_left = 830.0
-offset_top = 10.0
+offset_top = 60.0
 offset_right = 830.0
-offset_bottom = 10.0
+offset_bottom = 60.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_66ngm")
 
 [node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=839521865]

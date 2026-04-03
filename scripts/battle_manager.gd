@@ -207,8 +207,9 @@ func _ready() -> void:
 	# Turn banner
 	_setup_turn_banner()
 
-	# Top status bar
-	_setup_top_status_bar()
+	# Top status bar — only in standalone mode (StandardMode has its own persistent HUD)
+	if standard_mode_monsters.size() == 0:
+		_setup_top_status_bar()
 	# Pile viewer overlay
 	_setup_pile_viewer()
 	# Discard selection overlay
