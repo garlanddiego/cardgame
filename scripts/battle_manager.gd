@@ -1349,7 +1349,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 
 			# ---- Power effect activation ----
 			"power_effect":
-				var power_name: String = action.get("power", "")
+				# Use card_data's power_effect (reflects upgrades) over action's static value
+				var power_name: String = card_data.get("power_effect", action.get("power", ""))
 				if power_name != "":
 					var hero_tgt: String = card_data.get("hero_target", "self")
 					if hero_tgt == "all_heroes":

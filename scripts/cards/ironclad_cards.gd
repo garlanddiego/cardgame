@@ -169,7 +169,7 @@ static func get_upgrade_overrides() -> Dictionary:
 		"ic_evolve": {"description": "Whenever you draw a\nStatus card, draw 2.", "power_effect": "evolve_plus"},
 		"ic_rage": {"description": "Whenever you play an\nAttack this turn,\ngain 5 Block.", "power_effect": "rage_plus"},
 		"ic_barricade": {"cost": 2, "description": "Block is not removed\nat the start of\nyour turn."},
-		"ic_inflame": {"apply_self_status": {"type": "strength", "stacks": 3}, "description": "Gain 3 Strength."},
+		"ic_inflame": {"apply_self_status": {"type": "strength", "stacks": 3}, "hero_target": "all_heroes", "description": "Gain 3 Strength."},
 		"ic_metallicize": {"description": "At the end of your\nturn, gain 4 Block.", "power_effect": "metallicize_plus", "per_turn": {"block": 4}, "power_stacks": 4},
 		"ic_brutality": {"description": "At the start of your\nturn, lose 1 HP and\ndraw 1 card.\nInnate.", "power_effect": "brutality", "innate": true},
 		"ic_combust": {"description": "At the end of your\nturn, lose 1 HP and\ndeal 7 damage to ALL\nenemies.", "power_effect": "combust_plus", "per_turn": {"self_damage": 1, "damage_all": 7}, "power_stacks": 7},
