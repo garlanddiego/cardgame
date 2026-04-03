@@ -910,6 +910,28 @@ func _update_unplayable_ids() -> void:
 			blocked.append(card_data.get("id", ""))
 	card_hand.unplayable_ids = blocked
 
+func _card_affects_hero(card_data: Dictionary) -> bool:
+	## Returns true if a self-target card directly modifies hero attributes/status.
+	## Cards that only manipulate hand/draw/energy (Blade Dance, Prepared, etc.) return false.
+	if card_data.get("type", 0) == 2:  # POWER type
+		return true
+	if card_data.get("block", 0) > 0 or card_data.get("block_per", 0) > 0:
+		return true
+	if card_data.get("double_block", false) or card_data.get("double_strength", false):
+		return true
+	if card_data.get("power_effect", "") != "":
+		return true
+	if not card_data.get("apply_self_status", {}).is_empty():
+		return true
+	if card_data.get("temp_dex", 0) != 0 or card_data.get("flex_stacks", 0) != 0:
+		return true
+	if card_data.get("escape_block", 0) > 0:
+		return true
+	for action in card_data.get("actions", []):
+		if action.get("type", "") == "self_damage":
+			return true
+	return false
+
 func _can_play_card(card_data: Dictionary) -> bool:
 	# Unplayable cards (status cards)
 	if card_data.get("unplayable", false):
@@ -2874,8 +2896,8 @@ func _process(_delta: float) -> void:
 				_highlight_heroes()
 			elif ht == "all_heroes":
 				_highlight_heroes()
-			else:
-				# "self" — highlight only the card's own hero
+			elif _card_affects_hero(card_data):
+				# "self" — highlight only if card modifies hero attributes/status
 				var own_hero = _get_card_hero(card_data)
 				if own_hero and own_hero.has_method("show_target_highlight"):
 					own_hero.show_target_highlight()
@@ -3886,12 +3908,13 @@ func _setup_discard_overlay() -> void:
 	hud_layer.add_child(_discard_overlay)
 
 	# Dark background covering y:60-700 (above hand area)
+	# MOUSE_FILTER_IGNORE so selected preview cards at center remain clickable
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
 	bg.position = Vector2(0, 60)
 	bg.size = Vector2(1920, 640)
 	bg.color = Color(0, 0, 0, 0.6)
-	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(bg)
 
 	# Title label — top center of the overlay
