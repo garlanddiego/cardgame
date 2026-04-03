@@ -124,6 +124,34 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
   _hud_deck_btn.pressed.connect(_show_deck_viewer)
   hbox.add_child(_hud_deck_btn)
 
+  # Map viewer button with map icon
+  _hud_map_btn = Button.new()
+  _hud_map_btn.custom_minimum_size = Vector2(44, 44)
+  var map_tex = load("res://assets/img/ui_icons/map.png")
+  if map_tex:
+    var map_icon := TextureRect.new()
+    map_icon.texture = map_tex
+    map_icon.custom_minimum_size = Vector2(36, 36)
+    map_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    map_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    map_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _hud_map_btn.add_child(map_icon)
+  else:
+    _hud_map_btn.text = "🗺"
+  var map_btn_style := StyleBoxFlat.new()
+  map_btn_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
+  map_btn_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+  map_btn_style.set_border_width_all(1)
+  map_btn_style.set_corner_radius_all(6)
+  map_btn_style.content_margin_left = 4
+  map_btn_style.content_margin_right = 4
+  _hud_map_btn.add_theme_stylebox_override("normal", map_btn_style)
+  var map_btn_hover := map_btn_style.duplicate() as StyleBoxFlat
+  map_btn_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+  _hud_map_btn.add_theme_stylebox_override("hover", map_btn_hover)
+  _hud_map_btn.pressed.connect(_show_map_viewer)
+  hbox.add_child(_hud_map_btn)
+
 # ═══════════════════════════════════════════════════════════════════════════
 # INITIAL DRAFT (4 rounds of card picking before map)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -342,6 +370,7 @@ var _hud_hp1_label: Label = null
 var _hud_hp2_label: Label = null
 var _hud_floor_label: Label = null
 var _hud_deck_btn: Button = null
+var _hud_map_btn: Button = null
 
 func _show_map() -> void:
   phase = Phase.MAP
@@ -1565,6 +1594,115 @@ func _show_deck_viewer() -> void:
       card_visual.custom_minimum_size = card_size
       card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
       grid.add_child(card_visual)
+
+  # Close button (X) top-right
+  var close_btn := Button.new()
+  close_btn.text = "✕"
+  close_btn.position = Vector2(1920 - 80, 55)
+  close_btn.custom_minimum_size = Vector2(60, 60)
+  close_btn.add_theme_font_size_override("font_size", 32)
+  close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+  var close_sb := StyleBoxFlat.new()
+  close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
+  close_sb.set_corner_radius_all(8)
+  close_btn.add_theme_stylebox_override("normal", close_sb)
+  var close_hover := close_sb.duplicate() as StyleBoxFlat
+  close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
+  close_btn.add_theme_stylebox_override("hover", close_hover)
+  close_btn.pressed.connect(func(): viewer.queue_free())
+  viewer.add_child(close_btn)
+
+func _show_map_viewer() -> void:
+  # Render on DeckViewerCanvas (layer 15) — below PersistentHUD (20)
+  if _deck_viewer_canvas == null:
+    return
+  # Remove previous viewer if open
+  var old_viewer = _deck_viewer_canvas.get_node_or_null("MapViewerPanel")
+  if old_viewer:
+    old_viewer.queue_free()
+
+  var viewer := Control.new()
+  viewer.name = "MapViewerPanel"
+  viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  viewer.mouse_filter = Control.MOUSE_FILTER_STOP
+  _deck_viewer_canvas.add_child(viewer)
+
+  # Dark background — click to close
+  var bg := ColorRect.new()
+  bg.color = Color(0, 0, 0, 0.85)
+  bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.mouse_filter = Control.MOUSE_FILTER_STOP
+  bg.gui_input.connect(func(event: InputEvent):
+    if event is InputEventMouseButton and event.pressed:
+      viewer.queue_free()
+  )
+  viewer.add_child(bg)
+
+  # Title
+  var title := Label.new()
+  title.text = "地图 — 第 %d 层" % run.floor_num if run.floor_num > 0 else "地图"
+  title.add_theme_font_size_override("font_size", 32)
+  title.add_theme_color_override("font_color", Color(1, 1, 0.8))
+  title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  title.position = Vector2(0, 60)
+  title.size = Vector2(1920, 50)
+  title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  viewer.add_child(title)
+
+  # Scroll container for map
+  var scroll := ScrollContainer.new()
+  scroll.position = Vector2(60, 110)
+  scroll.size = Vector2(1800, 920)
+  scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+  scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+  viewer.add_child(scroll)
+
+  # Map canvas
+  var node_size := 80
+  var floor_height := 120
+  var map_width := 1800
+  var total_height: int = 11 * floor_height + 100
+  var map_canvas := Control.new()
+  map_canvas.custom_minimum_size = Vector2(map_width, total_height)
+  scroll.add_child(map_canvas)
+
+  # Draw lines canvas
+  var line_canvas := Control.new()
+  line_canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  line_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  map_canvas.add_child(line_canvas)
+
+  # Calculate node positions
+  var node_positions: Dictionary = {}
+  for key in run.map_nodes:
+    var nd: Dictionary = run.map_nodes[key]
+    var fl: int = nd["floor"]
+    var col: int = nd["col"]
+    var total_cols: int = nd["total_cols"]
+    var x_spacing: float = map_width / (total_cols + 1)
+    var x: float = x_spacing * (col + 1)
+    var y: float = total_height - (fl * floor_height + 50)
+    node_positions[key] = Vector2(x, y)
+
+  # Draw paths
+  for path in run.map_paths:
+    var from_pos: Vector2 = node_positions.get(path[0], Vector2.ZERO)
+    var to_pos: Vector2 = node_positions.get(path[1], Vector2.ZERO)
+    var line := _create_path_line(from_pos, to_pos, path[0], path[1])
+    line_canvas.add_child(line)
+
+  # Draw nodes (read-only, no click handlers)
+  for key in run.map_nodes:
+    var nd: Dictionary = run.map_nodes[key]
+    var pos: Vector2 = node_positions[key]
+    var btn := _create_map_node(key, nd, pos, node_size)
+    btn.disabled = true  # All nodes non-interactive in viewer
+    map_canvas.add_child(btn)
+
+  # Auto-scroll to current floor
+  await get_tree().process_frame
+  var scroll_y: int = maxi(0, total_height - int((run.floor_num + 2) * floor_height) - 400)
+  scroll.scroll_vertical = scroll_y
 
   # Close button (X) top-right
   var close_btn := Button.new()
