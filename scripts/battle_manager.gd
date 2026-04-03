@@ -3013,9 +3013,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_clear_damage_previews()
 			_hovered_enemy = null
 			card_hand.update_layout()
-	# Left click during targeting: check if clicking on the selected card (deselect) or target
+	# Left click: check if clicking on the selected card (deselect) or target
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if card_hand and card_hand.is_targeting() and card_hand.selected_card:
+		if card_hand and card_hand.selected_card:
 			# Check if click is on the selected card itself → deselect
 			var click_pos_check: Vector2 = event.global_position
 			var sel_card = card_hand.selected_card
