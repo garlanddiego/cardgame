@@ -48,11 +48,11 @@ static func get_cards() -> Dictionary:
 	# =========================================================================
 	db["ic_defend"] = {"id": "ic_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "hero_target": "target_hero", "actions": [{"type": "block"}]}
 	db["ic_shrug_it_off"] = {"id": "ic_shrug_it_off", "name": "Shrug It Off", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDraw 1 card.", "art": "", "target": "self", "draw": 1, "actions": [{"type": "block"}, {"type": "draw"}]}
-	db["ic_flame_barrier"] = {"id": "ic_flame_barrier", "name": "Flame Barrier", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 12, "description": "Gain 12 Block.\nWhen attacked this turn,\ndeal 4 damage back.", "art": "", "target": "self", "power_effect": "flame_barrier", "actions": [{"type": "block"}, {"type": "power_effect", "power": "flame_barrier"}]}
+	db["ic_flame_barrier"] = {"id": "ic_flame_barrier", "name": "Flame Barrier", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 12, "description": "Gain 12 Block.\nWhen attacked this turn,\ndeal 4 damage back.", "art": "", "target": "self", "hero_target": "target_hero", "power_effect": "flame_barrier", "actions": [{"type": "block"}, {"type": "power_effect", "power": "flame_barrier"}]}
 	db["ic_battle_trance"] = {"id": "ic_battle_trance", "name": "Battle Trance", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Draw 3 cards.", "art": "", "target": "self", "draw": 3, "actions": [{"type": "draw"}]}
 	db["ic_bloodletting"] = {"id": "ic_bloodletting", "name": "Bloodletting", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Lose 3 HP.\nGain 2 Energy.", "art": "", "target": "self", "actions": [{"type": "self_damage", "value": 3}, {"type": "gain_energy", "value": 2}]}
 	db["ic_flex"] = {"id": "ic_flex", "name": "Flex", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Gain 2 Strength.\nAt end of turn,\nlose 2 Strength.", "art": "", "target": "self", "flex_stacks": 2, "actions": [{"type": "call", "fn": "flex"}]}
-	db["ic_limit_break"] = {"id": "ic_limit_break", "name": "Limit Break", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Strength.\nExhaust.", "art": "", "target": "self", "exhaust": true, "double_strength": true, "actions": [{"type": "call", "fn": "limit_break"}]}
+	db["ic_limit_break"] = {"id": "ic_limit_break", "name": "Limit Break", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Strength.\nExhaust.", "art": "", "target": "self", "hero_target": "target_hero", "exhaust": true, "double_strength": true, "actions": [{"type": "call", "fn": "limit_break"}]}
 	db["ic_entrench"] = {"id": "ic_entrench", "name": "Entrench", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Double your Block.", "art": "", "target": "self", "double_block": true, "actions": [{"type": "call", "fn": "entrench"}]}
 	db["ic_shockwave"] = {"id": "ic_shockwave", "name": "Shockwave", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Apply 3 Weak and\n3 Vulnerable to\nALL enemies. Exhaust.", "art": "", "target": "all_enemies", "apply_status": {"type": "weak", "stacks": 3}, "apply_status_2": {"type": "vulnerable", "stacks": 3}, "exhaust": true, "actions": [{"type": "apply_status", "source": "apply_status"}, {"type": "apply_status", "source": "apply_status_2"}]}
 	db["ic_armaments"] = {"id": "ic_armaments", "name": "Armaments", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "actions": [{"type": "block"}]}
@@ -67,11 +67,11 @@ static func get_cards() -> Dictionary:
 	db["ic_dual_wield"] = {"id": "ic_dual_wield", "name": "Dual Wield", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Copy an Attack or\nPower card in hand.", "art": "", "target": "self", "copies": 1, "actions": [{"type": "call", "fn": "dual_wield"}]}
 	db["ic_ghostly_armor"] = {"id": "ic_ghostly_armor", "name": "Ghostly Armor", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 10, "description": "Ethereal.\nGain 10 Block.", "art": "", "target": "self", "ethereal": true, "actions": [{"type": "block"}]}
 	db["ic_havoc"] = {"id": "ic_havoc", "name": "Havoc", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it.", "art": "", "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "havoc"}]}
-	db["ic_impervious"] = {"id": "ic_impervious", "name": "Impervious", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 30, "description": "Gain 30 Block.\nExhaust.", "art": "", "target": "self", "exhaust": true, "actions": [{"type": "block"}]}
+	db["ic_impervious"] = {"id": "ic_impervious", "name": "Impervious", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 30, "description": "Gain 30 Block.\nExhaust.", "art": "", "target": "self", "hero_target": "target_hero", "exhaust": true, "actions": [{"type": "block"}]}
 	db["ic_exhume"] = {"id": "ic_exhume", "name": "Exhume", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust.", "art": "", "target": "self", "exhaust": true, "actions": [{"type": "call", "fn": "exhume"}]}
 	db["ic_sentinel"] = {"id": "ic_sentinel", "name": "Sentinel", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.\nIf this card is\nExhausted, gain\n2 Energy.", "art": "", "target": "self", "status": "incomplete", "actions": [{"type": "block"}]}
 	db["ic_spot_weakness"] = {"id": "ic_spot_weakness", "name": "Spot Weakness", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "If the enemy intends\nto attack, all heroes\ngain 3 Strength.", "art": "", "target": "enemy", "spot_str": 3, "actions": [{"type": "call", "fn": "spot_weakness"}]}
-	db["ic_true_grit"] = {"id": "ic_true_grit", "name": "True Grit", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 7, "description": "Gain 7 Block.\nExhaust a random\ncard in your hand.", "art": "", "target": "self", "random_exhaust": true, "actions": [{"type": "block"}, {"type": "call", "fn": "true_grit"}]}
+	db["ic_true_grit"] = {"id": "ic_true_grit", "name": "True Grit", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 7, "description": "Gain 7 Block.\nExhaust a random\ncard in your hand.", "art": "", "target": "self", "hero_target": "target_hero", "random_exhaust": true, "actions": [{"type": "block"}, {"type": "call", "fn": "true_grit"}]}
 	db["ic_disarm"] = {"id": "ic_disarm", "name": "Disarm", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Enemy loses 2\nStrength. Exhaust.", "art": "", "target": "enemy", "apply_status": {"type": "strength", "stacks": -2}, "exhaust": true, "actions": [{"type": "apply_status", "source": "apply_status"}]}
 	db["ic_double_tap"] = {"id": "ic_double_tap", "name": "Double Tap", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "This turn, your next\nAttack is played twice.", "art": "", "target": "self", "power_effect": "double_tap", "double_next_attack": true, "power_stacks": 1, "actions": [{"type": "power_effect", "power": "double_tap"}]}
 
@@ -134,11 +134,11 @@ static func get_upgrade_overrides() -> Dictionary:
 		# SKILLS
 		"ic_defend": {"block": 8, "description": "Gain 8 Block."},
 		"ic_shrug_it_off": {"block": 11, "description": "Gain 11 Block.\nDraw 1 card."},
-		"ic_flame_barrier": {"block": 16, "description": "Gain 16 Block.\nWhen attacked this turn,\ndeal 6 damage back."},
+		"ic_flame_barrier": {"block": 16, "hero_target": "target_hero", "description": "Gain 16 Block.\nWhen attacked this turn,\ndeal 6 damage back."},
 		"ic_battle_trance": {"draw": 4, "description": "Draw 4 cards."},
 		"ic_bloodletting": {"actions": [{"type": "self_damage", "value": 3}, {"type": "gain_energy", "value": 3}], "description": "Lose 3 HP.\nGain 3 Energy."},
 		"ic_flex": {"flex_stacks": 4, "description": "Gain 4 Strength.\nAt end of turn,\nlose 4 Strength."},
-		"ic_limit_break": {"exhaust": false, "description": "Double your Strength."},
+		"ic_limit_break": {"exhaust": false, "hero_target": "target_hero", "description": "Double your Strength."},
 		"ic_entrench": {"cost": 1, "description": "Double your Block."},
 		"ic_shockwave": {"apply_status": {"type": "weak", "stacks": 5}, "apply_status_2": {"type": "vulnerable", "stacks": 5}, "description": "Apply 5 Weak and\n5 Vulnerable to\nALL enemies. Exhaust."},
 		"ic_armaments": {"block": 5, "description": "Gain 5 Block.\nUpgrade ALL cards\nin hand."},
@@ -153,11 +153,11 @@ static func get_upgrade_overrides() -> Dictionary:
 		"ic_dual_wield": {"copies": 2, "description": "Copy an Attack or\nPower card in hand\n2 times."},
 		"ic_ghostly_armor": {"block": 13, "description": "Ethereal.\nGain 13 Block."},
 		"ic_havoc": {"cost": 0, "description": "Play the top card of\nyour draw pile and\nExhaust it."},
-		"ic_impervious": {"block": 40, "description": "Gain 40 Block.\nExhaust."},
+		"ic_impervious": {"block": 40, "hero_target": "target_hero", "description": "Gain 40 Block.\nExhaust."},
 		"ic_exhume": {"cost": 0, "description": "Put a card from your\nexhaust pile into\nyour hand. Exhaust."},
 		"ic_sentinel": {"block": 8, "description": "Gain 8 Block.\nIf this card is\nExhausted, gain\n3 Energy."},
 		"ic_spot_weakness": {"spot_str": 4, "description": "If the enemy intends\nto attack, all heroes\ngain 4 Strength."},
-		"ic_true_grit": {"block": 9, "description": "Gain 9 Block.\nExhaust a card in\nyour hand."},
+		"ic_true_grit": {"block": 9, "hero_target": "target_hero", "description": "Gain 9 Block.\nExhaust a card in\nyour hand."},
 		"ic_disarm": {"apply_status": {"type": "strength", "stacks": -3}, "description": "Enemy loses 3\nStrength. Exhaust."},
 		"ic_double_tap": {"description": "This turn, your next\n2 Attacks are played\ntwice."},
 		# POWERS
