@@ -1491,55 +1491,91 @@ func _show_deck_viewer() -> void:
   _overlay.visible = true
   _clear_children(_overlay)
 
+  # Dark background — click to close
   var bg := ColorRect.new()
-  bg.color = Color(0, 0, 0, 0.9)
+  bg.color = Color(0, 0, 0, 0.85)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.mouse_filter = Control.MOUSE_FILTER_STOP
+  bg.gui_input.connect(func(event: InputEvent):
+    if event is InputEventMouseButton and event.pressed:
+      _overlay.visible = false
+      _clear_children(_overlay)
+  )
   _overlay.add_child(bg)
 
+  # Title
   var title := Label.new()
   title.text = "卡组 (%d张)" % run.deck.size()
-  title.add_theme_font_size_override("font_size", 36)
-  title.add_theme_color_override("font_color", Color.WHITE)
+  title.add_theme_font_size_override("font_size", 32)
+  title.add_theme_color_override("font_color", Color(1, 1, 0.8))
   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  title.offset_top = 60
-  title.offset_right = 1920
+  title.position = Vector2(0, 60)
+  title.size = Vector2(1920, 50)
+  title.mouse_filter = Control.MOUSE_FILTER_IGNORE
   _overlay.add_child(title)
 
+  # Scroll container for card grid
   var scroll := ScrollContainer.new()
-  scroll.offset_top = 110
-  scroll.offset_right = 1920
-  scroll.offset_bottom = 1020
+  scroll.position = Vector2(60, 110)
+  scroll.size = Vector2(1800, 920)
+  scroll.mouse_filter = Control.MOUSE_FILTER_PASS
   _overlay.add_child(scroll)
 
   var grid := GridContainer.new()
   grid.columns = 5
-  grid.add_theme_constant_override("h_separation", 10)
-  grid.add_theme_constant_override("v_separation", 10)
-  grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+  grid.add_theme_constant_override("h_separation", 16)
+  grid.add_theme_constant_override("v_separation", 16)
+  grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   scroll.add_child(grid)
 
-  for card_id in run.deck:
-    var display_cd: Dictionary = {}
-    if card_id.ends_with("+"):
-      var base_id: String = card_id.trim_suffix("+")
-      display_cd = gm.get_upgraded_card(base_id)
-    elif gm.card_database.has(card_id):
-      display_cd = gm.card_database[card_id]
-    if not display_cd.is_empty():
-      var lbl := _create_card_button(display_cd)
-      lbl.disabled = true
-      grid.add_child(lbl)
+  var loc = get_node_or_null("/root/Loc")
+  var card_size := Vector2(296, 422)
 
-  var close := _styled_button("关闭", Color(0.5, 0.5, 0.5))
-  close.offset_top = 1030
-  close.offset_left = 860
-  close.offset_right = 1060
-  close.offset_bottom = 1070
-  close.pressed.connect(func():
+  # Sort cards by type then name
+  var sorted_deck: Array = run.deck.duplicate()
+  sorted_deck.sort_custom(func(a, b):
+    var cd_a: Dictionary = _get_card_display(a)
+    var cd_b: Dictionary = _get_card_display(b)
+    if cd_a.get("type", 0) != cd_b.get("type", 0):
+      return cd_a.get("type", 0) < cd_b.get("type", 0)
+    return cd_a.get("name", "") < cd_b.get("name", "")
+  )
+
+  for card_id in sorted_deck:
+    var display_cd: Dictionary = _get_card_display(card_id)
+    if not display_cd.is_empty():
+      var card_visual := CardScript.create_card_visual(display_cd, card_size, loc)
+      card_visual.custom_minimum_size = card_size
+      card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
+      grid.add_child(card_visual)
+
+  # Close button (X) top-right
+  var close_btn := Button.new()
+  close_btn.text = "✕"
+  close_btn.position = Vector2(1920 - 80, 55)
+  close_btn.custom_minimum_size = Vector2(60, 60)
+  close_btn.add_theme_font_size_override("font_size", 32)
+  close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+  var close_sb := StyleBoxFlat.new()
+  close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
+  close_sb.set_corner_radius_all(8)
+  close_btn.add_theme_stylebox_override("normal", close_sb)
+  var close_hover := close_sb.duplicate() as StyleBoxFlat
+  close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
+  close_btn.add_theme_stylebox_override("hover", close_hover)
+  close_btn.pressed.connect(func():
     _overlay.visible = false
     _clear_children(_overlay)
   )
-  _overlay.add_child(close)
+  _overlay.add_child(close_btn)
+
+func _get_card_display(card_id: String) -> Dictionary:
+  if card_id.ends_with("+"):
+    var base_id: String = card_id.trim_suffix("+")
+    return gm.get_upgraded_card(base_id)
+  elif gm.card_database.has(card_id):
+    return gm.card_database[card_id]
+  return {}
 
 # ═══════════════════════════════════════════════════════════════════════════
 # HELPERS
