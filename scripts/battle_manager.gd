@@ -18,6 +18,7 @@ var second_character_id: String = ""
 var second_player: Node2D = null  # Back-row hero (dual hero mode)
 var _player_character_id: String = ""  # Character ID of front-row hero
 var _second_character_id: String = ""  # Character ID of back-row hero
+var _dead_hero_char: String = ""  # Character ID of dead hero (cards become unplayable)
 @export var player_sprite_scale_height: float = 359.0  ## Target height in pixels for player sprite (+5% from 342)
 @export var enemy_sprite_scale_height: float = 280.0  ## Target height in pixels for enemy sprite (was 350)
 @export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
@@ -235,6 +236,7 @@ func _exit_tree() -> void:
 func start_battle(character_id: String) -> void:
 	battle_active = true
 	turn_number = 0
+	_dead_hero_char = ""
 	_reset_all_powers()
 	# Reset per-combat battle stats
 	hp_lost_this_combat = 0
@@ -262,6 +264,9 @@ func start_battle(character_id: String) -> void:
 		_update_swap_button_position()
 	# Build deck from both characters if dual hero mode
 	_build_deck(character_id, gm)
+	# Reset dead hero card state
+	if card_hand:
+		card_hand.dead_hero_chars = []
 	# Start first turn
 	start_player_turn()
 
@@ -882,6 +887,11 @@ func _can_play_card(card_data: Dictionary) -> bool:
 	# Unplayable cards (status cards)
 	if card_data.get("unplayable", false):
 		return false
+	# Dead hero's cards are unplayable
+	if dual_hero_mode and _dead_hero_char != "":
+		var card_char: String = card_data.get("character", "")
+		if card_char == _dead_hero_char:
+			return false
 	var special: String = card_data.get("special", "")
 	# Clash: only playable if all cards in hand are attacks
 	if special == "clash":
@@ -2638,6 +2648,17 @@ func _on_player_died() -> void:
 			if _swap_button and is_instance_valid(_swap_button):
 				_swap_button.queue_free()
 				_swap_button = null
+			# Track dead hero — their cards become unplayable
+			if player and not player.alive:
+				_dead_hero_char = _player_character_id
+			elif second_player and not second_player.alive:
+				_dead_hero_char = _second_character_id
+			# Refresh card playability (dead hero's cards become blocked + ethereal)
+			if card_hand:
+				card_hand.dead_hero_chars = [_dead_hero_char]
+			_update_unplayable_ids()
+			if card_hand:
+				card_hand.update_card_playability(current_energy)
 			return  # One hero still alive, continue battle
 	battle_active = false
 	player_died.emit()

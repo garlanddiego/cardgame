@@ -674,13 +674,17 @@ func _start_battle(nd: Dictionary) -> void:
     )
 
 func _on_battle_won() -> void:
-  # Save HP back to run state
+  # Save HP back to run state; revive dead hero with 1 HP
   if _battle_instance:
     var bm: Node2D = _battle_instance
-    if bm.player:
+    if bm.player and bm.player.alive:
       run.hero1_hp = bm.player.current_hp
-    if bm.second_player:
+    else:
+      run.hero1_hp = 1
+    if bm.second_player and bm.second_player.alive:
       run.hero2_hp = bm.second_player.current_hp
+    else:
+      run.hero2_hp = 1
 
   # Check if this was the boss
   if _pending_node.get("type", "") == "B":

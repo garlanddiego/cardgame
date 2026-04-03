@@ -14,6 +14,7 @@ var targeting_mode: bool = false
 var current_battle_energy: int = 3
 var corruption_active: bool = false
 var unplayable_ids: Array = []  # Card IDs that can't be played (special conditions not met)
+var dead_hero_chars: Array = []  # Character IDs of dead heroes — their cards look ethereal
 
 # Discard selection mode — cards are tapped to toggle discard selection
 var discard_mode: bool = false
@@ -491,8 +492,12 @@ func update_card_playability(current_energy: int) -> void:
 		if cost == -1:
 			cost = 0  # X-cost cards are always playable
 		if card.card_visual:
-			# Always keep full color (no grey dimming)
-			if not card.is_selected:
+			# Check if card belongs to a dead hero — apply ethereal look
+			var card_char: String = card.card_data.get("character", "")
+			var is_dead_hero_card: bool = card_char in dead_hero_chars
+			if is_dead_hero_card:
+				card.card_visual.modulate = Color(0.4, 0.4, 0.5, 0.5)
+			elif not card.is_selected:
 				card.card_visual.modulate = Color(1, 1, 1, 1)
 			# Find cost label: try CostLabel first (STS2 card visual), then FallbackCost
 			var cost_lbl: Label = null
