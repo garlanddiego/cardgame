@@ -1382,13 +1382,14 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if dmg > 0:
 					_apply_single_hit_damage(dmg, target, target_type)
 		"heavy_blade":
-			if player:
-				var str_val: int = player.get_status_stacks("strength")
+			var hb_hero = _get_card_hero(card_data) if _get_card_hero(card_data) else player
+			if hb_hero:
+				var str_val: int = hb_hero.get_status_stacks("strength")
 				var mult: int = card_data.get("str_mult", 3)
 				var base_dmg: int = card_data.get("damage", 14)
-				# Apply strength with multiplier, then weak penalty
+				# Strength applies x mult (normal cards apply x1, heavy blade x3/x5)
 				var dmg: int = base_dmg + str_val * mult
-				if player.status_effects.get("weak", 0) > 0:
+				if hb_hero.status_effects.get("weak", 0) > 0:
 					dmg = int(dmg * 0.75)
 				if _double_damage_this_turn:
 					dmg *= 2
