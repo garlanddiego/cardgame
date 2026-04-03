@@ -745,7 +745,8 @@ func _show_rewards() -> void:
   banner_style.content_margin_top = 8
   banner_style.content_margin_bottom = 8
   banner.add_theme_stylebox_override("panel", banner_style)
-  banner.position = Vector2(660, 100)
+  var vw: float = get_viewport_rect().size.x
+  banner.position = Vector2((vw - 600) / 2.0, 100)
   banner.size = Vector2(600, 60)
   _overlay.add_child(banner)
 
@@ -768,7 +769,7 @@ func _show_rewards() -> void:
   dialog_style.content_margin_top = 20
   dialog_style.content_margin_bottom = 20
   _reward_dialog.add_theme_stylebox_override("panel", dialog_style)
-  _reward_dialog.position = Vector2(735, 180)
+  _reward_dialog.position = Vector2((vw - 450) / 2.0, 180)
   _reward_dialog.size = Vector2(450, 450)
   _overlay.add_child(_reward_dialog)
 
@@ -806,7 +807,7 @@ func _show_rewards() -> void:
   var skip_hover := skip_style.duplicate() as StyleBoxFlat
   skip_hover.bg_color = Color(0.4, 0.35, 0.15, 0.9)
   _reward_skip_btn.add_theme_stylebox_override("hover", skip_hover)
-  _reward_skip_btn.position = Vector2(1620, 680)
+  _reward_skip_btn.position = Vector2(vw - 220, 680)
   _reward_skip_btn.pressed.connect(_show_map)
   _overlay.add_child(_reward_skip_btn)
 
@@ -1216,9 +1217,10 @@ func _show_upgrade_detail(card_id: String) -> void:
   after_card.add_child(CardScript.create_card_visual(display_cd, Vector2(280, 400), loc))
 
   # Confirm button
+  var btn_w: float = 200.0
   var confirm := Button.new()
   confirm.text = "确认"
-  confirm.custom_minimum_size = Vector2(200, 56)
+  confirm.custom_minimum_size = Vector2(btn_w, 56)
   confirm.add_theme_font_size_override("font_size", 26)
   var confirm_style := StyleBoxFlat.new()
   confirm_style.bg_color = Color(0.15, 0.5, 0.15, 0.9)
@@ -1237,13 +1239,13 @@ func _show_upgrade_detail(card_id: String) -> void:
   # Back button
   var back := Button.new()
   back.text = "返回"
-  back.custom_minimum_size = Vector2(160, 50)
-  back.add_theme_font_size_override("font_size", 22)
+  back.custom_minimum_size = Vector2(btn_w, 56)
+  back.add_theme_font_size_override("font_size", 26)
   var back_style := StyleBoxFlat.new()
   back_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
   back_style.set_corner_radius_all(8)
   back.add_theme_stylebox_override("normal", back_style)
-  back.position = Vector2(1000, 625)
+  back.position = Vector2(760 + btn_w + 20, 620)
   back.pressed.connect(func(): detail.queue_free())
   detail.add_child(back)
 
@@ -1400,10 +1402,11 @@ func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, sl
   big_card.add_child(CardScript.create_card_visual(card_data, Vector2(320, 450), loc))
 
   # Buy button
+  var shop_btn_w: float = 180.0
   var buy_btn := Button.new()
   buy_btn.text = "确认" if run.gold >= price else "金币不足"
   buy_btn.disabled = run.gold < price
-  buy_btn.custom_minimum_size = Vector2(180, 56)
+  buy_btn.custom_minimum_size = Vector2(shop_btn_w, 56)
   buy_btn.add_theme_font_size_override("font_size", 26)
   var buy_style := StyleBoxFlat.new()
   buy_style.bg_color = Color(0.15, 0.5, 0.15, 0.9)
@@ -1429,13 +1432,13 @@ func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, sl
   # Cancel button
   var cancel := Button.new()
   cancel.text = "取消"
-  cancel.custom_minimum_size = Vector2(140, 50)
-  cancel.add_theme_font_size_override("font_size", 22)
+  cancel.custom_minimum_size = Vector2(shop_btn_w, 56)
+  cancel.add_theme_font_size_override("font_size", 26)
   var cancel_style := StyleBoxFlat.new()
   cancel_style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
   cancel_style.set_corner_radius_all(8)
   cancel.add_theme_stylebox_override("normal", cancel_style)
-  cancel.position = Vector2(980, 685)
+  cancel.position = Vector2(760 + shop_btn_w + 20, 680)
   cancel.pressed.connect(func(): detail.queue_free())
   detail.add_child(cancel)
 
@@ -1708,6 +1711,7 @@ func _show_map_viewer() -> void:
   var total_height: int = 11 * floor_height + 100
   var map_canvas := Control.new()
   map_canvas.custom_minimum_size = Vector2(map_width, total_height)
+  map_canvas.mouse_filter = Control.MOUSE_FILTER_PASS
   scroll.add_child(map_canvas)
 
   # Draw lines canvas
@@ -1741,6 +1745,7 @@ func _show_map_viewer() -> void:
     var pos: Vector2 = node_positions[key]
     var btn := _create_map_node(key, nd, pos, node_size)
     btn.disabled = true  # All nodes non-interactive in viewer
+    btn.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow scroll-through on touch
     map_canvas.add_child(btn)
 
   # Auto-scroll to current floor
