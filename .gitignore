@@ -22,3 +22,6 @@ ASSETS.md
 PLAN.md
 STRUCTURE.md
 *.csv
+*.csv.import
+*.translation
+sim_*
