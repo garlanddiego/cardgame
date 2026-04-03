@@ -93,11 +93,11 @@ func _setup_visuals() -> void:
 		_shield_tex = load("res://assets/img/ui_icons/shield.png")
 	if ResourceLoader.exists("res://assets/img/ui_icons/shield_dim.png"):
 		_shield_dim_tex = load("res://assets/img/ui_icons/shield_dim.png")
-	# Resize HP bar: base 262px (+20%), extra 10px per 10 HP above 100
+	# Resize HP bar: base 262px, extra 15px per 10 HP above 50
 	if hp_bar_bg:
 		var base_width: float = 262.0
-		if max_hp > 100:
-			base_width += float((max_hp - 100) / 10) * 10.0
+		if max_hp > 50:
+			base_width += float((max_hp - 50) / 10) * 15.0
 		var half_w: float = base_width / 2.0
 		hp_bar_bg.offset_left = -half_w
 		hp_bar_bg.offset_right = half_w
