@@ -1662,15 +1662,11 @@ func _show_map_viewer() -> void:
   viewer.mouse_filter = Control.MOUSE_FILTER_STOP
   _deck_viewer_canvas.add_child(viewer)
 
-  # Dark background — click to close
+  # Dark background — visual only, doesn't block scroll
   var bg := ColorRect.new()
   bg.color = Color(0, 0, 0, 0.85)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  bg.mouse_filter = Control.MOUSE_FILTER_STOP
-  bg.gui_input.connect(func(event: InputEvent):
-    if event is InputEventMouseButton and event.pressed:
-      viewer.queue_free()
-  )
+  bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
   viewer.add_child(bg)
 
   # Title
@@ -1689,7 +1685,8 @@ func _show_map_viewer() -> void:
   scroll.position = Vector2(60, 110)
   scroll.size = Vector2(1800, 920)
   scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-  scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+  scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
+  scroll.mouse_filter = Control.MOUSE_FILTER_STOP
   viewer.add_child(scroll)
 
   # Map canvas
