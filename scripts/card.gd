@@ -325,21 +325,6 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	var desc: String = card.get("description", "")
 	if loc and loc.has_method("card_desc"):
 		desc = loc.card_desc(card)
-	# Append hero target indicator for self-targeting cards
-	var hero_tgt: String = card.get("hero_target", "")
-	if hero_tgt != "" and card.get("target", "") == "self":
-		var hero_char: String = card.get("character", "")
-		if hero_tgt == "self":
-			var hero_display: String = ""
-			match hero_char:
-				"ironclad": hero_display = "铁甲战士"
-				"silent": hero_display = "沉默猎手"
-			if hero_display != "":
-				desc += "\n→ %s" % hero_display
-		elif hero_tgt == "all_heroes":
-			desc += "\n→ 所有英雄"
-		elif hero_tgt == "target_hero":
-			desc += "\n→ 选择英雄"
 	if desc != "":
 		var desc_lbl = Label.new()
 		desc_lbl.name = "DescLabel"
