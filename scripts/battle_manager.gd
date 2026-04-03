@@ -2118,7 +2118,7 @@ func end_player_turn() -> void:
 		# Show retain selection UI, then continue end-of-turn in callback
 		_show_discard_selection(retain_count, _on_retain_complete)
 		_discard_title_label.text = "保留 %d 张手牌" % retain_count
-		_discard_confirm_btn.text = "确认保留 (0/%d)" % retain_count
+		_discard_confirm_btn.text = "确认 (0/%d)" % retain_count
 		return  # End of turn continues in _on_retain_complete
 	elif retain_count > 0 and hand.size() <= retain_count:
 		# Keep all cards (fewer than retain count)
@@ -3882,7 +3882,7 @@ func _setup_discard_overlay() -> void:
 	# Confirm button — right side of screen, hidden until selection complete
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
-	_discard_confirm_btn.text = "确认弃牌"
+	_discard_confirm_btn.text = "确认"
 	_discard_confirm_btn.position = Vector2(1920 - 320, 512)
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
 	_discard_confirm_btn.visible = false
@@ -3965,7 +3965,7 @@ func _update_discard_confirm_style() -> void:
 	else:
 		_discard_confirm_btn.visible = false
 		_discard_confirm_btn.disabled = true
-	_discard_confirm_btn.text = "确认弃牌 (%d/%d)" % [_discard_selected_cards.size(), _discard_required_count]
+	_discard_confirm_btn.text = "确认 (%d/%d)" % [_discard_selected_cards.size(), _discard_required_count]
 
 func _on_discard_confirm() -> void:
 	if _discard_selected_cards.size() < _discard_required_count:
