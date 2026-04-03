@@ -923,6 +923,9 @@ func _show_icon_tooltip(icon_container: Control, name_text: String, stacks: int,
 		)
 
 func _play_death() -> void:
+	# Heroes don't play death animation — battle_manager shows fallen pose instead
+	if not is_enemy:
+		return
 	if sprite_node == null:
 		visible = false
 		return
