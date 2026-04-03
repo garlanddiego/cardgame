@@ -2970,8 +2970,8 @@ func _process(_delta: float) -> void:
 				var own_hero = _get_card_hero(card_data)
 				if own_hero and own_hero.has_method("show_target_highlight"):
 					own_hero.show_target_highlight()
-		elif target_type == "all_enemies":
-			# Highlight all enemies
+		elif target_type == "all_enemies" or target_type == "random_enemy":
+			# Highlight all enemies (random_enemy uses same UI as all_enemies)
 			if _hovered_enemy == null:
 				for enemy in enemies:
 					if enemy.alive:
@@ -3152,6 +3152,19 @@ func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> voi
 				hero_target = player
 		if hero_target:
 			card_hand.play_card_on(card_node, hero_target)
+		else:
+			_snap_card_back(card_node)
+	elif target_type == "random_enemy":
+		# Random enemy: auto-play on any alive enemy (random selection happens in execute)
+		var alive = _get_alive_enemies()
+		if not alive.is_empty():
+			card_hand.play_card_on(card_node, alive[randi() % alive.size()])
+		else:
+			_snap_card_back(card_node)
+	elif target_type == "all_enemies":
+		# All enemies: auto-play on first enemy
+		if not enemies.is_empty():
+			card_hand.play_card_on(card_node, enemies[0])
 		else:
 			_snap_card_back(card_node)
 	else:

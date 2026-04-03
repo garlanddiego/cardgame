@@ -452,7 +452,7 @@ func show_target_highlight() -> void:
 	_highlight_visible = true
 	queue_redraw()
 	if sprite_node:
-		sprite_node.modulate = Color(1.15, 1.1, 0.9, 1.0)
+		sprite_node.modulate = Color(1.1, 1.05, 0.9, 1.0)
 
 func hide_target_highlight() -> void:
 	_highlight_visible = false
@@ -462,17 +462,31 @@ func hide_target_highlight() -> void:
 
 func _draw() -> void:
 	if _highlight_visible and sprite_node:
-		# Draw yellow border around entity
 		var tex = sprite_node.texture
 		if tex:
 			var h: float = tex.get_height() * sprite_node.scale.y
 			var w: float = tex.get_width() * sprite_node.scale.x
 			var rect = Rect2(-w/2 - 8, -h/2 - 8, w + 16, h + 16)
-			# Yellow border
-			draw_rect(rect, Color(1.0, 0.85, 0.2, 0.9), false, 4.0)
-			# Inner glow
-			var inner = Rect2(rect.position + Vector2(2, 2), rect.size - Vector2(4, 4))
-			draw_rect(inner, Color(1.0, 0.9, 0.4, 0.3), false, 2.0)
+			# Brownish-yellow corner brackets
+			var color := Color(0.85, 0.65, 0.2, 0.9)
+			var corner_len: float = min(w, h) * 0.2
+			var lw: float = 3.5
+			var x0: float = rect.position.x
+			var y0: float = rect.position.y
+			var x1: float = rect.end.x
+			var y1: float = rect.end.y
+			# Top-left
+			draw_line(Vector2(x0, y0), Vector2(x0 + corner_len, y0), color, lw)
+			draw_line(Vector2(x0, y0), Vector2(x0, y0 + corner_len), color, lw)
+			# Top-right
+			draw_line(Vector2(x1, y0), Vector2(x1 - corner_len, y0), color, lw)
+			draw_line(Vector2(x1, y0), Vector2(x1, y0 + corner_len), color, lw)
+			# Bottom-left
+			draw_line(Vector2(x0, y1), Vector2(x0 + corner_len, y1), color, lw)
+			draw_line(Vector2(x0, y1), Vector2(x0, y1 - corner_len), color, lw)
+			# Bottom-right
+			draw_line(Vector2(x1, y1), Vector2(x1 - corner_len, y1), color, lw)
+			draw_line(Vector2(x1, y1), Vector2(x1, y1 - corner_len), color, lw)
 
 func _flash_damage(damage_amount: int = 0) -> void:
 	if sprite_node == null:
@@ -556,6 +570,8 @@ func _swap_to_hit_pose() -> void:
 		elif "cultist" in tex_path: hit_path = "res://assets/img/anim/cultist_hit.png"
 		elif "jaw_worm" in tex_path: hit_path = "res://assets/img/anim/jaw_worm_hit.png"
 		elif "guardian" in tex_path: hit_path = "res://assets/img/anim/guardian_hit.png"
+		elif "ironclad" in tex_path: hit_path = "res://assets/img/anim/ironclad_hit.png"
+		elif "silent" in tex_path: hit_path = "res://assets/img/anim/silent_hit.png"
 		if hit_path != "" and ResourceLoader.exists(hit_path):
 			_hit_tex = load(hit_path)
 	if _hit_tex and _idle_tex_normal:
