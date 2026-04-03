@@ -49,15 +49,27 @@ func _initialize() -> void:
 	var dark_overlay = ColorRect.new()
 	dark_overlay.name = "DarkOverlay"
 	dark_overlay.color = Color(0.0, 0.0, 0.05, 0.05)  # Minimal overlay to preserve dungeon atmosphere
-	dark_overlay.position = Vector2(0, 0)
-	dark_overlay.size = Vector2(1920, 1080)
+	dark_overlay.anchor_left = 0.0
+	dark_overlay.anchor_top = 0.0
+	dark_overlay.anchor_right = 1.0
+	dark_overlay.anchor_bottom = 1.0
+	dark_overlay.offset_left = 0
+	dark_overlay.offset_top = 0
+	dark_overlay.offset_right = 0
+	dark_overlay.offset_bottom = 0
 	dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_layer.add_child(dark_overlay)
 
 	var hud = Control.new()
 	hud.name = "HUD"
-	hud.position = Vector2(0, 0)
-	hud.size = Vector2(1920, 1080)
+	hud.anchor_left = 0.0
+	hud.anchor_top = 0.0
+	hud.anchor_right = 1.0
+	hud.anchor_bottom = 1.0
+	hud.offset_left = 0
+	hud.offset_top = 0
+	hud.offset_right = 0
+	hud.offset_bottom = 0
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_layer.add_child(hud)
 
@@ -138,8 +150,12 @@ func _initialize() -> void:
 	# Discard pile (bottom right, STS-style: card stack icon + number)
 	var discard_panel = Panel.new()
 	discard_panel.name = "DiscardPanel"
-	discard_panel.position = Vector2(1830, 960)  # 1080-15-105=960
-	discard_panel.size = Vector2(70, 105)  # 50% taller
+	discard_panel.anchor_left = 1.0
+	discard_panel.anchor_right = 1.0
+	discard_panel.offset_left = -90
+	discard_panel.offset_right = -20
+	discard_panel.offset_top = 960
+	discard_panel.offset_bottom = 1065
 	var discard_style = StyleBoxFlat.new()
 	discard_style.bg_color = Color(0.25, 0.12, 0.12, 0.9)
 	discard_style.border_color = Color(0.8, 0.4, 0.4)
@@ -169,8 +185,12 @@ func _initialize() -> void:
 	var end_turn_btn = Button.new()
 	end_turn_btn.name = "EndTurnButton"
 	end_turn_btn.text = "End Turn"
-	end_turn_btn.position = Vector2(1640, 765)  # Aligned with energy panel center
-	end_turn_btn.custom_minimum_size = Vector2(240, 70)
+	end_turn_btn.anchor_left = 1.0
+	end_turn_btn.anchor_right = 1.0
+	end_turn_btn.offset_left = -280
+	end_turn_btn.offset_right = -40
+	end_turn_btn.offset_top = 765
+	end_turn_btn.offset_bottom = 835
 	hud.add_child(end_turn_btn)
 
 	# Turn indicator with semi-transparent bg

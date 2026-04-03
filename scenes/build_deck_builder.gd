@@ -5,8 +5,14 @@ func _initialize() -> void:
 	print("Generating: deck_builder.tscn")
 	var root = Control.new()
 	root.name = "DeckBuilder"
-	root.position = Vector2(0, 0)
-	root.size = Vector2(1920, 1080)
+	root.anchor_left = 0.0
+	root.anchor_top = 0.0
+	root.anchor_right = 1.0
+	root.anchor_bottom = 1.0
+	root.offset_left = 0
+	root.offset_top = 0
+	root.offset_right = 0
+	root.offset_bottom = 0
 	root.set_script(load("res://scripts/deck_builder.gd"))
 
 	# Layout is built entirely in _ready() by the script.

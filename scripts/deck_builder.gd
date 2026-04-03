@@ -43,8 +43,8 @@ const TAP_MOVE_THRESHOLD: float = 20.0  # Max px movement to count as tap (not s
 var _animation_in_progress: bool = false
 
 # Constants
-const SCREEN_W: float = 1920.0
-const SCREEN_H: float = 1080.0
+var SCREEN_W: float = 1920.0
+var SCREEN_H: float = 1080.0
 const BROWSE_RATIO: float = 0.80
 const CART_RATIO: float = 0.20
 const BROWSE_CARD_W: float = 286.0
@@ -56,6 +56,8 @@ const FILTER_BAR_H: float = 50.0
 const BOTTOM_BAR_H: float = 0.0  # No bottom bar — confirm is in cart
 
 func _ready() -> void:
+	SCREEN_W = get_viewport_rect().size.x
+	SCREEN_H = get_viewport_rect().size.y
 	_build_layout()
 	# If character_id was set before _ready (via setup), populate now
 	if character_id != "":

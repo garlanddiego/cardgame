@@ -5,9 +5,15 @@ func _initialize() -> void:
 	print("Generating: character_select.tscn")
 	var root = Control.new()
 	root.name = "CharacterSelect"
-	# Explicitly set size instead of anchors (parent is Node2D, not Control)
-	root.position = Vector2(0, 0)
-	root.size = Vector2(1920, 1080)
+	# Use full-rect anchors so it adapts to any viewport size
+	root.anchor_left = 0.0
+	root.anchor_top = 0.0
+	root.anchor_right = 1.0
+	root.anchor_bottom = 1.0
+	root.offset_left = 0
+	root.offset_top = 0
+	root.offset_right = 0
+	root.offset_bottom = 0
 	root.set_script(load("res://scripts/character_select.gd"))
 
 	# Dark background using Sprite2D approach won't work in Control.
@@ -15,8 +21,7 @@ func _initialize() -> void:
 	var bg = TextureRect.new()
 	bg.name = "Background"
 	bg.texture = load("res://assets/img/dungeon_bg.png")
-	bg.position = Vector2(0, 0)
-	bg.size = Vector2(1920, 1080)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	root.add_child(bg)
@@ -25,16 +30,14 @@ func _initialize() -> void:
 	var dark_overlay = ColorRect.new()
 	dark_overlay.name = "DarkOverlay"
 	dark_overlay.color = Color(0.0, 0.0, 0.0, 0.5)
-	dark_overlay.position = Vector2(0, 0)
-	dark_overlay.size = Vector2(1920, 1080)
+	dark_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(dark_overlay)
 
-	# Center container - position explicitly
+	# Center container - full rect anchors
 	var center = CenterContainer.new()
 	center.name = "Center"
-	center.position = Vector2(0, 0)
-	center.size = Vector2(1920, 1080)
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(center)
 
 	var vbox = VBoxContainer.new()

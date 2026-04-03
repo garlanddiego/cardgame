@@ -189,7 +189,7 @@ func _build_draft_ui() -> void:
 	# Round label
 	_round_label = Label.new()
 	_round_label.position = Vector2(0, 20)
-	_round_label.size = Vector2(1920, 50)
+	_round_label.size = Vector2(get_viewport_rect().size.x, 50)
 	_round_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_round_label.add_theme_font_size_override("font_size", 36)
 	_round_label.add_theme_color_override("font_color", GOLD)
@@ -198,7 +198,7 @@ func _build_draft_ui() -> void:
 	# Drafted count
 	_drafted_label = Label.new()
 	_drafted_label.position = Vector2(0, 70)
-	_drafted_label.size = Vector2(1920, 40)
+	_drafted_label.size = Vector2(get_viewport_rect().size.x, 40)
 	_drafted_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_drafted_label.add_theme_font_size_override("font_size", 22)
 	_drafted_label.add_theme_color_override("font_color", DIM)
@@ -218,7 +218,7 @@ func _build_draft_ui() -> void:
 	var card_h: float = 480.0
 	var gap: float = 40.0
 	var total_w: float = 4 * card_w + 3 * gap
-	var start_x: float = (1920 - total_w) / 2.0
+	var start_x: float = (get_viewport_rect().size.x - total_w) / 2.0
 	var card_y: float = 150.0
 
 	for i in range(4):

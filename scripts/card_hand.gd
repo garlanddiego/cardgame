@@ -437,7 +437,7 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 		var is_power: bool = data.get("type", 0) == 2
 		var should_exhaust: bool = data.get("exhaust", false) and not is_power
 		# Step 1: Fly to screen center
-		var center_pos: Vector2 = to_local(Vector2(960, 400))
+		var center_pos: Vector2 = to_local(Vector2(get_viewport_rect().size.x / 2.0, 400))
 		card_node.move_to(center_pos, 0.0, Vector2(1.2, 1.2), 0.2)
 		if has_discard and not is_power and not should_exhaust:
 			# Card has discard requirement: keep at center, fly away after discard completes
@@ -456,7 +456,7 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 				elif should_exhaust:
 					_shatter_card(card_node)
 				else:
-					var discard_pos: Vector2 = to_local(Vector2(1825, 985))
+					var discard_pos: Vector2 = to_local(Vector2(get_viewport_rect().size.x - 95, 985))
 					card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 			)
 		cards.erase(card_node)
@@ -496,7 +496,7 @@ func _do_play(data: Dictionary, target: Node2D) -> void:
 func complete_pending_play() -> void:
 	## Called after discard flow completes — send the pending card to discard pile
 	if _pending_card_node and is_instance_valid(_pending_card_node):
-		var discard_pos: Vector2 = to_local(Vector2(1825, 985))
+		var discard_pos: Vector2 = to_local(Vector2(get_viewport_rect().size.x - 95, 985))
 		_pending_card_node.move_to(discard_pos, 0.0, Vector2(0.3, 0.3), 0.25)
 		var node = _pending_card_node
 		var tween = create_tween()

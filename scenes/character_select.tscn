@@ -1,9 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/character_select.gd" id="1_157v2"]
-[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_07whw"]
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="1_jgus3"]
+[ext_resource type="Texture2D" path="res://assets/img/dungeon_bg.png" id="2_bow2h"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nj4t"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uxcyu"]
 content_margin_left = 20.0
 content_margin_top = 20.0
 content_margin_right = 20.0
@@ -19,7 +19,7 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_meoqt"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fa52j"]
 content_margin_left = 20.0
 content_margin_top = 20.0
 content_margin_right = 20.0
@@ -35,97 +35,97 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
-[node name="CharacterSelect" type="Control"]
+[node name="CharacterSelect" type="Control" unique_id=142219142]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
-script = ExtResource("1_157v2")
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_jgus3")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1605476415]
 layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
-texture = ExtResource("2_07whw")
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2_bow2h")
 expand_mode = 1
 
-[node name="DarkOverlay" type="ColorRect" parent="."]
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=1255468142]
 layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="." unique_id=1903857433]
 layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
+[node name="VBox" type="VBoxContainer" parent="Center" unique_id=2081834030]
 layout_mode = 2
 alignment = 1
 
-[node name="Title" type="Label" parent="Center/VBox"]
+[node name="Title" type="Label" parent="Center/VBox" unique_id=32376806]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
 theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
 text = "Choose Your Character"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Center/VBox"]
+[node name="Spacer" type="Control" parent="Center/VBox" unique_id=306722218]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="Characters" type="HBoxContainer" parent="Center/VBox"]
+[node name="Characters" type="HBoxContainer" parent="Center/VBox" unique_id=800202443]
 layout_mode = 2
 theme_override_constants/separation = 120
 alignment = 1
 
-[node name="IroncladPanel" type="PanelContainer" parent="Center/VBox/Characters"]
+[node name="IroncladPanel" type="PanelContainer" parent="Center/VBox/Characters" unique_id=1373763358]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_7nj4t")
+theme_override_styles/panel = SubResource("StyleBoxFlat_uxcyu")
 
-[node name="IroncladBox" type="VBoxContainer" parent="Center/VBox/Characters/IroncladPanel"]
+[node name="IroncladBox" type="VBoxContainer" parent="Center/VBox/Characters/IroncladPanel" unique_id=1929236454]
 layout_mode = 2
 alignment = 1
 
-[node name="IroncladArt" type="TextureRect" parent="Center/VBox/Characters/IroncladPanel/IroncladBox"]
+[node name="IroncladArt" type="TextureRect" parent="Center/VBox/Characters/IroncladPanel/IroncladBox" unique_id=184356426]
 custom_minimum_size = Vector2(200, 300)
 layout_mode = 2
 expand_mode = 2
 stretch_mode = 5
 
-[node name="IroncladButton" type="Button" parent="Center/VBox/Characters/IroncladPanel/IroncladBox"]
+[node name="IroncladButton" type="Button" parent="Center/VBox/Characters/IroncladPanel/IroncladBox" unique_id=1140466445]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Ironclad"
 
-[node name="IroncladDesc" type="Label" parent="Center/VBox/Characters/IroncladPanel/IroncladBox"]
+[node name="IroncladDesc" type="Label" parent="Center/VBox/Characters/IroncladPanel/IroncladBox" unique_id=1974867445]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.7, 0.7, 1)
 text = "HP: 80 | Strength-focused"
 horizontal_alignment = 1
 
-[node name="SilentPanel" type="PanelContainer" parent="Center/VBox/Characters"]
+[node name="SilentPanel" type="PanelContainer" parent="Center/VBox/Characters" unique_id=692723931]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_meoqt")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fa52j")
 
-[node name="SilentBox" type="VBoxContainer" parent="Center/VBox/Characters/SilentPanel"]
+[node name="SilentBox" type="VBoxContainer" parent="Center/VBox/Characters/SilentPanel" unique_id=1203666989]
 layout_mode = 2
 alignment = 1
 
-[node name="SilentArt" type="TextureRect" parent="Center/VBox/Characters/SilentPanel/SilentBox"]
+[node name="SilentArt" type="TextureRect" parent="Center/VBox/Characters/SilentPanel/SilentBox" unique_id=461599396]
 custom_minimum_size = Vector2(200, 300)
 layout_mode = 2
 expand_mode = 2
 stretch_mode = 5
 
-[node name="SilentButton" type="Button" parent="Center/VBox/Characters/SilentPanel/SilentBox"]
+[node name="SilentButton" type="Button" parent="Center/VBox/Characters/SilentPanel/SilentBox" unique_id=1426305795]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Silent"
 
-[node name="SilentDesc" type="Label" parent="Center/VBox/Characters/SilentPanel/SilentBox"]
+[node name="SilentDesc" type="Label" parent="Center/VBox/Characters/SilentPanel/SilentBox" unique_id=1953540716]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.9, 0.7, 1)
 text = "HP: 70 | Agility-focused"
