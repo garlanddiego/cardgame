@@ -13,6 +13,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/mushroom_idle.png",
       "attack_sprite": "res://assets/img/monsters/mushroom_attack.png",
       "hit_sprite": "res://assets/img/monsters/mushroom_hit.png",
+      "death_sprite": "res://assets/img/monsters/mushroom_death.png",
       "scale_h": 300.0,
     },
     "ghost_rat": {
@@ -21,6 +22,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/ghost_rat_idle.png",
       "attack_sprite": "res://assets/img/monsters/ghost_rat_attack.png",
       "hit_sprite": "res://assets/img/monsters/ghost_rat_hit.png",
+      "death_sprite": "res://assets/img/monsters/ghost_rat_death.png",
       "scale_h": 260.0,
     },
     # ── Floor 2-5 (Medium-Easy) ──
@@ -30,6 +32,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/skeleton_idle.png",
       "attack_sprite": "res://assets/img/monsters/skeleton_attack.png",
       "hit_sprite": "res://assets/img/monsters/skeleton_hit.png",
+      "death_sprite": "res://assets/img/monsters/skeleton_death.png",
       "scale_h": 340.0,
     },
     "poison_spider": {
@@ -38,6 +41,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/poison_spider_idle.png",
       "attack_sprite": "res://assets/img/monsters/poison_spider_attack.png",
       "hit_sprite": "res://assets/img/monsters/poison_spider_hit.png",
+      "death_sprite": "res://assets/img/monsters/poison_spider_death.png",
       "scale_h": 280.0,
     },
     # ── Floor 3-6 (Medium) ──
@@ -47,6 +51,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/shadow_rogue_idle.png",
       "attack_sprite": "res://assets/img/monsters/shadow_rogue_attack.png",
       "hit_sprite": "res://assets/img/monsters/shadow_rogue_hit.png",
+      "death_sprite": "res://assets/img/monsters/shadow_rogue_death.png",
       "scale_h": 360.0,
     },
     "gargoyle": {
@@ -55,6 +60,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/gargoyle_idle.png",
       "attack_sprite": "res://assets/img/monsters/gargoyle_attack.png",
       "hit_sprite": "res://assets/img/monsters/gargoyle_hit.png",
+      "death_sprite": "res://assets/img/monsters/gargoyle_death.png",
       "scale_h": 340.0,
     },
     # ── Floor 5-8 (Hard) ──
@@ -64,6 +70,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/fire_mage_idle.png",
       "attack_sprite": "res://assets/img/monsters/fire_mage_attack.png",
       "hit_sprite": "res://assets/img/monsters/fire_mage_hit.png",
+      "death_sprite": "res://assets/img/monsters/fire_mage_death.png",
       "scale_h": 360.0,
     },
     "frost_giant": {
@@ -72,6 +79,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/frost_giant_idle.png",
       "attack_sprite": "res://assets/img/monsters/frost_giant_attack.png",
       "hit_sprite": "res://assets/img/monsters/frost_giant_hit.png",
+      "death_sprite": "res://assets/img/monsters/frost_giant_death.png",
       "scale_h": 400.0,
     },
     # ── Floor 7-9 (Very Hard) ──
@@ -81,6 +89,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/death_knight_idle.png",
       "attack_sprite": "res://assets/img/monsters/death_knight_attack.png",
       "hit_sprite": "res://assets/img/monsters/death_knight_hit.png",
+      "death_sprite": "res://assets/img/monsters/death_knight_death.png",
       "scale_h": 380.0,
     },
     # ── Floor 10 (Boss) ──
@@ -90,6 +99,7 @@ static func get_all() -> Dictionary:
       "sprite": "res://assets/img/monsters/ancient_dragon_idle.png",
       "attack_sprite": "res://assets/img/monsters/ancient_dragon_attack.png",
       "hit_sprite": "res://assets/img/monsters/ancient_dragon_hit.png",
+      "death_sprite": "res://assets/img/monsters/ancient_dragon_death.png",
       "scale_h": 450.0,
       "is_boss": true,
     },

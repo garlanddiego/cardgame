@@ -2681,15 +2681,43 @@ func _check_battle_end() -> void:
 			break
 	if all_dead:
 		battle_active = false
-		battle_won.emit()
-		if turn_label:
-			var loc2 = _get_loc()
-			if loc2:
-				turn_label.text = loc2.t("victory")
-			else:
-				turn_label.text = "VICTORY!"
-			turn_label.add_theme_font_size_override("font_size", 48)
-			turn_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+		# Play death animation on all enemies, then emit battle_won
+		_play_enemy_death_anims()
+
+func _play_enemy_death_anims() -> void:
+	## Swap to death sprite and fade out all dead enemies, then emit victory
+	var monsters_db: Dictionary = Monsters.get_all()
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		var sprite: Sprite2D = enemy.get_node_or_null("Sprite") as Sprite2D
+		if sprite == null:
+			continue
+		# Swap to death sprite
+		var etype: String = enemy.get("enemy_type") if "enemy_type" in enemy else ""
+		if etype in monsters_db and monsters_db[etype].has("death_sprite"):
+			var death_tex = load(monsters_db[etype]["death_sprite"])
+			if death_tex:
+				sprite.texture = death_tex
+		# Animate: fade out + fall down
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(enemy, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN)
+		tween.tween_property(enemy, "position:y", enemy.position.y + 30, 0.8).set_ease(Tween.EASE_IN)
+	# Wait for animation, then show victory
+	var timer = get_tree().create_timer(1.0)
+	timer.timeout.connect(_on_death_anim_complete)
+
+func _on_death_anim_complete() -> void:
+	battle_won.emit()
+	if turn_label:
+		var loc2 = _get_loc()
+		if loc2:
+			turn_label.text = loc2.t("victory")
+		else:
+			turn_label.text = "VICTORY!"
+		turn_label.add_theme_font_size_override("font_size", 48)
+		turn_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 
 func _update_energy_label() -> void:
 	if energy_label:

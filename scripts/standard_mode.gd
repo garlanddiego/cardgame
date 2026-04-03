@@ -262,24 +262,7 @@ func _show_draft() -> void:
       container.modulate = Color(1, 1, 1)
     )
 
-  # === Skip button ===
-  var skip_btn := Button.new()
-  skip_btn.text = "跳过本轮"
-  skip_btn.custom_minimum_size = Vector2(180, 50)
-  skip_btn.add_theme_font_size_override("font_size", 22)
-  skip_btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-  var skip_style := StyleBoxFlat.new()
-  skip_style.bg_color = Color(0.15, 0.15, 0.15, 0.7)
-  skip_style.set_border_width_all(1)
-  skip_style.border_color = Color(0.3, 0.3, 0.3)
-  skip_style.set_corner_radius_all(8)
-  skip_btn.add_theme_stylebox_override("normal", skip_style)
-  var skip_hover := skip_style.duplicate() as StyleBoxFlat
-  skip_hover.bg_color = Color(0.25, 0.25, 0.25, 0.7)
-  skip_btn.add_theme_stylebox_override("hover", skip_hover)
-  skip_btn.position = Vector2((1920.0 - 180.0) / 2.0, card_y + card_h + 40.0)
-  skip_btn.pressed.connect(_advance_draft)
-  _overlay.add_child(skip_btn)
+  # No skip button during draft — player must pick a card each round
 
 var _draft_picking: bool = false
 
@@ -781,8 +764,8 @@ func _show_rewards() -> void:
   dialog_style.content_margin_top = 20
   dialog_style.content_margin_bottom = 20
   _reward_dialog.add_theme_stylebox_override("panel", dialog_style)
-  _reward_dialog.position = Vector2(510, 180)
-  _reward_dialog.size = Vector2(900, 450)
+  _reward_dialog.position = Vector2(735, 180)
+  _reward_dialog.size = Vector2(450, 450)
   _overlay.add_child(_reward_dialog)
 
   var vbox := VBoxContainer.new()
@@ -1159,13 +1142,24 @@ func _show_upgrade_selection() -> void:
 
 func _show_upgrade_detail(card_id: String) -> void:
   """Show upgrade detail: before/after with confirm/cancel."""
+  # Use _deck_viewer_canvas (layer 15) to guarantee coverage over overlay (layer 10)
+  if _deck_viewer_canvas == null:
+    return
+  var old_detail = _deck_viewer_canvas.get_node_or_null("UpgradeDetailPanel")
+  if old_detail:
+    old_detail.queue_free()
+
   var detail := Control.new()
-  detail.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  _overlay.add_child(detail)
+  detail.name = "UpgradeDetailPanel"
+  detail.offset_right = 1920
+  detail.offset_bottom = 1080
+  detail.mouse_filter = Control.MOUSE_FILTER_STOP
+  _deck_viewer_canvas.add_child(detail)
 
   var dbg := ColorRect.new()
-  dbg.color = Color(0.05, 0.04, 0.03, 1.0)  # Fully opaque to cover card list
-  dbg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  dbg.color = Color(0.05, 0.04, 0.03, 1.0)
+  dbg.offset_right = 1920
+  dbg.offset_bottom = 1080
   dbg.mouse_filter = Control.MOUSE_FILTER_STOP
   detail.add_child(dbg)
 
