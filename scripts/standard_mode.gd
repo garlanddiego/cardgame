@@ -609,15 +609,16 @@ func _start_battle(nd: Dictionary) -> void:
   bm.start_battle(run.hero1_id)
 
   # Connect battle entity HP signals to update persistent HUD in real-time
+  # Use signal params directly (not bm.player/second_player refs which swap)
   if bm.player:
-    bm.player.hp_changed.connect(func(_c, _m):
-      if _hud_hp1_label and bm.player:
-        _hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), bm.player.current_hp, bm.player.max_hp]
+    bm.player.hp_changed.connect(func(cur: int, max_val: int):
+      if _hud_hp1_label:
+        _hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), cur, max_val]
     )
   if bm.second_player:
-    bm.second_player.hp_changed.connect(func(_c, _m):
-      if _hud_hp2_label and bm.second_player:
-        _hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), bm.second_player.current_hp, bm.second_player.max_hp]
+    bm.second_player.hp_changed.connect(func(cur: int, max_val: int):
+      if _hud_hp2_label:
+        _hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), cur, max_val]
     )
 
 func _on_battle_won() -> void:
