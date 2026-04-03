@@ -732,11 +732,7 @@ func start_player_turn() -> void:
 	hp_lost_this_turn = 0
 	cards_exhausted_this_turn = 0
 
-	# Remove Anticipate temp dexterity from previous turn (all heroes)
-	if anticipate_dex_to_remove > 0:
-		for hero in _get_all_alive_heroes():
-			hero.apply_status("dexterity", -anticipate_dex_to_remove)
-		anticipate_dex_to_remove = 0
+	# Anticipate dex removal now happens at end of turn (with Flex)
 
 	# Berserk: +energy per turn (check all heroes)
 	for hero in _get_all_alive_heroes():
@@ -2144,6 +2140,12 @@ func end_player_turn() -> void:
 		for hero in _get_all_alive_heroes():
 			hero.apply_status("strength", -flex_strength_to_remove)
 		flex_strength_to_remove = 0
+
+	# Remove Anticipate temp dexterity
+	if anticipate_dex_to_remove > 0:
+		for hero in _get_all_alive_heroes():
+			hero.apply_status("dexterity", -anticipate_dex_to_remove)
+		anticipate_dex_to_remove = 0
 
 	# Metallicize: gain block at end of turn (apply to hero that has the power)
 	for hero in _get_all_alive_heroes():
