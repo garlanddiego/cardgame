@@ -1326,7 +1326,8 @@ func _show_shop() -> void:
     var add_id: String = card_id + "+" if is_upgraded else card_id
     container.gui_input.connect(func(event: InputEvent):
       if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-        _show_shop_buy_detail(display_cd, price, add_id, slot)
+        if run.gold >= price:
+          _show_shop_buy_detail(display_cd, price, add_id, slot)
     )
     slot.add_child(container)
     var visual := CardScript.create_card_visual(display_cd, Vector2(card_w, card_h), loc)
@@ -1338,7 +1339,7 @@ func _show_shop() -> void:
     var price_label := Label.new()
     price_label.text = "💰 %d" % price
     price_label.add_theme_font_size_override("font_size", 18)
-    price_label.add_theme_color_override("font_color", Color(1, 0.85, 0.2) if run.gold >= price else Color(0.6, 0.3, 0.3))
+    price_label.add_theme_color_override("font_color", Color(1, 0.85, 0.2) if run.gold >= price else Color(0.9, 0.2, 0.2))
     price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     price_label.position = Vector2(0, card_h + 4)
     price_label.size = Vector2(card_w, 24)
