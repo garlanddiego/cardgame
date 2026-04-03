@@ -276,7 +276,7 @@ func _build_cart_area(x_offset: float, cart_w: float) -> void:
 	# Confirm button at bottom of cart
 	confirm_btn = Button.new()
 	confirm_btn.name = "ConfirmButton"
-	confirm_btn.text = "确认牌组"
+	confirm_btn.text = "确认"
 	confirm_btn.position = Vector2(x_offset + 20, SCREEN_H - cart_bottom_margin + 5)
 	confirm_btn.size = Vector2(cart_w - 40, 55)
 	confirm_btn.disabled = true

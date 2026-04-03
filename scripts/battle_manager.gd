@@ -1644,7 +1644,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				var retrieved = exhaust_pile.pop_back()
 				hand.append(retrieved)
 				if card_hand:
-					card_hand.add_card(retrieved)
+					_delayed_add_card(retrieved)
 		"spot_weakness":
 			if target and target.alive:
 				var enemy_intent: String = target.intent.get("intent", "")
@@ -1667,7 +1667,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				var drawn = draw_pile.pop_back()
 				hand.append(drawn)
 				if card_hand:
-					card_hand.add_card(drawn)
+					_delayed_add_card(drawn)
 				if drawn.get("type", 0) == 1 and player:
 					player.add_block(card_data.get("escape_block", 3))
 					_trigger_juggernaut()
@@ -4306,7 +4306,7 @@ func _show_pile_selection(pile: Array, title: String, count: int, callback: Call
 
 	# Confirm button
 	_pile_selection_confirm_btn = Button.new()
-	_pile_selection_confirm_btn.text = "确认选择 (0/%d)" % count
+	_pile_selection_confirm_btn.text = "确认 (0/%d)" % count
 	_pile_selection_confirm_btn.position = Vector2(810, 930)
 	_pile_selection_confirm_btn.custom_minimum_size = Vector2(300, 60)
 	_pile_selection_confirm_btn.add_theme_font_size_override("font_size", 28)
@@ -4350,7 +4350,7 @@ func _update_pile_selection_confirm() -> void:
 	if _pile_selection_confirm_btn == null:
 		return
 	var ready: bool = _pile_selection_selected.size() >= _pile_selection_count
-	_pile_selection_confirm_btn.text = "确认选择 (%d/%d)" % [_pile_selection_selected.size(), _pile_selection_count]
+	_pile_selection_confirm_btn.text = "确认 (%d/%d)" % [_pile_selection_selected.size(), _pile_selection_count]
 	_pile_selection_confirm_btn.disabled = not ready
 	if ready:
 		var style = StyleBoxFlat.new()

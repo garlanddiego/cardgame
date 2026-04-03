@@ -1209,7 +1209,7 @@ func _show_upgrade_detail(card_id: String) -> void:
 
   # Confirm button
   var confirm := Button.new()
-  confirm.text = "确认升级"
+  confirm.text = "确认"
   confirm.custom_minimum_size = Vector2(200, 56)
   confirm.add_theme_font_size_override("font_size", 26)
   var confirm_style := StyleBoxFlat.new()
@@ -1389,29 +1389,9 @@ func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, sl
   detail.add_child(big_card)
   big_card.add_child(CardScript.create_card_visual(card_data, Vector2(320, 450), loc))
 
-  # Card name
-  var name_label := Label.new()
-  name_label.text = _card_display_name(card_data)
-  name_label.add_theme_font_size_override("font_size", 32)
-  name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.75))
-  name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  name_label.position = Vector2(0, 570)
-  name_label.size = Vector2(1920, 40)
-  detail.add_child(name_label)
-
-  # Price
-  var price_lbl := Label.new()
-  price_lbl.text = "💰 %d 金币" % price
-  price_lbl.add_theme_font_size_override("font_size", 28)
-  price_lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
-  price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  price_lbl.position = Vector2(0, 620)
-  price_lbl.size = Vector2(1920, 40)
-  detail.add_child(price_lbl)
-
   # Buy button
   var buy_btn := Button.new()
-  buy_btn.text = "购买" if run.gold >= price else "金币不足"
+  buy_btn.text = "确认" if run.gold >= price else "金币不足"
   buy_btn.disabled = run.gold < price
   buy_btn.custom_minimum_size = Vector2(180, 56)
   buy_btn.add_theme_font_size_override("font_size", 26)
