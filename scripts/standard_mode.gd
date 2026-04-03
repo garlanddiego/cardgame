@@ -1296,14 +1296,14 @@ func _show_shop() -> void:
   _overlay.add_child(scroll)
 
   var grid := GridContainer.new()
-  grid.columns = 5
-  grid.add_theme_constant_override("h_separation", 15)
-  grid.add_theme_constant_override("v_separation", 15)
+  grid.columns = 4
+  grid.add_theme_constant_override("h_separation", 20)
+  grid.add_theme_constant_override("v_separation", 20)
   scroll.add_child(grid)
 
   var loc = get_node_or_null("/root/Loc")
-  var card_w: float = 200.0
-  var card_h: float = 280.0
+  var card_w: float = 280.0
+  var card_h: float = 400.0
 
   for card in shop_cards:
     var card_id: String = card["id"]
@@ -1344,23 +1344,35 @@ func _show_shop() -> void:
     price_label.size = Vector2(card_w, 24)
     slot.add_child(price_label)
 
-  # Leave button
+  # Leave button — bottom-right corner
   var leave := _styled_button("离开商店", Color(0.5, 0.5, 0.5))
-  leave.offset_top = 1030
-  leave.offset_left = 840
-  leave.offset_right = 1080
-  leave.offset_bottom = 1070
+  leave.custom_minimum_size = Vector2(180, 50)
+  leave.offset_left = 1920 - 180 - 20
+  leave.offset_top = 1080 - 50 - 20
+  leave.offset_right = 1920 - 20
+  leave.offset_bottom = 1080 - 20
   leave.pressed.connect(_show_map)
   _overlay.add_child(leave)
 
 func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, slot: Control) -> void:
+  # Render on DeckViewerCanvas (layer 15) to cover shop panel (overlay layer 10)
+  if _deck_viewer_canvas == null:
+    return
+  var old_detail = _deck_viewer_canvas.get_node_or_null("ShopBuyDetail")
+  if old_detail:
+    old_detail.queue_free()
+
   var detail := Control.new()
-  detail.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  _overlay.add_child(detail)
+  detail.name = "ShopBuyDetail"
+  detail.offset_right = 1920
+  detail.offset_bottom = 1080
+  detail.mouse_filter = Control.MOUSE_FILTER_STOP
+  _deck_viewer_canvas.add_child(detail)
 
   var dbg := ColorRect.new()
   dbg.color = Color(0.05, 0.04, 0.03, 1.0)
-  dbg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  dbg.offset_right = 1920
+  dbg.offset_bottom = 1080
   dbg.mouse_filter = Control.MOUSE_FILTER_STOP
   detail.add_child(dbg)
 
