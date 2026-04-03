@@ -64,7 +64,7 @@ func _initialize() -> void:
 	# Energy display (bottom left) — bigger, styled per spec section 4.1
 	var energy_panel = PanelContainer.new()
 	energy_panel.name = "EnergyPanel"
-	energy_panel.position = Vector2(24, 822)
+	energy_panel.position = Vector2(24, 772)  # Moved up 50px
 	energy_panel.custom_minimum_size = Vector2(120, 72)
 	var energy_style = StyleBoxFlat.new()
 	energy_style.bg_color = Color(0.05, 0.08, 0.18, 0.85)
@@ -108,8 +108,8 @@ func _initialize() -> void:
 	# Draw pile (bottom left, STS-style: card stack icon + number)
 	var draw_panel = Panel.new()
 	draw_panel.name = "DrawPanel"
-	draw_panel.position = Vector2(20, 910)
-	draw_panel.size = Vector2(70, 70)
+	draw_panel.position = Vector2(20, 960)  # 1080-15-105=960
+	draw_panel.size = Vector2(70, 105)  # 50% taller
 	var draw_style = StyleBoxFlat.new()
 	draw_style.bg_color = Color(0.12, 0.15, 0.25, 0.9)
 	draw_style.border_color = Color(0.4, 0.5, 0.8)
@@ -121,16 +121,16 @@ func _initialize() -> void:
 	var draw_pile_label = Label.new()
 	draw_pile_label.name = "DrawPileLabel"
 	draw_pile_label.text = "0"
-	draw_pile_label.position = Vector2(0, 20)
-	draw_pile_label.size = Vector2(70, 40)
+	draw_pile_label.position = Vector2(0, 40)
+	draw_pile_label.size = Vector2(70, 50)
 	draw_pile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	draw_pile_label.add_theme_font_size_override("font_size", 28)
+	draw_pile_label.add_theme_font_size_override("font_size", 32)
 	draw_pile_label.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
 	draw_panel.add_child(draw_pile_label)
 	var draw_icon = Label.new()
 	draw_icon.text = "🂠"
-	draw_icon.position = Vector2(0, 0)
-	draw_icon.size = Vector2(70, 24)
+	draw_icon.position = Vector2(0, 8)
+	draw_icon.size = Vector2(70, 30)
 	draw_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	draw_icon.add_theme_font_size_override("font_size", 18)
 	draw_panel.add_child(draw_icon)
@@ -138,8 +138,8 @@ func _initialize() -> void:
 	# Discard pile (bottom right, STS-style: card stack icon + number)
 	var discard_panel = Panel.new()
 	discard_panel.name = "DiscardPanel"
-	discard_panel.position = Vector2(1830, 910)
-	discard_panel.size = Vector2(70, 70)
+	discard_panel.position = Vector2(1830, 960)  # 1080-15-105=960
+	discard_panel.size = Vector2(70, 105)  # 50% taller
 	var discard_style = StyleBoxFlat.new()
 	discard_style.bg_color = Color(0.25, 0.12, 0.12, 0.9)
 	discard_style.border_color = Color(0.8, 0.4, 0.4)
@@ -151,16 +151,16 @@ func _initialize() -> void:
 	var discard_label = Label.new()
 	discard_label.name = "DiscardPileLabel"
 	discard_label.text = "0"
-	discard_label.position = Vector2(0, 20)
-	discard_label.size = Vector2(70, 40)
+	discard_label.position = Vector2(0, 40)
+	discard_label.size = Vector2(70, 50)
 	discard_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	discard_label.add_theme_font_size_override("font_size", 28)
+	discard_label.add_theme_font_size_override("font_size", 32)
 	discard_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.7))
 	discard_panel.add_child(discard_label)
 	var discard_icon = Label.new()
 	discard_icon.text = "🂠"
-	discard_icon.position = Vector2(0, 0)
-	discard_icon.size = Vector2(70, 24)
+	discard_icon.position = Vector2(0, 8)
+	discard_icon.size = Vector2(70, 30)
 	discard_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	discard_icon.add_theme_font_size_override("font_size", 18)
 	discard_panel.add_child(discard_icon)
@@ -169,7 +169,7 @@ func _initialize() -> void:
 	var end_turn_btn = Button.new()
 	end_turn_btn.name = "EndTurnButton"
 	end_turn_btn.text = "End Turn"
-	end_turn_btn.position = Vector2(1640, 400)
+	end_turn_btn.position = Vector2(1640, 765)  # Aligned with energy panel center
 	end_turn_btn.custom_minimum_size = Vector2(240, 70)
 	hud.add_child(end_turn_btn)
 
