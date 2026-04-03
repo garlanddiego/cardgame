@@ -1488,8 +1488,19 @@ func _show_defeat() -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 
 func _show_deck_viewer() -> void:
-  _overlay.visible = true
-  _clear_children(_overlay)
+  # Use a separate container on PersistentHUD so it doesn't destroy the current phase UI
+  if _persistent_hud_canvas == null:
+    return
+  # Remove previous deck viewer if open
+  var old_viewer = _persistent_hud_canvas.get_node_or_null("DeckViewerPanel")
+  if old_viewer:
+    old_viewer.queue_free()
+
+  var viewer := Control.new()
+  viewer.name = "DeckViewerPanel"
+  viewer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  viewer.mouse_filter = Control.MOUSE_FILTER_STOP
+  _persistent_hud_canvas.add_child(viewer)
 
   # Dark background — click to close
   var bg := ColorRect.new()
@@ -1498,10 +1509,9 @@ func _show_deck_viewer() -> void:
   bg.mouse_filter = Control.MOUSE_FILTER_STOP
   bg.gui_input.connect(func(event: InputEvent):
     if event is InputEventMouseButton and event.pressed:
-      _overlay.visible = false
-      _clear_children(_overlay)
+      viewer.queue_free()
   )
-  _overlay.add_child(bg)
+  viewer.add_child(bg)
 
   # Title
   var title := Label.new()
@@ -1512,14 +1522,14 @@ func _show_deck_viewer() -> void:
   title.position = Vector2(0, 60)
   title.size = Vector2(1920, 50)
   title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  _overlay.add_child(title)
+  viewer.add_child(title)
 
   # Scroll container for card grid
   var scroll := ScrollContainer.new()
   scroll.position = Vector2(60, 110)
   scroll.size = Vector2(1800, 920)
   scroll.mouse_filter = Control.MOUSE_FILTER_PASS
-  _overlay.add_child(scroll)
+  viewer.add_child(scroll)
 
   var grid := GridContainer.new()
   grid.columns = 5
@@ -1563,11 +1573,8 @@ func _show_deck_viewer() -> void:
   var close_hover := close_sb.duplicate() as StyleBoxFlat
   close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
   close_btn.add_theme_stylebox_override("hover", close_hover)
-  close_btn.pressed.connect(func():
-    _overlay.visible = false
-    _clear_children(_overlay)
-  )
-  _overlay.add_child(close_btn)
+  close_btn.pressed.connect(func(): viewer.queue_free())
+  viewer.add_child(close_btn)
 
 func _get_card_display(card_id: String) -> Dictionary:
   if card_id.ends_with("+"):
