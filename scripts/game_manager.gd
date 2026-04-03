@@ -129,6 +129,7 @@ func _init_character_data() -> void:
 			"max_hp": 1000,
 			"color": Color(0.8, 0.2, 0.2),
 			"sprite": "res://assets/img/ironclad.png",
+			"fallen_sprite": "res://assets/img/ironclad_fallen.png",
 			"description": "A powerful warrior who uses strength and heavy attacks."
 		},
 		"silent": {
@@ -136,6 +137,7 @@ func _init_character_data() -> void:
 			"max_hp": 1000,
 			"color": Color(0.2, 0.7, 0.3),
 			"sprite": "res://assets/img/silent.png",
+			"fallen_sprite": "res://assets/img/silent_fallen.png",
 			"description": "A deadly hunter who uses agility and poison."
 		}
 	}

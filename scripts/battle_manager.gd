@@ -2755,10 +2755,19 @@ func _on_player_died() -> void:
 				_swap_button.queue_free()
 				_swap_button = null
 			# Track dead hero — their cards become unplayable
+			var dead_hero: Node2D = null
+			var dead_char_id: String = ""
 			if player and not player.alive:
 				_dead_hero_char = _player_character_id
+				dead_hero = player
+				dead_char_id = _player_character_id
 			elif second_player and not second_player.alive:
 				_dead_hero_char = _second_character_id
+				dead_hero = second_player
+				dead_char_id = _second_character_id
+			# Swap dead hero sprite to fallen pose
+			if dead_hero and dead_char_id != "":
+				_show_hero_fallen(dead_hero, dead_char_id)
 			# Refresh card playability (dead hero's cards become blocked + ethereal)
 			if card_hand:
 				card_hand.dead_hero_chars = [_dead_hero_char]
@@ -3613,6 +3622,34 @@ func _play_attack_effect(card_data: Dictionary, hero_node: Node2D, target_node: 
 		_dagger_throw_effect(hero_node, target_node)
 	else:
 		_generic_hit_effect(target_node)
+
+func _show_hero_fallen(hero_node: Node2D, char_id: String) -> void:
+	## Swap dead hero sprite to fallen pose (lying on ground, panting)
+	if hero_node == null or not is_instance_valid(hero_node):
+		return
+	var sprite: Sprite2D = hero_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var gm = _get_game_manager()
+	if gm == null:
+		return
+	var char_data: Dictionary = gm.character_data.get(char_id, {})
+	var fallen_path: String = char_data.get("fallen_sprite", "")
+	if fallen_path == "":
+		return
+	var fallen_tex = load(fallen_path)
+	if fallen_tex == null:
+		return
+	sprite.texture = fallen_tex
+	# Dim the fallen hero
+	sprite.modulate = Color(0.7, 0.6, 0.6, 0.8)
+	# Hide HP bar and status icons
+	var hp_bar = hero_node.get_node_or_null("HPBar")
+	if hp_bar:
+		hp_bar.visible = false
+	var name_label = hero_node.get_node_or_null("NameLabel")
+	if name_label:
+		name_label.visible = false
 
 func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 	"""Swap hero sprite to attack pose, then swap back after delay."""
