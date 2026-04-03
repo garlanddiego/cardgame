@@ -207,9 +207,6 @@ func _ready() -> void:
 	# Turn banner
 	_setup_turn_banner()
 
-	# Top status bar — only in standalone mode (StandardMode has its own persistent HUD)
-	if standard_mode_monsters.size() == 0:
-		_setup_top_status_bar()
 	# Pile viewer overlay
 	_setup_pile_viewer()
 	# Discard selection overlay
@@ -265,12 +262,6 @@ func start_battle(character_id: String) -> void:
 		_update_swap_button_position()
 	# Build deck from both characters if dual hero mode
 	_build_deck(character_id, gm)
-	# Update top status bar with initial HP and connect for real-time updates
-	_update_status_bar()
-	if player:
-		player.hp_changed.connect(func(_c, _m): _update_status_bar())
-	if second_player:
-		second_player.hp_changed.connect(func(_c, _m): _update_status_bar())
 	# Start first turn
 	start_player_turn()
 
@@ -2682,10 +2673,6 @@ func _update_pile_labels() -> void:
 		draw_pile_label.text = str(draw_pile.size())
 	if discard_label:
 		discard_label.text = str(discard_pile.size())
-	# Update deck count button
-	if _deck_count_btn:
-		var total: int = draw_pile.size() + hand.size() + discard_pile.size() + exhaust_pile.size()
-		_deck_count_btn.text = "🃏 %d" % total
 
 func _on_deck_count_clicked() -> void:
 	## Show all cards in the current battle deck (including exhausted cards)
@@ -3350,146 +3337,6 @@ func _clear_damage_previews() -> void:
 		if is_instance_valid(lbl):
 			lbl.queue_free()
 	_damage_preview_labels.clear()
-
-# ---- Top Status Bar ----
-
-var _status_bar_hp1: Label = null
-var _status_bar_hp2: Label = null
-var _deck_count_btn: Button = null
-
-func _setup_top_status_bar() -> void:
-	var hud = get_node_or_null("HUDLayer/HUD")
-	if hud == null:
-		return
-	# Dark bar at top
-	var bar = Panel.new()
-	bar.name = "TopStatusBar"
-	var bar_style = StyleBoxFlat.new()
-	bar_style.bg_color = Color(0.05, 0.04, 0.03, 0.85)
-	bar_style.content_margin_left = 16
-	bar_style.content_margin_right = 16
-	bar_style.content_margin_top = 4
-	bar_style.content_margin_bottom = 4
-	bar.add_theme_stylebox_override("panel", bar_style)
-	bar.layout_mode = 1
-	bar.anchor_left = 0.0
-	bar.anchor_top = 0.0
-	bar.anchor_right = 1.0
-	bar.anchor_bottom = 0.0
-	bar.offset_bottom = 60.0  # +50% height
-	hud.add_child(bar)
-
-	# Left side: hero HPs + gold
-	var left_hbox = HBoxContainer.new()
-	left_hbox.add_theme_constant_override("separation", 20)
-	left_hbox.position = Vector2(16, 6)
-	bar.add_child(left_hbox)
-
-	# Hero 1 HP
-	_status_bar_hp1 = Label.new()
-	_status_bar_hp1.text = "♥ 80/80"
-	_status_bar_hp1.add_theme_font_size_override("font_size", 24)
-	_status_bar_hp1.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-	left_hbox.add_child(_status_bar_hp1)
-
-	# Hero 2 HP (only in dual mode)
-	_status_bar_hp2 = Label.new()
-	_status_bar_hp2.text = "♥ 80/80"
-	_status_bar_hp2.add_theme_font_size_override("font_size", 24)
-	_status_bar_hp2.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
-	_status_bar_hp2.visible = false  # Hidden until dual mode activates
-	left_hbox.add_child(_status_bar_hp2)
-
-	# Deck card count button
-	_deck_count_btn = Button.new()
-	_deck_count_btn.name = "DeckCountBtn"
-	_deck_count_btn.text = "🃏 0"
-	_deck_count_btn.custom_minimum_size = Vector2(80, 36)
-	_deck_count_btn.add_theme_font_size_override("font_size", 22)
-	_deck_count_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	var deck_btn_style = StyleBoxFlat.new()
-	deck_btn_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
-	deck_btn_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
-	deck_btn_style.border_width_left = 1
-	deck_btn_style.border_width_right = 1
-	deck_btn_style.border_width_top = 1
-	deck_btn_style.border_width_bottom = 1
-	deck_btn_style.corner_radius_top_left = 6
-	deck_btn_style.corner_radius_top_right = 6
-	deck_btn_style.corner_radius_bottom_left = 6
-	deck_btn_style.corner_radius_bottom_right = 6
-	var deck_hover = deck_btn_style.duplicate() as StyleBoxFlat
-	deck_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
-	_deck_count_btn.add_theme_stylebox_override("normal", deck_btn_style)
-	_deck_count_btn.add_theme_stylebox_override("hover", deck_hover)
-	_deck_count_btn.pressed.connect(_on_deck_count_clicked)
-	# Will be added to right_hbox below
-
-	# Gold
-	var gold_label = Label.new()
-	gold_label.text = "💰 0"
-	gold_label.add_theme_font_size_override("font_size", 24)
-	gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	left_hbox.add_child(gold_label)
-
-	# Right side buttons
-	var right_hbox = HBoxContainer.new()
-	right_hbox.add_theme_constant_override("separation", 12)
-	right_hbox.layout_mode = 1
-	right_hbox.anchor_left = 1.0
-	right_hbox.anchor_right = 1.0
-	right_hbox.offset_left = -420.0
-	right_hbox.offset_top = 4.0
-	right_hbox.offset_right = -16.0
-	right_hbox.offset_bottom = 36.0
-	bar.add_child(right_hbox)
-
-	# Deck count button (right side, first)
-	right_hbox.add_child(_deck_count_btn)
-
-	var region_btn = _create_top_button("地域")
-	right_hbox.add_child(region_btn)
-
-	var settings_btn = _create_top_button("设置")
-	right_hbox.add_child(settings_btn)
-
-	# Exit button already exists, remove old one
-	var old_exit = get_node_or_null("HUDLayer/HUD/ExitButton")
-	if old_exit:
-		old_exit.queue_free()
-	var exit_btn = _create_top_button("退出")
-	exit_btn.pressed.connect(_on_exit_battle)
-	right_hbox.add_child(exit_btn)
-
-func _create_top_button(text: String) -> Button:
-	var btn = Button.new()
-	btn.text = text
-	btn.custom_minimum_size = Vector2(80, 40)
-	btn.add_theme_font_size_override("font_size", 20)
-	btn.add_theme_color_override("font_color", Color(0.8, 0.78, 0.7))
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.13, 0.1, 0.7)
-	style.border_color = Color(0.4, 0.35, 0.25, 0.6)
-	style.border_width_left = 1
-	style.border_width_right = 1
-	style.border_width_top = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
-	btn.add_theme_stylebox_override("normal", style)
-	return btn
-
-func _update_status_bar() -> void:
-	if _status_bar_hp1 and player:
-		_status_bar_hp1.text = "♥ %d/%d" % [player.current_hp, player.max_hp]
-	if _status_bar_hp2:
-		if dual_hero_mode and second_player:
-			_status_bar_hp2.visible = true
-			_status_bar_hp2.text = "♥ %d/%d" % [second_player.current_hp, second_player.max_hp]
-		else:
-			_status_bar_hp2.visible = false
 
 # ---- Turn Banner Animation ----
 
