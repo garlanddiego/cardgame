@@ -583,21 +583,32 @@ func _hero_display_name(character_id: String) -> String:
 	return ""
 
 func _inject_hero_name(desc: String, hero_name: String) -> String:
-	## Insert hero name before the first hero-relevant verb in Chinese descriptions.
-	## e.g., "造成 8 点伤害" → "铁甲战士造成 8 点伤害"
-	## Only the first matching line gets the hero name prefix.
+	## Insert hero name before the first hero-attribute verb in Chinese descriptions.
+	## Only injects on lines about hero-specific attributes (HP, block, strength, etc.)
+	## Skips universal mechanics (energy, draw, discard, exhaust, potions).
 	var lines: PackedStringArray = desc.split("\n")
 	var result: PackedStringArray = PackedStringArray()
 	var injected: bool = false
 	var hero_verbs: Array = ["造成", "获得", "失去", "恢复", "使你"]
+	# Lines containing these keywords are universal, not hero-specific
+	var skip_keywords: Array = ["能量", "张牌", "药水"]
 	for line in lines:
 		var trimmed: String = line.strip_edges()
 		if not injected:
+			var matched_verb: bool = false
 			for verb in hero_verbs:
 				if trimmed.begins_with(verb):
+					matched_verb = true
+					break
+			if matched_verb:
+				var is_universal: bool = false
+				for kw in skip_keywords:
+					if kw in trimmed:
+						is_universal = true
+						break
+				if not is_universal:
 					line = hero_name + trimmed
 					injected = true
-					break
 		result.append(line)
 	return "\n".join(result)
 
