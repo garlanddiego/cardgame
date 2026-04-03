@@ -541,12 +541,7 @@ func update_card_playability(current_energy: int) -> void:
 		if cost == -1:
 			cost = 0  # X-cost cards are always playable
 		if card.card_visual:
-			# Check if card belongs to a dead hero — apply ethereal look
-			var card_char: String = card.card_data.get("character", "")
-			var is_dead_hero_card: bool = card_char in dead_hero_chars
-			if is_dead_hero_card:
-				card.card_visual.modulate = Color(0.4, 0.4, 0.5, 0.5)
-			elif not card.is_selected:
+			if not card.is_selected:
 				card.card_visual.modulate = Color(1, 1, 1, 1)
 			# Find cost label: try CostLabel first (STS2 card visual), then FallbackCost
 			var cost_lbl: Label = null

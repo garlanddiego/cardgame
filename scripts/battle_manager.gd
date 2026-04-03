@@ -2772,7 +2772,13 @@ func _on_player_died() -> void:
 			# Swap dead hero sprite to fallen pose
 			if dead_hero and dead_char_id != "":
 				_show_hero_fallen(dead_hero, dead_char_id)
-			# Refresh card playability (dead hero's cards become blocked + ethereal)
+			# Mark all dead hero's cards as ethereal across all piles
+			if _dead_hero_char != "":
+				for pile in [hand, draw_pile, discard_pile]:
+					for card_data in pile:
+						if card_data.get("character", "") == _dead_hero_char:
+							card_data["ethereal"] = true
+			# Refresh card playability (dead hero's cards become blocked)
 			if card_hand:
 				card_hand.dead_hero_chars = [_dead_hero_char]
 			_update_unplayable_ids()
