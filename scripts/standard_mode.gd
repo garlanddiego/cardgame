@@ -90,6 +90,29 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
   hbox.alignment = BoxContainer.ALIGNMENT_CENTER
   hud.add_child(hbox)
 
+  # Exit button — return to main menu
+  var exit_btn := Button.new()
+  exit_btn.text = "✕"
+  exit_btn.custom_minimum_size = Vector2(36, 36)
+  exit_btn.add_theme_font_size_override("font_size", 20)
+  exit_btn.add_theme_color_override("font_color", Color(1, 0.6, 0.6))
+  var exit_style := StyleBoxFlat.new()
+  exit_style.bg_color = Color(0.4, 0.1, 0.1, 0.7)
+  exit_style.border_color = Color(0.6, 0.2, 0.2, 0.6)
+  exit_style.set_border_width_all(1)
+  exit_style.set_corner_radius_all(6)
+  exit_style.content_margin_left = 4
+  exit_style.content_margin_right = 4
+  exit_btn.add_theme_stylebox_override("normal", exit_style)
+  var exit_hover := exit_style.duplicate() as StyleBoxFlat
+  exit_hover.bg_color = Color(0.6, 0.15, 0.15, 0.9)
+  exit_btn.add_theme_stylebox_override("hover", exit_hover)
+  exit_btn.pressed.connect(func():
+    run.end_run(false)
+    get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+  )
+  hbox.add_child(exit_btn)
+
   _hud_hp1_label = _hud_label("♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp])
   hbox.add_child(_hud_hp1_label)
 

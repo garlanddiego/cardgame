@@ -3807,12 +3807,13 @@ func _setup_discard_overlay() -> void:
 	_discard_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(_discard_title_label)
 
-	# Confirm button — below where the selected card appears
+	# Confirm button — right side of screen, hidden until selection complete
 	_discard_confirm_btn = Button.new()
 	_discard_confirm_btn.name = "ConfirmButton"
 	_discard_confirm_btn.text = "确认弃牌"
-	_discard_confirm_btn.position = Vector2(810, 700)
+	_discard_confirm_btn.position = Vector2(1920 - 320, 700)
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
+	_discard_confirm_btn.visible = false
 	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
 	_discard_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
 	_discard_confirm_btn.pressed.connect(_on_discard_confirm)
@@ -3882,24 +3883,15 @@ func _update_discard_confirm_style() -> void:
 	if ready:
 		var style = StyleBoxFlat.new()
 		style.bg_color = Color(0.15, 0.6, 0.2, 0.9)
-		style.corner_radius_top_left = 10
-		style.corner_radius_top_right = 10
-		style.corner_radius_bottom_left = 10
-		style.corner_radius_bottom_right = 10
+		style.set_corner_radius_all(10)
 		_discard_confirm_btn.add_theme_stylebox_override("normal", style)
 		var hover_style = style.duplicate() as StyleBoxFlat
 		hover_style.bg_color = Color(0.2, 0.7, 0.25, 0.95)
 		_discard_confirm_btn.add_theme_stylebox_override("hover", hover_style)
 		_discard_confirm_btn.disabled = false
+		_discard_confirm_btn.visible = true
 	else:
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.3, 0.3, 0.3, 0.7)
-		style.corner_radius_top_left = 10
-		style.corner_radius_top_right = 10
-		style.corner_radius_bottom_left = 10
-		style.corner_radius_bottom_right = 10
-		_discard_confirm_btn.add_theme_stylebox_override("normal", style)
-		_discard_confirm_btn.add_theme_stylebox_override("hover", style)
+		_discard_confirm_btn.visible = false
 		_discard_confirm_btn.disabled = true
 	_discard_confirm_btn.text = "确认弃牌 (%d/%d)" % [_discard_selected_cards.size(), _discard_required_count]
 
