@@ -436,9 +436,11 @@ func _on_swap_heroes() -> void:
 	_refresh_enemy_intents()
 
 func _on_second_player_died() -> void:
-	# Check if both players are dead
-	if player and not player.alive:
-		_on_player_died()
+	# Remove swap button — can't swap with a dead hero
+	if _swap_button and is_instance_valid(_swap_button):
+		_swap_button.queue_free()
+		_swap_button = null
+	_on_player_died()
 
 func _center_battle_layout() -> void:
 	## Dynamically center the battle layout so the midpoint between
@@ -2246,9 +2248,9 @@ func _process_enemy_actions(index: int) -> void:
 	enemy.intent = ai.get_next_action(enemy)
 	enemy.update_intent_display()
 
-	# Check if player died
-	if player and not player.alive:
-		_on_player_died()
+	# Check if all heroes are dead
+	_on_player_died()
+	if not battle_active:
 		return
 
 	# Next enemy after delay
@@ -2632,6 +2634,10 @@ func _on_player_died() -> void:
 		if second_player and second_player.alive:
 			any_alive = true
 		if any_alive:
+			# Remove swap button when one hero dies
+			if _swap_button and is_instance_valid(_swap_button):
+				_swap_button.queue_free()
+				_swap_button = null
 			return  # One hero still alive, continue battle
 	battle_active = false
 	player_died.emit()
