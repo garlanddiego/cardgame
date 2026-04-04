@@ -25,6 +25,9 @@ var hero2_max_hp: int = 70
 # Deck (card IDs)
 var deck: Array = []
 
+# Backpack — cards stored here are excluded from battle draw pile (max 4)
+var backpack: Array = []
+
 # Map
 var map_nodes: Dictionary = {}  # "floor_col" -> {type, connections, ...}
 var map_paths: Array = []       # List of [from_key, to_key]
@@ -43,6 +46,7 @@ func start_run(h1: String, h2: String) -> void:
   hero1_max_hp = 70
   hero2_max_hp = 60
   deck = _build_starting_deck(h1, h2)
+  backpack = []
   _generate_map()
   # Available nodes = all nodes on floor 1
   available_nodes = []

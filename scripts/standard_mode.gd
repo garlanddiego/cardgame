@@ -22,8 +22,8 @@ var _main_bg: ColorRect = null
 
 # Draft state
 var _draft_round: int = 0
-var _draft_total_rounds: int = 4
-var _draft_hero_order: Array = ["ironclad", "silent", "ironclad", "silent"]
+var _draft_total_rounds: int = 6
+var _draft_hero_order: Array = ["ironclad", "silent", "ironclad", "silent", "ironclad", "silent"]
 var _draft_picked_cards: Array = []  # card data dicts picked so far
 var _draft_status_bar: HBoxContainer = null  # top status bar
 var _draft_card_count_label: Button = null
@@ -99,6 +99,25 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 
   _hud_gold_label = _hud_label("💰 %d" % run.gold)
   hbox.add_child(_hud_gold_label)
+
+  # Backpack button — shows backpack card count and battle uses
+  _hud_backpack_btn = Button.new()
+  _hud_backpack_btn.text = "🎒 %d/4" % run.backpack.size()
+  _hud_backpack_btn.add_theme_font_size_override("font_size", 20)
+  _hud_backpack_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+  var bp_style := StyleBoxFlat.new()
+  bp_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
+  bp_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+  bp_style.set_border_width_all(1)
+  bp_style.set_corner_radius_all(6)
+  bp_style.content_margin_left = 8
+  bp_style.content_margin_right = 8
+  _hud_backpack_btn.add_theme_stylebox_override("normal", bp_style)
+  var bp_hover := bp_style.duplicate() as StyleBoxFlat
+  bp_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+  _hud_backpack_btn.add_theme_stylebox_override("hover", bp_hover)
+  _hud_backpack_btn.pressed.connect(_show_backpack)
+  hbox.add_child(_hud_backpack_btn)
 
   var spacer := Control.new()
   spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -379,7 +398,9 @@ var _hud_hp1_label: Label = null
 var _hud_hp2_label: Label = null
 var _hud_floor_label: Label = null
 var _hud_deck_btn: Button = null
+var _hud_backpack_btn: Button = null
 var _hud_map_btn: Button = null
+var _backpack_uses_in_battle: int = 0  # 1 at battle start, 0 after use
 
 func _show_map() -> void:
   phase = Phase.MAP
@@ -402,6 +423,7 @@ func _update_hud_labels() -> void:
     _hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp]
   if _hud_hp2_label:
     _hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
+  _update_backpack_btn_text()
 
 func _draw_map() -> void:
   # Update persistent HUD for map phase
@@ -630,9 +652,21 @@ func _start_battle(nd: Dictionary) -> void:
   bm.standard_mode_monsters = _current_monsters.duplicate()
   bm.enemy_count = _current_monsters.size()
 
-  # Set deck from run
+  # Set backpack uses for this battle
+  _backpack_uses_in_battle = 1
+  _update_backpack_btn_text()
+
+  # Set deck from run (exclude backpack cards — handle duplicate IDs)
   if gm:
-    gm.player_deck = run.deck.duplicate()
+    var bp_remaining: Array = run.backpack.duplicate()
+    var battle_deck: Array = []
+    for cid in run.deck:
+      var bp_idx := bp_remaining.find(cid)
+      if bp_idx >= 0:
+        bp_remaining.remove_at(bp_idx)  # skip this copy
+      else:
+        battle_deck.append(cid)
+    gm.player_deck = battle_deck
     gm.select_character(run.hero1_id)
 
   # Configure second hero HP
@@ -1774,6 +1808,309 @@ func _show_map_viewer() -> void:
   close_btn.add_theme_stylebox_override("hover", close_hover)
   close_btn.pressed.connect(func(): viewer.queue_free())
   viewer.add_child(close_btn)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BACKPACK SYSTEM
+# ═══════════════════════════════════════════════════════════════════════════
+
+func _update_backpack_btn_text() -> void:
+  if _hud_backpack_btn == null:
+    return
+  if phase == Phase.BATTLE:
+    _hud_backpack_btn.text = "🎒 %d/4 (%d)" % [run.backpack.size(), _backpack_uses_in_battle]
+  else:
+    _hud_backpack_btn.text = "🎒 %d/4" % run.backpack.size()
+
+func _show_backpack() -> void:
+  # In battle, check uses
+  if phase == Phase.BATTLE and _backpack_uses_in_battle <= 0:
+    return
+  if _deck_viewer_canvas == null:
+    return
+  var old_bp = _deck_viewer_canvas.get_node_or_null("BackpackPanel")
+  if old_bp:
+    old_bp.queue_free()
+
+  var vw: float = get_viewport_rect().size.x
+  var panel := Control.new()
+  panel.name = "BackpackPanel"
+  panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  panel.mouse_filter = Control.MOUSE_FILTER_STOP
+  _deck_viewer_canvas.add_child(panel)
+
+  # Track pending changes for battle confirm
+  var pending_add: Array = []  # card_ids moved INTO backpack this session
+  var pending_remove: Array = []  # card_ids moved OUT of backpack this session
+
+  # Dark background
+  var bg := ColorRect.new()
+  bg.color = Color(0, 0, 0, 0.9)
+  bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  bg.mouse_filter = Control.MOUSE_FILTER_STOP
+  bg.gui_input.connect(func(event: InputEvent):
+    if event is InputEventMouseButton and event.pressed:
+      if pending_add.is_empty() and pending_remove.is_empty():
+        panel.queue_free()
+  )
+  panel.add_child(bg)
+
+  var loc = get_node_or_null("/root/Loc")
+  var card_size := Vector2(220, 314)
+  var divider_x: float = vw * 0.6  # 60% left for deck, 40% right for backpack
+
+  # === LEFT: All deck cards (excluding ones currently in backpack) ===
+  var left_title := Label.new()
+  left_title.text = "卡组"
+  left_title.add_theme_font_size_override("font_size", 28)
+  left_title.add_theme_color_override("font_color", Color(1, 1, 0.8))
+  left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  left_title.position = Vector2(0, 60)
+  left_title.size = Vector2(divider_x, 40)
+  left_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  panel.add_child(left_title)
+
+  var left_scroll := ScrollContainer.new()
+  left_scroll.name = "LeftScroll"
+  left_scroll.position = Vector2(20, 105)
+  left_scroll.size = Vector2(divider_x - 40, 880)
+  left_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+  panel.add_child(left_scroll)
+
+  var left_grid := GridContainer.new()
+  left_grid.name = "LeftGrid"
+  left_grid.columns = 3
+  left_grid.add_theme_constant_override("h_separation", 12)
+  left_grid.add_theme_constant_override("v_separation", 12)
+  left_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  left_scroll.add_child(left_grid)
+
+  # === RIGHT: Backpack slots (4 max) ===
+  var right_title := Label.new()
+  right_title.text = "背包 (%d/4)" % run.backpack.size()
+  right_title.name = "RightTitle"
+  right_title.add_theme_font_size_override("font_size", 28)
+  right_title.add_theme_color_override("font_color", Color(1, 0.8, 0.5))
+  right_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  right_title.position = Vector2(divider_x, 60)
+  right_title.size = Vector2(vw - divider_x, 40)
+  right_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  panel.add_child(right_title)
+
+  var right_container := VBoxContainer.new()
+  right_container.name = "RightContainer"
+  right_container.position = Vector2(divider_x + 20, 105)
+  right_container.size = Vector2(vw - divider_x - 40, 880)
+  right_container.add_theme_constant_override("separation", 12)
+  panel.add_child(right_container)
+
+  # Divider line
+  var divider := ColorRect.new()
+  divider.color = Color(0.4, 0.35, 0.25, 0.8)
+  divider.position = Vector2(divider_x - 1, 55)
+  divider.size = Vector2(2, 950)
+  divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  panel.add_child(divider)
+
+  # === Confirm button (hidden until changes made) ===
+  var confirm_btn := Button.new()
+  confirm_btn.name = "ConfirmBtn"
+  confirm_btn.text = "确认"
+  confirm_btn.custom_minimum_size = Vector2(200, 60)
+  confirm_btn.add_theme_font_size_override("font_size", 28)
+  confirm_btn.add_theme_color_override("font_color", Color.WHITE)
+  var cb_style := StyleBoxFlat.new()
+  cb_style.bg_color = Color(0.15, 0.5, 0.2, 0.9)
+  cb_style.border_color = Color(0.3, 0.8, 0.4)
+  cb_style.set_border_width_all(2)
+  cb_style.set_corner_radius_all(8)
+  confirm_btn.add_theme_stylebox_override("normal", cb_style)
+  var cb_hover := cb_style.duplicate() as StyleBoxFlat
+  cb_hover.bg_color = Color(0.2, 0.65, 0.3, 0.95)
+  confirm_btn.add_theme_stylebox_override("hover", cb_hover)
+  confirm_btn.position = Vector2((vw - 200) / 2.0, 1000)
+  confirm_btn.visible = false
+  panel.add_child(confirm_btn)
+
+  # Close button (X)
+  var close_btn := Button.new()
+  close_btn.text = "✕"
+  close_btn.position = Vector2(vw - 80, 55)
+  close_btn.custom_minimum_size = Vector2(60, 60)
+  close_btn.add_theme_font_size_override("font_size", 32)
+  close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+  var close_sb := StyleBoxFlat.new()
+  close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
+  close_sb.set_corner_radius_all(8)
+  close_btn.add_theme_stylebox_override("normal", close_sb)
+  var close_hover := close_sb.duplicate() as StyleBoxFlat
+  close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
+  close_btn.add_theme_stylebox_override("hover", close_hover)
+  close_btn.pressed.connect(func():
+    if pending_add.is_empty() and pending_remove.is_empty():
+      panel.queue_free()
+  )
+  panel.add_child(close_btn)
+
+  # --- Rebuild functions ---
+  var _rebuild_backpack_ui: Callable
+  _rebuild_backpack_ui = func():
+    # Rebuild left grid
+    for child in left_grid.get_children():
+      child.queue_free()
+    var bp_left: Array = run.backpack.duplicate()
+    var deck_cards: Array = []
+    for cid in run.deck:
+      var bi := bp_left.find(cid)
+      if bi >= 0:
+        bp_left.remove_at(bi)
+      else:
+        deck_cards.append(cid)
+    deck_cards.sort_custom(func(a, b):
+      var ca: Dictionary = _get_card_display(a)
+      var cb2: Dictionary = _get_card_display(b)
+      if ca.get("type", 0) != cb2.get("type", 0):
+        return ca.get("type", 0) < cb2.get("type", 0)
+      return ca.get("name", "") < cb2.get("name", "")
+    )
+    for cid in deck_cards:
+      var cd: Dictionary = _get_card_display(cid)
+      if cd.is_empty():
+        continue
+      var card_vis := CardScript.create_card_visual(cd, card_size, loc)
+      card_vis.custom_minimum_size = card_size
+      card_vis.mouse_filter = Control.MOUSE_FILTER_STOP
+      var captured_id: String = cid
+      card_vis.gui_input.connect(func(event: InputEvent):
+        if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+          if run.backpack.size() < 4:
+            run.backpack.append(captured_id)
+            pending_add.append(captured_id)
+            # If this card was previously removed this session, cancel it out
+            var ri := pending_remove.find(captured_id)
+            if ri >= 0:
+              pending_remove.remove_at(ri)
+            _rebuild_backpack_ui.call()
+      )
+      left_grid.add_child(card_vis)
+
+    # Rebuild right container
+    for child in right_container.get_children():
+      child.queue_free()
+    for i in 4:
+      if i < run.backpack.size():
+        var bp_cid: String = run.backpack[i]
+        var bp_cd: Dictionary = _get_card_display(bp_cid)
+        if bp_cd.is_empty():
+          continue
+        var bp_vis := CardScript.create_card_visual(bp_cd, card_size, loc)
+        bp_vis.custom_minimum_size = card_size
+        bp_vis.mouse_filter = Control.MOUSE_FILTER_STOP
+        var captured_bp_id: String = bp_cid
+        var captured_idx: int = i
+        bp_vis.gui_input.connect(func(event: InputEvent):
+          if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+            run.backpack.remove_at(captured_idx)
+            pending_remove.append(captured_bp_id)
+            # If this card was previously added this session, cancel it out
+            var ai := pending_add.find(captured_bp_id)
+            if ai >= 0:
+              pending_add.remove_at(ai)
+            _rebuild_backpack_ui.call()
+        )
+        right_container.add_child(bp_vis)
+      else:
+        # Empty slot placeholder
+        var slot := PanelContainer.new()
+        slot.custom_minimum_size = card_size
+        var slot_style := StyleBoxFlat.new()
+        slot_style.bg_color = Color(0.1, 0.1, 0.1, 0.5)
+        slot_style.border_color = Color(0.3, 0.3, 0.3, 0.5)
+        slot_style.set_border_width_all(2)
+        slot_style.set_corner_radius_all(8)
+        slot.add_theme_stylebox_override("panel", slot_style)
+        var slot_lbl := Label.new()
+        slot_lbl.text = "空位"
+        slot_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        slot_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        slot_lbl.add_theme_font_size_override("font_size", 22)
+        slot_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+        slot.add_child(slot_lbl)
+        right_container.add_child(slot)
+
+    # Update title
+    var rt = panel.get_node_or_null("RightTitle")
+    if rt:
+      rt.text = "背包 (%d/4)" % run.backpack.size()
+
+    # Show/hide confirm button
+    var has_changes: bool = not pending_add.is_empty() or not pending_remove.is_empty()
+    confirm_btn.visible = has_changes
+    _update_backpack_btn_text()
+
+  # Initial build
+  _rebuild_backpack_ui.call()
+
+  # Confirm action
+  confirm_btn.pressed.connect(func():
+    if phase == Phase.BATTLE:
+      _apply_backpack_changes_in_battle(pending_add.duplicate(), pending_remove.duplicate())
+      _backpack_uses_in_battle -= 1
+    _update_backpack_btn_text()
+    _update_hud_labels()
+    panel.queue_free()
+  )
+
+func _apply_backpack_changes_in_battle(added_to_bp: Array, removed_from_bp: Array) -> void:
+  if _battle_instance == null:
+    return
+  var bm: Node2D = _battle_instance
+
+  # Cards added to backpack: remove from draw_pile, discard_pile, hand
+  for cid in added_to_bp:
+    var found := false
+    # Remove from hand (check card_hand.cards for visual nodes)
+    if bm.card_hand:
+      for card_node in bm.card_hand.cards.duplicate():
+        if card_node.card_data.get("id", "") == cid:
+          # Remove from bm.hand array too
+          var hi := -1
+          for i in range(bm.hand.size() - 1, -1, -1):
+            if bm.hand[i].get("id", "") == cid:
+              hi = i
+              break
+          if hi >= 0:
+            bm.hand.remove_at(hi)
+          bm.card_hand.remove_card(card_node)
+          found = true
+          break
+    if found:
+      continue
+    # Remove from draw_pile
+    for i in range(bm.draw_pile.size() - 1, -1, -1):
+      if bm.draw_pile[i].get("id", "") == cid:
+        bm.draw_pile.remove_at(i)
+        found = true
+        break
+    if found:
+      continue
+    # Remove from discard_pile
+    for i in range(bm.discard_pile.size() - 1, -1, -1):
+      if bm.discard_pile[i].get("id", "") == cid:
+        bm.discard_pile.remove_at(i)
+        break
+
+  # Cards removed from backpack: add to draw_pile at random positions
+  for cid in removed_from_bp:
+    var cd: Dictionary = _get_card_display(cid)
+    if cd.is_empty():
+      continue
+    var insert_pos: int = randi() % (bm.draw_pile.size() + 1)
+    bm.draw_pile.insert(insert_pos, cd)
+
+  # Update pile labels and hand layout
+  bm._update_pile_labels()
+  if bm.card_hand:
+    bm.card_hand.update_layout()
 
 func _get_card_display(card_id: String) -> Dictionary:
   if card_id.ends_with("+"):
