@@ -4026,33 +4026,34 @@ func _on_pile_card_clicked(event: InputEvent, pile: Array, index: int) -> void:
 # ---- Discard Selection (In-Hand Mode) ----
 
 func _setup_discard_overlay() -> void:
-	## Discard overlay in HUDLayer — darkens area above hand (y: 60-700).
-	## Hand cards below y:700 are NOT covered, so they remain clickable.
+	## Discard overlay — dark BG in main scene (so selected cards render above it),
+	## title/confirm on HUDLayer (always on top).
 	var hud_layer = get_node_or_null("HUDLayer")
 	if hud_layer == null:
 		return
 	var vw: float = get_viewport_rect().size.x
+
+	# Dark background in MAIN SCENE (not HUDLayer) so cards with z_index=600+
+	# render above it. z_index=550 is above entities but below selected cards.
 	_discard_overlay = Control.new()
 	_discard_overlay.name = "DiscardOverlay"
 	_discard_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_discard_overlay.visible = false
-	_discard_overlay.z_index = 500
+	_discard_overlay.z_index = 550
 	_discard_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_layer.add_child(_discard_overlay)
+	add_child(_discard_overlay)
 
-	# Dark background covering y:60-700 (above hand area)
-	# MOUSE_FILTER_IGNORE so selected preview cards at center remain clickable
 	var bg = ColorRect.new()
 	bg.name = "DarkBG"
-	bg.position = Vector2(0, 60)
-	bg.size = Vector2(vw, 640)
+	bg.position = Vector2(0, 0)
+	bg.size = Vector2(vw, 700)
 	bg.color = Color(0, 0, 0, 0.6)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_discard_overlay.add_child(bg)
 
-	# Title label — top center of the overlay
+	# Title label and confirm button on HUDLayer (always visible above cards)
 	_discard_title_label = Label.new()
-	_discard_title_label.name = "Title"
+	_discard_title_label.name = "DiscardTitle"
 	_discard_title_label.text = ""
 	_discard_title_label.position = Vector2(0, 80)
 	_discard_title_label.size = Vector2(vw, 50)
@@ -4064,11 +4065,12 @@ func _setup_discard_overlay() -> void:
 	_discard_title_label.add_theme_constant_override("shadow_offset_x", 1)
 	_discard_title_label.add_theme_constant_override("shadow_offset_y", 2)
 	_discard_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_discard_overlay.add_child(_discard_title_label)
+	_discard_title_label.visible = false
+	_discard_title_label.z_index = 700
+	hud_layer.add_child(_discard_title_label)
 
-	# Confirm button — right side of screen, hidden until selection complete
 	_discard_confirm_btn = Button.new()
-	_discard_confirm_btn.name = "ConfirmButton"
+	_discard_confirm_btn.name = "DiscardConfirmButton"
 	_discard_confirm_btn.text = "确认"
 	_discard_confirm_btn.position = Vector2(vw - 320, 512)
 	_discard_confirm_btn.custom_minimum_size = Vector2(300, 55)
@@ -4076,7 +4078,8 @@ func _setup_discard_overlay() -> void:
 	_discard_confirm_btn.add_theme_font_size_override("font_size", 28)
 	_discard_confirm_btn.add_theme_color_override("font_color", Color(1, 1, 1))
 	_discard_confirm_btn.pressed.connect(_on_discard_confirm)
-	_discard_overlay.add_child(_discard_confirm_btn)
+	_discard_confirm_btn.z_index = 700
+	hud_layer.add_child(_discard_confirm_btn)
 	_update_discard_confirm_style()
 
 	# Dark rect behind hand cards (in main scene, below card z-index)
@@ -4106,9 +4109,11 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 
 	_update_discard_confirm_style()
 
-	# Show the darkening overlay
+	# Show the darkening overlay and title/confirm
 	if _discard_overlay:
 		_discard_overlay.visible = true
+	if _discard_title_label:
+		_discard_title_label.visible = true
 	if _discard_hand_bg:
 		_discard_hand_bg.visible = true
 
@@ -4187,9 +4192,13 @@ func _on_discard_confirm() -> void:
 			card_hand.add_card(c, false)
 		card_hand.snap_layout()
 	_discard_selected_cards.clear()
-	# Lower hand back to normal layer
+	# Hide overlay and title/confirm
 	if _discard_overlay:
 		_discard_overlay.visible = false
+	if _discard_title_label:
+		_discard_title_label.visible = false
+	if _discard_confirm_btn:
+		_discard_confirm_btn.visible = false
 	if _discard_hand_bg:
 		_discard_hand_bg.visible = false
 	# Re-enable buttons
@@ -4217,6 +4226,10 @@ func _on_discard_cancel() -> void:
 	_discard_selected_cards.clear()
 	if _discard_overlay:
 		_discard_overlay.visible = false
+	if _discard_title_label:
+		_discard_title_label.visible = false
+	if _discard_confirm_btn:
+		_discard_confirm_btn.visible = false
 	if _discard_hand_bg:
 		_discard_hand_bg.visible = false
 	# Re-enable buttons
