@@ -120,7 +120,7 @@ func _initialize() -> void:
 	# Draw pile (bottom left, STS-style: card stack icon + number)
 	var draw_panel = Panel.new()
 	draw_panel.name = "DrawPanel"
-	draw_panel.position = Vector2(20, 960)  # 1080-15-105=960
+	draw_panel.position = Vector2(40, 945)  # 40px from left, 30px from bottom
 	draw_panel.size = Vector2(70, 105)  # 50% taller
 	var draw_style = StyleBoxFlat.new()
 	draw_style.bg_color = Color(0.12, 0.15, 0.25, 0.9)
@@ -152,10 +152,10 @@ func _initialize() -> void:
 	discard_panel.name = "DiscardPanel"
 	discard_panel.anchor_left = 1.0
 	discard_panel.anchor_right = 1.0
-	discard_panel.offset_left = -90
-	discard_panel.offset_right = -20
-	discard_panel.offset_top = 960
-	discard_panel.offset_bottom = 1065
+	discard_panel.offset_left = -110
+	discard_panel.offset_right = -40
+	discard_panel.offset_top = 945
+	discard_panel.offset_bottom = 1050
 	var discard_style = StyleBoxFlat.new()
 	discard_style.bg_color = Color(0.25, 0.12, 0.12, 0.9)
 	discard_style.border_color = Color(0.8, 0.4, 0.4)
@@ -196,7 +196,7 @@ func _initialize() -> void:
 	# Turn indicator with semi-transparent bg
 	var turn_panel = PanelContainer.new()
 	turn_panel.name = "TurnPanel"
-	turn_panel.position = Vector2(830, 10)
+	turn_panel.position = Vector2(830, 60)  # Below standard mode top HUD (50px)
 	turn_panel.custom_minimum_size = Vector2(260, 50)
 	var turn_style = StyleBoxFlat.new()
 	turn_style.bg_color = Color(0.05, 0.05, 0.1, 0.7)

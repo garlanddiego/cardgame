@@ -3589,7 +3589,8 @@ func _setup_turn_banner() -> void:
 	_turn_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_turn_banner.custom_minimum_size = Vector2(600, 100)
 	_turn_banner.size = Vector2(600, 100)
-	_turn_banner.position = Vector2(660, 490)
+	var vw_tb: float = get_viewport_rect().size.x
+	_turn_banner.position = Vector2((vw_tb - 600) / 2.0, 490)
 	_turn_banner.add_theme_font_size_override("font_size", 56)
 	_turn_banner.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	_turn_banner.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
@@ -3624,8 +3625,8 @@ func _show_turn_banner(text: String, color: Color) -> void:
 func _animate_reshuffle() -> void:
 	## Visual: small card-shaped rectangles fly from discard pile to draw pile
 	var vw: float = get_viewport_rect().size.x
-	var discard_pos := Vector2(vw - 60, 950)  # Discard pile position (bottom right)
-	var draw_pos := Vector2(60, 950)  # Draw pile position (bottom left)
+	var discard_pos := Vector2(vw - 75, 945)  # Discard pile position (bottom right)
+	var draw_pos := Vector2(75, 945)  # Draw pile position (bottom left)
 	var count: int = mini(5, draw_pile.size())  # Show max 5 card fragments
 	for i in range(count):
 		var frag = ColorRect.new()

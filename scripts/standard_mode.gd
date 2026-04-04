@@ -81,6 +81,8 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	hud_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
 	hud_style.border_color = Color(0.4, 0.3, 0.2)
 	hud_style.border_width_bottom = 2
+	hud_style.content_margin_left = 30
+	hud_style.content_margin_right = 30
 	hud.add_theme_stylebox_override("panel", hud_style)
 	hud.offset_right = vw
 	hud.offset_bottom = 50
