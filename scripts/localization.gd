@@ -220,7 +220,7 @@ var _card_descs_zh: Dictionary = {
 	"ic_reaper": "对所有敌人\n造成 4 点伤害。\n恢复等同于未被格挡\n伤害的生命值。",
 	"ic_heavy_blade": "造成 14 点伤害。\n力量加成 x3。",
 	"ic_thunderclap": "对所有敌人\n造成 4 点伤害。\n施加 1 层易伤。",
-	"ic_hemokinesis": "失去 2 点生命。\n造成 15 点伤害。",
+	"ic_hemokinesis": "{self}失去 2 点生命。\n造成 15 点伤害。",
 	"ic_reckless_charge": "造成 7 点伤害。\n将一张眩晕洗入\n抽牌堆。",
 	"ic_clash": "只能在手牌全部\n为攻击牌时打出。\n造成 14 点伤害。",
 	"ic_perfected_strike": "造成 6 点伤害。\n你牌组中每有一张\n\"打击\"牌，额外\n造成 2 点伤害。",
@@ -240,14 +240,14 @@ var _card_descs_zh: Dictionary = {
 	"ic_shrug_it_off": "获得 8 点格挡。\n抽 1 张牌。",
 	"ic_flame_barrier": "{hero}获得 12 点格挡。\n本回合受到攻击时，\n反弹 4 点伤害。",
 	"ic_battle_trance": "抽 3 张牌。",
-	"ic_bloodletting": "失去 3 点生命。\n获得 2 点能量。",
+	"ic_bloodletting": "{self}失去 3 点生命。\n获得 2 点能量。",
 	"ic_flex": "{hero}获得 2 点力量。\n回合结束时，\n失去 2 点力量。",
 	"ic_limit_break": "使{hero}的力量翻倍。\n消耗。",
 	"ic_entrench": "使你的格挡翻倍。",
 	"ic_shockwave": "对所有敌人施加\n3 层虚弱和\n3 层易伤。消耗。",
 	"ic_armaments": "获得 5 点格挡。",
 	"ic_power_through": "{hero}获得 15 点格挡。\n将 2 张创伤\n加入手牌。",
-	"ic_offering": "失去 6 点生命。\n获得 2 点能量。\n抽 3 张牌。消耗。",
+	"ic_offering": "{self}失去 6 点生命。\n获得 2 点能量。\n抽 3 张牌。消耗。",
 	"ic_war_cry": "抽 1 张牌。\n消耗。",
 	"ic_burning_pact": "消耗 1 张牌。\n抽 2 张牌。",
 	"ic_seeing_red": "获得 2 点能量。\n消耗。",
@@ -275,8 +275,8 @@ var _card_descs_zh: Dictionary = {
 	"ic_barricade": "{hero}的格挡不再在\n回合开始时移除。",
 	"ic_inflame": "获得 2 点力量。",
 	"ic_metallicize": "回合结束时，\n{hero}获得 3 点格挡。",
-	"ic_brutality": "回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
-	"ic_combust": "回合结束时，\n失去 1 点生命，\n对所有敌人造成\n5 点伤害。",
+	"ic_brutality": "回合开始时，\n{self}失去 1 点生命，\n抽 1 张牌。",
+	"ic_combust": "回合结束时，\n{self}失去 1 点生命，\n对所有敌人造成\n5 点伤害。",
 	"ic_dark_embrace": "每当有牌被消耗时，\n抽 1 张牌。",
 	"ic_rupture": "每当你因打牌\n而失去生命时，\n获得 1 点力量。",
 	"ic_fire_breathing": "每当你抽到状态牌\n或诅咒牌时，对所有\n敌人造成 6 点伤害。",
@@ -391,7 +391,7 @@ var _card_descs_zh_plus: Dictionary = {
 	"ic_reaper": "对所有敌人\n造成 5 点伤害。\n恢复等同于未被格挡\n伤害的生命值。",
 	"ic_heavy_blade": "造成 18 点伤害。\n力量加成 x5。",
 	"ic_thunderclap": "对所有敌人\n造成 7 点伤害。\n施加 1 层易伤。",
-	"ic_hemokinesis": "失去 2 点生命。\n造成 20 点伤害。",
+	"ic_hemokinesis": "{self}失去 2 点生命。\n造成 20 点伤害。",
 	"ic_reckless_charge": "造成 10 点伤害。\n将一张眩晕洗入\n抽牌堆。",
 	"ic_clash": "只能在手牌全部\n为攻击牌时打出。\n造成 18 点伤害。",
 	"ic_perfected_strike": "造成 6 点伤害。\n你牌组中每有一张\n\"打击\"牌，额外\n造成 3 点伤害。",
@@ -411,14 +411,14 @@ var _card_descs_zh_plus: Dictionary = {
 	"ic_shrug_it_off": "获得 11 点格挡。\n抽 1 张牌。",
 	"ic_flame_barrier": "{hero}获得 16 点格挡。\n本回合受到攻击时，\n反弹 6 点伤害。",
 	"ic_battle_trance": "抽 4 张牌。",
-	"ic_bloodletting": "失去 3 点生命。\n获得 3 点能量。",
+	"ic_bloodletting": "{self}失去 3 点生命。\n获得 3 点能量。",
 	"ic_flex": "{hero}获得 4 点力量。\n回合结束时，\n失去 4 点力量。",
 	"ic_limit_break": "使{hero}的力量翻倍。",
 	"ic_entrench": "使你的格挡翻倍。",
 	"ic_shockwave": "对所有敌人施加\n5 层虚弱和\n5 层易伤。消耗。",
 	"ic_armaments": "获得 5 点格挡。\n升级手牌中所有牌。",
 	"ic_power_through": "{hero}获得 20 点格挡。\n将 2 张创伤\n加入手牌。",
-	"ic_offering": "失去 6 点生命。\n获得 2 点能量。\n抽 5 张牌。消耗。",
+	"ic_offering": "{self}失去 6 点生命。\n获得 2 点能量。\n抽 5 张牌。消耗。",
 	"ic_war_cry": "抽 2 张牌。\n消耗。",
 	"ic_burning_pact": "消耗 1 张牌。\n抽 3 张牌。",
 	"ic_seeing_red": "获得 2 点能量。\n消耗。",
@@ -446,8 +446,8 @@ var _card_descs_zh_plus: Dictionary = {
 	"ic_barricade": "{hero}的格挡不再在\n回合开始时移除。",
 	"ic_inflame": "获得 3 点力量。",
 	"ic_metallicize": "回合结束时，\n{hero}获得 4 点格挡。",
-	"ic_brutality": "固有。回合开始时，\n失去 1 点生命，\n抽 1 张牌。",
-	"ic_combust": "回合结束时，\n失去 1 点生命，\n对所有敌人造成\n7 点伤害。",
+	"ic_brutality": "固有。回合开始时，\n{self}失去 1 点生命，\n抽 1 张牌。",
+	"ic_combust": "回合结束时，\n{self}失去 1 点生命，\n对所有敌人造成\n7 点伤害。",
 	"ic_dark_embrace": "每当有牌被消耗时，\n抽 1 张牌。",
 	"ic_rupture": "每当你因打牌\n而失去生命时，\n获得 2 点力量。",
 	"ic_fire_breathing": "每当你抽到状态牌\n或诅咒牌时，对所有\n敌人造成 10 点伤害。",
@@ -577,6 +577,14 @@ func card_desc(card_data: Dictionary) -> String:
 	elif ht == "all_heroes":
 		hero_str = "所有英雄" if current_lang == "zh" else "all heroes"
 	desc = desc.replace("{hero}", hero_str)
+	# {self} resolves to the card's own hero name
+	var char_id: String = card_data.get("character", "")
+	var self_str: String = ""
+	if current_lang == "zh":
+		match char_id:
+			"ironclad": self_str = "铁甲战士"
+			"silent": self_str = "沉默猎手"
+	desc = desc.replace("{self}", self_str)
 	return desc
 
 func type_name(type_index: int) -> String:

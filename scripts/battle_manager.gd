@@ -1334,14 +1334,15 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			# ---- Self damage (e.g. Hemokinesis) ----
 			"self_damage":
 				var amount: int = action.get("value", 0)
-				if amount > 0 and player:
-					player.take_damage_direct(amount)
+				var self_dmg_hero: Node2D = card_hero if card_hero else player
+				if amount > 0 and self_dmg_hero:
+					self_dmg_hero.take_damage_direct(amount)
 					# Rupture: gain strength on self HP loss from card
-					var rupture_str: int = player.active_powers.get("rupture", 0)
+					var rupture_str: int = self_dmg_hero.active_powers.get("rupture", 0)
 					if rupture_str > 0:
-						player.apply_status("strength", rupture_str)
+						self_dmg_hero.apply_status("strength", rupture_str)
 					# Blood Fury: next attack deals double damage
-					if player.active_powers.get("blood_fury", 0) > 0:
+					if self_dmg_hero.active_powers.get("blood_fury", 0) > 0:
 						_double_damage_this_turn = true
 
 			# ---- Power effect activation ----
