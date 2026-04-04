@@ -414,7 +414,7 @@ func _update_status_display() -> void:
 		container.gui_input.connect(_on_status_icon_clicked.bind(container, status_name, stacks))
 		var icon = TextureRect.new()
 		icon.texture = tex
-		icon.custom_minimum_size = Vector2(28, 28)
+		icon.custom_minimum_size = Vector2(34, 34)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -430,7 +430,7 @@ func _update_status_display() -> void:
 		else:
 			lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.7))
 		container.add_child(lbl)
-		items.append({"node": container, "width": 42})  # 28 icon + ~14 label
+		items.append({"node": container, "width": 50})  # 34 icon + ~16 label
 	# --- Power icons ---
 	for power_id in active_powers:
 		var stacks: int = active_powers[power_id]
@@ -449,15 +449,15 @@ func _update_status_display() -> void:
 		if tex:
 			var icon = TextureRect.new()
 			icon.texture = tex
-			icon.custom_minimum_size = Vector2(28, 28)
-			icon.size = Vector2(28, 28)
+			icon.custom_minimum_size = Vector2(34, 34)
+			icon.size = Vector2(34, 34)
 			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(icon)
 		else:
 			var fallback = ColorRect.new()
-			fallback.custom_minimum_size = Vector2(28, 28)
+			fallback.custom_minimum_size = Vector2(34, 34)
 			fallback.color = Color(0.6, 0.3, 0.8, 0.8)
 			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(fallback)
@@ -468,11 +468,11 @@ func _update_status_display() -> void:
 			lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
 			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(lbl)
-		items.append({"node": container, "width": 42})
+		items.append({"node": container, "width": 50})
 	# --- Flow layout: wrap into rows that fit within HP bar width ---
 	var max_width: float = hp_bar_bg.size.x if hp_bar_bg else 218.0
 	var spacing: float = 4.0
-	var row_height: float = 30.0
+	var row_height: float = 36.0
 	var cur_x: float = 0.0
 	var cur_y: float = 0.0
 	for item in items:
