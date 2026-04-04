@@ -2474,7 +2474,8 @@ func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	## Check if attacked hero has reactive powers (caltrops, flame_barrier) and apply
 	if attacked_hero == null or enemy == null or not enemy.alive:
 		return
-	if attacked_hero.active_powers.get("flame_barrier", 0) > 0:
+	# Flame Barrier: per-turn skill effect (not a persistent power)
+	if flame_barrier_active and flame_barrier_damage > 0:
 		enemy.take_damage(flame_barrier_damage)
 	var caltrops_dmg: int = attacked_hero.active_powers.get("caltrops", 0)
 	if caltrops_dmg > 0:
