@@ -598,7 +598,7 @@ func get_starting_deck(character_id: String) -> Array:
 
 func get_card_data(card_id: String) -> Dictionary:
 	if card_database.has(card_id):
-		return card_database[card_id].duplicate()
+		return card_database[card_id].duplicate(true)
 	return {}
 
 # =============================================================================
@@ -606,16 +606,35 @@ func get_card_data(card_id: String) -> Dictionary:
 # =============================================================================
 
 func get_upgraded_card(card_id: String) -> Dictionary:
-	var base := get_card_data(card_id)
+	# Deep copy to avoid mutating the shared card_database
+	var base: Dictionary = {}
+	if card_database.has(card_id):
+		base = card_database[card_id].duplicate(true)
 	if base.is_empty():
 		return {}
 	var overrides := _get_upgrade_overrides()
 	if overrides.has(card_id):
 		for key in overrides[card_id]:
-			if key == "apply_status" or key == "apply_status_2" or key == "apply_self_status":
-				base[key] = overrides[card_id][key]
-			else:
-				base[key] = overrides[card_id][key]
+			base[key] = overrides[card_id][key]
+	# Sync top-level overrides into the actions array so execution reads correct values
+	if base.has("actions") and base["actions"] is Array:
+		for action in base["actions"]:
+			var atype: String = action.get("type", "")
+			match atype:
+				"apply_self_status":
+					if base.has("apply_self_status"):
+						var src: Dictionary = base["apply_self_status"]
+						action["status"] = src.get("type", action.get("status", ""))
+						action["stacks"] = src.get("stacks", action.get("stacks", 1))
+				"apply_status":
+					var src_key: String = action.get("source", "apply_status")
+					if base.has(src_key):
+						var src: Dictionary = base[src_key]
+						action["status"] = src.get("type", action.get("status", ""))
+						action["stacks"] = src.get("stacks", action.get("stacks", 1))
+				"power_effect":
+					if base.has("power_effect"):
+						action["power"] = base["power_effect"]
 	base["name"] = base["name"] + "+"
 	base["upgraded"] = true
 	return base
