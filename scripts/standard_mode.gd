@@ -1855,8 +1855,12 @@ func _show_backpack() -> void:
   panel.add_child(bg)
 
   var loc = get_node_or_null("/root/Loc")
-  var card_size := Vector2(220, 314)
   var divider_x: float = vw * 0.6  # 60% left for deck, 40% right for backpack
+  # Card sizes: fit 4 columns left, 2 columns right
+  var left_card_w: float = floorf((divider_x - 40.0 - 36.0) / 4.0)  # 3 gaps * 12px
+  var left_card_size := Vector2(left_card_w, left_card_w * 1.43)
+  var right_card_w: float = floorf((vw - divider_x - 40.0 - 12.0) / 2.0)  # 1 gap * 12px
+  var right_card_size := Vector2(right_card_w, right_card_w * 1.43)
 
   # === LEFT: All deck cards (excluding ones currently in backpack) ===
   var left_title := Label.new()
@@ -1878,7 +1882,7 @@ func _show_backpack() -> void:
 
   var left_grid := GridContainer.new()
   left_grid.name = "LeftGrid"
-  left_grid.columns = 3
+  left_grid.columns = 4
   left_grid.add_theme_constant_override("h_separation", 12)
   left_grid.add_theme_constant_override("v_separation", 12)
   left_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1896,12 +1900,19 @@ func _show_backpack() -> void:
   right_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
   panel.add_child(right_title)
 
-  var right_container := VBoxContainer.new()
+  var right_scroll := ScrollContainer.new()
+  right_scroll.position = Vector2(divider_x + 20, 105)
+  right_scroll.size = Vector2(vw - divider_x - 40, 880)
+  right_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+  panel.add_child(right_scroll)
+
+  var right_container := GridContainer.new()
   right_container.name = "RightContainer"
-  right_container.position = Vector2(divider_x + 20, 105)
-  right_container.size = Vector2(vw - divider_x - 40, 880)
-  right_container.add_theme_constant_override("separation", 12)
-  panel.add_child(right_container)
+  right_container.columns = 2
+  right_container.add_theme_constant_override("h_separation", 12)
+  right_container.add_theme_constant_override("v_separation", 12)
+  right_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  right_scroll.add_child(right_container)
 
   # Divider line
   var divider := ColorRect.new()
@@ -1976,8 +1987,8 @@ func _show_backpack() -> void:
       var cd: Dictionary = _get_card_display(cid)
       if cd.is_empty():
         continue
-      var card_vis := CardScript.create_card_visual(cd, card_size, loc)
-      card_vis.custom_minimum_size = card_size
+      var card_vis := CardScript.create_card_visual(cd, left_card_size, loc)
+      card_vis.custom_minimum_size = left_card_size
       card_vis.mouse_filter = Control.MOUSE_FILTER_STOP
       var captured_id: String = cid
       card_vis.gui_input.connect(func(event: InputEvent):
@@ -2002,8 +2013,8 @@ func _show_backpack() -> void:
         var bp_cd: Dictionary = _get_card_display(bp_cid)
         if bp_cd.is_empty():
           continue
-        var bp_vis := CardScript.create_card_visual(bp_cd, card_size, loc)
-        bp_vis.custom_minimum_size = card_size
+        var bp_vis := CardScript.create_card_visual(bp_cd, right_card_size, loc)
+        bp_vis.custom_minimum_size = right_card_size
         bp_vis.mouse_filter = Control.MOUSE_FILTER_STOP
         var captured_bp_id: String = bp_cid
         var captured_idx: int = i
@@ -2021,7 +2032,7 @@ func _show_backpack() -> void:
       else:
         # Empty slot placeholder
         var slot := PanelContainer.new()
-        slot.custom_minimum_size = card_size
+        slot.custom_minimum_size = right_card_size
         var slot_style := StyleBoxFlat.new()
         slot_style.bg_color = Color(0.1, 0.1, 0.1, 0.5)
         slot_style.border_color = Color(0.3, 0.3, 0.3, 0.5)
