@@ -79,8 +79,8 @@ func _initialize() -> void:
 	energy_panel.position = Vector2(24, 732)  # Raised 40px
 	energy_panel.custom_minimum_size = Vector2(120, 72)
 	var energy_style = StyleBoxFlat.new()
-	energy_style.bg_color = Color(0.05, 0.08, 0.18, 0.85)
-	energy_style.border_color = Color(0.5, 0.8, 1.0, 0.9)
+	energy_style.bg_color = Color(0.04, 0.06, 0.16, 0.9)
+	energy_style.border_color = Color(0.4, 0.7, 1.0, 0.85)
 	energy_style.border_width_left = 3
 	energy_style.border_width_right = 3
 	energy_style.border_width_top = 3
@@ -89,10 +89,13 @@ func _initialize() -> void:
 	energy_style.corner_radius_top_right = 36
 	energy_style.corner_radius_bottom_left = 36
 	energy_style.corner_radius_bottom_right = 36
-	energy_style.content_margin_left = 12
-	energy_style.content_margin_right = 12
+	energy_style.content_margin_left = 14
+	energy_style.content_margin_right = 14
 	energy_style.content_margin_top = 8
 	energy_style.content_margin_bottom = 8
+	energy_style.shadow_color = Color(0.1, 0.3, 0.6, 0.3)
+	energy_style.shadow_size = 6
+	energy_style.shadow_offset = Vector2(0, 2)
 	energy_panel.add_theme_stylebox_override("panel", energy_style)
 	hud.add_child(energy_panel)
 
@@ -123,10 +126,13 @@ func _initialize() -> void:
 	draw_panel.position = Vector2(40, 945)  # 40px from left, 30px from bottom
 	draw_panel.size = Vector2(70, 105)  # 50% taller
 	var draw_style = StyleBoxFlat.new()
-	draw_style.bg_color = Color(0.12, 0.15, 0.25, 0.9)
-	draw_style.border_color = Color(0.4, 0.5, 0.8)
+	draw_style.bg_color = Color(0.08, 0.1, 0.22, 0.92)
+	draw_style.border_color = Color(0.35, 0.5, 0.85)
 	draw_style.set_border_width_all(2)
-	draw_style.set_corner_radius_all(8)
+	draw_style.set_corner_radius_all(10)
+	draw_style.shadow_color = Color(0.05, 0.1, 0.3, 0.3)
+	draw_style.shadow_size = 4
+	draw_style.shadow_offset = Vector2(0, 2)
 	draw_panel.add_theme_stylebox_override("panel", draw_style)
 	draw_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud.add_child(draw_panel)
@@ -157,10 +163,13 @@ func _initialize() -> void:
 	discard_panel.offset_top = 945
 	discard_panel.offset_bottom = 1050
 	var discard_style = StyleBoxFlat.new()
-	discard_style.bg_color = Color(0.25, 0.12, 0.12, 0.9)
-	discard_style.border_color = Color(0.8, 0.4, 0.4)
+	discard_style.bg_color = Color(0.22, 0.08, 0.08, 0.92)
+	discard_style.border_color = Color(0.75, 0.35, 0.35)
 	discard_style.set_border_width_all(2)
-	discard_style.set_corner_radius_all(8)
+	discard_style.set_corner_radius_all(10)
+	discard_style.shadow_color = Color(0.3, 0.05, 0.05, 0.3)
+	discard_style.shadow_size = 4
+	discard_style.shadow_offset = Vector2(0, 2)
 	discard_panel.add_theme_stylebox_override("panel", discard_style)
 	discard_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud.add_child(discard_panel)
@@ -199,20 +208,23 @@ func _initialize() -> void:
 	turn_panel.position = Vector2(830, 85)  # Below standard mode top HUD (75px)
 	turn_panel.custom_minimum_size = Vector2(260, 50)
 	var turn_style = StyleBoxFlat.new()
-	turn_style.bg_color = Color(0.05, 0.05, 0.1, 0.7)
-	turn_style.border_color = Color(0.6, 0.6, 0.3, 0.6)
-	turn_style.border_width_left = 1
-	turn_style.border_width_right = 1
-	turn_style.border_width_top = 1
-	turn_style.border_width_bottom = 1
-	turn_style.corner_radius_top_left = 6
-	turn_style.corner_radius_top_right = 6
-	turn_style.corner_radius_bottom_left = 6
-	turn_style.corner_radius_bottom_right = 6
-	turn_style.content_margin_left = 12
-	turn_style.content_margin_right = 12
-	turn_style.content_margin_top = 4
-	turn_style.content_margin_bottom = 4
+	turn_style.bg_color = Color(0.04, 0.04, 0.1, 0.8)
+	turn_style.border_color = Color(0.7, 0.65, 0.35, 0.7)
+	turn_style.border_width_left = 2
+	turn_style.border_width_right = 2
+	turn_style.border_width_top = 2
+	turn_style.border_width_bottom = 2
+	turn_style.corner_radius_top_left = 8
+	turn_style.corner_radius_top_right = 8
+	turn_style.corner_radius_bottom_left = 8
+	turn_style.corner_radius_bottom_right = 8
+	turn_style.content_margin_left = 16
+	turn_style.content_margin_right = 16
+	turn_style.content_margin_top = 6
+	turn_style.content_margin_bottom = 6
+	turn_style.shadow_color = Color(0.0, 0.0, 0.0, 0.25)
+	turn_style.shadow_size = 3
+	turn_style.shadow_offset = Vector2(0, 2)
 	turn_panel.add_theme_stylebox_override("panel", turn_style)
 	hud.add_child(turn_panel)
 

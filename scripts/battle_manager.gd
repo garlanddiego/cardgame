@@ -169,30 +169,49 @@ func _ready() -> void:
 	player_area = get_node_or_null("PlayerArea")
 	enemy_area = get_node_or_null("EnemyArea")
 
-	# EndTurnButton — style + connect
+	# EndTurnButton — STS-style polished button
 	if end_turn_btn:
 		end_turn_btn.pressed.connect(_on_end_turn)
-		end_turn_btn.add_theme_font_size_override("font_size", 26)
-		end_turn_btn.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
-		# Active style
+		end_turn_btn.add_theme_font_size_override("font_size", 28)
+		end_turn_btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
+		end_turn_btn.add_theme_color_override("font_shadow_color", Color(0.2, 0.1, 0.0, 0.7))
+		end_turn_btn.add_theme_constant_override("shadow_offset_x", 0)
+		end_turn_btn.add_theme_constant_override("shadow_offset_y", 2)
+		# Normal: warm amber with gold border
 		var et_style := StyleBoxFlat.new()
-		et_style.bg_color = Color(0.6, 0.35, 0.1, 0.9)
-		et_style.border_color = Color(0.9, 0.7, 0.3)
-		et_style.set_border_width_all(2)
-		et_style.set_corner_radius_all(10)
+		et_style.bg_color = Color(0.55, 0.32, 0.08, 0.92)
+		et_style.border_color = Color(0.95, 0.75, 0.3)
+		et_style.set_border_width_all(3)
+		et_style.set_corner_radius_all(14)
+		et_style.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+		et_style.shadow_size = 4
+		et_style.shadow_offset = Vector2(0, 3)
+		et_style.content_margin_left = 16
+		et_style.content_margin_right = 16
+		et_style.content_margin_top = 8
+		et_style.content_margin_bottom = 8
 		end_turn_btn.add_theme_stylebox_override("normal", et_style)
+		# Hover: brighter amber
 		var et_hover := et_style.duplicate() as StyleBoxFlat
-		et_hover.bg_color = Color(0.7, 0.45, 0.15, 0.95)
+		et_hover.bg_color = Color(0.7, 0.42, 0.12, 0.95)
+		et_hover.border_color = Color(1.0, 0.85, 0.4)
 		end_turn_btn.add_theme_stylebox_override("hover", et_hover)
+		# Pressed: darker, inset feel
 		var et_pressed := et_style.duplicate() as StyleBoxFlat
-		et_pressed.bg_color = Color(0.5, 0.28, 0.08, 0.95)
+		et_pressed.bg_color = Color(0.4, 0.22, 0.05, 0.95)
+		et_pressed.shadow_size = 1
+		et_pressed.shadow_offset = Vector2(0, 1)
 		end_turn_btn.add_theme_stylebox_override("pressed", et_pressed)
-		# Disabled style (gray, enemy turn)
+		# Disabled: muted gray (enemy turn)
 		var et_disabled := StyleBoxFlat.new()
-		et_disabled.bg_color = Color(0.2, 0.2, 0.2, 0.6)
-		et_disabled.border_color = Color(0.35, 0.35, 0.35)
-		et_disabled.set_border_width_all(1)
-		et_disabled.set_corner_radius_all(10)
+		et_disabled.bg_color = Color(0.18, 0.18, 0.2, 0.7)
+		et_disabled.border_color = Color(0.3, 0.3, 0.35)
+		et_disabled.set_border_width_all(2)
+		et_disabled.set_corner_radius_all(14)
+		et_disabled.content_margin_left = 16
+		et_disabled.content_margin_right = 16
+		et_disabled.content_margin_top = 8
+		et_disabled.content_margin_bottom = 8
 		end_turn_btn.add_theme_stylebox_override("disabled", et_disabled)
 		end_turn_btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.4))
 		var loc = _get_loc()
@@ -2303,8 +2322,8 @@ func _animate_hand_discard() -> void:
 		var fly_tween = create_tween()
 		fly_tween.tween_interval(0.08 * i)
 		fly_tween.tween_property(card_node, "position", discard_target, 0.2).set_ease(Tween.EASE_IN)
-		fly_tween.parallel().tween_property(card_node, "scale", Vector2(0.3, 0.3), 0.2)
-		fly_tween.parallel().tween_property(card_node, "modulate:a", 0.0, 0.15).set_delay(0.1)
+		fly_tween.parallel().tween_property(card_node, "scale", Vector2(0.3, 0.3), 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		fly_tween.parallel().tween_property(card_node, "modulate:a", 0.0, 0.15).set_delay(0.1).set_ease(Tween.EASE_IN)
 		total_delay = 0.08 * i + 0.2
 	# After all animations, clear hand and continue
 	var cleanup_tween = create_tween()
@@ -3620,7 +3639,7 @@ func _show_turn_banner(text: String, color: Color) -> void:
 	tween.tween_property(_turn_banner, "scale", Vector2(1.0, 1.0), 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tween.set_parallel(false)
 	tween.tween_interval(0.5)
-	tween.tween_property(_turn_banner, "modulate", Color(1, 1, 1, 0), 0.3)
+	tween.tween_property(_turn_banner, "modulate", Color(1, 1, 1, 0), 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	tween.tween_callback(func(): _turn_banner.visible = false)
 
 # ---- Screen Shake ----
@@ -3641,7 +3660,7 @@ func _animate_reshuffle() -> void:
 		var t = create_tween()
 		t.tween_interval(0.08 * i)  # Stagger
 		t.tween_property(frag, "position", draw_pos + Vector2(randf_range(-15, 15), randf_range(-10, 10)), 0.35).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
-		t.tween_property(frag, "modulate:a", 0.0, 0.15)
+		t.tween_property(frag, "modulate:a", 0.0, 0.15).set_ease(Tween.EASE_IN)
 		t.tween_callback(frag.queue_free)
 
 func _screen_shake(intensity: float = 8.0, duration: float = 0.15) -> void:
@@ -3749,7 +3768,7 @@ func _play_skill_effect(card_data: Dictionary, hero_node: Node2D) -> void:
 	var tw = create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(ring, "scale", Vector2(20, 20), 0.4).set_ease(Tween.EASE_OUT)
-	tw.tween_property(ring, "modulate:a", 0.0, 0.4)
+	tw.tween_property(ring, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	tw.set_parallel(false)
 	tw.tween_callback(ring.queue_free)
 
@@ -3797,7 +3816,7 @@ func _sword_slash_effect(hero_node: Node2D, target_node: Node2D) -> void:
 	slash.points = arc_points
 	add_child(slash)
 	var tw = create_tween()
-	tw.tween_property(slash, "modulate:a", 0.0, 0.3)
+	tw.tween_property(slash, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	tw.tween_callback(slash.queue_free)
 
 func _dagger_throw_effect(hero_node: Node2D, target_node: Node2D) -> void:
@@ -3840,7 +3859,7 @@ func _generic_hit_effect(target_node: Node2D) -> void:
 	add_child(flash)
 	var tw = create_tween()
 	tw.tween_property(flash, "scale", Vector2(4, 4), 0.15).set_ease(Tween.EASE_OUT)
-	tw.tween_property(flash, "modulate:a", 0.0, 0.15)
+	tw.tween_property(flash, "modulate:a", 0.0, 0.15).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(flash.queue_free)
 
 func _enemy_bite_effect(enemy: Node2D, target_node: Node2D) -> void:
@@ -3876,8 +3895,8 @@ func _enemy_bite_effect(enemy: Node2D, target_node: Node2D) -> void:
 	tw.set_parallel(false)
 	tw.tween_interval(0.1)
 	tw.set_parallel(true)
-	tw.tween_property(jaw_up, "modulate:a", 0.0, 0.2)
-	tw.tween_property(jaw_down, "modulate:a", 0.0, 0.2)
+	tw.tween_property(jaw_up, "modulate:a", 0.0, 0.2).set_ease(Tween.EASE_IN)
+	tw.tween_property(jaw_down, "modulate:a", 0.0, 0.2).set_ease(Tween.EASE_IN)
 	tw.set_parallel(false)
 	tw.tween_callback(jaw_up.queue_free)
 	tw.tween_callback(jaw_down.queue_free)

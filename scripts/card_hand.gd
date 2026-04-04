@@ -527,9 +527,9 @@ func _shatter_card(card_node: Area2D) -> void:
 		var t = create_tween()
 		t.set_parallel(true)
 		t.tween_property(frag, "position", target_pos, 0.4 + randf() * 0.2).set_ease(Tween.EASE_OUT)
-		t.tween_property(frag, "rotation", randf_range(-2.0, 2.0), 0.5)
-		t.tween_property(frag, "modulate:a", 0.0, 0.5).set_delay(0.1)
-		t.tween_property(frag, "scale", Vector2(0.2, 0.2), 0.5)
+		t.tween_property(frag, "rotation", randf_range(-2.0, 2.0), 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		t.tween_property(frag, "modulate:a", 0.0, 0.5).set_delay(0.1).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		t.tween_property(frag, "scale", Vector2(0.2, 0.2), 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 		t.set_parallel(false)
 		t.tween_callback(frag.queue_free)
 

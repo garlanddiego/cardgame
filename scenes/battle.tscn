@@ -6,65 +6,77 @@
 [ext_resource type="Texture2D" path="res://assets/img/ui_icons/energy_orb.png" id="4_4k1nj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f4pi3"]
-content_margin_left = 12.0
+content_margin_left = 14.0
 content_margin_top = 8.0
-content_margin_right = 12.0
+content_margin_right = 14.0
 content_margin_bottom = 8.0
-bg_color = Color(0.05, 0.08, 0.18, 0.85)
+bg_color = Color(0.04, 0.06, 0.16, 0.9)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.5, 0.8, 1, 0.9)
+border_color = Color(0.4, 0.7, 1, 0.85)
 corner_radius_top_left = 36
 corner_radius_top_right = 36
 corner_radius_bottom_right = 36
 corner_radius_bottom_left = 36
+shadow_color = Color(0.1, 0.3, 0.6, 0.3)
+shadow_size = 6
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yahae"]
-bg_color = Color(0.12, 0.15, 0.25, 0.9)
+bg_color = Color(0.08, 0.1, 0.22, 0.92)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.4, 0.5, 0.8, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+border_color = Color(0.35, 0.5, 0.85, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.05, 0.1, 0.3, 0.3)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v7i3o"]
-bg_color = Color(0.25, 0.12, 0.12, 0.9)
+bg_color = Color(0.22, 0.08, 0.08, 0.92)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.8, 0.4, 0.4, 1)
+border_color = Color(0.75, 0.35, 0.35, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.3, 0.05, 0.05, 0.3)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_66ngm"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 16.0
+content_margin_bottom = 6.0
+bg_color = Color(0.04, 0.04, 0.1, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.65, 0.35, 0.7)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_66ngm"]
-content_margin_left = 12.0
-content_margin_top = 4.0
-content_margin_right = 12.0
-content_margin_bottom = 4.0
-bg_color = Color(0.05, 0.05, 0.1, 0.7)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.6, 0.6, 0.3, 0.6)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[node name="Battle" type="Node2D" unique_id=37441198]
+[node name="Battle" type="Node2D" unique_id=966561226]
 script = ExtResource("1_a12nh")
 
-[node name="Background" type="TextureRect" parent="." unique_id=90794133]
+[node name="Background" type="TextureRect" parent="." unique_id=1186252702]
 z_index = -10
 offset_right = 2560.0
 offset_bottom = 1080.0
@@ -72,33 +84,33 @@ mouse_filter = 2
 texture = ExtResource("2_lpir7")
 expand_mode = 1
 
-[node name="PlayerArea" type="Node2D" parent="." unique_id=1207946060]
+[node name="PlayerArea" type="Node2D" parent="." unique_id=331031484]
 position = Vector2(480, 480)
 
-[node name="EnemyArea" type="Node2D" parent="." unique_id=544889275]
+[node name="EnemyArea" type="Node2D" parent="." unique_id=1671790523]
 position = Vector2(1200, 480)
 
-[node name="CardHand" type="Node2D" parent="." unique_id=445725340]
+[node name="CardHand" type="Node2D" parent="." unique_id=2112796991]
 position = Vector2(0, 740)
 script = ExtResource("3_6vh42")
 
-[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=849982090]
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=362299660]
 
-[node name="DarkOverlay" type="ColorRect" parent="HUDLayer" unique_id=400142892]
+[node name="DarkOverlay" type="ColorRect" parent="HUDLayer" unique_id=1472248899]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0.05, 0.05)
 
-[node name="HUD" type="Control" parent="HUDLayer" unique_id=264622485]
+[node name="HUD" type="Control" parent="HUDLayer" unique_id=1993980529]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1242512740]
+[node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=643268639]
 custom_minimum_size = Vector2(120, 72)
 layout_mode = 0
 offset_left = 24.0
@@ -107,24 +119,24 @@ offset_right = 24.0
 offset_bottom = 732.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_f4pi3")
 
-[node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=316747145]
+[node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=1716209027]
 layout_mode = 2
 alignment = 1
 
-[node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=1377198320]
+[node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=727547294]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 texture = ExtResource("4_4k1nj")
 expand_mode = 3
 stretch_mode = 5
 
-[node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=974760190]
+[node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=1434164848]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.2, 0.6, 1, 1)
 text = "3/3"
 
-[node name="DrawPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1189311923]
+[node name="DrawPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1787557091]
 layout_mode = 0
 offset_left = 40.0
 offset_top = 945.0
@@ -132,7 +144,7 @@ offset_right = 110.0
 offset_bottom = 1050.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_yahae")
 
-[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=1015662355]
+[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=1847123530]
 layout_mode = 0
 offset_top = 40.0
 offset_right = 70.0
@@ -142,7 +154,7 @@ theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
 text = "0"
 horizontal_alignment = 1
 
-[node name="@Label@2" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=918092951]
+[node name="@Label@2" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=854706462]
 layout_mode = 0
 offset_top = 8.0
 offset_right = 70.0
@@ -151,7 +163,7 @@ theme_override_font_sizes/font_size = 18
 text = "🂠"
 horizontal_alignment = 1
 
-[node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1037938595]
+[node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD" unique_id=343992812]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -161,7 +173,7 @@ offset_right = -40.0
 offset_bottom = 1050.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_v7i3o")
 
-[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=1604168864]
+[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=773250551]
 layout_mode = 0
 offset_top = 40.0
 offset_right = 70.0
@@ -171,7 +183,7 @@ theme_override_colors/font_color = Color(1, 0.8, 0.7, 1)
 text = "0"
 horizontal_alignment = 1
 
-[node name="@Label@3" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=814493108]
+[node name="@Label@3" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=1847009129]
 layout_mode = 0
 offset_top = 8.0
 offset_right = 70.0
@@ -180,7 +192,7 @@ theme_override_font_sizes/font_size = 18
 text = "🂠"
 horizontal_alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=2124126091]
+[node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=711472586]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -190,7 +202,7 @@ offset_right = -40.0
 offset_bottom = 795.0
 text = "End Turn"
 
-[node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1645485698]
+[node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1610736295]
 custom_minimum_size = Vector2(260, 50)
 layout_mode = 0
 offset_left = 830.0
@@ -199,7 +211,7 @@ offset_right = 830.0
 offset_bottom = 85.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_66ngm")
 
-[node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=1373912180]
+[node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=833587213]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.27, 0.8, 0.4, 1)

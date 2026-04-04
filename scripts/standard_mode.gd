@@ -78,13 +78,16 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	var vw: float = get_viewport_rect().size.x
 	var hud := PanelContainer.new()
 	var hud_style := StyleBoxFlat.new()
-	hud_style.bg_color = Color(0.05, 0.04, 0.03, 0.9)
-	hud_style.border_color = Color(0.4, 0.3, 0.2)
-	hud_style.border_width_bottom = 2
+	hud_style.bg_color = Color(0.04, 0.035, 0.025, 0.92)
+	hud_style.border_color = Color(0.5, 0.4, 0.22)
+	hud_style.border_width_bottom = 3
 	hud_style.content_margin_left = 30
 	hud_style.content_margin_right = 30
 	hud_style.content_margin_top = 10
 	hud_style.content_margin_bottom = 10
+	hud_style.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	hud_style.shadow_size = 5
+	hud_style.shadow_offset = Vector2(0, 3)
 	hud.add_theme_stylebox_override("panel", hud_style)
 	hud.offset_right = vw
 	hud.offset_bottom = 75
@@ -110,16 +113,22 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	_hud_backpack_btn.add_theme_font_size_override("font_size", 20)
 	_hud_backpack_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
 	var bp_style := StyleBoxFlat.new()
-	bp_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
-	bp_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+	bp_style.bg_color = Color(0.12, 0.1, 0.06, 0.75)
+	bp_style.border_color = Color(0.5, 0.4, 0.25, 0.65)
 	bp_style.set_border_width_all(1)
-	bp_style.set_corner_radius_all(6)
-	bp_style.content_margin_left = 8
-	bp_style.content_margin_right = 8
+	bp_style.set_corner_radius_all(8)
+	bp_style.content_margin_left = 10
+	bp_style.content_margin_right = 10
+	bp_style.content_margin_top = 4
+	bp_style.content_margin_bottom = 4
 	_hud_backpack_btn.add_theme_stylebox_override("normal", bp_style)
 	var bp_hover := bp_style.duplicate() as StyleBoxFlat
-	bp_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+	bp_hover.bg_color = Color(0.22, 0.18, 0.1, 0.9)
+	bp_hover.border_color = Color(0.65, 0.5, 0.3, 0.8)
 	_hud_backpack_btn.add_theme_stylebox_override("hover", bp_hover)
+	var bp_pressed := bp_style.duplicate() as StyleBoxFlat
+	bp_pressed.bg_color = Color(0.08, 0.06, 0.04, 0.85)
+	_hud_backpack_btn.add_theme_stylebox_override("pressed", bp_pressed)
 	_hud_backpack_btn.pressed.connect(_show_backpack)
 	hbox.add_child(_hud_backpack_btn)
 
@@ -135,16 +144,22 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	_hud_deck_btn.add_theme_font_size_override("font_size", 20)
 	_hud_deck_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
 	var deck_style := StyleBoxFlat.new()
-	deck_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
-	deck_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+	deck_style.bg_color = Color(0.12, 0.1, 0.06, 0.75)
+	deck_style.border_color = Color(0.5, 0.4, 0.25, 0.65)
 	deck_style.set_border_width_all(1)
-	deck_style.set_corner_radius_all(6)
-	deck_style.content_margin_left = 8
-	deck_style.content_margin_right = 8
+	deck_style.set_corner_radius_all(8)
+	deck_style.content_margin_left = 10
+	deck_style.content_margin_right = 10
+	deck_style.content_margin_top = 4
+	deck_style.content_margin_bottom = 4
 	_hud_deck_btn.add_theme_stylebox_override("normal", deck_style)
 	var deck_hover := deck_style.duplicate() as StyleBoxFlat
-	deck_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+	deck_hover.bg_color = Color(0.22, 0.18, 0.1, 0.9)
+	deck_hover.border_color = Color(0.65, 0.5, 0.3, 0.8)
 	_hud_deck_btn.add_theme_stylebox_override("hover", deck_hover)
+	var deck_pressed := deck_style.duplicate() as StyleBoxFlat
+	deck_pressed.bg_color = Color(0.08, 0.06, 0.04, 0.85)
+	_hud_deck_btn.add_theme_stylebox_override("pressed", deck_pressed)
 	_hud_deck_btn.pressed.connect(_show_deck_viewer)
 	hbox.add_child(_hud_deck_btn)
 
@@ -163,16 +178,22 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	else:
 		_hud_map_btn.text = "🗺"
 	var map_btn_style := StyleBoxFlat.new()
-	map_btn_style.bg_color = Color(0.15, 0.12, 0.08, 0.7)
-	map_btn_style.border_color = Color(0.5, 0.4, 0.25, 0.6)
+	map_btn_style.bg_color = Color(0.12, 0.1, 0.06, 0.75)
+	map_btn_style.border_color = Color(0.5, 0.4, 0.25, 0.65)
 	map_btn_style.set_border_width_all(1)
-	map_btn_style.set_corner_radius_all(6)
+	map_btn_style.set_corner_radius_all(8)
 	map_btn_style.content_margin_left = 4
 	map_btn_style.content_margin_right = 4
+	map_btn_style.content_margin_top = 4
+	map_btn_style.content_margin_bottom = 4
 	_hud_map_btn.add_theme_stylebox_override("normal", map_btn_style)
 	var map_btn_hover := map_btn_style.duplicate() as StyleBoxFlat
-	map_btn_hover.bg_color = Color(0.25, 0.2, 0.12, 0.9)
+	map_btn_hover.bg_color = Color(0.22, 0.18, 0.1, 0.9)
+	map_btn_hover.border_color = Color(0.65, 0.5, 0.3, 0.8)
 	_hud_map_btn.add_theme_stylebox_override("hover", map_btn_hover)
+	var map_btn_pressed := map_btn_style.duplicate() as StyleBoxFlat
+	map_btn_pressed.bg_color = Color(0.08, 0.06, 0.04, 0.85)
+	_hud_map_btn.add_theme_stylebox_override("pressed", map_btn_pressed)
 	_hud_map_btn.pressed.connect(_show_map_viewer)
 	hbox.add_child(_hud_map_btn)
 
@@ -182,16 +203,22 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	exit_btn.add_theme_font_size_override("font_size", 20)
 	exit_btn.add_theme_color_override("font_color", Color(1, 0.6, 0.6))
 	var exit_style := StyleBoxFlat.new()
-	exit_style.bg_color = Color(0.4, 0.1, 0.1, 0.7)
-	exit_style.border_color = Color(0.6, 0.2, 0.2, 0.6)
+	exit_style.bg_color = Color(0.35, 0.08, 0.08, 0.75)
+	exit_style.border_color = Color(0.6, 0.2, 0.2, 0.65)
 	exit_style.set_border_width_all(1)
-	exit_style.set_corner_radius_all(6)
-	exit_style.content_margin_left = 8
-	exit_style.content_margin_right = 8
+	exit_style.set_corner_radius_all(8)
+	exit_style.content_margin_left = 10
+	exit_style.content_margin_right = 10
+	exit_style.content_margin_top = 4
+	exit_style.content_margin_bottom = 4
 	exit_btn.add_theme_stylebox_override("normal", exit_style)
 	var exit_hover := exit_style.duplicate() as StyleBoxFlat
-	exit_hover.bg_color = Color(0.6, 0.15, 0.15, 0.9)
+	exit_hover.bg_color = Color(0.55, 0.12, 0.12, 0.9)
+	exit_hover.border_color = Color(0.75, 0.3, 0.3, 0.8)
 	exit_btn.add_theme_stylebox_override("hover", exit_hover)
+	var exit_pressed := exit_style.duplicate() as StyleBoxFlat
+	exit_pressed.bg_color = Color(0.25, 0.05, 0.05, 0.85)
+	exit_btn.add_theme_stylebox_override("pressed", exit_pressed)
 	exit_btn.pressed.connect(func():
 		run.end_run(false)
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
@@ -494,21 +521,35 @@ func _draw_map() -> void:
 	var scroll_y: int = maxi(0, total_height - int((run.floor_num + 2) * floor_height) - 500)
 	_map_scroll.scroll_vertical = scroll_y
 
-func _create_path_line(from: Vector2, to: Vector2, from_key: String, to_key: String) -> Line2D:
+func _create_path_line(from: Vector2, to: Vector2, from_key: String, to_key: String) -> Control:
+	var container := Control.new()
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var visited_from: bool = from_key in run.visited
+	var visited_to: bool = to_key in run.visited
+	var is_available_path: bool = visited_from and to_key in run.available_nodes
+	# Glow line behind main line for available paths
+	if is_available_path:
+		var glow := Line2D.new()
+		glow.add_point(from)
+		glow.add_point(to)
+		glow.width = 8.0
+		glow.default_color = Color(0.9, 0.75, 0.3, 0.25)
+		container.add_child(glow)
+	# Main path line
 	var line := Line2D.new()
 	line.add_point(from)
 	line.add_point(to)
-	line.width = 3.0
-	# Color based on visited state
-	var visited_from: bool = from_key in run.visited
-	var visited_to: bool = to_key in run.visited
 	if visited_from and visited_to:
-		line.default_color = Color(0.6, 0.5, 0.3, 0.8)
-	elif visited_from and to_key in run.available_nodes:
-		line.default_color = Color(0.9, 0.8, 0.4, 0.9)
+		line.width = 3.5
+		line.default_color = Color(0.55, 0.45, 0.28, 0.75)
+	elif is_available_path:
+		line.width = 4.0
+		line.default_color = Color(0.9, 0.78, 0.35, 0.9)
 	else:
-		line.default_color = Color(0.3, 0.25, 0.2, 0.5)
-	return line
+		line.width = 2.5
+		line.default_color = Color(0.25, 0.2, 0.15, 0.4)
+	container.add_child(line)
+	return container
 
 func _create_map_node(key: String, nd: Dictionary, pos: Vector2, size: int) -> Button:
 	var btn := Button.new()
@@ -524,16 +565,16 @@ func _create_map_node(key: String, nd: Dictionary, pos: Vector2, size: int) -> B
 	match nd["type"]:
 		"M":
 			icon_text = "⚔"
-			node_color = Color(0.9, 0.3, 0.2)
+			node_color = Color(0.85, 0.28, 0.18)
 		"R":
 			icon_text = "🔥"
-			node_color = Color(0.3, 0.8, 0.3)
+			node_color = Color(0.25, 0.7, 0.3)
 		"S":
 			icon_text = "💰"
-			node_color = Color(0.9, 0.8, 0.2)
+			node_color = Color(0.85, 0.75, 0.2)
 		"B":
 			icon_text = "💀"
-			node_color = Color(0.8, 0.1, 0.1)
+			node_color = Color(0.75, 0.12, 0.12)
 
 	btn.text = icon_text
 	btn.add_theme_font_size_override("font_size", 32)
@@ -550,40 +591,39 @@ func _create_map_node(key: String, nd: Dictionary, pos: Vector2, size: int) -> B
 	var is_current: bool = key == run.current_node
 
 	if is_current:
-		style.bg_color = Color(node_color.r, node_color.g, node_color.b, 0.7)
-		style.border_color = Color.WHITE
-		style.border_width_left = 3
-		style.border_width_right = 3
-		style.border_width_top = 3
-		style.border_width_bottom = 3
+		style.bg_color = Color(node_color.r, node_color.g, node_color.b, 0.65)
+		style.border_color = Color(1.0, 1.0, 1.0, 0.9)
+		style.set_border_width_all(3)
+		style.shadow_color = Color(node_color.r, node_color.g, node_color.b, 0.4)
+		style.shadow_size = 8
+		style.shadow_offset = Vector2(0, 0)
 	elif is_available:
-		style.bg_color = Color(node_color.r, node_color.g, node_color.b, 0.5)
-		style.border_color = Color(0.9, 0.8, 0.4)
-		style.border_width_left = 2
-		style.border_width_right = 2
-		style.border_width_top = 2
-		style.border_width_bottom = 2
+		style.bg_color = Color(node_color.r, node_color.g, node_color.b, 0.45)
+		style.border_color = Color(0.95, 0.82, 0.35)
+		style.set_border_width_all(2)
+		style.shadow_color = Color(0.9, 0.75, 0.2, 0.3)
+		style.shadow_size = 6
+		style.shadow_offset = Vector2(0, 0)
 	elif is_visited:
-		style.bg_color = Color(0.2, 0.2, 0.2, 0.6)
-		style.border_color = Color(0.4, 0.4, 0.4)
-		style.border_width_left = 1
-		style.border_width_right = 1
-		style.border_width_top = 1
-		style.border_width_bottom = 1
+		style.bg_color = Color(0.18, 0.16, 0.14, 0.55)
+		style.border_color = Color(0.4, 0.35, 0.3, 0.6)
+		style.set_border_width_all(1)
 	else:
-		style.bg_color = Color(0.15, 0.12, 0.1, 0.7)
-		style.border_color = Color(0.3, 0.25, 0.2)
-		style.border_width_left = 1
-		style.border_width_right = 1
-		style.border_width_top = 1
-		style.border_width_bottom = 1
+		style.bg_color = Color(0.12, 0.1, 0.08, 0.65)
+		style.border_color = Color(0.28, 0.22, 0.16, 0.5)
+		style.set_border_width_all(1)
 
 	btn.add_theme_stylebox_override("normal", style)
 	var hover_style := style.duplicate() as StyleBoxFlat
 	if is_available:
-		hover_style.bg_color = Color(node_color.r, node_color.g, node_color.b, 0.7)
+		hover_style.bg_color = Color(node_color.r, node_color.g, node_color.b, 0.65)
+		hover_style.border_color = Color(1.0, 0.9, 0.5)
+		hover_style.shadow_size = 10
 	btn.add_theme_stylebox_override("hover", hover_style)
-	btn.add_theme_stylebox_override("pressed", hover_style)
+	var pressed_style := hover_style.duplicate() as StyleBoxFlat
+	if is_available:
+		pressed_style.bg_color = Color(node_color.r * 0.7, node_color.g * 0.7, node_color.b * 0.7, 0.7)
+	btn.add_theme_stylebox_override("pressed", pressed_style)
 
 	btn.disabled = not is_available
 	if is_available:
@@ -592,8 +632,8 @@ func _create_map_node(key: String, nd: Dictionary, pos: Vector2, size: int) -> B
 	# Floor label below node
 	var fl_label := Label.new()
 	fl_label.text = "F%d" % nd["floor"]
-	fl_label.add_theme_font_size_override("font_size", 14)
-	fl_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 0.7))
+	fl_label.add_theme_font_size_override("font_size", 13)
+	fl_label.add_theme_color_override("font_color", Color(0.55, 0.48, 0.38, 0.6))
 	fl_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	fl_label.offset_top = size + 2
 	fl_label.offset_right = size

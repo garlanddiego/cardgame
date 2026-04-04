@@ -563,7 +563,7 @@ func _flash_damage(damage_amount: int = 0) -> void:
 	tween.tween_property(sprite_node, "position", orig_pos + Vector2(-6, 1), 0.03)
 	tween.tween_property(sprite_node, "position", orig_pos + Vector2(3, 0), 0.03)
 	tween.tween_property(sprite_node, "position", orig_pos, 0.03)
-	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.25)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	# Floating damage number with scale punch
 	if damage_amount <= 0:
 		return
@@ -592,8 +592,8 @@ func _flash_poison_damage(damage_amount: int) -> void:
 	if sprite_node == null:
 		return
 	var tween = create_tween()
-	tween.tween_property(sprite_node, "modulate", Color(0.3, 1.0, 0.3), 0.2)
-	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3)
+	tween.tween_property(sprite_node, "modulate", Color(0.3, 1.0, 0.3), 0.2).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	if damage_amount <= 0:
 		return
 	var dmg_label = Label.new()
@@ -608,8 +608,8 @@ func _flash_poison_damage(damage_amount: int) -> void:
 	add_child(dmg_label)
 	var float_tween = create_tween()
 	float_tween.set_parallel(true)
-	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 1.4)
-	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.4).set_delay(0.4)
+	float_tween.tween_property(dmg_label, "position:y", dmg_label.position.y - 80, 1.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.4).set_delay(0.4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	float_tween.set_parallel(false)
 	float_tween.tween_callback(dmg_label.queue_free)
 
@@ -691,8 +691,8 @@ func _flash_block() -> void:
 	# Blue tint on sprite
 	if sprite_node:
 		var tween = create_tween()
-		tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1)
-		tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+		tween.tween_property(sprite_node, "modulate", Color(0.6, 0.7, 1.3), 0.1).set_ease(Tween.EASE_OUT)
+		tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	# Shield pop animation
 	if _shield_icon:
 		_shield_icon.scale = Vector2(1.6, 1.6)
@@ -718,8 +718,8 @@ func _flash_block_break() -> void:
 	# Sprite orange flash
 	if sprite_node:
 		var sprite_tween = create_tween()
-		sprite_tween.tween_property(sprite_node, "modulate", Color(1.0, 0.6, 0.2), 0.1)
-		sprite_tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2)
+		sprite_tween.tween_property(sprite_node, "modulate", Color(1.0, 0.6, 0.2), 0.1).set_ease(Tween.EASE_OUT)
+		sprite_tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	# Block label doesn't hide anymore (always visible)
 
 func _show_status_float(status_type: String, stacks: int) -> void:
@@ -747,8 +747,8 @@ func _show_status_float(status_type: String, stacks: int) -> void:
 	add_child(lbl)
 	var t = create_tween()
 	t.set_parallel(true)
-	t.tween_property(lbl, "position:y", lbl.position.y - 60, 1.0)
-	t.tween_property(lbl, "modulate:a", 0.0, 1.0).set_delay(0.4)
+	t.tween_property(lbl, "position:y", lbl.position.y - 60, 1.0).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(lbl, "modulate:a", 0.0, 1.0).set_delay(0.4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	t.set_parallel(false)
 	t.tween_callback(lbl.queue_free)
 
@@ -767,8 +767,8 @@ func _show_status_wear_off(status_type: String) -> void:
 	add_child(lbl)
 	var t = create_tween()
 	t.set_parallel(true)
-	t.tween_property(lbl, "position:y", lbl.position.y - 50, 1.2)
-	t.tween_property(lbl, "modulate:a", 0.0, 1.2).set_delay(0.5)
+	t.tween_property(lbl, "position:y", lbl.position.y - 50, 1.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(lbl, "modulate:a", 0.0, 1.2).set_delay(0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	t.set_parallel(false)
 	t.tween_callback(lbl.queue_free)
 
