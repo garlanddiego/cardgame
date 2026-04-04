@@ -8,8 +8,8 @@ signal died
 
 @export var max_hp: int = 80
 @export var is_enemy: bool = false
-@export var damage_number_font_size: int = 48  ## Font size for floating damage numbers
-@export var status_float_font_size: int = 28  ## Font size for floating status text
+@export var damage_number_font_size: int = 56  ## Font size for floating damage numbers
+@export var status_float_font_size: int = 32  ## Font size for floating status text
 
 var current_hp: int = 80
 var block: int = 0
@@ -409,7 +409,7 @@ func _update_status_display() -> void:
 		container.add_child(icon)
 		var lbl = Label.new()
 		lbl.text = str(stacks)
-		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.add_theme_font_size_override("font_size", 18)
 		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if status_type == "poison":
 			lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
@@ -452,7 +452,7 @@ func _update_status_display() -> void:
 		if stacks >= 1:
 			var lbl = Label.new()
 			lbl.text = str(stacks)
-			lbl.add_theme_font_size_override("font_size", 14)
+			lbl.add_theme_font_size_override("font_size", 18)
 			lbl.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
 			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			container.add_child(lbl)
@@ -815,14 +815,18 @@ func _on_icon_hover_enter(icon_container: Control, power_name: String, power_id:
 	if _tooltip_hide_tween and _tooltip_hide_tween.is_valid():
 		_tooltip_hide_tween.kill()
 		_tooltip_hide_tween = null
-	# Look up description
+	# Look up localized description
 	var desc_text: String = ""
 	var gm = Engine.get_main_loop().root.get_node_or_null("GameManager")
+	var loc = Engine.get_main_loop().root.get_node_or_null("Loc")
 	if gm and gm.card_database:
 		for card_id in gm.card_database:
 			var card = gm.card_database[card_id]
 			if card.get("power_effect", "") == power_id and card.get("type", 0) == 2:
-				desc_text = card.get("description", "")
+				if loc and loc.has_method("card_desc"):
+					desc_text = loc.card_desc(card)
+				else:
+					desc_text = card.get("description", "")
 				break
 	_show_icon_tooltip(icon_container, power_name, stacks, desc_text)
 
@@ -846,17 +850,19 @@ func _on_icon_hover_exit() -> void:
 func _on_power_icon_clicked(event: InputEvent, icon_container: Control, power_name: String, power_id: String, stacks: int) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
-	# Look up the card description from game manager
+	# Look up localized description from game manager
 	var desc_text: String = ""
 	var gm = Engine.get_main_loop().root.get_node_or_null("GameManager")
+	var loc = Engine.get_main_loop().root.get_node_or_null("Loc")
 	if gm and gm.card_database:
-		# Find the card with matching power_effect
 		for card_id in gm.card_database:
 			var card = gm.card_database[card_id]
 			if card.get("power_effect", "") == power_id and card.get("type", 0) == 2:
-				desc_text = card.get("description", "")
+				if loc and loc.has_method("card_desc"):
+					desc_text = loc.card_desc(card)
+				else:
+					desc_text = card.get("description", "")
 				break
-	# Show tooltip with name + description
 	_show_icon_tooltip(icon_container, power_name, stacks, desc_text)
 
 func _on_status_icon_clicked(event: InputEvent, icon_container: Control, status_name: String, stacks: int) -> void:
@@ -902,8 +908,8 @@ func _show_icon_tooltip(icon_container: Control, name_text: String, stacks: int,
 	tooltip.add_theme_stylebox_override("normal", bg)
 	tooltip.z_index = 200
 	tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Position above status container
-	tooltip.position = Vector2(icon_container.position.x - 20, -65 if description != "" else -45)
+	# Position: top edge aligned with icon top edge, offset to the right
+	tooltip.position = Vector2(icon_container.position.x + 40, icon_container.position.y)
 	if status_container:
 		status_container.add_child(tooltip)
 	else:
