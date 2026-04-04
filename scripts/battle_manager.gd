@@ -1912,7 +1912,7 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 		"flame_barrier":
 			flame_barrier_active = true
 			flame_barrier_damage = 6 if is_plus else 4
-			power_stacks = flame_barrier_damage
+			show_icon = false  # Skill card, not a persistent power
 		"corruption":
 			corruption_active = true
 			if card_hand:
