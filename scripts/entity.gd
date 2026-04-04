@@ -122,6 +122,18 @@ func _setup_visuals() -> void:
 		if name_label:
 			name_label.offset_left = -half_w + 10
 			name_label.offset_right = half_w - 10
+		# Align status container to HP bar left edge
+		if status_container:
+			status_container.offset_left = -half_w
+			status_container.offset_right = half_w
+		# Align shield icon to HP bar left edge
+		if _shield_icon:
+			_shield_icon.offset_left = -half_w - 44
+			_shield_icon.offset_right = -half_w
+		# Align block label to shield
+		if block_label:
+			block_label.offset_left = -half_w - 44
+			block_label.offset_right = -half_w
 	# Create target highlight border (hidden by default)
 	_target_highlight = Node2D.new()
 	_target_highlight.name = "TargetHighlight"

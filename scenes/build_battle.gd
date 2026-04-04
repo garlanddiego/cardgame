@@ -36,7 +36,7 @@ func _initialize() -> void:
 	var card_hand = Node2D.new()
 	card_hand.name = "CardHand"
 	card_hand.set_script(load("res://scripts/card_hand.gd"))
-	card_hand.position = Vector2(0, 715)  # Shifted down 15px per user request
+	card_hand.position = Vector2(0, 740)  # Shifted down 25px more
 	root.add_child(card_hand)
 
 	# HUD layer

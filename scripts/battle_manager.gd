@@ -19,8 +19,8 @@ var second_player: Node2D = null  # Back-row hero (dual hero mode)
 var _player_character_id: String = ""  # Character ID of front-row hero
 var _second_character_id: String = ""  # Character ID of back-row hero
 var _dead_hero_char: String = ""  # Character ID of dead hero (cards become unplayable)
-@export var player_sprite_scale_height: float = 359.0  ## Target height in pixels for player sprite (+5% from 342)
-@export var enemy_sprite_scale_height: float = 280.0  ## Target height in pixels for enemy sprite (was 350)
+@export var player_sprite_scale_height: float = 431.0  ## Target height in pixels for player sprite (+20%)
+@export var enemy_sprite_scale_height: float = 336.0  ## Target height in pixels for enemy sprite (+20%)
 @export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
 @export var hp_bar_width: float = 198.0  ## Width of entity HP bars (180 * 1.1)
 
@@ -572,10 +572,10 @@ func _setup_enemies() -> void:
 
 	# Legacy enemy configs (for non-standard modes)
 	var legacy_configs = {
-		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime_sts.png", "scale_h": 350.0},
-		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist_sts.png", "scale_h": 400.0},
-		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm_sts.png", "scale_h": 380.0},
-		"guardian": {"name": "Guardian", "hp": 1000, "sprite": "res://assets/img/guardian.png", "scale_h": 400.0}
+		"slime": {"name": "Slime", "hp": 1000, "sprite": "res://assets/img/slime_sts.png", "scale_h": 420.0},
+		"cultist": {"name": "Cultist", "hp": 1000, "sprite": "res://assets/img/cultist_sts.png", "scale_h": 480.0},
+		"jaw_worm": {"name": "Jaw Worm", "hp": 1000, "sprite": "res://assets/img/jaw_worm_sts.png", "scale_h": 456.0},
+		"guardian": {"name": "Guardian", "hp": 1000, "sprite": "res://assets/img/guardian.png", "scale_h": 480.0}
 	}
 
 	# Merge standard mode monster configs
