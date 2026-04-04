@@ -1026,8 +1026,9 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	# Rage: gain block when playing attacks (applies to hero that has Rage)
 	if card_data.get("type", 0) == 0:  # ATTACK
 		for hero in _get_all_alive_heroes():
-			if hero.active_powers.get("rage", 0) > 0:
-				hero.add_block(rage_block)
+			var rage_stacks: int = hero.active_powers.get("rage", 0)
+			if rage_stacks > 0:
+				hero.add_block(rage_stacks)
 				_trigger_juggernaut()
 
 	# A Thousand Cuts: deal damage to ALL enemies on card play
