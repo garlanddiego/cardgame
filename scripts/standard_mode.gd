@@ -1847,10 +1847,8 @@ func _show_backpack() -> void:
   bg.color = Color(0, 0, 0, 0.9)
   bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   bg.mouse_filter = Control.MOUSE_FILTER_STOP
-  bg.gui_input.connect(func(event: InputEvent):
-    if event is InputEventMouseButton and event.pressed:
-      if pending_add.is_empty() and pending_remove.is_empty():
-        panel.queue_free()
+  bg.gui_input.connect(func(_event: InputEvent):
+    pass  # Don't close on background click — use Cancel button
   )
   panel.add_child(bg)
 
@@ -1922,45 +1920,60 @@ func _show_backpack() -> void:
   divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
   panel.add_child(divider)
 
-  # === Confirm button (hidden until changes made) ===
+  # === Bottom buttons: Confirm + Cancel ===
+  var btn_w: float = 200.0
+  var btn_gap: float = 40.0
+  var btn_y: float = 1000.0
+
+  # Confirm button — starts disabled (grey), turns green when changes exist
   var confirm_btn := Button.new()
   confirm_btn.name = "ConfirmBtn"
-  confirm_btn.text = "确认"
-  confirm_btn.custom_minimum_size = Vector2(200, 60)
+  confirm_btn.text = "确定"
+  confirm_btn.custom_minimum_size = Vector2(btn_w, 60)
   confirm_btn.add_theme_font_size_override("font_size", 28)
-  confirm_btn.add_theme_color_override("font_color", Color.WHITE)
+  confirm_btn.disabled = true
+  # Disabled style (grey)
+  var cb_disabled := StyleBoxFlat.new()
+  cb_disabled.bg_color = Color(0.25, 0.25, 0.25, 0.7)
+  cb_disabled.border_color = Color(0.4, 0.4, 0.4, 0.5)
+  cb_disabled.set_border_width_all(2)
+  cb_disabled.set_corner_radius_all(8)
+  confirm_btn.add_theme_stylebox_override("disabled", cb_disabled)
+  confirm_btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5))
+  # Active style (green)
   var cb_style := StyleBoxFlat.new()
   cb_style.bg_color = Color(0.15, 0.5, 0.2, 0.9)
   cb_style.border_color = Color(0.3, 0.8, 0.4)
   cb_style.set_border_width_all(2)
   cb_style.set_corner_radius_all(8)
   confirm_btn.add_theme_stylebox_override("normal", cb_style)
+  confirm_btn.add_theme_color_override("font_color", Color.WHITE)
   var cb_hover := cb_style.duplicate() as StyleBoxFlat
   cb_hover.bg_color = Color(0.2, 0.65, 0.3, 0.95)
   confirm_btn.add_theme_stylebox_override("hover", cb_hover)
-  confirm_btn.position = Vector2((vw - 200) / 2.0, 1000)
-  confirm_btn.visible = false
+  confirm_btn.position = Vector2(vw / 2.0 - btn_w - btn_gap / 2.0, btn_y)
   panel.add_child(confirm_btn)
 
-  # Close button (X)
-  var close_btn := Button.new()
-  close_btn.text = "✕"
-  close_btn.position = Vector2(vw - 80, 55)
-  close_btn.custom_minimum_size = Vector2(60, 60)
-  close_btn.add_theme_font_size_override("font_size", 32)
-  close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
-  var close_sb := StyleBoxFlat.new()
-  close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
-  close_sb.set_corner_radius_all(8)
-  close_btn.add_theme_stylebox_override("normal", close_sb)
-  var close_hover := close_sb.duplicate() as StyleBoxFlat
-  close_hover.bg_color = Color(0.7, 0.15, 0.15, 0.95)
-  close_btn.add_theme_stylebox_override("hover", close_hover)
-  close_btn.pressed.connect(func():
-    if pending_add.is_empty() and pending_remove.is_empty():
-      panel.queue_free()
-  )
-  panel.add_child(close_btn)
+  # Cancel button
+  var cancel_btn := Button.new()
+  cancel_btn.text = "取消"
+  cancel_btn.custom_minimum_size = Vector2(btn_w, 60)
+  cancel_btn.add_theme_font_size_override("font_size", 28)
+  cancel_btn.add_theme_color_override("font_color", Color.WHITE)
+  var cancel_style := StyleBoxFlat.new()
+  cancel_style.bg_color = Color(0.4, 0.15, 0.15, 0.9)
+  cancel_style.border_color = Color(0.7, 0.3, 0.3)
+  cancel_style.set_border_width_all(2)
+  cancel_style.set_corner_radius_all(8)
+  cancel_btn.add_theme_stylebox_override("normal", cancel_style)
+  var cancel_hover := cancel_style.duplicate() as StyleBoxFlat
+  cancel_hover.bg_color = Color(0.55, 0.2, 0.2, 0.95)
+  cancel_btn.add_theme_stylebox_override("hover", cancel_hover)
+  cancel_btn.position = Vector2(vw / 2.0 + btn_gap / 2.0, btn_y)
+  panel.add_child(cancel_btn)
+
+  # Store original backpack state for cancel/revert
+  var original_backpack: Array = run.backpack.duplicate()
 
   # --- Rebuild functions (use Array wrapper so lambdas share the reference) ---
   var _rebuild_ref: Array = [null]
@@ -2053,9 +2066,9 @@ func _show_backpack() -> void:
     if rt:
       rt.text = "背包 (%d/4)" % run.backpack.size()
 
-    # Show/hide confirm button
+    # Enable/disable confirm button based on changes
     var has_changes: bool = not pending_add.is_empty() or not pending_remove.is_empty()
-    confirm_btn.visible = has_changes
+    confirm_btn.disabled = not has_changes
     _update_backpack_btn_text()
 
   # Initial build
@@ -2063,11 +2076,20 @@ func _show_backpack() -> void:
 
   # Confirm action
   confirm_btn.pressed.connect(func():
+    if confirm_btn.disabled:
+      return
     if phase == Phase.BATTLE:
       _apply_backpack_changes_in_battle(pending_add.duplicate(), pending_remove.duplicate())
       _backpack_uses_in_battle -= 1
     _update_backpack_btn_text()
     _update_hud_labels()
+    panel.queue_free()
+  )
+
+  # Cancel action — revert backpack to original state
+  cancel_btn.pressed.connect(func():
+    run.backpack = original_backpack.duplicate()
+    _update_backpack_btn_text()
     panel.queue_free()
   )
 
