@@ -1373,10 +1373,13 @@ func _execute_card(card_data: Dictionary, target: Node2D, energy_spent: int = 0)
 
 func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy_spent: int) -> void:
 	var target_type: String = card_data.get("target", "enemy")
+	var card_hero: Node2D = _get_card_hero(card_data)
+	if card_hero == null:
+		card_hero = player
 	match fn_name:
 		"body_slam":
-			if player:
-				var dmg: int = player.block
+			if card_hero:
+				var dmg: int = card_hero.block
 				if dmg > 0:
 					_apply_single_hit_damage(dmg, target, target_type)
 		"heavy_blade":
@@ -1394,14 +1397,14 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				_apply_single_hit_damage(dmg, target, target_type)
 		"whirlwind":
 			var base_dmg: int = card_data.get("damage", 5)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			if energy_spent > 0 and base_dmg > 0:
 				_apply_multi_hit_damage(base_dmg, energy_spent, target, "all_enemies")
 		"skewer":
 			var base_dmg: int = card_data.get("damage", 7)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			if energy_spent > 0 and base_dmg > 0:
 				_apply_multi_hit_damage(base_dmg, energy_spent, target, target_type)
 		"malaise":
@@ -1417,8 +1420,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				target._update_status_display()
 		"dropkick":
 			var base_dmg: int = card_data.get("damage", 5)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
 				current_energy += 1
@@ -1429,8 +1432,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				draw_cards(1)
 		"heel_hook":
 			var base_dmg: int = card_data.get("damage", 5)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 			if target and target.alive and target.get_status_stacks("weak") > 0:
 				current_energy += 1
@@ -1494,8 +1497,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					strike_count += 1
 			var bonus_per: int = card_data.get("strike_bonus", 2)
 			var base_dmg: int = card_data.get("damage", 6) + strike_count * bonus_per
-			if player:
-				var str_val: int = player.get_status_stacks("strength")
+			if card_hero:
+				var str_val: int = card_hero.get_status_stacks("strength")
 				base_dmg += str_val
 			_apply_single_hit_damage(base_dmg, target, target_type)
 		"fiend_fire":
@@ -1507,15 +1510,15 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if card_hand:
 				card_hand.clear_hand()
 			# Each exhausted card = one hit with Strength applied
-			if cards_in_hand > 0 and player:
-				var per_hit: int = player.get_attack_damage(card_data.get("damage", 7))
+			if cards_in_hand > 0 and card_hero:
+				var per_hit: int = card_hero.get_attack_damage(card_data.get("damage", 7))
 				if _double_damage_this_turn:
 					per_hit *= 2
 				_apply_multi_hit_damage(per_hit, cards_in_hand, target, target_type)
 		"reaper":
-			if player:
+			if card_hero:
 				var base_dmg: int = card_data.get("damage", 4)
-				var actual_dmg: int = player.get_attack_damage(base_dmg)
+				var actual_dmg: int = card_hero.get_attack_damage(base_dmg)
 				var total_healed: int = 0
 				for enemy in enemies:
 					if enemy.alive:
@@ -1606,8 +1609,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 		"rampage":
 			var rampage_bonus: int = card_data.get("_rampage_bonus", 0)
 			var base_dmg: int = card_data.get("damage", 8) + rampage_bonus
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			print("[RAMPAGE] bonus=%d, base=%d, total=%d" % [rampage_bonus, card_data.get("damage", 8), base_dmg])
 			_apply_single_hit_damage(base_dmg, target, target_type)
 			card_data["_rampage_bonus"] = rampage_bonus + card_data.get("rampage_inc", 5)
@@ -1624,8 +1627,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				for c in hand:
 					card_hand.add_card(c, false)
 			var base_dmg: int = card_data.get("damage", 16)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 		"havoc":
 			if not draw_pile.is_empty():
@@ -1690,16 +1693,16 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				_update_pile_labels()
 		"finisher":
 			# Deal (base + strength) per attack played this turn
-			if attacks_played_this_turn > 0 and player:
-				var per_hit: int = player.get_attack_damage(card_data.get("damage", 6))
+			if attacks_played_this_turn > 0 and card_hero:
+				var per_hit: int = card_hero.get_attack_damage(card_data.get("damage", 6))
 				if _double_damage_this_turn:
 					per_hit *= 2
 				_apply_multi_hit_damage(per_hit, attacks_played_this_turn, target, target_type)
 		"glass_knife":
 			var base_dmg: int = card_data.get("damage", 8)
 			var times_val: int = card_data.get("times", 2)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			if base_dmg > 0:
 				_apply_multi_hit_damage(base_dmg, times_val, target, target_type)
 			var new_dmg: int = maxi(0, card_data.get("damage", 8) - 2)
@@ -1707,8 +1710,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			card_data["damage"] = new_dmg
 		"choke":
 			var base_dmg: int = card_data.get("damage", 12)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 			if target and target.alive:
 				target.apply_status("choke", card_data.get("choke_stacks", 3))
@@ -1723,13 +1726,13 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				target.set_meta("corpse_explosion", true)
 		"grand_finale":
 			var base_dmg: int = card_data.get("damage", 50)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 		"unload":
 			var base_dmg: int = card_data.get("damage", 14)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 			var to_discard: Array = []
 			for c in hand:
@@ -1764,8 +1767,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				player.heal(5)
 		"blood_for_blood":
 			var base_dmg: int = card_data.get("damage", 18)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			_apply_single_hit_damage(base_dmg, target, target_type)
 		"setup":
 			# Put a card from hand on top of draw pile
@@ -1778,8 +1781,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 		"toxic_storm":
 			# X cost: deal 3 damage X times to all, apply 1 poison per hit
 			var base_dmg: int = card_data.get("damage", 3)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			if energy_spent > 0:
 				for _hit in range(energy_spent):
 					for enemy in enemies:
@@ -1789,8 +1792,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 		"echo_slash":
 			# Deal 5 damage, +1 hit per attack played this turn
 			var base_dmg: int = card_data.get("damage", 5)
-			if player:
-				base_dmg = player.get_attack_damage(base_dmg)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
 			# attacks_played_this_turn counts cards played before this one
 			var hits: int = 1 + attacks_played_this_turn
 			if _double_damage_this_turn:
@@ -1800,10 +1803,10 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			# Deal hand_size * 3 damage, discard 1
 			var hand_count: int = hand.size()
 			var dmg: int = hand_count * 3
-			if player:
-				var str_val: int = player.get_status_stacks("strength")
+			if card_hero:
+				var str_val: int = card_hero.get_status_stacks("strength")
 				dmg += str_val
-				if player.status_effects.get("weak", 0) > 0:
+				if card_hero.status_effects.get("weak", 0) > 0:
 					dmg = int(dmg * 0.75)
 			if _double_damage_this_turn:
 				dmg *= 2
@@ -3529,10 +3532,13 @@ func _show_damage_previews() -> void:
 	var target_type: String = card_data.get("target", "enemy")
 	if target_type != "enemy" and target_type != "all_enemies":
 		return
-	# Calculate actual damage with player strength and weak
+	# Calculate actual damage with card hero's strength and weak
 	var actual_dmg: int = damage
-	if player:
-		actual_dmg = player.get_attack_damage(damage)
+	var preview_hero: Node2D = _get_card_hero(card_data)
+	if preview_hero == null:
+		preview_hero = player
+	if preview_hero:
+		actual_dmg = preview_hero.get_attack_damage(damage)
 	# Show preview labels above enemies
 	for enemy in enemies:
 		if not enemy.alive:
