@@ -83,9 +83,11 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	hud_style.border_width_bottom = 2
 	hud_style.content_margin_left = 30
 	hud_style.content_margin_right = 30
+	hud_style.content_margin_top = 10
+	hud_style.content_margin_bottom = 10
 	hud.add_theme_stylebox_override("panel", hud_style)
 	hud.offset_right = vw
-	hud.offset_bottom = 50
+	hud.offset_bottom = 75
 	canvas.add_child(hud)
 
 	var hbox := HBoxContainer.new()
@@ -227,7 +229,7 @@ func _show_draft() -> void:
 	var vw: float = get_viewport_rect().size.x
 	_draft_status_bar = HBoxContainer.new()
 	_draft_status_bar.add_theme_constant_override("separation", 12)
-	_draft_status_bar.position = Vector2(0, 70)
+	_draft_status_bar.position = Vector2(0, 85)
 	_draft_status_bar.size = Vector2(vw, 30)
 	_draft_status_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	_overlay.add_child(_draft_status_bar)

@@ -61,10 +61,10 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="Battle" type="Node2D" unique_id=1166528132]
+[node name="Battle" type="Node2D" unique_id=37441198]
 script = ExtResource("1_a12nh")
 
-[node name="Background" type="TextureRect" parent="." unique_id=111769444]
+[node name="Background" type="TextureRect" parent="." unique_id=90794133]
 z_index = -10
 offset_right = 2560.0
 offset_bottom = 1080.0
@@ -72,59 +72,59 @@ mouse_filter = 2
 texture = ExtResource("2_lpir7")
 expand_mode = 1
 
-[node name="PlayerArea" type="Node2D" parent="." unique_id=1263837216]
+[node name="PlayerArea" type="Node2D" parent="." unique_id=1207946060]
 position = Vector2(480, 480)
 
-[node name="EnemyArea" type="Node2D" parent="." unique_id=1764458654]
+[node name="EnemyArea" type="Node2D" parent="." unique_id=544889275]
 position = Vector2(1200, 480)
 
-[node name="CardHand" type="Node2D" parent="." unique_id=406624105]
+[node name="CardHand" type="Node2D" parent="." unique_id=445725340]
 position = Vector2(0, 740)
 script = ExtResource("3_6vh42")
 
-[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1139098734]
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=849982090]
 
-[node name="DarkOverlay" type="ColorRect" parent="HUDLayer" unique_id=1887143815]
+[node name="DarkOverlay" type="ColorRect" parent="HUDLayer" unique_id=400142892]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0.05, 0.05)
 
-[node name="HUD" type="Control" parent="HUDLayer" unique_id=2014370374]
+[node name="HUD" type="Control" parent="HUDLayer" unique_id=264622485]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=902151448]
+[node name="EnergyPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1242512740]
 custom_minimum_size = Vector2(120, 72)
 layout_mode = 0
 offset_left = 24.0
-offset_top = 772.0
+offset_top = 732.0
 offset_right = 24.0
-offset_bottom = 772.0
+offset_bottom = 732.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_f4pi3")
 
-[node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=881041891]
+[node name="EnergyContainer" type="HBoxContainer" parent="HUDLayer/HUD/EnergyPanel" unique_id=316747145]
 layout_mode = 2
 alignment = 1
 
-[node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=1187823120]
+[node name="EnergyIcon" type="TextureRect" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=1377198320]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 texture = ExtResource("4_4k1nj")
 expand_mode = 3
 stretch_mode = 5
 
-[node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=994641612]
+[node name="EnergyLabel" type="Label" parent="HUDLayer/HUD/EnergyPanel/EnergyContainer" unique_id=974760190]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.2, 0.6, 1, 1)
 text = "3/3"
 
-[node name="DrawPanel" type="Panel" parent="HUDLayer/HUD" unique_id=458809123]
+[node name="DrawPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1189311923]
 layout_mode = 0
 offset_left = 40.0
 offset_top = 945.0
@@ -132,7 +132,7 @@ offset_right = 110.0
 offset_bottom = 1050.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_yahae")
 
-[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=1289865052]
+[node name="DrawPileLabel" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=1015662355]
 layout_mode = 0
 offset_top = 40.0
 offset_right = 70.0
@@ -142,7 +142,7 @@ theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
 text = "0"
 horizontal_alignment = 1
 
-[node name="@Label@2" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=798537078]
+[node name="@Label@2" type="Label" parent="HUDLayer/HUD/DrawPanel" unique_id=918092951]
 layout_mode = 0
 offset_top = 8.0
 offset_right = 70.0
@@ -151,7 +151,7 @@ theme_override_font_sizes/font_size = 18
 text = "🂠"
 horizontal_alignment = 1
 
-[node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD" unique_id=529567646]
+[node name="DiscardPanel" type="Panel" parent="HUDLayer/HUD" unique_id=1037938595]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -161,7 +161,7 @@ offset_right = -40.0
 offset_bottom = 1050.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_v7i3o")
 
-[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=171509539]
+[node name="DiscardPileLabel" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=1604168864]
 layout_mode = 0
 offset_top = 40.0
 offset_right = 70.0
@@ -171,7 +171,7 @@ theme_override_colors/font_color = Color(1, 0.8, 0.7, 1)
 text = "0"
 horizontal_alignment = 1
 
-[node name="@Label@3" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=1127861018]
+[node name="@Label@3" type="Label" parent="HUDLayer/HUD/DiscardPanel" unique_id=814493108]
 layout_mode = 0
 offset_top = 8.0
 offset_right = 70.0
@@ -180,26 +180,26 @@ theme_override_font_sizes/font_size = 18
 text = "🂠"
 horizontal_alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=1629211359]
+[node name="EndTurnButton" type="Button" parent="HUDLayer/HUD" unique_id=2124126091]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -280.0
-offset_top = 765.0
+offset_top = 725.0
 offset_right = -40.0
-offset_bottom = 835.0
+offset_bottom = 795.0
 text = "End Turn"
 
-[node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1548196279]
+[node name="TurnPanel" type="PanelContainer" parent="HUDLayer/HUD" unique_id=1645485698]
 custom_minimum_size = Vector2(260, 50)
 layout_mode = 0
 offset_left = 830.0
-offset_top = 60.0
+offset_top = 85.0
 offset_right = 830.0
-offset_bottom = 60.0
+offset_bottom = 85.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_66ngm")
 
-[node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=2140581290]
+[node name="TurnLabel" type="Label" parent="HUDLayer/HUD/TurnPanel" unique_id=1373912180]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.27, 0.8, 0.4, 1)

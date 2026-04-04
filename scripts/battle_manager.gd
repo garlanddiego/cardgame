@@ -760,7 +760,13 @@ func start_player_turn() -> void:
 			if str_gain > 0:
 				hero.apply_status("strength", str_gain)
 
-		# Combust: moved to end_player_turn (triggers at end of player turn per card text)
+		# Combust: lose 1HP, deal stacks damage to ALL enemies at start of turn
+		if hero.active_powers.get("combust", 0) > 0:
+			var combust_stacks: int = hero.active_powers["combust"]
+			hero.take_damage_direct(1)
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.take_damage(combust_stacks)
 		# Wraith Form: lose dexterity each turn (stacks = dex loss per turn)
 		if hero.active_powers.get("wraith_form", 0) > 0:
 			hero.apply_status("dexterity", -hero.active_powers["wraith_form"])
@@ -2171,17 +2177,6 @@ func end_player_turn() -> void:
 				if enemy.alive:
 					enemy.apply_status("poison", stacks)
 
-	# Combust: lose 1HP, deal stacks damage to ALL enemies (end of turn per STS)
-	for hero in _get_all_alive_heroes():
-		if hero.active_powers.get("combust", 0) > 0:
-			var combust_stacks: int = hero.active_powers["combust"]
-			hero.take_damage_direct(1)
-			for enemy in enemies:
-				if enemy.alive:
-					enemy.take_damage(combust_stacks)
-	_check_battle_end()
-	if not battle_active:
-		return
 
 	# Process end-of-turn damage from status cards in hand (Burn)
 	var front = get_front_player()
@@ -2582,7 +2577,7 @@ func _create_ai_button() -> void:
 		ai_btn.position = end_turn_btn.position + Vector2(-70, 10)
 	else:
 		var vw: float = get_viewport_rect().size.x
-		ai_btn.position = Vector2(vw - 370, 600)
+		ai_btn.position = Vector2(vw - 370, 560)
 	ai_btn.add_theme_font_size_override("font_size", 18)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.35, 0.65, 0.9)

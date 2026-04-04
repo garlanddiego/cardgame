@@ -76,7 +76,7 @@ func _initialize() -> void:
 	# Energy display (bottom left) — bigger, styled per spec section 4.1
 	var energy_panel = PanelContainer.new()
 	energy_panel.name = "EnergyPanel"
-	energy_panel.position = Vector2(24, 772)  # Moved up 50px
+	energy_panel.position = Vector2(24, 732)  # Raised 40px
 	energy_panel.custom_minimum_size = Vector2(120, 72)
 	var energy_style = StyleBoxFlat.new()
 	energy_style.bg_color = Color(0.05, 0.08, 0.18, 0.85)
@@ -189,14 +189,14 @@ func _initialize() -> void:
 	end_turn_btn.anchor_right = 1.0
 	end_turn_btn.offset_left = -280
 	end_turn_btn.offset_right = -40
-	end_turn_btn.offset_top = 765
-	end_turn_btn.offset_bottom = 835
+	end_turn_btn.offset_top = 725
+	end_turn_btn.offset_bottom = 795
 	hud.add_child(end_turn_btn)
 
 	# Turn indicator with semi-transparent bg
 	var turn_panel = PanelContainer.new()
 	turn_panel.name = "TurnPanel"
-	turn_panel.position = Vector2(830, 60)  # Below standard mode top HUD (50px)
+	turn_panel.position = Vector2(830, 85)  # Below standard mode top HUD (75px)
 	turn_panel.custom_minimum_size = Vector2(260, 50)
 	var turn_style = StyleBoxFlat.new()
 	turn_style.bg_color = Color(0.05, 0.05, 0.1, 0.7)
