@@ -72,7 +72,6 @@ const POWER_NAMES: Dictionary = {
 }
 
 func _ready() -> void:
-	current_hp = max_hp
 	_setup_visuals()
 
 func _setup_visuals() -> void:
