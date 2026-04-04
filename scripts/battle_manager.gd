@@ -1092,9 +1092,8 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	if discard_count > 0 and not hand.is_empty():
 		discard_count = mini(discard_count, hand.size())
 		if hand.size() <= discard_count:
-			# Auto-discard all remaining cards (no selection needed)
-			_auto_discard(hand.size())
-			_on_discard_complete()
+			# Auto-discard all remaining cards with animation
+			_auto_discard(hand.size(), false, _on_discard_complete)
 		else:
 			_show_discard_selection(discard_count, _on_discard_complete)
 		return  # Don't check battle end yet — wait for discard to finish
@@ -1550,16 +1549,20 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if total_healed > 0:
 					player.heal(total_healed)
 		"burning_pact":
+			var bp_draw: int = card_data.get("draw", 2)
 			if not hand.is_empty():
-				var draw_count: int = card_data.get("draw", 2)
+				if hand.size() <= 1:
+					# Auto-exhaust all remaining cards with animation, then draw
+					_auto_discard(hand.size(), true, func(): draw_cards(bp_draw))
+					return
 				_discard_as_exhaust = true
 				_show_discard_selection(1, func():
-					draw_cards(draw_count)
+					draw_cards(bp_draw)
 				)
 				if _discard_title_label:
 					_discard_title_label.text = "选择 1 张牌消耗"
 				return  # Wait for selection
-			draw_cards(card_data.get("draw", 2))
+			draw_cards(bp_draw)
 		"infernal_blade":
 			var gm = _get_game_manager()
 			if gm:
@@ -1697,9 +1700,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if to_discard_count > 0 and not hand.is_empty():
 				var energy_gain_val: int = card_data.get("energy_gain_val", 2)
 				if hand.size() <= to_discard_count:
-					# Auto-discard all remaining cards (no selection needed)
-					_auto_discard(hand.size())
-					_on_concentrate_discard_done(energy_gain_val)
+					# Auto-discard all remaining cards with animation
+					_auto_discard(hand.size(), false, _on_concentrate_discard_done.bind(energy_gain_val))
+					return
 				else:
 					_show_discard_selection(to_discard_count, _on_concentrate_discard_done.bind(energy_gain_val))
 			else:
@@ -1791,8 +1794,38 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			_apply_single_hit_damage(base_dmg, target, target_type)
 		"setup":
 			# Put a card from hand on top of draw pile
-			# Use discard selection with custom callback
 			if not hand.is_empty():
+				if hand.size() <= 1:
+					# Auto-move all remaining to draw pile with animation
+					for c in hand:
+						draw_pile.append(c)
+					hand.clear()
+					if card_hand:
+						card_hand.complete_pending_play()
+					# Animate visual cards flying to draw pile
+					if card_hand and not card_hand.cards.is_empty():
+						var draw_target: Vector2 = card_hand.to_local(Vector2(75, 985))
+						var nodes: Array = card_hand.cards.duplicate()
+						for i in range(nodes.size()):
+							var node = nodes[i]
+							if not is_instance_valid(node):
+								continue
+							var fly = create_tween()
+							fly.tween_property(node, "position", draw_target, 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+							fly.parallel().tween_property(node, "scale", Vector2(0.3, 0.3), 0.2).set_ease(Tween.EASE_IN)
+							fly.parallel().tween_property(node, "modulate:a", 0.0, 0.15).set_delay(0.08)
+						var cleanup = create_tween()
+						cleanup.tween_interval(0.3)
+						cleanup.tween_callback(func():
+							if card_hand:
+								card_hand.clear_hand()
+							_on_setup_complete()
+						)
+					else:
+						if card_hand:
+							card_hand.clear_hand()
+						_on_setup_complete()
+					return
 				_setup_mode = true
 				_show_discard_selection(1, _on_setup_complete)
 				return  # Wait for selection
@@ -4287,21 +4320,64 @@ func _on_concentrate_discard_done(energy_gain_val: int) -> void:
 	_update_pile_labels()
 	_check_battle_end()
 
-func _auto_discard(count: int) -> void:
-	# Fallback: discard random cards from hand (triggers on-discard effects)
+func _auto_discard(count: int, exhaust: bool = false, callback: Callable = Callable()) -> void:
+	## Auto-discard (or exhaust) cards from hand with fly animation.
+	## Calls callback after animation completes. Also completes pending played card.
 	for _i in range(count):
 		if hand.is_empty():
 			break
 		var idx = randi() % hand.size()
-		var card_data = hand[idx]
-		discard_pile.append(card_data)
-		_check_sly_on_discard(card_data)
+		var cdata = hand[idx]
+		if exhaust:
+			_exhaust_card(cdata)
+		else:
+			discard_pile.append(cdata)
+			_check_sly_on_discard(cdata)
 		hand.remove_at(idx)
+
+	# Complete the pending played card animation (prevents floating)
 	if card_hand:
-		card_hand.clear_hand()
-		for c in hand:
-			card_hand.add_card(c, false)
-	_update_pile_labels()
+		card_hand.complete_pending_play()
+
+	# Animate remaining visual card nodes flying to pile
+	var has_visual_cards: bool = card_hand != null and not card_hand.cards.is_empty()
+	if has_visual_cards:
+		var vw: float = get_viewport_rect().size.x
+		var pile_target: Vector2 = Vector2(vw - 75, 985) if not exhaust else Vector2(vw / 2.0, 400)
+		var card_nodes: Array = card_hand.cards.duplicate()
+		var anim_duration: float = 0.0
+		for i in range(card_nodes.size()):
+			var node = card_nodes[i]
+			if not is_instance_valid(node):
+				continue
+			var local_target: Vector2 = card_hand.to_local(pile_target)
+			var fly = create_tween()
+			fly.tween_interval(0.06 * i)
+			fly.tween_property(node, "position", local_target, 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+			fly.parallel().tween_property(node, "scale", Vector2(0.3, 0.3), 0.2).set_ease(Tween.EASE_IN)
+			fly.parallel().tween_property(node, "modulate:a", 0.0, 0.15).set_delay(0.08).set_ease(Tween.EASE_IN)
+			anim_duration = 0.06 * i + 0.25
+		# After animation, rebuild hand and call callback
+		var cleanup = create_tween()
+		cleanup.tween_interval(anim_duration + 0.05)
+		cleanup.tween_callback(func():
+			if card_hand:
+				card_hand.clear_hand()
+				for c in hand:
+					card_hand.add_card(c, false)
+			_update_pile_labels()
+			if callback.is_valid():
+				callback.call()
+		)
+	else:
+		# No visual cards to animate
+		if card_hand:
+			card_hand.clear_hand()
+			for c in hand:
+				card_hand.add_card(c, false)
+		_update_pile_labels()
+		if callback.is_valid():
+			callback.call()
 
 func _check_sly_on_discard(card_data: Dictionary) -> void:
 	## On-discard triggers: sly cards (includes Reflex, Tactician, Flick-Flack, etc.)
