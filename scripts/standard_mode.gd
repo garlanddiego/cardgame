@@ -1951,9 +1951,9 @@ func _show_backpack() -> void:
   )
   panel.add_child(close_btn)
 
-  # --- Rebuild functions ---
-  var _rebuild_backpack_ui: Callable
-  _rebuild_backpack_ui = func():
+  # --- Rebuild functions (use Array wrapper so lambdas share the reference) ---
+  var _rebuild_ref: Array = [null]
+  _rebuild_ref[0] = func():
     # Rebuild left grid
     for child in left_grid.get_children():
       child.queue_free()
@@ -1989,7 +1989,7 @@ func _show_backpack() -> void:
             var ri := pending_remove.find(captured_id)
             if ri >= 0:
               pending_remove.remove_at(ri)
-            _rebuild_backpack_ui.call()
+            _rebuild_ref[0].call()
       )
       left_grid.add_child(card_vis)
 
@@ -2015,7 +2015,7 @@ func _show_backpack() -> void:
             var ai := pending_add.find(captured_bp_id)
             if ai >= 0:
               pending_add.remove_at(ai)
-            _rebuild_backpack_ui.call()
+            _rebuild_ref[0].call()
         )
         right_container.add_child(bp_vis)
       else:
@@ -2048,7 +2048,7 @@ func _show_backpack() -> void:
     _update_backpack_btn_text()
 
   # Initial build
-  _rebuild_backpack_ui.call()
+  _rebuild_ref[0].call()
 
   # Confirm action
   confirm_btn.pressed.connect(func():
