@@ -284,14 +284,14 @@ func _show_draft() -> void:
 	title.size = Vector2(vw, 50)
 	_overlay.add_child(title)
 
-	# === 3 card options (battle-style visuals) ===
+	# === 3 card options (battle-style visuals, ~2x area) ===
 	var cards := _random_cards_for_hero(hero_id, 3)
-	var card_w: float = 280.0
-	var card_h: float = 400.0
-	var gap: float = 60.0
+	var card_w: float = 400.0
+	var card_h: float = 560.0
+	var gap: float = 50.0
 	var total_w: float = cards.size() * card_w + (cards.size() - 1) * gap
 	var start_x: float = (vw - total_w) / 2.0
-	var card_y: float = 200.0
+	var card_y: float = 170.0
 	var loc = get_node_or_null("/root/Loc")
 
 	for i in range(cards.size()):
@@ -480,6 +480,7 @@ func _draw_map() -> void:
 	var total_height: int = 11 * floor_height + 100
 	_map_canvas = Control.new()
 	_map_canvas.custom_minimum_size = Vector2(map_width, total_height)
+	_map_canvas.mouse_filter = Control.MOUSE_FILTER_PASS
 	_map_scroll.add_child(_map_canvas)
 
 	# Draw path lines first (behind nodes)
@@ -553,6 +554,7 @@ func _create_path_line(from: Vector2, to: Vector2, from_key: String, to_key: Str
 
 func _create_map_node(key: String, nd: Dictionary, pos: Vector2, size: int) -> Button:
 	var btn := Button.new()
+	btn.mouse_filter = Control.MOUSE_FILTER_PASS
 	btn.custom_minimum_size = Vector2(size, size)
 	btn.offset_left = pos.x - size / 2
 	btn.offset_top = pos.y - size / 2
@@ -990,12 +992,12 @@ func _show_card_pick_overlay(hero_id: String, btn: Button, hero_key: String = ""
 
 	# 3 random cards
 	var cards := _random_cards_for_hero(hero_id, 3)
-	var card_w: float = 280.0
-	var card_h: float = 400.0
-	var gap: float = 60.0
+	var card_w: float = 400.0
+	var card_h: float = 560.0
+	var gap: float = 50.0
 	var total_w: float = cards.size() * card_w + (cards.size() - 1) * gap
 	var start_x: float = (vw - total_w) / 2.0
-	var card_y: float = 200.0
+	var card_y: float = 170.0
 	var loc = get_node_or_null("/root/Loc")
 
 	for i in range(cards.size()):
@@ -1208,7 +1210,7 @@ func _show_upgrade_selection() -> void:
 		var cd: Dictionary = gm.card_database[card_id]
 		var slot := Control.new()
 		slot.custom_minimum_size = Vector2(card_w, card_h)
-		slot.mouse_filter = Control.MOUSE_FILTER_STOP
+		slot.mouse_filter = Control.MOUSE_FILTER_PASS
 		slot.gui_input.connect(func(event: InputEvent):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				_show_upgrade_detail(card_id)
@@ -1414,12 +1416,13 @@ func _show_shop() -> void:
 
 		var slot := Control.new()
 		slot.custom_minimum_size = Vector2(card_w, card_h + 30)
+		slot.mouse_filter = Control.MOUSE_FILTER_PASS
 		grid.add_child(slot)
 
 		var container := Control.new()
 		container.position = Vector2(0, 0)
 		container.size = Vector2(card_w, card_h)
-		container.mouse_filter = Control.MOUSE_FILTER_STOP
+		container.mouse_filter = Control.MOUSE_FILTER_PASS
 		var add_id: String = card_id + "+" if is_upgraded else card_id
 		container.gui_input.connect(func(event: InputEvent):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
