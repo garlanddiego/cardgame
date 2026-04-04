@@ -4162,6 +4162,11 @@ func _on_hand_discard_selection_changed(selected_count: int) -> void:
 func _update_discard_confirm_style() -> void:
 	if _discard_confirm_btn == null:
 		return
+	# Don't show button when no discard selection is active
+	if _discard_required_count <= 0:
+		_discard_confirm_btn.visible = false
+		_discard_confirm_btn.disabled = true
+		return
 	var ready: bool = _discard_selected_cards.size() >= _discard_required_count
 	if ready:
 		var style = StyleBoxFlat.new()
