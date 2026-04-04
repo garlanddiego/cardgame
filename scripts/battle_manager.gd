@@ -1351,14 +1351,15 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 				var power_name: String = card_data.get("power_effect", action.get("power", ""))
 				if power_name != "":
 					var hero_tgt: String = card_data.get("hero_target", "self")
+					var upgraded: bool = card_data.get("upgraded", false)
 					if hero_tgt == "all_heroes":
 						for hero in _get_all_alive_heroes():
-							_activate_power(power_name, hero, card_data.get("per_turn", {}))
+							_activate_power(power_name, hero, card_data.get("per_turn", {}), upgraded)
 					else:
 						var power_target = target if (target_type == "self" and target != null and not target.is_enemy) else card_hero
 						if power_target == null:
 							power_target = player
-						_activate_power(power_name, power_target, card_data.get("per_turn", {}))
+						_activate_power(power_name, power_target, card_data.get("per_turn", {}), upgraded)
 
 			# ---- Call named action function (for complex card behaviors) ----
 			"call":
@@ -1888,10 +1889,10 @@ func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionar
 	if draw_count > 0:
 		draw_cards(draw_count)
 
-func _activate_power(power_name: String, power_target: Node2D = null, per_turn: Dictionary = {}) -> void:
-	# Normalize _plus suffix — upgraded powers use same logic with boosted values
-	var is_plus: bool = power_name.ends_with("_plus")
-	var base_name: String = power_name.trim_suffix("_plus") if is_plus else power_name
+func _activate_power(power_name: String, power_target: Node2D = null, per_turn: Dictionary = {}, is_upgraded: bool = false) -> void:
+	# Determine upgrade status from parameter or legacy _plus suffix
+	var is_plus: bool = is_upgraded or power_name.ends_with("_plus")
+	var base_name: String = power_name.trim_suffix("_plus") if power_name.ends_with("_plus") else power_name
 	var hero = power_target if power_target else player
 
 	# Determine stack value for the power icon display
