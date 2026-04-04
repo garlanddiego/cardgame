@@ -12,6 +12,7 @@ signal battle_won
 @export var cards_per_draw: int = 10
 @export var enemy_count: int = 1
 @export var config_player_hp: int = 80
+var config_player_max_hp: int = 0  # True max HP (0 = same as config_player_hp)
 var config_enemy_hps: Array = [50, 50, 50]
 var dual_hero_mode: bool = false
 var second_character_id: String = ""
@@ -342,7 +343,8 @@ func _setup_player(character_id: String, gm: Node) -> void:
 	player = _create_entity_node(false)
 	var char_data = gm.character_data[character_id]
 	var player_hp: int = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
-	player.init_entity(player_hp, false)
+	var player_max: int = config_player_max_hp if config_player_max_hp > 0 else char_data["max_hp"]
+	player.init_entity(player_hp, false, "", player_max)
 	# In dual mode, offset front row to the right (100px+ gap between hero sprites)
 	if dual_hero_mode:
 		player.position = Vector2(160, 0)
@@ -372,7 +374,10 @@ func _setup_second_player(character_id: String, gm: Node) -> void:
 	var hp: int = get_meta("standard_hero2_hp", 0) as int
 	if hp <= 0:
 		hp = config_player_hp if config_player_hp > 0 else char_data["max_hp"]
-	second_player.init_entity(hp, false)
+	var hero2_max: int = get_meta("standard_hero2_max_hp", 0) as int
+	if hero2_max <= 0:
+		hero2_max = char_data["max_hp"]
+	second_player.init_entity(hp, false, "", hero2_max)
 	# Back row: positioned to the left of front row
 	second_player.position = Vector2(-230, 0)
 	var sprite = second_player.get_node_or_null("Sprite") as Sprite2D

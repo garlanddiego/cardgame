@@ -631,6 +631,7 @@ func _start_battle(nd: Dictionary) -> void:
 	bm.dual_hero_mode = true
 	bm.second_character_id = run.hero2_id
 	bm.config_player_hp = run.hero1_hp
+	bm.config_player_max_hp = run.hero1_max_hp
 	bm.max_energy = 3
 	bm.cards_per_draw = 5
 
@@ -673,6 +674,7 @@ func _start_battle(nd: Dictionary) -> void:
 	# (hero1 HP is set via config_player_hp above)
 	# hero2 HP needs to be passed — battle_manager reads it from config
 	bm.set_meta("standard_hero2_hp", run.hero2_hp)
+	bm.set_meta("standard_hero2_max_hp", run.hero2_max_hp)
 
 	# Connect signals
 	bm.battle_won.connect(_on_battle_won)

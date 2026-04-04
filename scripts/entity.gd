@@ -145,8 +145,8 @@ func _setup_visuals() -> void:
 	# Start idle breathing animation
 	_start_idle_animation()
 
-func init_entity(hp: int, enemy: bool, etype: String = "") -> void:
-	max_hp = hp
+func init_entity(hp: int, enemy: bool, etype: String = "", p_max_hp: int = 0) -> void:
+	max_hp = p_max_hp if p_max_hp > 0 else hp
 	current_hp = hp
 	is_enemy = enemy
 	enemy_type = etype
