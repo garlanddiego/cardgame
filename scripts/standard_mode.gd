@@ -662,16 +662,21 @@ func _start_battle(nd: Dictionary) -> void:
 
 func _on_battle_won() -> void:
   # Save HP back to run state; revive dead hero with 1 HP
+  # player/second_player may have been swapped during battle,
+  # so match by character ID to save to the correct hero slot.
   if _battle_instance:
     var bm: Node2D = _battle_instance
-    if bm.player and bm.player.alive:
-      run.hero1_hp = bm.player.current_hp
-    else:
-      run.hero1_hp = 1
-    if bm.second_player and bm.second_player.alive:
-      run.hero2_hp = bm.second_player.current_hp
-    else:
-      run.hero2_hp = 1
+    var heroes: Array = []
+    if bm.player:
+      heroes.append({"node": bm.player, "char_id": bm._player_character_id})
+    if bm.second_player:
+      heroes.append({"node": bm.second_player, "char_id": bm._second_character_id})
+    for h in heroes:
+      var hp: int = h["node"].current_hp if h["node"].alive else 1
+      if h["char_id"] == run.hero1_id:
+        run.hero1_hp = hp
+      elif h["char_id"] == run.hero2_id:
+        run.hero2_hp = hp
 
   # Check if this was the boss
   if _pending_node.get("type", "") == "B":
