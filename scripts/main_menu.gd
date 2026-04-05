@@ -113,7 +113,7 @@ func _create_menu_button(text: String, color: Color) -> Button:
 	return btn
 
 func _on_standard_mode_pressed() -> void:
-	_start_standard_run("ironclad", "silent")
+	_show_hero_select_popup()
 
 func _show_hero_select_popup() -> void:
 	# Dark overlay
