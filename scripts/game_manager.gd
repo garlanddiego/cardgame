@@ -605,10 +605,10 @@ func get_starting_deck(character_id: String) -> Array:
 		deck.append("si_neutralize")
 		deck.append("si_survivor")
 	elif character_id == "bloodfiend":
-		# Blood Fiend starter: 4 Strike, 4 Defend, 1 Gore, 1 Sacrifice
+		# Blood Fiend starter: 4 Strike, 5 Defend, 1 Gore, 1 Sacrifice
 		for i in range(4):
 			deck.append("bf_strike")
-		for i in range(4):
+		for i in range(5):
 			deck.append("bf_defend")
 		deck.append("bf_gore")
 		deck.append("bf_sacrifice")
