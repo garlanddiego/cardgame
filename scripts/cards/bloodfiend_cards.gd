@@ -26,6 +26,7 @@ static func get_cards() -> Dictionary:
 	db["bf_vampiric_embrace"] = {"id": "bf_vampiric_embrace", "name": "血族拥抱", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 4, "block": 0, "description": "对所有敌人\n造成4点伤害。\n治疗等量HP。\n消耗。", "art": "res://assets/img/card_art/bf_vampiric_embrace.png", "target": "all_enemies", "version": "new", "exhaust": true, "actions": [{"type": "call", "fn": "vampiric_embrace"}]}
 	db["bf_leech"] = {"id": "bf_leech", "name": "吸血", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "造成6点伤害。\n若造成伤害，\n治疗2点HP。", "art": "res://assets/img/card_art/bf_leech.png", "target": "enemy", "version": "new", "heal_on_hit": 2, "actions": [{"type": "call", "fn": "leech"}]}
 	db["bf_blood_feast"] = {"id": "bf_blood_feast", "name": "血宴", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 7, "block": 0, "description": "造成7点伤害。\n若击杀目标，\n获得3点最大HP。", "art": "res://assets/img/card_art/bf_blood_feast.png", "target": "enemy", "version": "new", "max_hp_gain": 3, "actions": [{"type": "call", "fn": "blood_feast"}]}
+	db["bf_desperate_duel"] = {"id": "bf_desperate_duel", "name": "拼死决斗", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 8, "block": 0, "description": "获得2点力量。\n敌人获得1点力量。\n造成8点伤害。", "art": "res://assets/img/card_art/bf_desperate_duel.png", "target": "enemy", "version": "new", "bf_self_str": 2, "bf_enemy_str": 1, "actions": [{"type": "call", "fn": "desperate_duel"}]}
 
 	# =========================================================================
 	# SKILLS (14 cards + 1 basic defend)
@@ -81,6 +82,7 @@ static func get_upgrade_overrides() -> Dictionary:
 		"bf_vampiric_embrace": {"damage": 6, "description": "对所有敌人\n造成6点伤害。\n治疗等量HP。\n消耗。"},
 		"bf_leech": {"damage": 9, "description": "造成9点伤害。\n若造成伤害，\n治疗2点HP。"},
 		"bf_blood_feast": {"damage": 10, "max_hp_gain": 4, "description": "造成10点伤害。\n若击杀目标，\n获得4点最大HP。"},
+		"bf_desperate_duel": {"damage": 12, "bf_self_str": 3, "description": "获得3点力量。\n敌人获得1点力量。\n造成12点伤害。"},
 		# SKILLS
 		"bf_defend": {"block": 8, "description": "获得8点格挡。"},
 		"bf_sanguine_shield": {"block": 15, "description": "失去2点HP。\n获得15点格挡。"},

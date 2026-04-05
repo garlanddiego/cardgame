@@ -2115,6 +2115,24 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					var hp_gain: int = card_data.get("max_hp_gain", 3)
 					bf_hero.max_hp += hp_gain
 					bf_hero.heal(hp_gain)
+		"desperate_duel":
+			var dd_hero: Node2D = card_hero if card_hero else player
+			var dd_self_str: int = card_data.get("bf_self_str", 2)
+			var dd_enemy_str: int = card_data.get("bf_enemy_str", 1)
+			# Buff hero strength before attacking
+			if dd_hero:
+				dd_hero.apply_status("strength", dd_self_str)
+			# Buff enemy strength
+			if target and target.alive:
+				target.apply_status("strength", dd_enemy_str)
+			# Now deal damage (includes the new strength)
+			var dd_dmg: int = card_data.get("damage", 8)
+			if dd_hero:
+				dd_dmg = dd_hero.get_attack_damage(dd_dmg)
+			if _double_damage_this_turn:
+				dd_dmg *= 2
+			if target and target.alive:
+				_apply_single_hit_damage(dd_dmg, target, "enemy")
 		"bloodbath":
 			# Exhaust 1 card, apply bloodlust + vulnerable to target
 			if hand.is_empty():
