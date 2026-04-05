@@ -87,6 +87,15 @@ var _no_draw_next_turn: bool = false  # Bullet Time
 var _bullet_time_this_turn: bool = false  # All cards cost 0 this turn
 var _setup_mode: bool = false  # Setup card: selected card goes to draw pile top instead of discard
 
+# Blood Fiend state
+var _bloodbath_target: Node2D = null
+var _bloodbath_card_data: Dictionary = {}
+var _bloodbath_hero: Node2D = null
+var _blood_pact_draw: int = 2
+var _bf_flex_heroes: Array = []  # Track temp strength from bloodrage
+var _bf_predator_instinct_block: int = 0  # Block per attack this turn
+var _bf_blood_shell_active: bool = false  # Apply bloodlust when hit this turn
+
 # Standard Mode: custom monster configuration
 var standard_mode_monsters: Array = []  # [{id: "mushroom", hp: 40}, ...]
 
@@ -791,6 +800,19 @@ func start_player_turn() -> void:
 		if hero.active_powers.get("tools_of_the_trade", 0) > 0:
 			_tools_discard_count = hero.active_powers["tools_of_the_trade"]
 			draw_cards(_tools_discard_count)
+		# Blood Frenzy: gain strength and lose HP each turn
+		if hero.active_powers.get("blood_frenzy", 0) > 0:
+			var bf_str: int = hero.active_powers["blood_frenzy"]
+			hero.apply_status("strength", bf_str)
+			hero.take_damage_direct(2)
+			_bf_on_hp_loss(hero, 2)
+		# Blood Bond: if HP below 25%, gain energy and strength
+		if hero.active_powers.get("blood_bond", 0) > 0:
+			if hero.max_hp > 0 and float(hero.current_hp) / float(hero.max_hp) < 0.25:
+				current_energy += 1
+				_update_energy_label()
+				var bond_str: int = hero.active_powers["blood_bond"]
+				hero.apply_status("strength", bond_str)
 
 	# Reset block for each hero (unless that hero has Barricade or Blur)
 	for hero in _get_all_alive_heroes():
@@ -806,6 +828,10 @@ func start_player_turn() -> void:
 
 	# Reset rage each turn
 	rage_active = false
+
+	# Reset Blood Fiend temporary effects
+	_bf_predator_instinct_block = 0
+	_bf_blood_shell_active = false
 
 	# Process queued next-turn effects
 	_process_next_turn_effects()
@@ -1046,6 +1072,11 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			if rage_stacks > 0:
 				hero.add_block(rage_stacks)
 				_trigger_juggernaut()
+		# Predator Instinct: gain block per attack played (temporary)
+		if _bf_predator_instinct_block > 0:
+			for hero in _get_all_alive_heroes():
+				hero.add_block(_bf_predator_instinct_block)
+				_trigger_juggernaut()
 
 	# A Thousand Cuts: deal damage to ALL enemies on card play
 	for hero in _get_all_alive_heroes():
@@ -1113,6 +1144,18 @@ func _exhaust_card(card_data: Dictionary) -> void:
 	for hero in _get_all_alive_heroes():
 		if hero.active_powers.get("dark_embrace", 0) > 0:
 			draw_cards(1)
+	# Crimson Pact: deal damage to random enemy on exhaust
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("crimson_pact", 0) > 0:
+			var cp_dmg: int = hero.active_powers["crimson_pact"]
+			var alive = _get_alive_enemies()
+			if not alive.is_empty():
+				var rand_enemy = alive[randi() % alive.size()]
+				rand_enemy.take_damage(cp_dmg)
+	# Undying Rage: gain strength on exhaust
+	for hero in _get_all_alive_heroes():
+		if hero.active_powers.get("undying_rage", 0) > 0:
+			hero.apply_status("strength", hero.active_powers["undying_rage"])
 
 func _trigger_juggernaut() -> void:
 	if juggernaut_active and player and player.alive:
@@ -1246,6 +1289,9 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 								rand_enemy.apply_status(status_type, stacks)
 						elif target != null and target.alive:
 							target.apply_status(status_type, stacks)
+					# Blood Fiend: trigger powers on applying vulnerable
+					if status_type == "vulnerable":
+						_bf_on_apply_vulnerable_check(card_hero, "vulnerable", stacks)
 
 			# ---- Apply status to self ----
 			"apply_self_status":
@@ -1360,6 +1406,8 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 					# Blood Fury: next attack deals double damage
 					if self_dmg_hero.active_powers.get("blood_fury", 0) > 0:
 						_double_damage_this_turn = true
+					# Blood Fiend HP-loss reactive powers
+					_bf_on_hp_loss(self_dmg_hero, amount)
 
 			# ---- Power effect activation ----
 			"power_effect":
@@ -1892,6 +1940,285 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					card_hand.current_battle_energy = current_energy
 				draw_cards(energy_to_consume * 2)
+		# ---- BLOOD FIEND CARDS ----
+		"frenzy_claw":
+			var base_dmg: int = card_data.get("damage", 4)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			var hits: int = card_data.get("times", 2)
+			var bl_per_hit: int = card_data.get("bf_bloodlust_per_hit", 1)
+			for _h in range(hits):
+				if target and target.alive:
+					target.take_damage(base_dmg)
+					target.apply_status("bloodlust", bl_per_hit)
+					_bf_on_apply_vulnerable_check(card_hero, "bloodlust", 0)
+		"execution":
+			var base_dmg: int = card_data.get("damage", 8)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			if target and target.alive:
+				_apply_single_hit_damage(base_dmg, target, target_type)
+				var bl: int = target.get_status_stacks("bloodlust")
+				if bl > 0:
+					target.apply_status("bloodlust", bl)
+		"blood_whirl":
+			var self_dmg_hero: Node2D = card_hero if card_hero else player
+			if self_dmg_hero:
+				self_dmg_hero.take_damage_direct(2)
+				_bf_on_hp_loss(self_dmg_hero, 2)
+			var base_dmg: int = card_data.get("damage", 6)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.take_damage(base_dmg)
+					enemy.apply_status("bloodlust", 1)
+		"savage_strike":
+			var base_dmg: int = card_data.get("damage", 6)
+			base_dmg += hp_lost_this_combat
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			_apply_single_hit_damage(base_dmg, target, target_type)
+		"prey_on_weakness":
+			var base_dmg: int = card_data.get("damage", 6)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			var hits_pw: int = 1
+			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
+				hits_pw = 2
+			_apply_multi_hit_damage(base_dmg, hits_pw, target, target_type)
+		"exploit":
+			var base_dmg: int = card_data.get("damage", 3)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			if target and target.alive and target.get_status_stacks("vulnerable") > 0:
+				var draw_count: int = card_data.get("bf_exploit_draw", 1)
+				draw_cards(draw_count)
+		"crushing_blow":
+			var base_dmg: int = card_data.get("damage", 10)
+			var vuln_bonus: int = card_data.get("vuln_bonus", 4)
+			var vuln_stacks: int = 0
+			if target:
+				vuln_stacks = target.get_status_stacks("vulnerable")
+			base_dmg += vuln_stacks * vuln_bonus
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			if target and vuln_stacks > 0:
+				target.status_effects.erase("vulnerable")
+				target.status_changed.emit("vulnerable", 0)
+				target._update_status_display()
+		"flesh_rend":
+			# Exhaust 1 card from hand, deal its cost * multiplier
+			if hand.is_empty():
+				return
+			var idx_fr: int = randi() % hand.size()
+			var exhausted_card: Dictionary = hand[idx_fr]
+			var card_cost: int = exhausted_card.get("cost", 0)
+			hand.remove_at(idx_fr)
+			_exhaust_card(exhausted_card)
+			if card_hand:
+				card_hand.clear_hand()
+				for c in hand:
+					card_hand.add_card(c, false)
+			var mult: int = card_data.get("cost_mult", 8)
+			var dmg_fr: int = card_cost * mult
+			if card_hero:
+				var str_val: int = card_hero.get_status_stacks("strength")
+				dmg_fr += str_val
+				if card_hero.status_effects.get("weak", 0) > 0:
+					dmg_fr = int(dmg_fr * 0.75)
+			if _double_damage_this_turn:
+				dmg_fr *= 2
+			dmg_fr = maxi(0, dmg_fr)
+			_apply_single_hit_damage(dmg_fr, target, target_type)
+		"soul_harvest":
+			# Exhaust all other cards in hand, deal damage per card
+			var cards_to_exhaust: Array = hand.duplicate()
+			var exhaust_count: int = cards_to_exhaust.size()
+			for c in cards_to_exhaust:
+				hand.erase(c)
+				_exhaust_card(c)
+			if card_hand:
+				card_hand.clear_hand()
+			if exhaust_count > 0 and card_hero:
+				var per_hit: int = card_hero.get_attack_damage(card_data.get("damage", 7))
+				if _double_damage_this_turn:
+					per_hit *= 2
+				_apply_multi_hit_damage(per_hit, exhaust_count, target, target_type)
+		"relentless":
+			var base_dmg: int = card_data.get("damage", 6)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			var hits_rl: int = 1 + cards_exhausted_this_turn
+			_apply_multi_hit_damage(base_dmg, hits_rl, target, target_type)
+		"vampiric_embrace":
+			var base_dmg: int = card_data.get("damage", 4)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			var total_healed: int = 0
+			for enemy in enemies:
+				if enemy.alive:
+					var before_hp: int = enemy.current_hp
+					var enemy_block: int = enemy.block
+					enemy.take_damage(base_dmg)
+					var dealt: int = mini(base_dmg, before_hp + enemy_block) - enemy_block
+					if dealt > 0:
+						total_healed += dealt
+			var heal_hero: Node2D = card_hero if card_hero else player
+			if total_healed > 0 and heal_hero:
+				heal_hero.heal(total_healed)
+		"leech":
+			var base_dmg: int = card_data.get("damage", 6)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			if target and target.alive:
+				var before_hp: int = target.current_hp
+				var t_block: int = target.block
+				target.take_damage(base_dmg)
+				var dealt: int = mini(base_dmg, before_hp + t_block) - t_block
+				if dealt > 0:
+					var heal_amt: int = card_data.get("heal_on_hit", 2)
+					var lh: Node2D = card_hero if card_hero else player
+					if lh:
+						lh.heal(heal_amt)
+		"blood_feast":
+			var bf_hero: Node2D = card_hero if card_hero else player
+			var base_dmg: int = card_data.get("damage", 7)
+			if bf_hero:
+				base_dmg = bf_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			if target and target.alive:
+				target.take_damage(base_dmg)
+				if not target.alive and bf_hero:
+					var hp_gain: int = card_data.get("max_hp_gain", 3)
+					bf_hero.max_hp += hp_gain
+					bf_hero.heal(hp_gain)
+		"bloodbath":
+			# Exhaust 1 card, apply bloodlust + vulnerable to target
+			if hand.is_empty():
+				_apply_bloodbath_effect(card_data, target, card_hero)
+			elif hand.size() <= 1:
+				var c = hand[0]
+				hand.remove_at(0)
+				_exhaust_card(c)
+				if card_hand:
+					card_hand.clear_hand()
+				_apply_bloodbath_effect(card_data, target, card_hero)
+			else:
+				_bloodbath_target = target
+				_bloodbath_card_data = card_data
+				_bloodbath_hero = card_hero
+				_show_discard_selection(1, _on_bloodbath_exhaust_done)
+				return
+		"blood_pact":
+			# Exhaust 1 card, draw N (like burning_pact)
+			var bp_draw: int = card_data.get("draw", 2)
+			if hand.is_empty():
+				draw_cards(bp_draw)
+			elif hand.size() <= 1:
+				var c = hand[0]
+				hand.remove_at(0)
+				_exhaust_card(c)
+				if card_hand:
+					card_hand.clear_hand()
+				draw_cards(bp_draw)
+			else:
+				_blood_pact_draw = bp_draw
+				_show_discard_selection(1, _on_blood_pact_exhaust_done)
+				return
+		"bloodrage":
+			var br_hero: Node2D = card_hero if card_hero else player
+			if br_hero:
+				br_hero.take_damage_direct(2)
+				_bf_on_hp_loss(br_hero, 2)
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.apply_status("vulnerable", 1)
+			_bf_on_apply_vulnerable_check(br_hero, "vulnerable", 1)
+			var flex_str: int = card_data.get("flex_stacks", 2)
+			if br_hero:
+				br_hero.apply_status("strength", flex_str)
+				_bf_flex_heroes.append({"hero": br_hero, "stacks": flex_str})
+		"vital_guard":
+			var vg_hero: Node2D = card_hero if card_hero else player
+			if vg_hero:
+				var base_block: int = card_data.get("block", 6)
+				var bonus: int = card_data.get("bonus_block", 6)
+				var threshold: float = card_data.get("hp_threshold", 0.28)
+				var total_block: int = base_block
+				if vg_hero.max_hp > 0 and float(vg_hero.current_hp) / float(vg_hero.max_hp) < threshold:
+					total_block += bonus
+				vg_hero.add_block(total_block)
+				_trigger_juggernaut()
+		"blood_rush":
+			# Reduce cost of a random attack in hand for this combat
+			var attack_indices: Array = []
+			for i in range(hand.size()):
+				if hand[i].get("type", -1) == 0:  # ATTACK type
+					attack_indices.append(i)
+			if not attack_indices.is_empty():
+				var pick: int = attack_indices[randi() % attack_indices.size()]
+				var chosen: Dictionary = hand[pick]
+				var old_cost: int = chosen.get("cost", 1)
+				if old_cost > 0:
+					chosen["cost"] = old_cost - 1
+					# Also reduce in deck for permanent effect
+					for dc in draw_pile + discard_pile + hand:
+						if dc.get("id", "") == chosen.get("id", "") and dc.get("cost", 1) == old_cost:
+							dc["cost"] = old_cost - 1
+							break
+				if card_hand:
+					card_hand.clear_hand()
+					for c in hand:
+						card_hand.add_card(c, false)
+		"bloodhound":
+			var draw_n: int = card_data.get("bf_draw_count", 3)
+			var hand_before: int = hand.size()
+			draw_cards(draw_n)
+			# Discard non-attack cards that were just drawn
+			var to_discard_bh: Array = []
+			for i in range(hand_before, hand.size()):
+				if hand[i].get("type", -1) != 0:  # Not ATTACK
+					to_discard_bh.append(hand[i])
+			for c in to_discard_bh:
+				hand.erase(c)
+				discard_pile.append(c)
+				_check_sly_on_discard(c)
+			if not to_discard_bh.is_empty() and card_hand:
+				card_hand.clear_hand()
+				for c in hand:
+					card_hand.add_card(c, false)
+		"survival_instinct":
+			var si_hero: Node2D = card_hero if card_hero else player
+			if si_hero:
+				var threshold_pct: float = 0.25
+				var is_low: bool = si_hero.max_hp > 0 and float(si_hero.current_hp) / float(si_hero.max_hp) < threshold_pct
+				var block_val: int = card_data.get("bf_low_hp_block", 7) if is_low else card_data.get("block", 3)
+				si_hero.add_block(block_val)
+				_trigger_juggernaut()
 	_update_pile_labels()
 
 func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> void:
@@ -1909,6 +2236,11 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 				# Envenom: apply 1 poison on hit
 				if envenom_stacks > 0 and enemy.alive:
 					enemy.apply_status("poison", envenom_stacks)
+				# Sanguine Aura: apply bloodlust on attack hit
+				for _h in _get_all_alive_heroes():
+					var sa: int = _h.active_powers.get("sanguine_aura", 0)
+					if sa > 0 and enemy.alive:
+						enemy.apply_status("bloodlust", sa)
 				delay += 0.12
 	elif target_type == "random_enemy":
 		var alive = _get_alive_enemies()
@@ -1917,10 +2249,21 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 			rand_target.take_damage(dmg)
 			if envenom_stacks > 0 and rand_target.alive:
 				rand_target.apply_status("poison", envenom_stacks)
+			# Sanguine Aura: apply bloodlust on attack hit
+			for _h in _get_all_alive_heroes():
+				var sa: int = _h.active_powers.get("sanguine_aura", 0)
+				if sa > 0 and rand_target.alive:
+					rand_target.apply_status("bloodlust", sa)
 	elif target != null and target.alive:
 		target.take_damage(dmg)
 		if envenom_stacks > 0 and target.alive and target.is_enemy:
 			target.apply_status("poison", envenom_stacks)
+		# Sanguine Aura: apply bloodlust on attack hit
+		if target.is_enemy:
+			for _h in _get_all_alive_heroes():
+				var sa: int = _h.active_powers.get("sanguine_aura", 0)
+				if sa > 0 and target.alive:
+					target.apply_status("bloodlust", sa)
 
 func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
 	# First hit immediately
@@ -1938,6 +2281,58 @@ func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionar
 		_trigger_juggernaut()
 	if draw_count > 0:
 		draw_cards(draw_count)
+
+# ── Blood Fiend Helpers ──────────────────────────────────────────────────────
+func _apply_bloodbath_effect(card_data: Dictionary, target: Node2D, hero: Node2D) -> void:
+	var bl_stacks: int = card_data.get("bf_bloodlust_apply", 2)
+	if target and target.alive:
+		target.apply_status("bloodlust", bl_stacks)
+		var vuln: Dictionary = card_data.get("apply_status", {})
+		if not vuln.is_empty():
+			target.apply_status(vuln.get("type", "vulnerable"), vuln.get("stacks", 1))
+			_bf_on_apply_vulnerable_check(hero, "vulnerable", vuln.get("stacks", 1))
+	_update_pile_labels()
+
+func _on_bloodbath_exhaust_done() -> void:
+	_apply_bloodbath_effect(_bloodbath_card_data, _bloodbath_target, _bloodbath_hero)
+
+func _on_blood_pact_exhaust_done() -> void:
+	draw_cards(_blood_pact_draw)
+	_update_pile_labels()
+
+func _bf_on_hp_loss(hero: Node2D, amount: int) -> void:
+	## Trigger all bloodfiend powers that react to HP loss
+	hp_lost_this_combat += amount
+	hp_lost_this_turn += amount
+	if hero == null:
+		return
+	# Bloodlust power: gain strength on HP loss
+	var bl_power: int = hero.active_powers.get("bf_bloodlust_power", 0)
+	if bl_power > 0:
+		hero.apply_status("strength", bl_power)
+	# Pain Threshold: draw + block on HP loss
+	var pt: int = hero.active_powers.get("pain_threshold", 0)
+	if pt > 0:
+		draw_cards(1)
+		hero.add_block(pt)
+		_trigger_juggernaut()
+	# Hemostasis: gain equal block
+	if hero.active_powers.get("hemostasis", 0) > 0:
+		hero.add_block(amount)
+		_trigger_juggernaut()
+
+func _bf_on_apply_vulnerable_check(hero: Node2D, _status_type: String, _stacks: int) -> void:
+	## Trigger powers that react to applying vulnerable
+	if hero == null:
+		return
+	# Predator's Mark: gain strength when applying vulnerable
+	var pm: int = hero.active_powers.get("predators_mark", 0)
+	if pm > 0:
+		hero.apply_status("strength", pm)
+	# Blood Scent: draw when applying vulnerable
+	var bs: int = hero.active_powers.get("blood_scent", 0)
+	if bs > 0:
+		draw_cards(bs)
 
 func _activate_power(power_name: String, power_target: Node2D = null, per_turn: Dictionary = {}, is_upgraded: bool = false) -> void:
 	# Determine upgrade status from parameter or legacy _plus suffix
@@ -2034,6 +2429,34 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 			pass  # Handled on draw_cards
 		"blood_fury":
 			pass  # Handled on self HP loss from card
+		"blood_frenzy", "blood_frenzy_plus":
+			power_stacks = 3 if is_plus else 2
+		"bf_bloodlust_power", "bf_bloodlust_power_plus":
+			power_stacks = 2 if is_plus else 1
+		"sanguine_aura":
+			power_stacks = 1
+		"crimson_pact", "crimson_pact_plus":
+			power_stacks = 8 if is_plus else 5
+		"predators_mark":
+			power_stacks = 1
+		"blood_scent", "blood_scent_plus":
+			power_stacks = 2 if is_plus else 1
+		"undying_rage":
+			power_stacks = 1
+		"pain_threshold", "pain_threshold_plus":
+			power_stacks = 4 if is_plus else 2
+		"blood_bond", "blood_bond_plus":
+			power_stacks = 1
+		"hemostasis":
+			power_stacks = 1
+		"undying_will":
+			power_stacks = 2  # 2 triggers
+		"predator_instinct":
+			_bf_predator_instinct_block = 4 if is_plus else 3
+			show_icon = false  # Temporary skill effect
+		"blood_shell":
+			_bf_blood_shell_active = true
+			show_icon = false  # Temporary skill effect
 
 	# Accumulate per_turn effects on hero metadata for simulator snapshot
 	if not per_turn.is_empty() and hero and hero.has_method("set_meta"):
@@ -2201,6 +2624,14 @@ func end_player_turn() -> void:
 		for hero in _get_all_alive_heroes():
 			hero.apply_status("strength", -flex_strength_to_remove)
 		flex_strength_to_remove = 0
+
+	# Remove Blood Fiend flex temp strength (from bloodrage)
+	for bf_flex in _bf_flex_heroes:
+		var h = bf_flex.get("hero")
+		var s: int = bf_flex.get("stacks", 0)
+		if h and is_instance_valid(h) and h.alive and s > 0:
+			h.apply_status("strength", -s)
+	_bf_flex_heroes.clear()
 
 	# Remove Anticipate temp dexterity
 	if anticipate_dex_to_remove > 0:
@@ -2541,6 +2972,9 @@ func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	var caltrops_dmg: int = attacked_hero.active_powers.get("caltrops", 0)
 	if caltrops_dmg > 0:
 		enemy.take_damage(caltrops_dmg)
+	# Blood Shell: apply bloodlust to attacker when hit (temporary)
+	if _bf_blood_shell_active and enemy.alive:
+		enemy.apply_status("bloodlust", 1)
 
 func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 	var front = get_front_player()

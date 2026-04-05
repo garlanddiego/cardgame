@@ -48,9 +48,10 @@ const STATUS_NAMES: Dictionary = {
 	"vulnerable": "易伤",
 	"weak": "虚弱",
 	"poison": "中毒",
+	"bloodlust": "嗜血",
 }
 # Priority order for status effect display (listed before power icons)
-const STATUS_DISPLAY_ORDER: Array = ["intangible", "strength", "dexterity", "vulnerable", "weak"]
+const STATUS_DISPLAY_ORDER: Array = ["intangible", "strength", "dexterity", "vulnerable", "weak", "bloodlust"]
 const POWER_NAMES: Dictionary = {
 	"demon_form": "恶魔形态",
 	"caltrops": "蒺藜",
@@ -69,6 +70,19 @@ const POWER_NAMES: Dictionary = {
 	"noxious_fumes": "剧毒烟雾",
 	"a_thousand_cuts": "千刀万剐",
 	"after_image": "残影",
+	"blood_frenzy": "嗜血狂怒",
+	"bf_bloodlust_power": "嗜血",
+	"sanguine_aura": "血色光环",
+	"crimson_pact": "血色契约",
+	"predators_mark": "猎食者印记",
+	"blood_scent": "血腥气息",
+	"undying_rage": "不灭之怒",
+	"pain_threshold": "痛觉阈值",
+	"blood_bond": "血之羁绊",
+	"hemostasis": "止血",
+	"undying_will": "不屈意志",
+	"predator_instinct": "猎食本能",
+	"blood_shell": "血壳",
 }
 
 func _ready() -> void:
@@ -165,6 +179,10 @@ func take_damage(amount: int) -> void:
 	# Check vulnerable
 	elif status_effects.has("vulnerable") and status_effects["vulnerable"] > 0:
 		actual_damage = int(ceil(float(actual_damage) * 1.5))
+	# Bloodlust: add stacks as bonus damage on each hit
+	var bl_stacks: int = status_effects.get("bloodlust", 0)
+	if bl_stacks > 0 and actual_damage > 0:
+		actual_damage += bl_stacks
 	# Block absorbs damage first
 	if block > 0:
 		if block >= actual_damage:
@@ -177,12 +195,24 @@ func take_damage(amount: int) -> void:
 		_update_block_display()
 	current_hp -= actual_damage
 	if current_hp <= 0:
-		current_hp = 0
-		alive = false
-		hp_changed.emit(current_hp, max_hp)
-		_update_hp_bar()
-		_play_death()
-		died.emit()
+		# Undying Will: survive lethal damage (heroes only)
+		var uw_stacks: int = active_powers.get("undying_will", 0)
+		if uw_stacks > 0 and not is_enemy:
+			current_hp = 1
+			active_powers["undying_will"] = uw_stacks - 1
+			if active_powers["undying_will"] <= 0:
+				active_powers.erase("undying_will")
+			_update_power_display()
+			hp_changed.emit(current_hp, max_hp)
+			_update_hp_bar()
+			_flash_damage(actual_damage)
+		else:
+			current_hp = 0
+			alive = false
+			hp_changed.emit(current_hp, max_hp)
+			_update_hp_bar()
+			_play_death()
+			died.emit()
 	else:
 		hp_changed.emit(current_hp, max_hp)
 		_update_hp_bar()
@@ -197,12 +227,23 @@ func take_damage_direct(amount: int) -> void:
 		actual = mini(actual, 1)
 	current_hp -= actual
 	if current_hp <= 0:
-		current_hp = 0
-		alive = false
-		hp_changed.emit(current_hp, max_hp)
-		_update_hp_bar()
-		_play_death()
-		died.emit()
+		# Undying Will: survive lethal damage (heroes only)
+		var uw_stacks: int = active_powers.get("undying_will", 0)
+		if uw_stacks > 0 and not is_enemy:
+			current_hp = 1
+			active_powers["undying_will"] = uw_stacks - 1
+			if active_powers["undying_will"] <= 0:
+				active_powers.erase("undying_will")
+			_update_power_display()
+			hp_changed.emit(current_hp, max_hp)
+			_update_hp_bar()
+		else:
+			current_hp = 0
+			alive = false
+			hp_changed.emit(current_hp, max_hp)
+			_update_hp_bar()
+			_play_death()
+			died.emit()
 	else:
 		hp_changed.emit(current_hp, max_hp)
 		_update_hp_bar()

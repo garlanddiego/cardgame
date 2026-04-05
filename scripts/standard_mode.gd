@@ -36,6 +36,11 @@ func _ready() -> void:
 	if run == null or gm == null:
 		push_error("RunManager or GameManager missing")
 		return
+	# Build draft hero order from run heroes
+	if run:
+		var h1: String = run.hero1_id
+		var h2: String = run.hero2_id
+		_draft_hero_order = [h1, h2, h1, h2, h1, h2]
 	_build_ui()
 	_show_draft()
 
@@ -244,7 +249,7 @@ func _show_draft() -> void:
 	_overlay.add_child(bg)
 
 	var hero_id: String = _draft_hero_order[_draft_round - 1]
-	var hero_color: Color = Color(0.85, 0.2, 0.2) if hero_id == "ironclad" else Color(0.2, 0.7, 0.3)
+	var hero_color: Color = _hero_color(hero_id)
 
 	# Use persistent HUD deck button as card fly target
 	# Update the deck button text for draft phase
@@ -2214,12 +2219,14 @@ func _hero_name(hero_id: String) -> String:
 	match hero_id:
 		"ironclad": return "铁甲战士"
 		"silent": return "沉默猎手"
+		"bloodfiend": return "嗜血狂魔"
 	return hero_id
 
 func _hero_color(hero_id: String) -> Color:
 	match hero_id:
 		"ironclad": return Color(0.8, 0.2, 0.2)
 		"silent": return Color(0.2, 0.7, 0.3)
+		"bloodfiend": return Color(0.7, 0.1, 0.2)
 		"neutral": return Color(0.5, 0.5, 0.5)
 	return Color.WHITE
 

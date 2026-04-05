@@ -22,6 +22,7 @@ var _IroncladCards = preload("res://scripts/cards/ironclad_cards.gd")
 var _SilentCards = preload("res://scripts/cards/silent_cards.gd")
 var _NeutralCards = preload("res://scripts/cards/neutral_cards.gd")
 var _NewCards = preload("res://scripts/cards/new_cards.gd")
+var _BloodfiendCards = preload("res://scripts/cards/bloodfiend_cards.gd")
 
 func _ready() -> void:
 	_init_character_data()
@@ -30,6 +31,7 @@ func _ready() -> void:
 	_register_card_pack(_SilentCards)
 	_register_card_pack(_NeutralCards)
 	_register_card_pack(_NewCards)
+	_register_card_pack(_BloodfiendCards)
 	# Build unified database from all packs
 	_build_card_database()
 	# Export cards JSON for external tools (simulator)
@@ -104,7 +106,7 @@ func save_custom_cards() -> void:
 	var custom_cards: Dictionary = {}
 	# Rebuild code-defined cards to compare
 	var code_cards: Dictionary = {}
-	for pack in [_IroncladCards, _SilentCards, _NeutralCards, _NewCards]:
+	for pack in [_IroncladCards, _SilentCards, _NeutralCards, _NewCards, _BloodfiendCards]:
 		code_cards.merge(pack.get_cards())
 	# Find cards that are new or modified
 	for card_id in card_database:
@@ -139,6 +141,14 @@ func _init_character_data() -> void:
 			"sprite": "res://assets/img/silent.png",
 			"fallen_sprite": "res://assets/img/silent_fallen.png",
 			"description": "A deadly hunter who uses agility and poison."
+		},
+		"bloodfiend": {
+			"name": "Blood Fiend",
+			"max_hp": 90,
+			"color": Color(0.7, 0.1, 0.2),
+			"sprite": "res://assets/img/bloodfiend.png",
+			"fallen_sprite": "res://assets/img/bloodfiend_fallen.png",
+			"description": "A blood-crazed berserker who sacrifices HP for devastating power."
 		}
 	}
 
@@ -594,6 +604,14 @@ func get_starting_deck(character_id: String) -> Array:
 			deck.append("si_defend")
 		deck.append("si_neutralize")
 		deck.append("si_survivor")
+	elif character_id == "bloodfiend":
+		# Blood Fiend starter: 4 Strike, 4 Defend, 1 Gore, 1 Sacrifice
+		for i in range(4):
+			deck.append("bf_strike")
+		for i in range(4):
+			deck.append("bf_defend")
+		deck.append("bf_gore")
+		deck.append("bf_sacrifice")
 	return deck
 
 func get_card_data(card_id: String) -> Dictionary:

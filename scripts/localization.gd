@@ -584,6 +584,7 @@ func card_desc(card_data: Dictionary) -> String:
 		match char_id:
 			"ironclad": self_str = "铁甲战士"
 			"silent": self_str = "沉默猎手"
+			"bloodfiend": self_str = "嗜血狂魔"
 	desc = desc.replace("{self}", self_str)
 	return desc
 

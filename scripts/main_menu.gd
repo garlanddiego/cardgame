@@ -172,11 +172,14 @@ func _show_hero_select_popup() -> void:
 	vbox.add_child(h1_row)
 
 	var h1_ic = _create_menu_button("铁甲战士", Color(0.8, 0.2, 0.2))
-	h1_ic.custom_minimum_size = Vector2(200, 50)
+	h1_ic.custom_minimum_size = Vector2(160, 50)
 	var h1_si = _create_menu_button("沉默猎手", Color(0.2, 0.7, 0.3))
-	h1_si.custom_minimum_size = Vector2(200, 50)
+	h1_si.custom_minimum_size = Vector2(160, 50)
+	var h1_bf = _create_menu_button("嗜血狂魔", Color(0.7, 0.1, 0.2))
+	h1_bf.custom_minimum_size = Vector2(160, 50)
 	h1_row.add_child(h1_ic)
 	h1_row.add_child(h1_si)
+	h1_row.add_child(h1_bf)
 
 	# Hero 2 selection
 	var h2_label = Label.new()
@@ -191,11 +194,14 @@ func _show_hero_select_popup() -> void:
 	vbox.add_child(h2_row)
 
 	var h2_ic = _create_menu_button("铁甲战士", Color(0.8, 0.2, 0.2))
-	h2_ic.custom_minimum_size = Vector2(200, 50)
+	h2_ic.custom_minimum_size = Vector2(160, 50)
 	var h2_si = _create_menu_button("沉默猎手", Color(0.2, 0.7, 0.3))
-	h2_si.custom_minimum_size = Vector2(200, 50)
+	h2_si.custom_minimum_size = Vector2(160, 50)
+	var h2_bf = _create_menu_button("嗜血狂魔", Color(0.7, 0.1, 0.2))
+	h2_bf.custom_minimum_size = Vector2(160, 50)
 	h2_row.add_child(h2_ic)
 	h2_row.add_child(h2_si)
+	h2_row.add_child(h2_bf)
 
 	# Selection state
 	var selected = {"h1": "ironclad", "h2": "silent"}
@@ -208,21 +214,37 @@ func _show_hero_select_popup() -> void:
 		selected["h1"] = "ironclad"
 		h1_ic.modulate = Color(1.5, 1.5, 1.5)
 		h1_si.modulate = Color.WHITE
+		h1_bf.modulate = Color.WHITE
 	)
 	h1_si.pressed.connect(func():
 		selected["h1"] = "silent"
 		h1_si.modulate = Color(1.5, 1.5, 1.5)
 		h1_ic.modulate = Color.WHITE
+		h1_bf.modulate = Color.WHITE
+	)
+	h1_bf.pressed.connect(func():
+		selected["h1"] = "bloodfiend"
+		h1_bf.modulate = Color(1.5, 1.5, 1.5)
+		h1_ic.modulate = Color.WHITE
+		h1_si.modulate = Color.WHITE
 	)
 	h2_ic.pressed.connect(func():
 		selected["h2"] = "ironclad"
 		h2_ic.modulate = Color(1.5, 1.5, 1.5)
 		h2_si.modulate = Color.WHITE
+		h2_bf.modulate = Color.WHITE
 	)
 	h2_si.pressed.connect(func():
 		selected["h2"] = "silent"
 		h2_si.modulate = Color(1.5, 1.5, 1.5)
 		h2_ic.modulate = Color.WHITE
+		h2_bf.modulate = Color.WHITE
+	)
+	h2_bf.pressed.connect(func():
+		selected["h2"] = "bloodfiend"
+		h2_bf.modulate = Color(1.5, 1.5, 1.5)
+		h2_ic.modulate = Color.WHITE
+		h2_si.modulate = Color.WHITE
 	)
 
 	# Start button

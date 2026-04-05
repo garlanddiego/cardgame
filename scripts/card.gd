@@ -138,6 +138,9 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 		"silent":
 			bg_color = Color(0.1, 0.22, 0.12, 1.0)    # Dark green
 			border_color = Color(0.2, 0.75, 0.25, 1.0)  # Bright green
+		"bloodfiend":
+			bg_color = Color(0.25, 0.04, 0.08, 1.0)     # Dark crimson
+			border_color = Color(0.8, 0.12, 0.25, 1.0)   # Crimson red
 		"neutral", "colorless":
 			bg_color = Color(0.18, 0.18, 0.2, 1.0)      # Dark grey
 			border_color = Color(0.5, 0.5, 0.55, 1.0)    # Grey

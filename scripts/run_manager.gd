@@ -41,10 +41,11 @@ func start_run(h1: String, h2: String) -> void:
 	gold = 100
 	hero1_id = h1
 	hero2_id = h2
-	hero1_hp = 70
-	hero2_hp = 60
-	hero1_max_hp = 70
-	hero2_max_hp = 60
+	var gm = get_node_or_null("/root/GameManager")
+	hero1_max_hp = _get_hero_max_hp(h1, gm)
+	hero2_max_hp = _get_hero_max_hp(h2, gm)
+	hero1_hp = hero1_max_hp
+	hero2_hp = hero2_max_hp
 	deck = _build_starting_deck(h1, h2)
 	backpack = []
 	_generate_map()
@@ -126,7 +127,26 @@ func end_run(victory: bool) -> void:
 	active = false
 	run_ended.emit(victory)
 
-func _build_starting_deck(_h1: String, _h2: String) -> Array:
+func _get_hero_max_hp(hero_id: String, gm: Node) -> int:
+	if gm and "character_data" in gm:
+		var data: Dictionary = gm.character_data.get(hero_id, {})
+		if data.has("max_hp"):
+			return data["max_hp"]
+	match hero_id:
+		"ironclad": return 70
+		"silent": return 60
+		"bloodfiend": return 90
+	return 70
+
+func _build_starting_deck(h1: String, h2: String) -> Array:
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("get_starting_deck"):
+		var result: Array = []
+		result.append_array(gm.get_starting_deck(h1))
+		if h2 != h1:
+			result.append_array(gm.get_starting_deck(h2))
+		return result
+	# Fallback
 	var d: Array = []
 	for i in 2: d.append("ic_strike")
 	for i in 2: d.append("ic_defend")
