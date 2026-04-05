@@ -135,7 +135,7 @@ func _get_hero_max_hp(hero_id: String, gm: Node) -> int:
 	match hero_id:
 		"ironclad": return 70
 		"silent": return 60
-		"bloodfiend": return 90
+		"bloodfiend": return 65
 	return 70
 
 func _build_starting_deck(h1: String, h2: String) -> Array:

@@ -669,6 +669,7 @@ func _swap_to_hit_pose() -> void:
 		elif "guardian" in tex_path: hit_path = "res://assets/img/anim/guardian_hit.png"
 		elif "ironclad" in tex_path: hit_path = "res://assets/img/anim/ironclad_hit.png"
 		elif "silent" in tex_path: hit_path = "res://assets/img/anim/silent_hit.png"
+		elif "bloodfiend" in tex_path: hit_path = "res://assets/img/anim/bloodfiend_hit.png"
 		if hit_path != "" and ResourceLoader.exists(hit_path):
 			_hit_tex = load(hit_path)
 	if _hit_tex and _idle_tex_normal:

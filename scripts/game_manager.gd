@@ -144,7 +144,7 @@ func _init_character_data() -> void:
 		},
 		"bloodfiend": {
 			"name": "Blood Fiend",
-			"max_hp": 90,
+			"max_hp": 65,
 			"color": Color(0.7, 0.1, 0.2),
 			"sprite": "res://assets/img/bloodfiend.png",
 			"fallen_sprite": "res://assets/img/bloodfiend_fallen.png",

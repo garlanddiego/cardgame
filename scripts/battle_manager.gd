@@ -1953,7 +1953,6 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if target and target.alive:
 					target.take_damage(base_dmg)
 					target.apply_status("bloodlust", bl_per_hit)
-					_bf_on_apply_vulnerable_check(card_hero, "bloodlust", 0)
 		"execution":
 			var base_dmg: int = card_data.get("damage", 8)
 			if card_hero:
@@ -4161,6 +4160,8 @@ func _play_attack_effect(card_data: Dictionary, hero_node: Node2D, target_node: 
 		_sword_slash_effect(hero_node, target_node)
 	elif card_char == "silent":
 		_dagger_throw_effect(hero_node, target_node)
+	elif card_char == "bloodfiend":
+		_blood_claw_effect(hero_node, target_node)
 	else:
 		_generic_hit_effect(target_node)
 
@@ -4197,6 +4198,8 @@ func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 		attack_path = "res://assets/img/anim/ironclad_attack_1.png"
 	elif char_id == "silent":
 		attack_path = "res://assets/img/anim/silent_attack_1.png"
+	elif char_id == "bloodfiend":
+		attack_path = "res://assets/img/anim/bloodfiend_attack_1.png"
 	if attack_path == "":
 		return
 	if not ResourceLoader.exists(attack_path):
@@ -4224,6 +4227,8 @@ func _play_skill_effect(card_data: Dictionary, hero_node: Node2D) -> void:
 	var glow_color: Color = Color(0.8, 0.3, 0.2, 0.6)  # Red for ironclad
 	if card_char == "silent":
 		glow_color = Color(0.2, 0.8, 0.3, 0.6)  # Green for silent
+	elif card_char == "bloodfiend":
+		glow_color = Color(0.8, 0.1, 0.2, 0.6)  # Crimson for bloodfiend
 	# Expanding ring effect
 	var ring = ColorRect.new()
 	ring.size = Vector2(10, 10)
@@ -4252,6 +4257,8 @@ func _swap_hero_skill_sprite(hero_node: Node2D, char_id: String) -> void:
 		skill_path = "res://assets/img/anim/ironclad_skill.png"
 	elif char_id == "silent":
 		skill_path = "res://assets/img/anim/silent_skill.png"
+	elif char_id == "bloodfiend":
+		skill_path = "res://assets/img/anim/bloodfiend_skill.png"
 	if skill_path == "" or not ResourceLoader.exists(skill_path):
 		return
 	sprite.texture = load(skill_path)
@@ -4285,6 +4292,30 @@ func _sword_slash_effect(hero_node: Node2D, target_node: Node2D) -> void:
 	var tw = create_tween()
 	tw.tween_property(slash, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	tw.tween_callback(slash.queue_free)
+
+func _blood_claw_effect(hero_node: Node2D, target_node: Node2D) -> void:
+	## Blood Fiend: crimson claw slash at target
+	if hero_node == null or target_node == null:
+		return
+	if not is_instance_valid(hero_node) or not is_instance_valid(target_node):
+		return
+	_hero_lunge(hero_node, target_node)
+	var pos: Vector2 = target_node.global_position + Vector2(-15, -40)
+	# Three-claw slash lines
+	for i in range(3):
+		var claw = Line2D.new()
+		claw.width = 4.0
+		claw.default_color = Color(0.9, 0.1, 0.15, 0.9)
+		var offset_x: float = -12.0 + i * 12.0
+		claw.add_point(pos + Vector2(offset_x - 15, -20))
+		claw.add_point(pos + Vector2(offset_x + 15, 20))
+		claw.z_index = 300
+		add_child(claw)
+		var tw = create_tween()
+		tw.tween_interval(0.05 * i)
+		tw.tween_property(claw, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
+		tw.tween_callback(claw.queue_free)
+	_generic_hit_effect(target_node)
 
 func _dagger_throw_effect(hero_node: Node2D, target_node: Node2D) -> void:
 	## Silent: dagger projectile flies from hero to target
