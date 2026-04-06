@@ -4,8 +4,8 @@ extends Control
 const MonstersDB = preload("res://scripts/monsters.gd")
 const CardScript = preload("res://scripts/card.gd")
 
-enum Phase { DRAFT, MAP, BATTLE, REWARD, REST, SHOP, VICTORY, DEFEAT }
-var phase: Phase = Phase.DRAFT
+enum Phase { HERO_SELECT, DRAFT, MAP, BATTLE, REWARD, REST, SHOP, VICTORY, DEFEAT }
+var phase: Phase = Phase.HERO_SELECT
 
 var run: Node = null  # RunManager
 var gm: Node = null   # GameManager
@@ -28,6 +28,8 @@ var _draft_picked_cards: Array = []  # card data dicts picked so far
 var _draft_status_bar: HBoxContainer = null  # top status bar
 var _draft_card_count_label: Button = null
 
+var _hero_select_container: Control = null
+
 func _ready() -> void:
 	# Let input pass through to battle scene's Area2D cards
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -36,13 +38,8 @@ func _ready() -> void:
 	if run == null or gm == null:
 		push_error("RunManager or GameManager missing")
 		return
-	# Build draft hero order from run heroes
-	if run:
-		var h1: String = run.hero1_id
-		var h2: String = run.hero2_id
-		_draft_hero_order = [h1, h2, h1, h2, h1, h2]
 	_build_ui()
-	_show_draft()
+	_show_hero_select()
 
 func _build_ui() -> void:
 	# Dark background (hidden during battle so battle's own bg shows)
@@ -233,6 +230,227 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 # INITIAL DRAFT (4 rounds of card picking before map)
 # ═══════════════════════════════════════════════════════════════════════════
+
+func _show_hero_select() -> void:
+	phase = Phase.HERO_SELECT
+	_map_layer.visible = false
+	_overlay.visible = true
+	# Clear overlay
+	for c in _overlay.get_children():
+		c.queue_free()
+	if _persistent_hud_canvas:
+		_persistent_hud_canvas.visible = false
+
+	var heroes := [
+		{"id": "ironclad", "name": "铁甲战士", "color": Color(0.8, 0.2, 0.2),
+		 "desc": "以力量和防御为核心\nHP: 70  初始牌: 10张"},
+		{"id": "silent", "name": "沉默猎手", "color": Color(0.2, 0.7, 0.3),
+		 "desc": "灵活的毒素与连击流\nHP: 60  初始牌: 12张"},
+		{"id": "bloodfiend", "name": "嗜血狂魔", "color": Color(0.7, 0.1, 0.2),
+		 "desc": "消耗生命换取爆发伤害\nHP: 65  初始牌: 11张"},
+	]
+
+	var selected := {"h1": "", "h2": ""}
+	var h1_buttons: Array = []
+	var h2_buttons: Array = []
+
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 16)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_overlay.add_child(vbox)
+
+	# Title
+	var title := Label.new()
+	title.text = "选择两位英雄"
+	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.5))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "选择两位英雄组队开始爬塔"
+	subtitle.add_theme_font_size_override("font_size", 20)
+	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(subtitle)
+
+	var spacer1 := Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 10)
+	vbox.add_child(spacer1)
+
+	# Hero 1 label
+	var h1_title := Label.new()
+	h1_title.text = "— 英雄 1 —"
+	h1_title.add_theme_font_size_override("font_size", 26)
+	h1_title.add_theme_color_override("font_color", Color(0.9, 0.5, 0.3))
+	h1_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(h1_title)
+
+	var h1_row := HBoxContainer.new()
+	h1_row.add_theme_constant_override("separation", 16)
+	h1_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(h1_row)
+
+	# Hero 2 label
+	var h2_title := Label.new()
+	h2_title.text = "— 英雄 2 —"
+	h2_title.add_theme_font_size_override("font_size", 26)
+	h2_title.add_theme_color_override("font_color", Color(0.3, 0.7, 0.5))
+	h2_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(h2_title)
+
+	var h2_row := HBoxContainer.new()
+	h2_row.add_theme_constant_override("separation", 16)
+	h2_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(h2_row)
+
+	# Start button (created early so hero buttons can reference it)
+	var start_btn := Button.new()
+	start_btn.text = "选择两位英雄后开始"
+	start_btn.custom_minimum_size = Vector2(400, 65)
+	start_btn.add_theme_font_size_override("font_size", 28)
+	start_btn.disabled = true
+	var start_style := StyleBoxFlat.new()
+	start_style.bg_color = Color(0.3, 0.3, 0.3, 0.5)
+	start_style.border_color = Color(0.5, 0.5, 0.5)
+	start_style.set_border_width_all(2)
+	start_style.set_corner_radius_all(10)
+	start_btn.add_theme_stylebox_override("normal", start_style)
+	start_btn.add_theme_stylebox_override("disabled", start_style)
+
+	# Create hero buttons
+	for hero in heroes:
+		var btn1 := _create_hero_select_btn(hero)
+		h1_row.add_child(btn1)
+		h1_buttons.append({"btn": btn1, "id": hero["id"]})
+
+		var btn2 := _create_hero_select_btn(hero)
+		h2_row.add_child(btn2)
+		h2_buttons.append({"btn": btn2, "id": hero["id"]})
+
+	# Wire up h1 buttons
+	for i in range(h1_buttons.size()):
+		var hero_id: String = h1_buttons[i]["id"]
+		var btn: Button = h1_buttons[i]["btn"]
+		btn.pressed.connect(func():
+			selected["h1"] = hero_id
+			for entry in h1_buttons:
+				entry["btn"].modulate = Color(0.5, 0.5, 0.5) if entry["id"] != hero_id else Color.WHITE
+			_update_start_btn(start_btn, selected)
+		)
+
+	# Wire up h2 buttons
+	for i in range(h2_buttons.size()):
+		var hero_id: String = h2_buttons[i]["id"]
+		var btn: Button = h2_buttons[i]["btn"]
+		btn.pressed.connect(func():
+			selected["h2"] = hero_id
+			for entry in h2_buttons:
+				entry["btn"].modulate = Color(0.5, 0.5, 0.5) if entry["id"] != hero_id else Color.WHITE
+			_update_start_btn(start_btn, selected)
+		)
+
+	var spacer2 := Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 10)
+	vbox.add_child(spacer2)
+	start_btn.pressed.connect(func():
+		if selected["h1"] == "" or selected["h2"] == "":
+			return
+		_begin_run_after_select(selected["h1"], selected["h2"])
+	)
+	vbox.add_child(start_btn)
+
+	# Back button
+	var back_btn := Button.new()
+	back_btn.text = "返回主菜单"
+	back_btn.custom_minimum_size = Vector2(250, 50)
+	back_btn.add_theme_font_size_override("font_size", 22)
+	back_btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	var back_style := StyleBoxFlat.new()
+	back_style.bg_color = Color(0.2, 0.2, 0.2, 0.4)
+	back_style.border_color = Color(0.4, 0.4, 0.4)
+	back_style.set_border_width_all(1)
+	back_style.set_corner_radius_all(8)
+	back_btn.add_theme_stylebox_override("normal", back_style)
+	back_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/main_menu.tscn"))
+	vbox.add_child(back_btn)
+
+func _create_hero_select_btn(hero: Dictionary) -> Button:
+	var btn := Button.new()
+	var color: Color = hero["color"]
+	btn.custom_minimum_size = Vector2(200, 120)
+	btn.modulate = Color(0.5, 0.5, 0.5)  # Start dim (unselected)
+
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(vb)
+
+	var name_lbl := Label.new()
+	name_lbl.text = hero["name"]
+	name_lbl.add_theme_font_size_override("font_size", 24)
+	name_lbl.add_theme_color_override("font_color", Color.WHITE)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vb.add_child(name_lbl)
+
+	var desc_lbl := Label.new()
+	desc_lbl.text = hero["desc"]
+	desc_lbl.add_theme_font_size_override("font_size", 14)
+	desc_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vb.add_child(desc_lbl)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(color.r, color.g, color.b, 0.3)
+	style.border_color = color
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	btn.add_theme_stylebox_override("normal", style)
+
+	var hover_style := style.duplicate() as StyleBoxFlat
+	hover_style.bg_color = Color(color.r, color.g, color.b, 0.5)
+	btn.add_theme_stylebox_override("hover", hover_style)
+
+	var pressed_style := style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = Color(color.r, color.g, color.b, 0.7)
+	btn.add_theme_stylebox_override("pressed", pressed_style)
+
+	return btn
+
+func _update_start_btn(btn: Button, selected: Dictionary) -> void:
+	if selected["h1"] != "" and selected["h2"] != "":
+		btn.disabled = false
+		if selected["h1"] == selected["h2"]:
+			btn.text = "开始爬塔（%s × 2）" % _hero_name(selected["h1"])
+		else:
+			btn.text = "开始爬塔（%s + %s）" % [_hero_name(selected["h1"]), _hero_name(selected["h2"])]
+		var active_style := StyleBoxFlat.new()
+		active_style.bg_color = Color(0.9, 0.6, 0.1, 0.4)
+		active_style.border_color = Color(0.9, 0.6, 0.1)
+		active_style.set_border_width_all(2)
+		active_style.set_corner_radius_all(10)
+		btn.add_theme_stylebox_override("normal", active_style)
+		btn.add_theme_color_override("font_color", Color.WHITE)
+
+func _begin_run_after_select(h1: String, h2: String) -> void:
+	if run:
+		run.start_run(h1, h2)
+	if gm:
+		gm.select_character(h1)
+	var h1id: String = run.hero1_id if run else h1
+	var h2id: String = run.hero2_id if run else h2
+	_draft_hero_order = [h1id, h2id, h1id, h2id, h1id, h2id]
+	# Transition to draft
+	_show_draft()
+	if _persistent_hud_canvas:
+		_persistent_hud_canvas.visible = true
 
 func _show_draft() -> void:
 	_draft_round += 1
