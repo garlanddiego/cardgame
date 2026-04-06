@@ -83,6 +83,8 @@ const POWER_NAMES: Dictionary = {
 	"undying_will": "不屈意志",
 	"predator_instinct": "猎食本能",
 	"blood_shell": "血壳",
+	"scarlet_chains": "猩红锁链",
+	"hemophilia": "血友病",
 }
 
 func _ready() -> void:

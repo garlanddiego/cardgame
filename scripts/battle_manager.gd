@@ -1953,6 +1953,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if target and target.alive:
 					target.take_damage(base_dmg)
 					target.apply_status("bloodlust", bl_per_hit)
+					_bf_on_apply_bloodlust_check(card_hero, target, bl_per_hit)
 		"execution":
 			var base_dmg: int = card_data.get("damage", 8)
 			if card_hero:
@@ -1964,6 +1965,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				var bl: int = target.get_status_stacks("bloodlust")
 				if bl > 0:
 					target.apply_status("bloodlust", bl)
+					_bf_on_apply_bloodlust_check(card_hero, target, bl)
 		"blood_whirl":
 			var self_dmg_hero: Node2D = card_hero if card_hero else player
 			if self_dmg_hero:
@@ -1978,6 +1980,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if enemy.alive:
 					enemy.take_damage(base_dmg)
 					enemy.apply_status("bloodlust", 1)
+					_bf_on_apply_bloodlust_check(card_hero, enemy, 1)
 		"savage_strike":
 			var base_dmg: int = card_data.get("damage", 6)
 			base_dmg += hp_lost_this_combat
@@ -2133,6 +2136,34 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				dd_dmg *= 2
 			if target and target.alive:
 				_apply_single_hit_damage(dd_dmg, target, "enemy")
+		"blood_rage":
+			var br_hero2: Node2D = card_hero if card_hero else player
+			var base_dmg: int = card_data.get("damage", 6)
+			if br_hero2:
+				base_dmg = br_hero2.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			var hits_br: int = 1 + hp_lost_this_turn
+			_apply_multi_hit_damage(base_dmg, hits_br, target, target_type)
+		"siphon_life":
+			var sl_hero: Node2D = card_hero if card_hero else player
+			if target and target.alive:
+				var bl_stacks: int = target.get_status_stacks("bloodlust")
+				if bl_stacks > 0 and sl_hero:
+					sl_hero.heal(bl_stacks)
+				target.status_effects.erase("bloodlust")
+				target.status_changed.emit("bloodlust", 0)
+				target._update_status_display()
+		"blood_mirror":
+			var bm_hero: Node2D = card_hero if card_hero else player
+			if bm_hero:
+				bm_hero.take_damage_direct(3)
+				_bf_on_hp_loss(bm_hero, 3)
+			var bl_apply: int = card_data.get("bf_bloodlust_all", 2)
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.apply_status("bloodlust", bl_apply)
+					_bf_on_apply_bloodlust_check(bm_hero, enemy, bl_apply)
 		"bloodbath":
 			# Exhaust 1 card, apply bloodlust + vulnerable to target
 			if hand.is_empty():
@@ -2253,11 +2284,15 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 				# Envenom: apply 1 poison on hit
 				if envenom_stacks > 0 and enemy.alive:
 					enemy.apply_status("poison", envenom_stacks)
+				# Hemophilia: heal when enemy takes bloodlust damage
+				if enemy.get_status_stacks("bloodlust") > 0:
+					_bf_hemophilia_heal()
 				# Sanguine Aura: apply bloodlust on attack hit
 				for _h in _get_all_alive_heroes():
 					var sa: int = _h.active_powers.get("sanguine_aura", 0)
 					if sa > 0 and enemy.alive:
 						enemy.apply_status("bloodlust", sa)
+						_bf_on_apply_bloodlust_check(_h, enemy, sa)
 				delay += 0.12
 	elif target_type == "random_enemy":
 		var alive = _get_alive_enemies()
@@ -2266,21 +2301,27 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 			rand_target.take_damage(dmg)
 			if envenom_stacks > 0 and rand_target.alive:
 				rand_target.apply_status("poison", envenom_stacks)
+			if rand_target.get_status_stacks("bloodlust") > 0:
+				_bf_hemophilia_heal()
 			# Sanguine Aura: apply bloodlust on attack hit
 			for _h in _get_all_alive_heroes():
 				var sa: int = _h.active_powers.get("sanguine_aura", 0)
 				if sa > 0 and rand_target.alive:
 					rand_target.apply_status("bloodlust", sa)
+					_bf_on_apply_bloodlust_check(_h, rand_target, sa)
 	elif target != null and target.alive:
 		target.take_damage(dmg)
 		if envenom_stacks > 0 and target.alive and target.is_enemy:
 			target.apply_status("poison", envenom_stacks)
+		if target.is_enemy and target.get_status_stacks("bloodlust") > 0:
+			_bf_hemophilia_heal()
 		# Sanguine Aura: apply bloodlust on attack hit
 		if target.is_enemy:
 			for _h in _get_all_alive_heroes():
 				var sa: int = _h.active_powers.get("sanguine_aura", 0)
 				if sa > 0 and target.alive:
 					target.apply_status("bloodlust", sa)
+					_bf_on_apply_bloodlust_check(_h, target, sa)
 
 func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
 	# First hit immediately
@@ -2304,6 +2345,7 @@ func _apply_bloodbath_effect(card_data: Dictionary, target: Node2D, hero: Node2D
 	var bl_stacks: int = card_data.get("bf_bloodlust_apply", 2)
 	if target and target.alive:
 		target.apply_status("bloodlust", bl_stacks)
+		_bf_on_apply_bloodlust_check(hero, target, bl_stacks)
 		var vuln: Dictionary = card_data.get("apply_status", {})
 		if not vuln.is_empty():
 			target.apply_status(vuln.get("type", "vulnerable"), vuln.get("stacks", 1))
@@ -2350,6 +2392,21 @@ func _bf_on_apply_vulnerable_check(hero: Node2D, _status_type: String, _stacks: 
 	var bs: int = hero.active_powers.get("blood_scent", 0)
 	if bs > 0:
 		draw_cards(bs)
+
+func _bf_on_apply_bloodlust_check(hero: Node2D, enemy_node: Node2D, _stacks: int) -> void:
+	## Trigger powers that react to applying bloodlust to an enemy
+	if hero == null:
+		return
+	# Scarlet Chains: applying bloodlust also applies weak
+	if hero.active_powers.get("scarlet_chains", 0) > 0 and enemy_node and enemy_node.alive:
+		enemy_node.apply_status("weak", 1)
+
+func _bf_hemophilia_heal() -> void:
+	## Hemophilia: when enemy takes bloodlust damage, heal 1 HP per hero with the power
+	for _h in _get_all_alive_heroes():
+		var hemo: int = _h.active_powers.get("hemophilia", 0)
+		if hemo > 0:
+			_h.heal(1)
 
 func _activate_power(power_name: String, power_target: Node2D = null, per_turn: Dictionary = {}, is_upgraded: bool = false) -> void:
 	# Determine upgrade status from parameter or legacy _plus suffix
@@ -2468,6 +2525,10 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 			power_stacks = 1
 		"undying_will":
 			power_stacks = 2  # 2 triggers
+		"scarlet_chains":
+			power_stacks = 1
+		"hemophilia":
+			power_stacks = 1
 		"predator_instinct":
 			_bf_predator_instinct_block = 4 if is_plus else 3
 			show_icon = false  # Temporary skill effect
@@ -2992,6 +3053,7 @@ func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	# Blood Shell: apply bloodlust to attacker when hit (temporary)
 	if _bf_blood_shell_active and enemy.alive:
 		enemy.apply_status("bloodlust", 1)
+		_bf_on_apply_bloodlust_check(attacked_hero, enemy, 1)
 
 func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 	var front = get_front_player()

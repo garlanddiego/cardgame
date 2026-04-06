@@ -8,7 +8,7 @@ static func get_cards() -> Dictionary:
 	var db: Dictionary = {}
 
 	# =========================================================================
-	# ATTACKS (16 cards)
+	# ATTACKS (17 cards)
 	# =========================================================================
 	db["bf_strike"] = {"id": "bf_strike", "name": "血击", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "造成6点伤害。", "art": "res://assets/img/card_art/bf_strike.png", "target": "enemy", "version": "new", "actions": [{"type": "damage"}]}
 	db["bf_crimson_slash"] = {"id": "bf_crimson_slash", "name": "绯红斩", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 12, "block": 0, "description": "失去2点HP。\n造成12点伤害。", "art": "res://assets/img/card_art/bf_crimson_slash.png", "target": "enemy", "version": "new", "actions": [{"type": "self_damage", "value": 2}, {"type": "damage"}]}
@@ -27,9 +27,10 @@ static func get_cards() -> Dictionary:
 	db["bf_leech"] = {"id": "bf_leech", "name": "吸血", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "造成6点伤害。\n若造成伤害，\n治疗2点HP。", "art": "res://assets/img/card_art/bf_leech.png", "target": "enemy", "version": "new", "heal_on_hit": 2, "actions": [{"type": "call", "fn": "leech"}]}
 	db["bf_blood_feast"] = {"id": "bf_blood_feast", "name": "血宴", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 7, "block": 0, "description": "造成7点伤害。\n若击杀目标，\n获得3点最大HP。", "art": "res://assets/img/card_art/bf_blood_feast.png", "target": "enemy", "version": "new", "max_hp_gain": 3, "actions": [{"type": "call", "fn": "blood_feast"}]}
 	db["bf_desperate_duel"] = {"id": "bf_desperate_duel", "name": "拼死决斗", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 8, "block": 0, "description": "获得2点力量。\n敌人获得1点力量。\n造成8点伤害。", "art": "res://assets/img/card_art/bf_desperate_duel.png", "target": "enemy", "version": "new", "bf_self_str": 2, "bf_enemy_str": 1, "actions": [{"type": "call", "fn": "desperate_duel"}]}
+	db["bf_blood_rage"] = {"id": "bf_blood_rage", "name": "血怒", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "造成6点伤害。\n本回合每失去1次HP\n额外攻击1次。", "art": "res://assets/img/card_art/bf_blood_rage.png", "target": "enemy", "version": "new", "actions": [{"type": "call", "fn": "blood_rage"}]}
 
 	# =========================================================================
-	# SKILLS (14 cards + 1 basic defend)
+	# SKILLS (16 cards + 1 basic defend)
 	# =========================================================================
 	db["bf_defend"] = {"id": "bf_defend", "name": "防御", "cost": 1, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 5, "description": "获得5点格挡。", "art": "res://assets/img/card_art/bf_defend.png", "target": "self", "version": "new", "hero_target": "target_hero", "actions": [{"type": "block"}]}
 	db["bf_sanguine_shield"] = {"id": "bf_sanguine_shield", "name": "血盾", "cost": 1, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 11, "description": "失去2点HP。\n获得11点格挡。", "art": "res://assets/img/card_art/bf_sanguine_shield.png", "target": "self", "version": "new", "hero_target": "target_hero", "actions": [{"type": "self_damage", "value": 2}, {"type": "block"}]}
@@ -45,9 +46,11 @@ static func get_cards() -> Dictionary:
 	db["bf_bloodhound"] = {"id": "bf_bloodhound", "name": "猎血犬", "cost": 1, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 0, "description": "抽3张牌。\n弃置抽到的\n非攻击牌。", "art": "res://assets/img/card_art/bf_bloodhound.png", "target": "self", "version": "new", "hero_target": "self", "bf_draw_count": 3, "actions": [{"type": "call", "fn": "bloodhound"}]}
 	db["bf_berserker_resolve"] = {"id": "bf_berserker_resolve", "name": "狂战决心", "cost": 1, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 6, "description": "获得6点格挡。\n施加1层易伤。", "art": "res://assets/img/card_art/bf_berserker_resolve.png", "target": "enemy", "version": "new", "hero_target": "self", "apply_status": {"type": "vulnerable", "stacks": 1}, "actions": [{"type": "block"}, {"type": "apply_status", "source": "apply_status"}]}
 	db["bf_survival_instinct"] = {"id": "bf_survival_instinct", "name": "求生本能", "cost": 0, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 3, "description": "获得3点格挡。\nHP低于25%时，\n改为获得7点。", "art": "res://assets/img/card_art/bf_survival_instinct.png", "target": "self", "version": "new", "hero_target": "target_hero", "actions": [{"type": "call", "fn": "survival_instinct"}]}
+	db["bf_siphon_life"] = {"id": "bf_siphon_life", "name": "虹吸生命", "cost": 2, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 0, "description": "吸取敌人嗜血\n层数等量的HP。\n消耗所有嗜血。", "art": "res://assets/img/card_art/bf_siphon_life.png", "target": "enemy", "version": "new", "hero_target": "self", "actions": [{"type": "call", "fn": "siphon_life"}]}
+	db["bf_blood_mirror"] = {"id": "bf_blood_mirror", "name": "血之镜像", "cost": 1, "type": CardType.SKILL, "character": "bloodfiend", "damage": 0, "block": 0, "description": "失去3点HP。\n对所有敌人\n施加2层嗜血。", "art": "res://assets/img/card_art/bf_blood_mirror.png", "target": "all_enemies", "version": "new", "hero_target": "self", "bf_bloodlust_all": 2, "actions": [{"type": "call", "fn": "blood_mirror"}]}
 
 	# =========================================================================
-	# POWERS (11 cards)
+	# POWERS (13 cards)
 	# =========================================================================
 	db["bf_blood_frenzy"] = {"id": "bf_blood_frenzy", "name": "血之狂热", "cost": 3, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "每回合开始时，\n获得2点力量，\n失去2点HP。", "art": "res://assets/img/card_art/bf_blood_frenzy.png", "target": "self", "version": "new", "hero_target": "target_hero", "power_effect": "blood_frenzy", "per_turn": {"strength": 2, "self_damage": 2}, "power_stacks": 2, "actions": [{"type": "power_effect", "power": "blood_frenzy"}]}
 	db["bf_bloodlust"] = {"id": "bf_bloodlust", "name": "嗜血", "cost": 1, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "每当你失去HP，\n获得1点力量。", "art": "res://assets/img/card_art/bf_bloodlust.png", "target": "self", "version": "new", "hero_target": "target_hero", "power_effect": "bf_bloodlust_power", "power_stacks": 1, "actions": [{"type": "power_effect", "power": "bf_bloodlust_power"}]}
@@ -60,6 +63,8 @@ static func get_cards() -> Dictionary:
 	db["bf_blood_bond"] = {"id": "bf_blood_bond", "name": "血之纽带", "cost": 2, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "每回合开始时，\n若HP低于25%，\n获得1点能量\n和1点力量。", "art": "res://assets/img/card_art/bf_blood_bond.png", "target": "self", "version": "new", "hero_target": "target_hero", "power_effect": "blood_bond", "per_turn": {"conditional": true}, "power_stacks": 1, "actions": [{"type": "power_effect", "power": "blood_bond"}]}
 	db["bf_hemostasis"] = {"id": "bf_hemostasis", "name": "止血", "cost": 2, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "每当你失去HP，\n获得等量格挡。", "art": "res://assets/img/card_art/bf_hemostasis.png", "target": "self", "version": "new", "hero_target": "target_hero", "power_effect": "hemostasis", "power_stacks": 1, "actions": [{"type": "power_effect", "power": "hemostasis"}]}
 	db["bf_undying_will"] = {"id": "bf_undying_will", "name": "不死意志", "cost": 2, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "HP降为0时，\n以1点HP存活。\n（触发2次）", "art": "res://assets/img/card_art/bf_undying_will.png", "target": "self", "version": "new", "hero_target": "target_hero", "power_effect": "undying_will", "power_stacks": 2, "actions": [{"type": "power_effect", "power": "undying_will"}]}
+	db["bf_scarlet_chains"] = {"id": "bf_scarlet_chains", "name": "猩红锁链", "cost": 2, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "每当你对敌人\n施加嗜血，该敌人\n获得1层虚弱。", "art": "res://assets/img/card_art/bf_scarlet_chains.png", "target": "self", "version": "new", "hero_target": "self", "power_effect": "scarlet_chains", "power_stacks": 1, "actions": [{"type": "power_effect", "power": "scarlet_chains"}]}
+	db["bf_hemophilia"] = {"id": "bf_hemophilia", "name": "血友病", "cost": 1, "type": CardType.POWER, "character": "bloodfiend", "damage": 0, "block": 0, "description": "每当敌人受到\n嗜血伤害，\n治疗1点HP。", "art": "res://assets/img/card_art/bf_hemophilia.png", "target": "self", "version": "new", "hero_target": "self", "power_effect": "hemophilia", "power_stacks": 1, "actions": [{"type": "power_effect", "power": "hemophilia"}]}
 
 	return db
 
@@ -83,6 +88,7 @@ static func get_upgrade_overrides() -> Dictionary:
 		"bf_leech": {"damage": 9, "description": "造成9点伤害。\n若造成伤害，\n治疗2点HP。"},
 		"bf_blood_feast": {"damage": 10, "max_hp_gain": 4, "description": "造成10点伤害。\n若击杀目标，\n获得4点最大HP。"},
 		"bf_desperate_duel": {"damage": 12, "bf_self_str": 3, "description": "获得3点力量。\n敌人获得1点力量。\n造成12点伤害。"},
+		"bf_blood_rage": {"damage": 9, "description": "造成9点伤害。\n本回合每失去1次HP\n额外攻击1次。"},
 		# SKILLS
 		"bf_defend": {"block": 8, "description": "获得8点格挡。"},
 		"bf_sanguine_shield": {"block": 15, "description": "失去2点HP。\n获得15点格挡。"},
@@ -98,6 +104,8 @@ static func get_upgrade_overrides() -> Dictionary:
 		"bf_bloodhound": {"bf_draw_count": 4, "description": "抽4张牌。\n弃置抽到的\n非攻击牌。"},
 		"bf_berserker_resolve": {"block": 9, "apply_status": {"type": "vulnerable", "stacks": 2}, "description": "获得9点格挡。\n施加2层易伤。"},
 		"bf_survival_instinct": {"block": 5, "description": "获得5点格挡。\nHP低于25%时，\n改为获得10点。", "bf_low_hp_block": 10},
+		"bf_siphon_life": {"cost": 1, "description": "吸取敌人嗜血\n层数等量的HP。\n消耗所有嗜血。"},
+		"bf_blood_mirror": {"bf_bloodlust_all": 3, "description": "失去3点HP。\n对所有敌人\n施加3层嗜血。"},
 		# POWERS
 		"bf_blood_frenzy": {"description": "每回合开始时，\n获得3点力量，\n失去2点HP。", "power_effect": "blood_frenzy_plus", "per_turn": {"strength": 3, "self_damage": 2}, "power_stacks": 3},
 		"bf_bloodlust": {"description": "每当你失去HP，\n获得2点力量。", "power_effect": "bf_bloodlust_power_plus", "power_stacks": 2},
@@ -110,4 +118,6 @@ static func get_upgrade_overrides() -> Dictionary:
 		"bf_blood_bond": {"description": "每回合开始时，\n若HP低于25%，\n获得1点能量\n和2点力量。", "power_effect": "blood_bond_plus"},
 		"bf_hemostasis": {"cost": 1, "description": "每当你失去HP，\n获得等量格挡。"},
 		"bf_undying_will": {"description": "HP降为0时，\n以1点HP存活。\n（触发3次）", "power_stacks": 3},
+		"bf_scarlet_chains": {"cost": 1, "description": "每当你对敌人\n施加嗜血，该敌人\n获得1层虚弱。"},
+		"bf_hemophilia": {"description": "固有。\n每当敌人受到\n嗜血伤害，\n治疗1点HP。", "innate": true},
 	}
