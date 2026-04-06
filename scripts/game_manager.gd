@@ -588,30 +588,17 @@ func select_character(character_id: String) -> void:
 	character_selected.emit(character_id)
 
 func get_starting_deck(character_id: String) -> Array:
+	## Each hero starts with 2 Strike + 2 Defend (4 cards per hero, 8 total)
 	var deck: Array = []
 	if character_id == "ironclad":
-		# STS Ironclad starter: 5 Strike, 4 Defend, 1 Bash
-		for i in range(5):
-			deck.append("ic_strike")
-		for i in range(4):
-			deck.append("ic_defend")
-		deck.append("ic_bash")
+		for i in 2: deck.append("ic_strike")
+		for i in 2: deck.append("ic_defend")
 	elif character_id == "silent":
-		# STS Silent starter: 5 Strike, 5 Defend, 1 Neutralize, 1 Survivor
-		for i in range(5):
-			deck.append("si_strike")
-		for i in range(5):
-			deck.append("si_defend")
-		deck.append("si_neutralize")
-		deck.append("si_survivor")
+		for i in 2: deck.append("si_strike")
+		for i in 2: deck.append("si_defend")
 	elif character_id == "bloodfiend":
-		# Blood Fiend starter: 4 Strike, 5 Defend, 1 Gore, 1 Sacrifice
-		for i in range(4):
-			deck.append("bf_strike")
-		for i in range(5):
-			deck.append("bf_defend")
-		deck.append("bf_gore")
-		deck.append("bf_sacrifice")
+		for i in 2: deck.append("bf_strike")
+		for i in 2: deck.append("bf_defend")
 	return deck
 
 func get_card_data(card_id: String) -> Dictionary:
