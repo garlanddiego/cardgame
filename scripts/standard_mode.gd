@@ -235,209 +235,294 @@ func _show_hero_select() -> void:
 	phase = Phase.HERO_SELECT
 	_map_layer.visible = false
 	_overlay.visible = true
-	# Clear overlay
 	for c in _overlay.get_children():
 		c.queue_free()
 	if _persistent_hud_canvas:
 		_persistent_hud_canvas.visible = false
 
+	var vw: float = get_viewport_rect().size.x
 	var heroes := [
-		{"id": "ironclad", "name": "铁甲战士", "color": Color(0.8, 0.2, 0.2),
-		 "desc": "以力量和防御为核心\nHP: 70  初始牌: 10张"},
-		{"id": "silent", "name": "沉默猎手", "color": Color(0.2, 0.7, 0.3),
-		 "desc": "灵活的毒素与连击流\nHP: 60  初始牌: 12张"},
-		{"id": "bloodfiend", "name": "嗜血狂魔", "color": Color(0.7, 0.1, 0.2),
-		 "desc": "消耗生命换取爆发伤害\nHP: 65  初始牌: 11张"},
+		{"id": "ironclad", "name": "铁甲战士", "color": Color(0.8, 0.2, 0.2), "hp": 70},
+		{"id": "silent", "name": "沉默猎手", "color": Color(0.2, 0.7, 0.3), "hp": 60},
+		{"id": "bloodfiend", "name": "嗜血狂魔", "color": Color(0.7, 0.1, 0.2), "hp": 65},
 	]
 
-	var selected := {"h1": "", "h2": ""}
-	var h1_buttons: Array = []
-	var h2_buttons: Array = []
+	# Dark background
+	var bg := ColorRect.new()
+	bg.color = Color(0.05, 0.04, 0.03)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(bg)
 
-	var vbox := VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 16)
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	_overlay.add_child(vbox)
+	# State
+	var state := {"h1": "", "h2": "", "pick_count": 0}
+	var hero_containers: Array = []  # [{container, id, name_lbl, sprite_rect}]
 
-	# Title
+	# --- Title ---
 	var title := Label.new()
 	title.text = "选择两位英雄"
-	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_font_size_override("font_size", 40)
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.5))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
+	title.position = Vector2(0, 30)
+	title.size = Vector2(vw, 50)
+	_overlay.add_child(title)
 
-	var subtitle := Label.new()
-	subtitle.text = "选择两位英雄组队开始爬塔"
-	subtitle.add_theme_font_size_override("font_size", 20)
-	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(subtitle)
+	# --- 3 large hero sprites in center ---
+	var sprite_h: float = 360.0
+	var sprite_w: float = 180.0
+	var gap: float = 20.0
+	var total_w: float = 3 * sprite_w + 2 * gap
+	var start_x: float = (vw - total_w) / 2.0
+	var sprite_y: float = 100.0
 
-	var spacer1 := Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 10)
-	vbox.add_child(spacer1)
+	for i in range(heroes.size()):
+		var hero: Dictionary = heroes[i]
+		var color: Color = hero["color"]
+		var container := Control.new()
+		container.position = Vector2(start_x + i * (sprite_w + gap), sprite_y)
+		container.size = Vector2(sprite_w, sprite_h + 80)
+		container.mouse_filter = Control.MOUSE_FILTER_STOP
+		_overlay.add_child(container)
 
-	# Hero 1 label
-	var h1_title := Label.new()
-	h1_title.text = "— 英雄 1 —"
-	h1_title.add_theme_font_size_override("font_size", 26)
-	h1_title.add_theme_color_override("font_color", Color(0.9, 0.5, 0.3))
-	h1_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(h1_title)
+		# Border/frame
+		var frame := ColorRect.new()
+		frame.color = Color(color.r, color.g, color.b, 0.15)
+		frame.size = Vector2(sprite_w, sprite_h)
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		container.add_child(frame)
 
-	var h1_row := HBoxContainer.new()
-	h1_row.add_theme_constant_override("separation", 16)
-	h1_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(h1_row)
+		var border := ReferenceRect.new()
+		border.size = Vector2(sprite_w, sprite_h)
+		border.border_color = color
+		border.border_width = 3.0
+		border.editor_only = false
+		border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		container.add_child(border)
 
-	# Hero 2 label
-	var h2_title := Label.new()
-	h2_title.text = "— 英雄 2 —"
-	h2_title.add_theme_font_size_override("font_size", 26)
-	h2_title.add_theme_color_override("font_color", Color(0.3, 0.7, 0.5))
-	h2_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(h2_title)
+		# Sprite
+		var sprite_path: String = gm.character_data[hero["id"]]["sprite"]
+		var sprite_rect := TextureRect.new()
+		if ResourceLoader.exists(sprite_path):
+			sprite_rect.texture = load(sprite_path)
+		sprite_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		sprite_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		sprite_rect.size = Vector2(sprite_w - 10, sprite_h - 10)
+		sprite_rect.position = Vector2(5, 5)
+		sprite_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		container.add_child(sprite_rect)
 
-	var h2_row := HBoxContainer.new()
-	h2_row.add_theme_constant_override("separation", 16)
-	h2_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(h2_row)
+		# Name label below sprite
+		var name_lbl := Label.new()
+		name_lbl.text = hero["name"]
+		name_lbl.add_theme_font_size_override("font_size", 22)
+		name_lbl.add_theme_color_override("font_color", Color.WHITE)
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.position = Vector2(0, sprite_h + 5)
+		name_lbl.size = Vector2(sprite_w, 30)
+		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		container.add_child(name_lbl)
 
-	# Start button (created early so hero buttons can reference it)
+		# HP label
+		var hp_lbl := Label.new()
+		hp_lbl.text = "HP: %d" % hero["hp"]
+		hp_lbl.add_theme_font_size_override("font_size", 18)
+		hp_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hp_lbl.position = Vector2(0, sprite_h + 32)
+		hp_lbl.size = Vector2(sprite_w, 25)
+		hp_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		container.add_child(hp_lbl)
+
+		# Hover effect
+		container.mouse_entered.connect(func():
+			if container.modulate.r > 0.4:  # not grayed out
+				frame.color = Color(color.r, color.g, color.b, 0.35)
+		)
+		container.mouse_exited.connect(func():
+			if container.modulate.r > 0.4:
+				frame.color = Color(color.r, color.g, color.b, 0.15)
+		)
+
+		hero_containers.append({"container": container, "id": hero["id"], "sprite_rect": sprite_rect, "color": color, "sprite_path": sprite_path})
+
+	# --- Bottom bar: [slot1] [slot2] [start_btn] [back_btn] ---
+	var bar_y: float = sprite_y + sprite_h + 80 + 30
+	var slot_size: float = 80.0
+	var btn_h: float = 65.0
+	var bar_gap: float = 16.0
+
+	# Slot 1 frame
+	var slot1 := Control.new()
+	slot1.size = Vector2(slot_size, slot_size)
+	slot1.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(slot1)
+
+	var slot1_bg := ColorRect.new()
+	slot1_bg.color = Color(0.15, 0.15, 0.15, 0.8)
+	slot1_bg.size = Vector2(slot_size, slot_size)
+	slot1_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot1.add_child(slot1_bg)
+
+	var slot1_border := ReferenceRect.new()
+	slot1_border.size = Vector2(slot_size, slot_size)
+	slot1_border.border_color = Color(0.5, 0.5, 0.5)
+	slot1_border.border_width = 2.0
+	slot1_border.editor_only = false
+	slot1_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot1.add_child(slot1_border)
+
+	var slot1_label := Label.new()
+	slot1_label.text = "英雄1"
+	slot1_label.add_theme_font_size_override("font_size", 14)
+	slot1_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	slot1_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slot1_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	slot1_label.size = Vector2(slot_size, slot_size)
+	slot1_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot1.add_child(slot1_label)
+
+	var slot1_sprite := TextureRect.new()
+	slot1_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	slot1_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	slot1_sprite.size = Vector2(slot_size - 8, slot_size - 8)
+	slot1_sprite.position = Vector2(4, 4)
+	slot1_sprite.visible = false
+	slot1_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot1.add_child(slot1_sprite)
+
+	# Slot 2 frame
+	var slot2 := Control.new()
+	slot2.size = Vector2(slot_size, slot_size)
+	slot2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(slot2)
+
+	var slot2_bg := ColorRect.new()
+	slot2_bg.color = Color(0.15, 0.15, 0.15, 0.8)
+	slot2_bg.size = Vector2(slot_size, slot_size)
+	slot2_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot2.add_child(slot2_bg)
+
+	var slot2_border := ReferenceRect.new()
+	slot2_border.size = Vector2(slot_size, slot_size)
+	slot2_border.border_color = Color(0.5, 0.5, 0.5)
+	slot2_border.border_width = 2.0
+	slot2_border.editor_only = false
+	slot2_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot2.add_child(slot2_border)
+
+	var slot2_label := Label.new()
+	slot2_label.text = "英雄2"
+	slot2_label.add_theme_font_size_override("font_size", 14)
+	slot2_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	slot2_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slot2_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	slot2_label.size = Vector2(slot_size, slot_size)
+	slot2_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot2.add_child(slot2_label)
+
+	var slot2_sprite := TextureRect.new()
+	slot2_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	slot2_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	slot2_sprite.size = Vector2(slot_size - 8, slot_size - 8)
+	slot2_sprite.position = Vector2(4, 4)
+	slot2_sprite.visible = false
+	slot2_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot2.add_child(slot2_sprite)
+
+	# Start button
 	var start_btn := Button.new()
-	start_btn.text = "选择两位英雄后开始"
-	start_btn.custom_minimum_size = Vector2(400, 65)
+	start_btn.text = "开始爬塔"
+	start_btn.custom_minimum_size = Vector2(240, btn_h)
 	start_btn.add_theme_font_size_override("font_size", 28)
 	start_btn.disabled = true
-	var start_style := StyleBoxFlat.new()
-	start_style.bg_color = Color(0.3, 0.3, 0.3, 0.5)
-	start_style.border_color = Color(0.5, 0.5, 0.5)
-	start_style.set_border_width_all(2)
-	start_style.set_corner_radius_all(10)
-	start_btn.add_theme_stylebox_override("normal", start_style)
-	start_btn.add_theme_stylebox_override("disabled", start_style)
-
-	# Create hero buttons
-	for hero in heroes:
-		var btn1 := _create_hero_select_btn(hero)
-		h1_row.add_child(btn1)
-		h1_buttons.append({"btn": btn1, "id": hero["id"]})
-
-		var btn2 := _create_hero_select_btn(hero)
-		h2_row.add_child(btn2)
-		h2_buttons.append({"btn": btn2, "id": hero["id"]})
-
-	# Wire up h1 buttons
-	for i in range(h1_buttons.size()):
-		var hero_id: String = h1_buttons[i]["id"]
-		var btn: Button = h1_buttons[i]["btn"]
-		btn.pressed.connect(func():
-			selected["h1"] = hero_id
-			for entry in h1_buttons:
-				entry["btn"].modulate = Color(0.5, 0.5, 0.5) if entry["id"] != hero_id else Color.WHITE
-			_update_start_btn(start_btn, selected)
-		)
-
-	# Wire up h2 buttons
-	for i in range(h2_buttons.size()):
-		var hero_id: String = h2_buttons[i]["id"]
-		var btn: Button = h2_buttons[i]["btn"]
-		btn.pressed.connect(func():
-			selected["h2"] = hero_id
-			for entry in h2_buttons:
-				entry["btn"].modulate = Color(0.5, 0.5, 0.5) if entry["id"] != hero_id else Color.WHITE
-			_update_start_btn(start_btn, selected)
-		)
-
-	var spacer2 := Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 10)
-	vbox.add_child(spacer2)
+	var dis_style := StyleBoxFlat.new()
+	dis_style.bg_color = Color(0.25, 0.25, 0.25, 0.6)
+	dis_style.border_color = Color(0.4, 0.4, 0.4)
+	dis_style.set_border_width_all(2)
+	dis_style.set_corner_radius_all(10)
+	start_btn.add_theme_stylebox_override("normal", dis_style)
+	start_btn.add_theme_stylebox_override("disabled", dis_style)
+	start_btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	start_btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5))
 	start_btn.pressed.connect(func():
-		if selected["h1"] == "" or selected["h2"] == "":
+		if state["h1"] == "" or state["h2"] == "":
 			return
-		_begin_run_after_select(selected["h1"], selected["h2"])
+		_begin_run_after_select(state["h1"], state["h2"])
 	)
-	vbox.add_child(start_btn)
+	_overlay.add_child(start_btn)
 
 	# Back button
 	var back_btn := Button.new()
-	back_btn.text = "返回主菜单"
-	back_btn.custom_minimum_size = Vector2(250, 50)
+	back_btn.text = "返回"
+	back_btn.custom_minimum_size = Vector2(100, btn_h)
 	back_btn.add_theme_font_size_override("font_size", 22)
-	back_btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	var back_style := StyleBoxFlat.new()
-	back_style.bg_color = Color(0.2, 0.2, 0.2, 0.4)
+	back_style.bg_color = Color(0.2, 0.2, 0.2, 0.5)
 	back_style.border_color = Color(0.4, 0.4, 0.4)
 	back_style.set_border_width_all(1)
 	back_style.set_corner_radius_all(8)
 	back_btn.add_theme_stylebox_override("normal", back_style)
+	back_btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 	back_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/main_menu.tscn"))
-	vbox.add_child(back_btn)
+	_overlay.add_child(back_btn)
 
-func _create_hero_select_btn(hero: Dictionary) -> Button:
-	var btn := Button.new()
-	var color: Color = hero["color"]
-	btn.custom_minimum_size = Vector2(200, 120)
-	btn.modulate = Color(0.5, 0.5, 0.5)  # Start dim (unselected)
+	# Layout bottom bar centered
+	var bar_items_w: float = slot_size + bar_gap + slot_size + bar_gap + 240 + bar_gap + 100
+	var bar_x: float = (vw - bar_items_w) / 2.0
+	var slot_y_offset: float = (btn_h - slot_size) / 2.0
+	slot1.position = Vector2(bar_x, bar_y + slot_y_offset)
+	slot2.position = Vector2(bar_x + slot_size + bar_gap, bar_y + slot_y_offset)
+	start_btn.position = Vector2(bar_x + 2 * (slot_size + bar_gap), bar_y)
+	back_btn.position = Vector2(bar_x + 2 * (slot_size + bar_gap) + 240 + bar_gap, bar_y)
 
-	var vb := VBoxContainer.new()
-	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(vb)
-
-	var name_lbl := Label.new()
-	name_lbl.text = hero["name"]
-	name_lbl.add_theme_font_size_override("font_size", 24)
-	name_lbl.add_theme_color_override("font_color", Color.WHITE)
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vb.add_child(name_lbl)
-
-	var desc_lbl := Label.new()
-	desc_lbl.text = hero["desc"]
-	desc_lbl.add_theme_font_size_override("font_size", 14)
-	desc_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vb.add_child(desc_lbl)
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(color.r, color.g, color.b, 0.3)
-	style.border_color = color
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(12)
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	btn.add_theme_stylebox_override("normal", style)
-
-	var hover_style := style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = Color(color.r, color.g, color.b, 0.5)
-	btn.add_theme_stylebox_override("hover", hover_style)
-
-	var pressed_style := style.duplicate() as StyleBoxFlat
-	pressed_style.bg_color = Color(color.r, color.g, color.b, 0.7)
-	btn.add_theme_stylebox_override("pressed", pressed_style)
-
-	return btn
-
-func _update_start_btn(btn: Button, selected: Dictionary) -> void:
-	if selected["h1"] != "" and selected["h2"] != "":
-		btn.disabled = false
-		if selected["h1"] == selected["h2"]:
-			btn.text = "开始爬塔（%s × 2）" % _hero_name(selected["h1"])
-		else:
-			btn.text = "开始爬塔（%s + %s）" % [_hero_name(selected["h1"]), _hero_name(selected["h2"])]
-		var active_style := StyleBoxFlat.new()
-		active_style.bg_color = Color(0.9, 0.6, 0.1, 0.4)
-		active_style.border_color = Color(0.9, 0.6, 0.1)
-		active_style.set_border_width_all(2)
-		active_style.set_corner_radius_all(10)
-		btn.add_theme_stylebox_override("normal", active_style)
-		btn.add_theme_color_override("font_color", Color.WHITE)
+	# --- Wire up hero clicks ---
+	for entry in hero_containers:
+		var hero_id: String = entry["id"]
+		var container: Control = entry["container"]
+		var color: Color = entry["color"]
+		var sprite_path: String = entry["sprite_path"]
+		container.gui_input.connect(func(event: InputEvent):
+			if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+				return
+			if container.modulate.r < 0.4:
+				return  # already grayed out
+			if state["pick_count"] >= 2:
+				return
+			state["pick_count"] += 1
+			if state["pick_count"] == 1:
+				state["h1"] = hero_id
+				# Fill slot 1
+				if ResourceLoader.exists(sprite_path):
+					slot1_sprite.texture = load(sprite_path)
+				slot1_sprite.visible = true
+				slot1_label.visible = false
+				slot1_border.border_color = color
+				slot1_bg.color = Color(color.r, color.g, color.b, 0.2)
+			elif state["pick_count"] == 2:
+				state["h2"] = hero_id
+				# Fill slot 2
+				if ResourceLoader.exists(sprite_path):
+					slot2_sprite.texture = load(sprite_path)
+				slot2_sprite.visible = true
+				slot2_label.visible = false
+				slot2_border.border_color = color
+				slot2_bg.color = Color(color.r, color.g, color.b, 0.2)
+				# Enable start button green
+				start_btn.disabled = false
+				var green_style := StyleBoxFlat.new()
+				green_style.bg_color = Color(0.1, 0.5, 0.15, 0.7)
+				green_style.border_color = Color(0.2, 0.8, 0.3)
+				green_style.set_border_width_all(3)
+				green_style.set_corner_radius_all(10)
+				start_btn.add_theme_stylebox_override("normal", green_style)
+				var hover_green := green_style.duplicate() as StyleBoxFlat
+				hover_green.bg_color = Color(0.15, 0.6, 0.2, 0.85)
+				start_btn.add_theme_stylebox_override("hover", hover_green)
+				start_btn.add_theme_color_override("font_color", Color.WHITE)
+			# Gray out selected hero in center
+			container.modulate = Color(0.3, 0.3, 0.3)
+		)
 
 func _begin_run_after_select(h1: String, h2: String) -> void:
 	if run:
