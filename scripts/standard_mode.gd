@@ -447,6 +447,8 @@ func _begin_run_after_select(h1: String, h2: String) -> void:
 	var h1id: String = run.hero1_id if run else h1
 	var h2id: String = run.hero2_id if run else h2
 	_draft_hero_order = [h1id, h2id, h1id, h2id, h1id, h2id]
+	# Update HUD with actual hero names/HP
+	_update_hud_labels()
 	# Transition to draft
 	_show_draft()
 	if _persistent_hud_canvas:
