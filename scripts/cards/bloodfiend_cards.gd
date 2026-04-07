@@ -8,7 +8,7 @@ static func get_cards() -> Dictionary:
 	var db: Dictionary = {}
 
 	# =========================================================================
-	# ATTACKS (17 cards)
+	# ATTACKS (19 cards)
 	# =========================================================================
 	db["bf_strike"] = {"id": "bf_strike", "name": "血击", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "造成6点伤害。", "art": "res://assets/img/card_art/bf_strike.png", "target": "enemy", "version": "new", "actions": [{"type": "damage"}]}
 	db["bf_crimson_slash"] = {"id": "bf_crimson_slash", "name": "绯红斩", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 12, "block": 0, "description": "失去2点HP。\n造成12点伤害。", "art": "res://assets/img/card_art/bf_crimson_slash.png", "target": "enemy", "version": "new", "actions": [{"type": "self_damage", "value": 2}, {"type": "damage"}]}
@@ -28,6 +28,8 @@ static func get_cards() -> Dictionary:
 	db["bf_blood_feast"] = {"id": "bf_blood_feast", "name": "血宴", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 7, "block": 0, "description": "造成7点伤害。\n若击杀目标，\n获得3点最大HP。", "art": "res://assets/img/card_art/bf_blood_feast.png", "target": "enemy", "version": "new", "max_hp_gain": 3, "actions": [{"type": "call", "fn": "blood_feast"}]}
 	db["bf_desperate_duel"] = {"id": "bf_desperate_duel", "name": "拼死决斗", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 8, "block": 0, "description": "获得2点力量。\n敌人获得1点力量。\n造成8点伤害。", "art": "res://assets/img/card_art/bf_desperate_duel.png", "target": "enemy", "version": "new", "bf_self_str": 2, "bf_enemy_str": 1, "actions": [{"type": "call", "fn": "desperate_duel"}]}
 	db["bf_blood_rage"] = {"id": "bf_blood_rage", "name": "血怒", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "造成6点伤害。\n本回合每失去1次HP\n额外攻击1次。", "art": "res://assets/img/card_art/bf_blood_rage.png", "target": "enemy", "version": "new", "actions": [{"type": "call", "fn": "blood_rage"}]}
+	db["bf_blood_toll"] = {"id": "bf_blood_toll", "name": "血之代价", "cost": 0, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 6, "block": 0, "description": "失去2点HP。\n造成6点伤害。", "art": "res://assets/img/card_art/bf_blood_toll.png", "target": "enemy", "version": "new", "rarity": "common", "actions": [{"type": "self_damage", "value": 2}, {"type": "damage"}]}
+	db["bf_blood_wave"] = {"id": "bf_blood_wave", "name": "血浪", "cost": 1, "type": CardType.ATTACK, "character": "bloodfiend", "damage": 5, "block": 0, "description": "对所有敌人\n造成5点伤害。\n施加1层易伤。", "art": "res://assets/img/card_art/bf_blood_wave.png", "target": "all_enemies", "version": "new", "rarity": "common", "apply_status": {"type": "vulnerable", "stacks": 1}, "actions": [{"type": "call", "fn": "blood_wave"}]}
 
 	# =========================================================================
 	# SKILLS (16 cards + 1 basic defend)
@@ -89,6 +91,8 @@ static func get_upgrade_overrides() -> Dictionary:
 		"bf_blood_feast": {"damage": 10, "max_hp_gain": 4, "description": "造成10点伤害。\n若击杀目标，\n获得4点最大HP。"},
 		"bf_desperate_duel": {"damage": 12, "bf_self_str": 3, "description": "获得3点力量。\n敌人获得1点力量。\n造成12点伤害。"},
 		"bf_blood_rage": {"damage": 9, "description": "造成9点伤害。\n本回合每失去1次HP\n额外攻击1次。"},
+		"bf_blood_toll": {"damage": 9, "description": "失去2点HP。\n造成9点伤害。"},
+		"bf_blood_wave": {"damage": 7, "description": "对所有敌人\n造成7点伤害。\n施加1层易伤。"},
 		# SKILLS
 		"bf_defend": {"block": 8, "description": "获得8点格挡。"},
 		"bf_sanguine_shield": {"block": 15, "description": "失去2点HP。\n获得15点格挡。"},

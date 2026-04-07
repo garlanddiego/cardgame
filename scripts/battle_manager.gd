@@ -2136,6 +2136,19 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				dd_dmg *= 2
 			if target and target.alive:
 				_apply_single_hit_damage(dd_dmg, target, "enemy")
+		"blood_wave":
+			var bw_hero: Node2D = card_hero if card_hero else player
+			var base_dmg: int = card_data.get("damage", 5)
+			if bw_hero:
+				base_dmg = bw_hero.get_attack_damage(base_dmg)
+			if _double_damage_this_turn:
+				base_dmg *= 2
+			var vuln_stacks_bw: int = card_data.get("apply_status", {}).get("stacks", 1)
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.take_damage(base_dmg)
+					enemy.apply_status("vulnerable", vuln_stacks_bw)
+			_bf_on_apply_vulnerable_check(bw_hero, "vulnerable", vuln_stacks_bw)
 		"blood_rage":
 			var br_hero2: Node2D = card_hero if card_hero else player
 			var base_dmg: int = card_data.get("damage", 6)
