@@ -23,6 +23,7 @@ var _SilentCards = preload("res://scripts/cards/silent_cards.gd")
 var _NeutralCards = preload("res://scripts/cards/neutral_cards.gd")
 var _NewCards = preload("res://scripts/cards/new_cards.gd")
 var _BloodfiendCards = preload("res://scripts/cards/bloodfiend_cards.gd")
+var _FireMageCards = preload("res://scripts/cards/fire_mage_cards.gd")
 
 func _ready() -> void:
 	_init_character_data()
@@ -32,6 +33,7 @@ func _ready() -> void:
 	_register_card_pack(_NeutralCards)
 	_register_card_pack(_NewCards)
 	_register_card_pack(_BloodfiendCards)
+	_register_card_pack(_FireMageCards)
 	# Build unified database from all packs
 	_build_card_database()
 	# Export cards JSON for external tools (simulator)
@@ -106,7 +108,7 @@ func save_custom_cards() -> void:
 	var custom_cards: Dictionary = {}
 	# Rebuild code-defined cards to compare
 	var code_cards: Dictionary = {}
-	for pack in [_IroncladCards, _SilentCards, _NeutralCards, _NewCards, _BloodfiendCards]:
+	for pack in [_IroncladCards, _SilentCards, _NeutralCards, _NewCards, _BloodfiendCards, _FireMageCards]:
 		code_cards.merge(pack.get_cards())
 	# Find cards that are new or modified
 	for card_id in card_database:
@@ -149,6 +151,14 @@ func _init_character_data() -> void:
 			"sprite": "res://assets/img/bloodfiend.png",
 			"fallen_sprite": "res://assets/img/bloodfiend_fallen.png",
 			"description": "A blood-crazed berserker who sacrifices HP for devastating power."
+		},
+		"fire_mage": {
+			"name": "Fire Mage",
+			"max_hp": 60,
+			"color": Color(0.9, 0.4, 0.1),
+			"sprite": "res://assets/img/fire_mage.png",
+			"fallen_sprite": "res://assets/img/fire_mage_fallen.png",
+			"description": "A pyromancer who consumes cards to fuel devastating spells."
 		}
 	}
 
@@ -599,6 +609,9 @@ func get_starting_deck(character_id: String) -> Array:
 	elif character_id == "bloodfiend":
 		for i in 2: deck.append("bf_strike")
 		for i in 2: deck.append("bf_defend")
+	elif character_id == "fire_mage":
+		for i in 2: deck.append("fm_strike")
+		for i in 2: deck.append("fm_defend")
 	return deck
 
 func get_card_data(card_id: String) -> Dictionary:
