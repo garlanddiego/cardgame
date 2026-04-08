@@ -151,12 +151,11 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	# Card type info
 	var card_type: int = card.get("type", 0)
 	var type_name: String
-	var type_color: Color
 	match card_type:
-		0:  type_name = "攻击"; type_color = Color(0.85, 0.2, 0.2, 1.0)   # Red
-		1:  type_name = "技能"; type_color = Color(0.25, 0.45, 0.85, 1.0)  # Blue
-		2:  type_name = "能力"; type_color = Color(0.85, 0.7, 0.15, 1.0)   # Gold
-		_:  type_name = "状态"; type_color = Color(0.5, 0.5, 0.5, 1.0)     # Grey
+		0:  type_name = "攻击"
+		1:  type_name = "技能"
+		2:  type_name = "能力"
+		_:  type_name = "状态"
 
 	var root = Control.new()
 	root.name = "CardVisualRoot"
@@ -269,36 +268,13 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		art_clip.add_child(art_img)
 
-	# --- Layer 3b: Rarity border around art ---
+	# --- Layer 4: Type badge (small rounded rect, colored by rarity) ---
 	var rarity_str: String = card.get("rarity", "")
-	if rarity_str != "":
-		var rarity_color: Color
-		match rarity_str:
-			"uncommon": rarity_color = Color(0.3, 0.55, 0.95, 1.0)  # Blue
-			"rare": rarity_color = Color(0.95, 0.78, 0.2, 1.0)       # Gold
-			_: rarity_color = Color(0.55, 0.55, 0.55, 1.0)            # Grey (common)
-		var rarity_border = Panel.new()
-		rarity_border.name = "RarityBorder"
-		rarity_border.position = Vector2(art_margin, art_top)
-		rarity_border.size = Vector2(art_w, art_h)
-		var rarity_style = StyleBoxFlat.new()
-		rarity_style.bg_color = Color(0, 0, 0, 0)  # Transparent fill
-		var rb_w: int = int(3.0 * sx)
-		rarity_style.border_width_left = rb_w
-		rarity_style.border_width_right = rb_w
-		rarity_style.border_width_top = rb_w
-		rarity_style.border_width_bottom = rb_w
-		rarity_style.border_color = rarity_color
-		rarity_style.corner_radius_top_left = art_cr
-		rarity_style.corner_radius_top_right = art_cr
-		rarity_style.corner_radius_bottom_left = art_cr
-		rarity_style.corner_radius_bottom_right = art_cr
-		rarity_border.add_theme_stylebox_override("panel", rarity_style)
-		rarity_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		rarity_border.z_index = 4
-		root.add_child(rarity_border)
-
-	# --- Layer 4: Type badge (small rounded rect, right side below art) ---
+	var rarity_badge_color: Color
+	match rarity_str:
+		"uncommon": rarity_badge_color = Color(0.25, 0.45, 0.8, 1.0)  # Blue
+		"rare": rarity_badge_color = Color(0.85, 0.68, 0.15, 1.0)      # Gold
+		_: rarity_badge_color = Color(0.45, 0.45, 0.48, 1.0)            # Grey (common/default)
 	var type_badge_w: float = 52.0 * sx
 	var type_badge_h: float = 20.0 * sy
 	var type_badge_x: float = (size.x - type_badge_w) / 2.0  # Centered
@@ -308,7 +284,7 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	type_badge.position = Vector2(type_badge_x, type_badge_y)
 	type_badge.size = Vector2(type_badge_w, type_badge_h)
 	var type_style = StyleBoxFlat.new()
-	type_style.bg_color = type_color
+	type_style.bg_color = rarity_badge_color
 	var type_cr: int = int(4.0 * sx)
 	type_style.corner_radius_top_left = type_cr
 	type_style.corner_radius_top_right = type_cr
