@@ -721,32 +721,16 @@ func get_random_cards_multi_hero(hero_ids: Array, count: int) -> Array:
 
 func _get_cards_by_rarity(hero_id: String, rarity: String, exclude_ids: Array) -> Array:
 	var pool: Array = []
-	var has_any_rarity: bool = false
-	for cid in card_database:
-		var cd: Dictionary = card_database[cid]
-		if cd.get("character", "") != hero_id:
-			continue
-		if cd.get("rarity", "") != "":
-			has_any_rarity = true
-	# Collect cards matching rarity
 	for cid in card_database:
 		var cd: Dictionary = card_database[cid]
 		if cd.get("character", "") != hero_id:
 			continue
 		if cid in exclude_ids:
 			continue
-		var card_rarity: String = cd.get("rarity", "")
-		if has_any_rarity:
-			# Character has rarity data — filter by it, skip basic cards
-			if card_rarity == "" or card_rarity != rarity:
-				continue
-		else:
-			# Character lacks rarity data — include all non-basic cards as "common"
-			if cd.get("type", 0) == 3:
-				continue
-			var is_basic: bool = cid.ends_with("_strike") or cid.ends_with("_defend")
-			if is_basic:
-				continue
+		# No rarity field defaults to "common"
+		var card_rarity: String = cd.get("rarity", "common")
+		if card_rarity != rarity:
+			continue
 		pool.append(cd)
 	return pool
 
