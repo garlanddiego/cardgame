@@ -2192,12 +2192,15 @@ func _show_backpack() -> void:
 	panel.add_child(bg)
 
 	var loc = get_node_or_null("/root/Loc")
-	var divider_x: float = vw * 0.6  # 60% left for deck, 40% right for backpack
-	# Card sizes: fit 4 columns left, 2 columns right
-	var left_card_w: float = floorf((divider_x - 40.0 - 36.0) / 4.0)  # 3 gaps * 12px
-	var left_card_size := Vector2(left_card_w, left_card_w * 1.43)
-	var right_card_w: float = floorf((vw - divider_x - 40.0 - 12.0) / 2.0)  # 1 gap * 12px
-	var right_card_size := Vector2(right_card_w, right_card_w * 1.43)
+	var divider_x: float = vw * 0.65  # 65% left for deck, 35% right for backpack
+	# Card sizes: fit 5 columns left, 2 columns right
+	var left_cols: int = 5
+	var left_gap: float = 12.0
+	var left_margin: float = 40.0
+	var left_card_w: float = floorf((divider_x - left_margin - left_gap * (left_cols - 1)) / left_cols)
+	var left_card_size := Vector2(left_card_w, floorf(left_card_w * 1.4))
+	var right_card_w: float = floorf((vw - divider_x - left_margin - 12.0) / 2.0)
+	var right_card_size := Vector2(right_card_w, floorf(right_card_w * 1.4))
 
 	# === LEFT: All deck cards (excluding ones currently in backpack) ===
 	var left_title := Label.new()
@@ -2219,7 +2222,7 @@ func _show_backpack() -> void:
 
 	var left_grid := GridContainer.new()
 	left_grid.name = "LeftGrid"
-	left_grid.columns = 4
+	left_grid.columns = left_cols
 	left_grid.add_theme_constant_override("h_separation", 12)
 	left_grid.add_theme_constant_override("v_separation", 12)
 	left_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2317,8 +2320,9 @@ func _show_backpack() -> void:
 	# --- Rebuild functions (use Array wrapper so lambdas share the reference) ---
 	var _rebuild_ref: Array = [null]
 	_rebuild_ref[0] = func():
-		# Rebuild left grid
+		# Rebuild left grid — remove immediately to avoid layout glitches
 		for child in left_grid.get_children():
+			left_grid.remove_child(child)
 			child.queue_free()
 		var bp_left: Array = run.backpack.duplicate()
 		var deck_cards: Array = []
@@ -2356,8 +2360,9 @@ func _show_backpack() -> void:
 			)
 			left_grid.add_child(card_vis)
 
-		# Rebuild right container
+		# Rebuild right container — remove immediately
 		for child in right_container.get_children():
+			right_container.remove_child(child)
 			child.queue_free()
 		for i in 4:
 			if i < run.backpack.size():
