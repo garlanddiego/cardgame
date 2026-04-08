@@ -657,6 +657,81 @@ func get_upgraded_card(card_id: String) -> Dictionary:
 	base["upgraded"] = true
 	return base
 
+# =============================================================================
+# RARITY-WEIGHTED CARD SELECTION
+# =============================================================================
+
+## Roll a single random card for a hero using rarity weights.
+## 70% common, 20% uncommon, 10% rare.  20% chance to be upgraded.
+## Cards without a "rarity" field (basic strike/defend) are excluded.
+func get_random_card_by_rarity(hero_id: String, exclude_ids: Array = []) -> Dictionary:
+	var roll: float = randf()
+	var rarity: String
+	if roll < 0.7:
+		rarity = "common"
+	elif roll < 0.9:
+		rarity = "uncommon"
+	else:
+		rarity = "rare"
+	var pool: Array = _get_cards_by_rarity(hero_id, rarity, exclude_ids)
+	# Fallback to common if rolled rarity has no cards
+	if pool.is_empty() and rarity != "common":
+		pool = _get_cards_by_rarity(hero_id, "common", exclude_ids)
+	if pool.is_empty():
+		return {}
+	var card: Dictionary = pool[randi() % pool.size()].duplicate(true)
+	# 20% chance upgraded
+	if randf() < 0.2:
+		var upgraded := get_upgraded_card(card["id"])
+		if not upgraded.is_empty():
+			card = upgraded
+	return card
+
+## Get N random cards for a hero, no duplicates, rarity-weighted + upgrade chance.
+func get_random_cards_for_hero(hero_id: String, count: int) -> Array:
+	var result: Array = []
+	var exclude: Array = []
+	for _i in range(count):
+		var card := get_random_card_by_rarity(hero_id, exclude)
+		if card.is_empty():
+			break
+		result.append(card)
+		exclude.append(card["id"])
+	return result
+
+## Get N random cards from a mixed pool of hero IDs, rarity-weighted.
+func get_random_cards_multi_hero(hero_ids: Array, count: int) -> Array:
+	var result: Array = []
+	var exclude: Array = []
+	for _i in range(count):
+		var hid: String = hero_ids[randi() % hero_ids.size()]
+		var card := get_random_card_by_rarity(hid, exclude)
+		if card.is_empty():
+			# Try other heroes
+			for other in hero_ids:
+				if other != hid:
+					card = get_random_card_by_rarity(other, exclude)
+					if not card.is_empty():
+						break
+		if card.is_empty():
+			break
+		result.append(card)
+		exclude.append(card["id"])
+	return result
+
+func _get_cards_by_rarity(hero_id: String, rarity: String, exclude_ids: Array) -> Array:
+	var pool: Array = []
+	for cid in card_database:
+		var cd: Dictionary = card_database[cid]
+		if cd.get("character", "") != hero_id:
+			continue
+		if cd.get("rarity", "") != rarity:
+			continue
+		if cid in exclude_ids:
+			continue
+		pool.append(cd)
+	return pool
+
 func _get_upgrade_overrides() -> Dictionary:
 	return _upgrade_overrides_cache
 

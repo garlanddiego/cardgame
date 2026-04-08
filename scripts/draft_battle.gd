@@ -160,8 +160,8 @@ func _start_drafting() -> void:
 		var char_id: String = card.get("character", "")
 		if char_id not in selected_heroes:
 			continue
-		# Skip basic strike/defend
-		if card_id in ["ic_strike", "ic_defend", "si_strike", "si_defend"]:
+		# Skip basic strike/defend (no rarity = basic card)
+		if card.get("rarity", "") == "":
 			continue
 		card_pool.append(card_id)
 
@@ -240,22 +240,19 @@ func _next_draft_round() -> void:
 	_round_label.text = "第 %d / %d 轮选牌" % [draft_round, draft_total]
 	_drafted_label.text = "已选 %d 张" % drafted_cards.size()
 
-	# Pick 4 random cards from pool
+	# Pick 4 random cards using rarity weights (70% common, 20% uncommon, 10% rare)
 	var gm = get_node_or_null("/root/GameManager")
 	current_options.clear()
-	var pool_copy: Array = card_pool.duplicate()
-	pool_copy.shuffle()
-
 	var loc = get_node_or_null("/root/Loc")
 
-	for i in range(mini(4, pool_copy.size())):
-		var card_id: String = pool_copy[i]
-		var card_data: Dictionary = gm.card_database[card_id].duplicate()
-		if use_upgraded:
-			var upgraded = gm.get_upgraded_card(card_id)
-			if not upgraded.is_empty():
-				card_data = upgraded
-		current_options.append(card_data)
+	if gm:
+		var draft_cards: Array = gm.get_random_cards_multi_hero(selected_heroes, 4)
+		for card_data in draft_cards:
+			if use_upgraded and not card_data.get("upgraded", false):
+				var upgraded = gm.get_upgraded_card(card_data["id"])
+				if not upgraded.is_empty():
+					card_data = upgraded
+			current_options.append(card_data)
 
 	# Render option cards
 	for i in range(4):

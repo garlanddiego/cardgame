@@ -1396,16 +1396,7 @@ func _create_card_button(card_data: Dictionary) -> Button:
 	return btn
 
 func _random_cards_for_hero(hero_id: String, count: int) -> Array:
-	var result: Array = []
-	var all_cards: Array = []
-	for cid in gm.card_database:
-		var cd: Dictionary = gm.card_database[cid]
-		if cd.get("character", "") == hero_id and cd.get("status", "active") == "active":
-			all_cards.append(cd)
-	all_cards.shuffle()
-	for i in range(mini(count, all_cards.size())):
-		result.append(all_cards[i])
-	return result
+	return gm.get_random_cards_for_hero(hero_id, count)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # REST SITE
@@ -1682,18 +1673,12 @@ func _show_shop() -> void:
 	gold_label.offset_right = vw
 	_overlay.add_child(gold_label)
 
-	# Generate shop cards: 20 cards, 10 per hero, 90% base / 10% upgraded
+	# Generate shop cards: 10 per hero, rarity-weighted + 20% upgrade chance
 	var shop_cards: Array = []
 	for hero_id in [run.hero1_id, run.hero2_id]:
-		var hero_cards: Array = []
-		for cid in gm.card_database:
-			var cd: Dictionary = gm.card_database[cid]
-			if cd.get("character", "") == hero_id and cd.get("status", "active") == "active":
-				hero_cards.append(cd)
-		hero_cards.shuffle()
-		for i in range(mini(10, hero_cards.size())):
-			var card: Dictionary = hero_cards[i].duplicate()
-			card["_shop_upgraded"] = randf() < 0.1
+		var hero_shop: Array = gm.get_random_cards_for_hero(hero_id, 10)
+		for card in hero_shop:
+			card["_shop_upgraded"] = card.get("upgraded", false)
 			card["_shop_price"] = _card_price(card)
 			shop_cards.append(card)
 
@@ -1843,12 +1828,12 @@ func _show_shop_buy_detail(card_data: Dictionary, price: int, add_id: String, sl
 
 func _card_price(card: Dictionary) -> int:
 	var base: int = 50
-	match card.get("type", 0):
-		0: base = 50   # Attack
-		1: base = 60   # Skill
-		2: base = 75   # Power
+	match card.get("rarity", "common"):
+		"common": base = 50
+		"uncommon": base = 75
+		"rare": base = 150
 	var cost: int = card.get("cost", 1)
-	base += cost * 15
+	base += cost * 10
 	if card.get("_shop_upgraded", false):
 		base = int(base * 1.5)
 	return base + randi() % 20
