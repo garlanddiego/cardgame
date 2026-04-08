@@ -79,7 +79,6 @@ const POWER_NAMES: Dictionary = {
 	"undying_rage": "不灭之怒",
 	"pain_threshold": "痛觉阈值",
 	"blood_bond": "血之羁绊",
-	"hemostasis": "止血",
 	"undying_will": "不屈意志",
 	"predator_instinct": "猎食本能",
 	"blood_shell": "血壳",

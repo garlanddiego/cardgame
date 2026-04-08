@@ -1947,13 +1947,22 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				base_dmg = card_hero.get_attack_damage(base_dmg)
 			if _double_damage_this_turn:
 				base_dmg *= 2
-			var hits: int = card_data.get("times", 2)
-			var bl_per_hit: int = card_data.get("bf_bloodlust_per_hit", 1)
+			var hits: int = card_data.get("times", 3)
+			var alive_fc = _get_alive_enemies()
 			for _h in range(hits):
-				if target and target.alive:
-					target.take_damage(base_dmg)
-					target.apply_status("bloodlust", bl_per_hit)
-					_bf_on_apply_bloodlust_check(card_hero, target, bl_per_hit)
+				alive_fc = _get_alive_enemies()
+				if not alive_fc.is_empty():
+					var rand_t = alive_fc[randi() % alive_fc.size()]
+					rand_t.take_damage(base_dmg)
+					if envenom_stacks > 0 and rand_t.alive:
+						rand_t.apply_status("poison", envenom_stacks)
+					if rand_t.get_status_stacks("bloodlust") > 0:
+						_bf_hemophilia_heal()
+					for _hero in _get_all_alive_heroes():
+						var sa: int = _hero.active_powers.get("sanguine_aura", 0)
+						if sa > 0 and rand_t.alive:
+							rand_t.apply_status("bloodlust", sa)
+							_bf_on_apply_bloodlust_check(_hero, rand_t, sa)
 		"execution":
 			var base_dmg: int = card_data.get("damage", 8)
 			if card_hero:
@@ -2149,6 +2158,32 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					enemy.take_damage(base_dmg)
 					enemy.apply_status("vulnerable", vuln_stacks_bw)
 			_bf_on_apply_vulnerable_check(bw_hero, "vulnerable", vuln_stacks_bw)
+		"blood_fang":
+			var bfang_hero: Node2D = card_hero if card_hero else player
+			var base_dmg_bfang: int = card_data.get("damage", 6)
+			if bfang_hero:
+				base_dmg_bfang = bfang_hero.get_attack_damage(base_dmg_bfang)
+			if _double_damage_this_turn:
+				base_dmg_bfang *= 2
+			var hits_bfang: int = card_data.get("times", 2)
+			var bl_on_unblocked: int = card_data.get("bf_bloodlust_on_unblocked", 1)
+			for _hh in range(hits_bfang):
+				if target and target.alive:
+					var before_hp_bfang: int = target.current_hp
+					target.take_damage(base_dmg_bfang)
+					var hp_dmg_bfang: int = before_hp_bfang - target.current_hp
+					if hp_dmg_bfang > 0:
+						target.apply_status("bloodlust", bl_on_unblocked)
+						_bf_on_apply_bloodlust_check(bfang_hero, target, bl_on_unblocked)
+					if envenom_stacks > 0 and target.alive:
+						target.apply_status("poison", envenom_stacks)
+					if target.get_status_stacks("bloodlust") > 0:
+						_bf_hemophilia_heal()
+					for _hero_sa in _get_all_alive_heroes():
+						var sa_bfang: int = _hero_sa.active_powers.get("sanguine_aura", 0)
+						if sa_bfang > 0 and target.alive:
+							target.apply_status("bloodlust", sa_bfang)
+							_bf_on_apply_bloodlust_check(_hero_sa, target, sa_bfang)
 		"blood_rage":
 			var br_hero2: Node2D = card_hero if card_hero else player
 			var base_dmg: int = card_data.get("damage", 6)
@@ -2163,7 +2198,8 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if target and target.alive:
 				var bl_stacks: int = target.get_status_stacks("bloodlust")
 				if bl_stacks > 0 and sl_hero:
-					sl_hero.heal(bl_stacks)
+					var mult: int = card_data.get("bf_siphon_mult", 1)
+					sl_hero.heal(bl_stacks * mult)
 				target.status_effects.erase("bloodlust")
 				target.status_changed.emit("bloodlust", 0)
 				target._update_status_display()
@@ -2212,9 +2248,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				return
 		"bloodrage":
 			var br_hero: Node2D = card_hero if card_hero else player
-			if br_hero:
-				br_hero.take_damage_direct(2)
-				_bf_on_hp_loss(br_hero, 2)
+			for h_br in _get_all_alive_heroes():
+				h_br.take_damage_direct(2)
+				_bf_on_hp_loss(h_br, 2)
 			for enemy in enemies:
 				if enemy.alive:
 					enemy.apply_status("vulnerable", 1)
@@ -2277,7 +2313,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if si_hero:
 				var threshold_pct: float = 0.25
 				var is_low: bool = si_hero.max_hp > 0 and float(si_hero.current_hp) / float(si_hero.max_hp) < threshold_pct
-				var block_val: int = card_data.get("bf_low_hp_block", 7) if is_low else card_data.get("block", 3)
+				var block_val: int = card_data.get("bf_low_hp_block", 6) if is_low else card_data.get("block", 3)
 				si_hero.add_block(block_val)
 				_trigger_juggernaut()
 	_update_pile_labels()
@@ -2387,10 +2423,6 @@ func _bf_on_hp_loss(hero: Node2D, amount: int) -> void:
 	if pt > 0:
 		draw_cards(1)
 		hero.add_block(pt)
-		_trigger_juggernaut()
-	# Hemostasis: gain equal block
-	if hero.active_powers.get("hemostasis", 0) > 0:
-		hero.add_block(amount)
 		_trigger_juggernaut()
 
 func _bf_on_apply_vulnerable_check(hero: Node2D, _status_type: String, _stacks: int) -> void:
@@ -2531,10 +2563,8 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 		"undying_rage":
 			power_stacks = 1
 		"pain_threshold", "pain_threshold_plus":
-			power_stacks = 4 if is_plus else 2
+			power_stacks = 6 if is_plus else 3
 		"blood_bond", "blood_bond_plus":
-			power_stacks = 1
-		"hemostasis":
 			power_stacks = 1
 		"undying_will":
 			power_stacks = 2  # 2 triggers
@@ -2543,7 +2573,7 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 		"hemophilia":
 			power_stacks = 1
 		"predator_instinct":
-			_bf_predator_instinct_block = 4 if is_plus else 3
+			_bf_predator_instinct_block = 4 if is_plus else 2
 			show_icon = false  # Temporary skill effect
 		"blood_shell":
 			_bf_blood_shell_active = true
