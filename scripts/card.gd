@@ -269,6 +269,35 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 		art_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		art_clip.add_child(art_img)
 
+	# --- Layer 3b: Rarity border around art ---
+	var rarity_str: String = card.get("rarity", "")
+	if rarity_str != "":
+		var rarity_color: Color
+		match rarity_str:
+			"uncommon": rarity_color = Color(0.3, 0.55, 0.95, 1.0)  # Blue
+			"rare": rarity_color = Color(0.95, 0.78, 0.2, 1.0)       # Gold
+			_: rarity_color = Color(0.55, 0.55, 0.55, 1.0)            # Grey (common)
+		var rarity_border = Panel.new()
+		rarity_border.name = "RarityBorder"
+		rarity_border.position = Vector2(art_margin, art_top)
+		rarity_border.size = Vector2(art_w, art_h)
+		var rarity_style = StyleBoxFlat.new()
+		rarity_style.bg_color = Color(0, 0, 0, 0)  # Transparent fill
+		var rb_w: int = int(3.0 * sx)
+		rarity_style.border_width_left = rb_w
+		rarity_style.border_width_right = rb_w
+		rarity_style.border_width_top = rb_w
+		rarity_style.border_width_bottom = rb_w
+		rarity_style.border_color = rarity_color
+		rarity_style.corner_radius_top_left = art_cr
+		rarity_style.corner_radius_top_right = art_cr
+		rarity_style.corner_radius_bottom_left = art_cr
+		rarity_style.corner_radius_bottom_right = art_cr
+		rarity_border.add_theme_stylebox_override("panel", rarity_style)
+		rarity_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rarity_border.z_index = 4
+		root.add_child(rarity_border)
+
 	# --- Layer 4: Type badge (small rounded rect, right side below art) ---
 	var type_badge_w: float = 52.0 * sx
 	var type_badge_h: float = 20.0 * sy
