@@ -269,13 +269,22 @@ func _show_hero_select() -> void:
 	title.size = Vector2(vw, 50)
 	_overlay.add_child(title)
 
-	# --- 3 large hero sprites in center ---
-	var sprite_h: float = 360.0
-	var sprite_w: float = 180.0
-	var gap: float = 20.0
-	var total_w: float = 3 * sprite_w + 2 * gap
+	# --- Hero sprites standing on ground ---
+	var sprite_h: float = 440.0  # Same as battle height
+	var sprite_w: float = 220.0
+	var gap: float = 40.0
+	var total_w: float = heroes.size() * sprite_w + (heroes.size() - 1) * gap
 	var start_x: float = (vw - total_w) / 2.0
-	var sprite_y: float = 100.0
+	var ground_y: float = 580.0  # Where heroes' feet touch
+	var sprite_y: float = ground_y - sprite_h
+
+	# Ground line
+	var ground := ColorRect.new()
+	ground.color = Color(0.18, 0.15, 0.12, 1.0)
+	ground.position = Vector2(0, ground_y)
+	ground.size = Vector2(vw, 4)
+	ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(ground)
 
 	for i in range(heroes.size()):
 		var hero: Dictionary = heroes[i]
@@ -286,40 +295,25 @@ func _show_hero_select() -> void:
 		container.mouse_filter = Control.MOUSE_FILTER_STOP
 		_overlay.add_child(container)
 
-		# Border/frame
-		var frame := ColorRect.new()
-		frame.color = Color(color.r, color.g, color.b, 0.15)
-		frame.size = Vector2(sprite_w, sprite_h)
-		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		container.add_child(frame)
-
-		var border := ReferenceRect.new()
-		border.size = Vector2(sprite_w, sprite_h)
-		border.border_color = color
-		border.border_width = 3.0
-		border.editor_only = false
-		border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		container.add_child(border)
-
-		# Sprite
+		# Sprite (no frame, just the character)
 		var sprite_path: String = gm.character_data[hero["id"]]["sprite"]
 		var sprite_rect := TextureRect.new()
 		if ResourceLoader.exists(sprite_path):
 			sprite_rect.texture = load(sprite_path)
 		sprite_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		sprite_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		sprite_rect.size = Vector2(sprite_w - 10, sprite_h - 10)
-		sprite_rect.position = Vector2(5, 5)
+		sprite_rect.size = Vector2(sprite_w, sprite_h)
+		sprite_rect.position = Vector2.ZERO
 		sprite_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(sprite_rect)
 
-		# Name label below sprite
+		# Name label below feet
 		var name_lbl := Label.new()
 		name_lbl.text = hero["name"]
-		name_lbl.add_theme_font_size_override("font_size", 22)
-		name_lbl.add_theme_color_override("font_color", Color.WHITE)
+		name_lbl.add_theme_font_size_override("font_size", 24)
+		name_lbl.add_theme_color_override("font_color", color)
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.position = Vector2(0, sprite_h + 5)
+		name_lbl.position = Vector2(0, sprite_h + 10)
 		name_lbl.size = Vector2(sprite_w, 30)
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(name_lbl)
@@ -328,27 +322,27 @@ func _show_hero_select() -> void:
 		var hp_lbl := Label.new()
 		hp_lbl.text = "HP: %d" % hero["hp"]
 		hp_lbl.add_theme_font_size_override("font_size", 18)
-		hp_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		hp_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 		hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hp_lbl.position = Vector2(0, sprite_h + 32)
+		hp_lbl.position = Vector2(0, sprite_h + 38)
 		hp_lbl.size = Vector2(sprite_w, 25)
 		hp_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		container.add_child(hp_lbl)
 
-		# Hover effect
+		# Hover: brighten sprite
 		container.mouse_entered.connect(func():
-			if container.modulate.r > 0.4:  # not grayed out
-				frame.color = Color(color.r, color.g, color.b, 0.35)
+			if container.modulate.r > 0.4:
+				container.modulate = Color(1.2, 1.2, 1.2)
 		)
 		container.mouse_exited.connect(func():
 			if container.modulate.r > 0.4:
-				frame.color = Color(color.r, color.g, color.b, 0.15)
+				container.modulate = Color(1, 1, 1)
 		)
 
 		hero_containers.append({"container": container, "id": hero["id"], "sprite_rect": sprite_rect, "color": color, "sprite_path": sprite_path})
 
 	# --- Bottom bar: [slot1] [slot2] [start_btn] [back_btn] ---
-	var bar_y: float = sprite_y + sprite_h + 80 + 30
+	var bar_y: float = ground_y + 50
 	var slot_size: float = 80.0
 	var btn_h: float = 65.0
 	var bar_gap: float = 16.0
