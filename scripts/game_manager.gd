@@ -666,6 +666,7 @@ func get_upgraded_card(card_id: String) -> Dictionary:
 				"power_effect":
 					if base.has("power_effect"):
 						action["power"] = base["power_effect"]
+	base["id"] = base["id"] + "+"
 	base["name"] = base["name"] + "+"
 	base["upgraded"] = true
 	return base
