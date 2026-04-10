@@ -249,6 +249,7 @@ func _show_hero_select() -> void:
 		{"id": "silent", "name": "沉默猎手", "color": Color(0.2, 0.7, 0.3), "hp": 60},
 		{"id": "bloodfiend", "name": "嗜血狂魔", "color": Color(0.7, 0.1, 0.2), "hp": 65},
 		{"id": "fire_mage", "name": "火法师", "color": Color(0.9, 0.4, 0.1), "hp": 60},
+		{"id": "forger", "name": "铸造者", "color": Color(0.7, 0.5, 0.2), "hp": 75},
 	]
 
 	# Dark background
@@ -2570,6 +2571,8 @@ func _hero_name(hero_id: String) -> String:
 		"ironclad": return "铁甲战士"
 		"silent": return "沉默猎手"
 		"bloodfiend": return "嗜血狂魔"
+		"fire_mage": return "火法师"
+		"forger": return "铸造者"
 	return hero_id
 
 func _hero_color(hero_id: String) -> Color:
@@ -2578,6 +2581,7 @@ func _hero_color(hero_id: String) -> Color:
 		"silent": return Color(0.2, 0.7, 0.3)
 		"bloodfiend": return Color(0.7, 0.1, 0.2)
 		"fire_mage": return Color(0.9, 0.4, 0.1)
+		"forger": return Color(0.7, 0.5, 0.2)
 		"neutral": return Color(0.5, 0.5, 0.5)
 	return Color.WHITE
 

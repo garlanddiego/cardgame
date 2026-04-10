@@ -97,6 +97,21 @@ var _bf_predator_instinct_block: int = 0  # Block per attack this turn
 var _bf_blood_shell_active: bool = false  # Apply bloodlust when hit this turn
 var _bf_blood_shell_stacks: int = 1  # Bloodlust stacks to apply when hit
 
+# ── Forger / Greatsword state ────────────────────────────────────────────────
+var _greatsword_hp: int = 0           # Current HP (0 = not summoned)
+var _greatsword_max_hp: int = 0       # Max HP reached (for display)
+var _greatsword_thorns: int = 0       # Permanent thorns
+var _greatsword_temp_thorns: int = 0  # Per-turn thorns (reset each turn)
+var _greatsword_double_damage: bool = false  # Overcharge: sword damage x2 this turn
+var _forged_this_turn: bool = false    # Whether forge was called this turn
+var _greatsword_no_summon_this_turn: bool = false  # After Sword Sacrifice
+var _greatsword_node: Control = null   # Visual node for greatsword
+var _fg_energy_reserve_active: bool = false  # Save unspent energy
+var _fg_energy_reserve_bonus: int = 0  # Extra energy on reserve (+upgrade)
+var _fg_melt_down_draw: int = 1       # Next-turn draw from melt_down
+var _fg_melt_down_pending: bool = false
+var _fg_salvage_mode: bool = false     # Salvage: pick card from discard pile
+
 # Standard Mode: custom monster configuration
 var standard_mode_monsters: Array = []  # [{id: "mushroom", hp: 40}, ...]
 
@@ -299,6 +314,8 @@ func start_battle(character_id: String) -> void:
 	hp_lost_this_combat = 0
 	total_attacks_played = 0
 	total_cards_played = 0
+	# Reset greatsword
+	_reset_greatsword_for_battle()
 
 	# Get GameManager
 	var gm = _get_game_manager()
@@ -836,6 +853,32 @@ func start_player_turn() -> void:
 	_bf_blood_shell_active = false
 	_bf_blood_shell_stacks = 1
 
+	# Reset Forger per-turn state
+	_greatsword_double_damage = false
+	_forged_this_turn = false
+	_greatsword_no_summon_this_turn = false
+	_greatsword_temp_thorns = 0
+	_update_greatsword_display()
+
+	# Forger start-of-turn powers
+	for hero in _get_all_alive_heroes():
+		# Auto Forge: forge at start of turn
+		var af: int = hero.active_powers.get("fg_auto_forge", 0)
+		if af > 0:
+			_forge_sword(af)
+		# Iron Will: gain block at start of turn
+		var iw: int = hero.active_powers.get("fg_iron_will", 0)
+		if iw > 0:
+			hero.add_block(iw)
+			_trigger_juggernaut()
+			_fg_on_hero_gain_block(hero, iw)
+		# Sword Ward: gain block if greatsword exists
+		var sw: int = hero.active_powers.get("fg_sword_ward", 0)
+		if sw > 0 and _greatsword_hp > 0:
+			hero.add_block(sw)
+			_trigger_juggernaut()
+			_fg_on_hero_gain_block(hero, sw)
+
 	# Process queued next-turn effects
 	_process_next_turn_effects()
 
@@ -1080,6 +1123,11 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			for hero in _get_all_alive_heroes():
 				hero.add_block(_bf_predator_instinct_block)
 				_trigger_juggernaut()
+		# Sword Mastery: forge on attack play
+		for hero in _get_all_alive_heroes():
+			var sm: int = hero.active_powers.get("fg_sword_mastery", 0)
+			if sm > 0:
+				_forge_sword(sm)
 
 	# A Thousand Cuts: deal damage to ALL enemies on card play
 	for hero in _get_all_alive_heroes():
@@ -2312,6 +2360,328 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				var block_val: int = card_data.get("bf_low_hp_block", 6) if is_low else card_data.get("block", 3)
 				si_hero.add_block(block_val)
 				_trigger_juggernaut()
+
+		# ══════════════════════════════════════════════════════════════════════
+		# FORGER CARD HANDLERS
+		# ══════════════════════════════════════════════════════════════════════
+		"sword_crash":
+			# Damage = greatsword HP (upgraded: ×1.5)
+			var mult: float = card_data.get("fg_sword_mult", 1.0)
+			var dmg: int = int(_get_greatsword_attack_damage() * mult)
+			if dmg > 0 and card_hero:
+				dmg = card_hero.get_attack_damage(dmg) - card_hero.get_status_stacks("strength")
+				dmg += card_hero.get_status_stacks("strength")
+			if dmg > 0:
+				_apply_single_hit_damage(dmg, target, target_type)
+		"riposte_strike":
+			var base_dmg: int = card_data.get("damage", 6)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			var thorns_mult: int = card_data.get("fg_thorns_mult", 2)
+			var hero_thorns: int = 0
+			if card_hero:
+				hero_thorns = card_hero.get_status_stacks("thorns")
+			base_dmg += hero_thorns * thorns_mult
+			_apply_single_hit_damage(base_dmg, target, target_type)
+		"fg_shield_bash":
+			var sh_hero: Node2D = card_hero if card_hero else player
+			if sh_hero:
+				var dmg: int = sh_hero.block
+				if dmg > 0:
+					_apply_single_hit_damage(dmg, target, target_type)
+		"forge_slam":
+			var base_dmg: int = card_data.get("damage", 12)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			var forge_amt: int = card_data.get("fg_forge", 5)
+			_forge_sword(forge_amt)
+		"greatsword_cleave":
+			var mult: float = card_data.get("fg_sword_mult", 1.0)
+			var dmg: int = int(_get_greatsword_attack_damage() * mult)
+			if dmg > 0:
+				_apply_single_hit_damage(dmg, target, "all_enemies")
+		"magnetic_edge":
+			var forge_amt: int = card_data.get("fg_forge", 4)
+			_forge_sword(forge_amt)
+			var threshold: int = card_data.get("fg_threshold", 20)
+			var base_dmg: int = card_data.get("damage", 5)
+			if _greatsword_hp >= threshold:
+				base_dmg = card_data.get("fg_threshold_damage", 12)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+		"molten_core":
+			var base_dmg: int = card_data.get("damage", 8)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			var times: int = card_data.get("times", 2)
+			_apply_multi_hit_damage(base_dmg, times, target, target_type)
+			var forge_amt: int = card_data.get("fg_forge", 6)
+			_forge_sword(forge_amt)
+		"hardened_blade":
+			var base_dmg: int = card_data.get("damage", 8)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			if _greatsword_hp > 0:
+				var blk: int = card_data.get("fg_sword_block", 4)
+				var hero_blk: Node2D = card_hero if card_hero else player
+				if hero_blk:
+					hero_blk.add_block(blk)
+					_trigger_juggernaut()
+					_fg_on_hero_gain_block(hero_blk, blk)
+		"reforged_edge":
+			var base_dmg: int = card_data.get("damage", 7)
+			if _forged_this_turn:
+				base_dmg += card_data.get("fg_forged_bonus", 7)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+		"eruption_strike":
+			var base_dmg: int = card_data.get("damage", 15)
+			if card_hero:
+				base_dmg = card_hero.get_attack_damage(base_dmg)
+			_apply_single_hit_damage(base_dmg, target, target_type)
+			_next_turn_effects.append({"type": "gain_energy", "value": 1})
+			var forge_amt: int = card_data.get("fg_forge", 4)
+			_forge_sword(forge_amt)
+		"blade_storm":
+			var pct: int = card_data.get("fg_sword_pct", 50)
+			var dmg: int = int(_get_greatsword_attack_damage() * pct / 100.0)
+			var hits: int = card_data.get("fg_hits", 3)
+			if dmg > 0:
+				_apply_multi_hit_damage(dmg, hits, target, "all_enemies")
+
+		# ── Forger Skills ──
+		"delay_charge":
+			var forge_amt: int = card_data.get("fg_forge", 5)
+			_forge_sword(forge_amt)
+			var next_energy: int = card_data.get("fg_next_energy", 1)
+			_next_turn_effects.append({"type": "gain_energy", "value": next_energy})
+		"sharpen":
+			var forge_amt: int = card_data.get("fg_forge", 8)
+			_forge_sword(forge_amt)
+			draw_cards(card_data.get("draw", 1))
+		"forge_armor":
+			var blk: int = card_data.get("block", 10)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+			var forge_amt: int = card_data.get("fg_forge", 5)
+			_forge_sword(forge_amt)
+		"impervious_wall":
+			var forge_amt: int = card_data.get("fg_forge", 20)
+			_forge_sword(forge_amt)
+		"block_transfer":
+			var total_block: int = 0
+			for hero in _get_all_alive_heroes():
+				total_block += hero.block
+				hero.reset_block()
+			if total_block > 0:
+				_forge_sword(total_block)
+		"summon_sword":
+			var hp_val: int = card_data.get("fg_summon_hp", 10)
+			_summon_greatsword(hp_val)
+		"reinforce":
+			if _greatsword_hp > 0:
+				var pct: int = card_data.get("fg_reinforce_pct", 70)
+				var bonus: int = int(_greatsword_hp * pct / 100.0)
+				_greatsword_hp += bonus
+				_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
+				_update_greatsword_display()
+		"temper":
+			var blk: int = card_data.get("block", 6)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+			var next_block: int = card_data.get("fg_next_block", 6)
+			_next_turn_effects.append({"type": "block", "value": next_block})
+		"forge_shield":
+			var blk: int = card_data.get("block", 12)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+			var next_draw: int = card_data.get("fg_next_draw", 2)
+			_next_turn_effects.append({"type": "draw", "value": next_draw})
+		"melt_down":
+			# Exhaust 1 card, add cost×N to sword, next turn draw
+			if hand.is_empty():
+				var next_draw: int = card_data.get("fg_next_draw", 1)
+				_next_turn_effects.append({"type": "draw", "value": next_draw})
+			elif hand.size() <= 1:
+				var c = hand[0]
+				var cost_val: int = maxi(c.get("cost", 0), 0)
+				hand.remove_at(0)
+				_exhaust_card(c)
+				if card_hand:
+					card_hand.clear_hand()
+				var mult: int = card_data.get("fg_cost_mult", 6)
+				_forge_sword(cost_val * mult)
+				var next_draw: int = card_data.get("fg_next_draw", 1)
+				_next_turn_effects.append({"type": "draw", "value": next_draw})
+			else:
+				_fg_melt_down_pending = true
+				_discard_as_exhaust = true
+				_show_discard_selection(1, func():
+					# Find the exhausted card's cost
+					# The last exhausted card is the one we just picked
+					var last_exhausted = exhaust_pile.back() if not exhaust_pile.is_empty() else {}
+					var cost_val: int = maxi(last_exhausted.get("cost", 0), 0)
+					var mult: int = card_data.get("fg_cost_mult", 6)
+					_forge_sword(cost_val * mult)
+					var next_draw: int = card_data.get("fg_next_draw", 1)
+					_next_turn_effects.append({"type": "draw", "value": next_draw})
+					_fg_melt_down_pending = false
+					_update_pile_labels()
+				)
+				if _discard_title_label:
+					_discard_title_label.text = "选择 1 张牌消耗"
+				return
+		"overcharge":
+			_greatsword_double_damage = true
+		"absorb_impact":
+			var sword_cost: int = card_data.get("fg_sword_cost", 5)
+			_greatsword_hp = maxi(0, _greatsword_hp - sword_cost)
+			_update_greatsword_display()
+			var blk: int = card_data.get("block", 8)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+		"heat_treat":
+			var forge_amt: int = card_data.get("fg_forge", 6)
+			_forge_sword(forge_amt)
+			var thorns_val: int = card_data.get("fg_thorns", 1)
+			var ht_hero: Node2D = card_hero if card_hero else player
+			if ht_hero:
+				ht_hero.apply_status("thorns", thorns_val)
+		"forge_barrier":
+			var mult: float = card_data.get("fg_barrier_mult", 1.0)
+			var blk: int = int(_greatsword_hp * mult)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk and blk > 0:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+		"sword_sacrifice":
+			var hero_blk: Node2D = card_hero if card_hero else player
+			var bonus: int = card_data.get("fg_sacrifice_block_bonus", 10)
+			var blk: int = _greatsword_hp + bonus
+			if hero_blk and blk > 0:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+			var aoe_dmg: int = card_data.get("fg_sacrifice_dmg", 10)
+			for enemy in enemies:
+				if enemy.alive:
+					enemy.take_damage(aoe_dmg)
+			_destroy_greatsword()
+			_greatsword_no_summon_this_turn = true
+		"thorn_forge":
+			var hero_thorns: int = card_data.get("fg_hero_thorns", 4)
+			var hero_tf: Node2D = card_hero if card_hero else player
+			if hero_tf:
+				hero_tf.apply_status("thorns", hero_thorns)
+			var sword_thorns: int = card_data.get("fg_sword_thorns", 4)
+			_greatsword_temp_thorns += sword_thorns
+			_update_greatsword_display()
+		"salvage":
+			var blk: int = card_data.get("block", 6)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+			# Pick 1 card from discard pile → top of draw pile
+			if not discard_pile.is_empty():
+				_fg_salvage_mode = true
+				_show_discard_selection(1, func():
+					# Move selected card from discard to draw pile top
+					if not _discard_selected_cards.is_empty():
+						var idx: int = _discard_selected_cards[0]
+						if idx >= 0 and idx < discard_pile.size():
+							var card = discard_pile[idx]
+							discard_pile.remove_at(idx)
+							draw_pile.append(card)
+					_fg_salvage_mode = false
+					_update_pile_labels()
+				)
+				return
+		"thorn_wall":
+			var blk: int = card_data.get("block", 12)
+			var hero_blk: Node2D = card_hero if card_hero else player
+			if hero_blk:
+				hero_blk.add_block(blk)
+				_trigger_juggernaut()
+				_fg_on_hero_gain_block(hero_blk, blk)
+			var thorns_val: int = card_data.get("fg_thorns", 3)
+			if hero_blk:
+				hero_blk.apply_status("thorns", thorns_val)
+		"quick_temper":
+			var forge_amt: int = card_data.get("fg_forge", 3)
+			_forge_sword(forge_amt)
+			if card_data.get("draw", 0) > 0:
+				draw_cards(card_data["draw"])
+		"chain_forge":
+			var forge_base: int = card_data.get("fg_forge_base", 4)
+			var forge_chain: int = card_data.get("fg_forge_chain", 8)
+			var forge_amt: int = forge_chain if _forged_this_turn else forge_base
+			_forge_sword(forge_amt)
+			draw_cards(1)
+		"repurpose":
+			# Exhaust 1 card, block = cost×N, forge = cost×M
+			if hand.is_empty():
+				pass
+			elif hand.size() <= 1:
+				var c = hand[0]
+				var cost_val: int = maxi(c.get("cost", 0), 0)
+				hand.remove_at(0)
+				_exhaust_card(c)
+				if card_hand:
+					card_hand.clear_hand()
+				var blk_mult: int = card_data.get("fg_block_mult", 4)
+				var forge_mult: int = card_data.get("fg_forge_mult", 3)
+				var hero_blk: Node2D = card_hero if card_hero else player
+				if hero_blk:
+					hero_blk.add_block(cost_val * blk_mult)
+					_trigger_juggernaut()
+				_forge_sword(cost_val * forge_mult)
+			else:
+				_discard_as_exhaust = true
+				_show_discard_selection(1, func():
+					var last_exhausted = exhaust_pile.back() if not exhaust_pile.is_empty() else {}
+					var cost_val: int = maxi(last_exhausted.get("cost", 0), 0)
+					var blk_mult: int = card_data.get("fg_block_mult", 4)
+					var forge_mult: int = card_data.get("fg_forge_mult", 3)
+					var hero_blk: Node2D = card_hero if card_hero else player
+					if hero_blk:
+						hero_blk.add_block(cost_val * blk_mult)
+						_trigger_juggernaut()
+					_forge_sword(cost_val * forge_mult)
+					_update_pile_labels()
+				)
+				if _discard_title_label:
+					_discard_title_label.text = "选择 1 张牌消耗"
+				return
+
+		# ── Forger Powers (call-type) ──
+		"thorn_aura":
+			var hero_thorns: int = card_data.get("fg_hero_thorns", 3)
+			var hero_ta: Node2D = card_hero if card_hero else player
+			if hero_ta:
+				hero_ta.apply_status("thorns", hero_thorns)
+				hero_ta.add_power("fg_thorn_aura", hero_thorns)
+			var sword_thorns: int = card_data.get("fg_sword_thorns", 3)
+			_greatsword_thorns += sword_thorns
+			_update_greatsword_display()
 	_update_pile_labels()
 
 func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> void:
@@ -2453,6 +2823,192 @@ func _bf_hemophilia_heal() -> void:
 		if hemo > 0:
 			_h.heal(1)
 
+# ── Forger / Greatsword Helpers ──────────────────────────────────────────────
+func _forge_sword(amount: int) -> void:
+	## Add HP to greatsword. Auto-summons if not alive. Triggers Forge Master.
+	if _greatsword_no_summon_this_turn and _greatsword_hp <= 0:
+		return  # Cannot summon this turn (Sword Sacrifice)
+	# Forge Master bonus
+	var bonus: int = 0
+	for hero in _get_all_alive_heroes():
+		bonus += hero.active_powers.get("fg_forge_master", 0)
+	var total: int = amount + bonus
+	if _greatsword_hp <= 0:
+		_greatsword_hp = total
+	else:
+		_greatsword_hp += total
+	_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
+	_forged_this_turn = true
+	_update_greatsword_display()
+	# Resonance check is handled by block gain, not forge
+
+func _summon_greatsword(hp: int) -> void:
+	## Summon or add HP to greatsword
+	if _greatsword_no_summon_this_turn and _greatsword_hp <= 0:
+		return
+	if _greatsword_hp <= 0:
+		_greatsword_hp = hp
+	else:
+		_greatsword_hp += hp
+	_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
+	_update_greatsword_display()
+
+func _destroy_greatsword() -> void:
+	_greatsword_hp = 0
+	_greatsword_thorns = 0
+	_greatsword_temp_thorns = 0
+	_update_greatsword_display()
+
+func _greatsword_take_damage(dmg: int, attacker: Node2D) -> int:
+	## Greatsword absorbs damage. Returns remaining damage to pass through.
+	if _greatsword_hp <= 0:
+		return dmg
+	# Greatsword thorns: deal damage back to attacker
+	var total_thorns: int = _greatsword_thorns + _greatsword_temp_thorns
+	if total_thorns > 0 and attacker and attacker.alive:
+		attacker.take_damage(total_thorns)
+	# Iron Skin: hero gains block equal to damage taken by sword
+	for hero in _get_all_alive_heroes():
+		var iron_skin: int = hero.active_powers.get("fg_iron_skin", 0)
+		if iron_skin > 0:
+			hero.add_block(dmg + iron_skin - 1)  # +bonus from upgrade
+			_trigger_juggernaut()
+	# Counter Forge: forge on sword hit
+	for hero in _get_all_alive_heroes():
+		var cf: int = hero.active_powers.get("fg_counter_forge", 0)
+		if cf > 0:
+			_forge_sword(cf)
+	var absorbed: int = mini(dmg, _greatsword_hp)
+	_greatsword_hp -= absorbed
+	if _greatsword_hp <= 0:
+		_greatsword_hp = 0
+		_greatsword_thorns = 0
+		_greatsword_temp_thorns = 0
+	_update_greatsword_display()
+	return dmg - absorbed
+
+func _get_greatsword_attack_damage() -> int:
+	## Get greatsword HP as attack damage, applying double damage if active
+	var dmg: int = _greatsword_hp
+	if _greatsword_double_damage:
+		dmg *= 2
+	return dmg
+
+func _update_greatsword_display() -> void:
+	## Update or create the greatsword visual display
+	if _greatsword_node == null:
+		_create_greatsword_visual()
+	if _greatsword_node == null:
+		return
+	_greatsword_node.visible = _greatsword_hp > 0
+	# Update HP label
+	var hp_label: Label = _greatsword_node.get_node_or_null("HPLabel")
+	if hp_label:
+		hp_label.text = "%d" % _greatsword_hp
+	# Update thorns label
+	var thorns_label: Label = _greatsword_node.get_node_or_null("ThornsLabel")
+	if thorns_label:
+		var total_thorns: int = _greatsword_thorns + _greatsword_temp_thorns
+		thorns_label.visible = total_thorns > 0
+		thorns_label.text = "荆棘 %d" % total_thorns
+
+func _create_greatsword_visual() -> void:
+	## Create the greatsword visual node positioned between heroes and enemies
+	var hud_layer = get_node_or_null("HUDLayer/HUD")
+	if hud_layer == null:
+		return
+	_greatsword_node = Control.new()
+	_greatsword_node.name = "Greatsword"
+	_greatsword_node.visible = false
+	var vw: float = get_viewport_rect().size.x
+	_greatsword_node.position = Vector2(vw * 0.42, 280)
+	_greatsword_node.size = Vector2(80, 160)
+	hud_layer.add_child(_greatsword_node)
+
+	# Sword sprite
+	var sprite := TextureRect.new()
+	sprite.name = "Sprite"
+	var sword_path := "res://assets/img/greatsword.png"
+	if ResourceLoader.exists(sword_path):
+		sprite.texture = load(sword_path)
+	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	sprite.custom_minimum_size = Vector2(60, 120)
+	sprite.size = Vector2(60, 120)
+	sprite.position = Vector2(10, 0)
+	_greatsword_node.add_child(sprite)
+
+	# HP label
+	var hp_bg := ColorRect.new()
+	hp_bg.color = Color(0.15, 0.12, 0.1, 0.85)
+	hp_bg.size = Vector2(60, 28)
+	hp_bg.position = Vector2(10, 122)
+	_greatsword_node.add_child(hp_bg)
+
+	var hp_label := Label.new()
+	hp_label.name = "HPLabel"
+	hp_label.text = "0"
+	hp_label.add_theme_font_size_override("font_size", 20)
+	hp_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hp_label.size = Vector2(60, 28)
+	hp_label.position = Vector2(10, 122)
+	_greatsword_node.add_child(hp_label)
+
+	# Title
+	var title := Label.new()
+	title.text = "巨剑"
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color(0.8, 0.65, 0.3))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.size = Vector2(80, 20)
+	title.position = Vector2(0, 152)
+	_greatsword_node.add_child(title)
+
+	# Thorns label (hidden by default)
+	var thorns_label := Label.new()
+	thorns_label.name = "ThornsLabel"
+	thorns_label.text = ""
+	thorns_label.visible = false
+	thorns_label.add_theme_font_size_override("font_size", 14)
+	thorns_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.3))
+	thorns_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	thorns_label.size = Vector2(80, 18)
+	thorns_label.position = Vector2(0, 172)
+	_greatsword_node.add_child(thorns_label)
+
+func _reset_greatsword_for_battle() -> void:
+	_greatsword_hp = 0
+	_greatsword_max_hp = 0
+	_greatsword_thorns = 0
+	_greatsword_temp_thorns = 0
+	_greatsword_double_damage = false
+	_forged_this_turn = false
+	_greatsword_no_summon_this_turn = false
+	_fg_energy_reserve_active = false
+	_fg_energy_reserve_bonus = 0
+	_fg_melt_down_pending = false
+	_fg_salvage_mode = false
+	if _greatsword_node:
+		_greatsword_node.visible = false
+
+func _fg_on_hero_gain_block(_hero: Node2D, _amount: int) -> void:
+	## Resonance: when a hero gains block, forge
+	for h in _get_all_alive_heroes():
+		var res_stacks: int = h.active_powers.get("fg_resonance", 0)
+		if res_stacks > 0:
+			_forge_sword(res_stacks)
+
+func _fg_on_melt_down_exhaust_done() -> void:
+	_update_pile_labels()
+
+func _fg_on_repurpose_exhaust_done() -> void:
+	_update_pile_labels()
+
+func _fg_on_salvage_select_done() -> void:
+	_fg_salvage_mode = false
+	_update_pile_labels()
+
 func _activate_power(power_name: String, power_target: Node2D = null, per_turn: Dictionary = {}, is_upgraded: bool = false) -> void:
 	# Determine upgrade status from parameter or legacy _plus suffix
 	var is_plus: bool = is_upgraded or power_name.ends_with("_plus")
@@ -2579,6 +3135,31 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 			_bf_blood_shell_active = true
 			_bf_blood_shell_stacks = 2 if is_plus else 1
 			show_icon = false  # Temporary skill effect
+		# ── Forger Powers ──
+		"fg_sword_mastery":
+			power_stacks = 3 if is_plus else 2
+		"fg_energy_reserve":
+			_fg_energy_reserve_active = true
+			_fg_energy_reserve_bonus = 1 if is_plus else 0
+			power_stacks = 0
+		"fg_living_sword":
+			power_stacks = 100 if is_plus else 50
+		"fg_iron_will":
+			power_stacks = 6 if is_plus else 4
+		"fg_forge_master":
+			power_stacks = 3 if is_plus else 2
+		"fg_auto_forge":
+			power_stacks = 6 if is_plus else 4
+		"fg_iron_skin":
+			power_stacks = 1
+		"fg_resonance":
+			power_stacks = 2 if is_plus else 1
+		"fg_sword_ward":
+			power_stacks = 5 if is_plus else 3
+		"fg_counter_forge":
+			power_stacks = 5 if is_plus else 3
+		"fg_thorn_aura":
+			show_icon = false  # Handled by thorn_aura call action
 
 	# Accumulate per_turn effects on hero metadata for simulator snapshot
 	if not per_turn.is_empty() and hero and hero.has_method("set_meta"):
@@ -2607,6 +3188,9 @@ func _process_next_turn_effects() -> void:
 					if card_hand:
 						card_hand.current_battle_energy = current_energy
 						card_hand.update_card_playability(current_energy)
+			"draw":
+				if value > 0:
+					draw_cards(value)
 	_next_turn_effects.clear()
 
 func _add_status_card_to_draw(card_id: String) -> void:
@@ -2783,7 +3367,22 @@ func end_player_turn() -> void:
 			for enemy in enemies:
 				if enemy.alive:
 					enemy.take_damage(combust_stacks)
-	# Check if combust killed all enemies
+	# Living Sword: end of turn, sword attacks random enemy
+	for hero in _get_all_alive_heroes():
+		var ls_pct: int = hero.active_powers.get("fg_living_sword", 0)
+		if ls_pct > 0 and _greatsword_hp > 0:
+			var alive_enemies: Array = _get_alive_enemies()
+			if not alive_enemies.is_empty():
+				var dmg: int = int(_greatsword_hp * ls_pct / 100.0)
+				if dmg > 0:
+					var rand_enemy = alive_enemies[randi() % alive_enemies.size()]
+					rand_enemy.take_damage(dmg)
+
+	# Energy Reserve: save unspent energy for next turn
+	if _fg_energy_reserve_active and current_energy > 0:
+		_next_turn_effects.append({"type": "gain_energy", "value": current_energy + _fg_energy_reserve_bonus})
+
+	# Check if combust/living_sword killed all enemies
 	_check_battle_end()
 	if not battle_active:
 		return
@@ -3113,17 +3712,25 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			# In dual hero mode, attack front-row hero
 			var attack_target = front
 			for _i in range(times):
-				if attack_target.alive:
-					attack_target.take_damage(actual_dmg)
+				# Greatsword absorbs damage first
+				var remaining_dmg: int = actual_dmg
+				if _greatsword_hp > 0:
+					remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
+					_screen_shake()
+				if remaining_dmg > 0 and attack_target.alive:
+					attack_target.take_damage(remaining_dmg)
 					_screen_shake()
 					_check_reactive_powers(attack_target, enemy)
-				elif dual_hero_mode:
+				elif remaining_dmg > 0 and dual_hero_mode:
 					# Front row dead, switch to back row
 					attack_target = get_front_player()
 					if attack_target and attack_target.alive:
-						attack_target.take_damage(actual_dmg)
+						attack_target.take_damage(remaining_dmg)
 						_screen_shake()
 						_check_reactive_powers(attack_target, enemy)
+				elif remaining_dmg <= 0:
+					# Greatsword fully absorbed — still check reactive powers
+					_check_reactive_powers(attack_target, enemy)
 		"buff":
 			var status_name: String = action.get("status", "strength")
 			var value: int = action.get("value", 1)
@@ -3136,8 +3743,12 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var blk: int = action.get("block_val", 5)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			_enemy_lunge(enemy)
-			if front.alive:
-				front.take_damage(actual_dmg)
+			var remaining_ab: int = actual_dmg
+			if _greatsword_hp > 0:
+				remaining_ab = _greatsword_take_damage(actual_dmg, enemy)
+				_screen_shake()
+			if remaining_ab > 0 and front.alive:
+				front.take_damage(remaining_ab)
 				_screen_shake()
 			enemy.add_block(blk)
 			_check_reactive_powers(front, enemy)
@@ -3150,8 +3761,13 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var stacks: int = action.get("stacks", 1)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			_enemy_lunge(enemy)
-			front.take_damage(actual_dmg)
-			_screen_shake()
+			var remaining_ad: int = actual_dmg
+			if _greatsword_hp > 0:
+				remaining_ad = _greatsword_take_damage(actual_dmg, enemy)
+				_screen_shake()
+			if remaining_ad > 0 and front.alive:
+				front.take_damage(remaining_ad)
+				_screen_shake()
 			front.apply_status(status_name, stacks)
 			_check_reactive_powers(front, enemy)
 

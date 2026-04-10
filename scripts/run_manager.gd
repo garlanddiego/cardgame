@@ -170,6 +170,7 @@ func _build_solo_starting_deck(hero_id: String, gm: Node) -> Array:
 		"silent": prefix = "si"
 		"bloodfiend": prefix = "bf"
 		"fire_mage": prefix = "fm"
+		"forger": prefix = "fg"
 		_: prefix = hero_id.left(2)
 	var d: Array = []
 	for i in 3: d.append(prefix + "_strike")

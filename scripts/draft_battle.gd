@@ -99,6 +99,27 @@ func _build_settings_ui() -> void:
 	si_check.toggled.connect(func(on): _toggle_hero("silent", on))
 	hero_row.add_child(si_check)
 
+	var bf_check = CheckBox.new()
+	bf_check.text = "嗜血狂魔"
+	bf_check.add_theme_font_size_override("font_size", 26)
+	bf_check.add_theme_color_override("font_color", Color(0.7, 0.1, 0.2))
+	bf_check.toggled.connect(func(on): _toggle_hero("bloodfiend", on))
+	hero_row.add_child(bf_check)
+
+	var fm_check = CheckBox.new()
+	fm_check.text = "火法师"
+	fm_check.add_theme_font_size_override("font_size", 26)
+	fm_check.add_theme_color_override("font_color", Color(0.9, 0.4, 0.1))
+	fm_check.toggled.connect(func(on): _toggle_hero("fire_mage", on))
+	hero_row.add_child(fm_check)
+
+	var fg_check = CheckBox.new()
+	fg_check.text = "铸造者"
+	fg_check.add_theme_font_size_override("font_size", 26)
+	fg_check.add_theme_color_override("font_color", Color(0.7, 0.5, 0.2))
+	fg_check.toggled.connect(func(on): _toggle_hero("forger", on))
+	hero_row.add_child(fg_check)
+
 	vbox.add_child(hero_row)
 
 	# Upgrade toggle
