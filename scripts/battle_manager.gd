@@ -1095,6 +1095,19 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 	# Delay card-to-hand generation until played card animation finishes
 	_card_gen_delay = 0.55
 
+	# Move card to its destination pile BEFORE executing effects,
+	# so reshuffle during draw can find it in discard_pile
+	var card_type: int = card_data.get("type", 0)
+	var should_exhaust: bool = card_data.get("exhaust", false)
+	if corruption_active and card_type == 1:  # SKILL
+		should_exhaust = true
+	if card_type == 2:  # POWER — always exhaust
+		exhaust_pile.append(card_data)
+	elif should_exhaust:
+		_exhaust_card(card_data)
+	else:
+		discard_pile.append(card_data)
+
 	# Execute card effect (pass energy spent for X-cost cards)
 	_execute_card(card_data, target, cost)
 
@@ -1149,21 +1162,6 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		if ai_stacks > 0:
 			hero.add_block(ai_stacks)
 			_trigger_juggernaut()
-
-	# Determine where the card goes after play
-	var card_type: int = card_data.get("type", 0)
-	var should_exhaust: bool = card_data.get("exhaust", false)
-
-	# Corruption: Skills are exhausted
-	if corruption_active and card_type == 1:  # SKILL
-		should_exhaust = true
-
-	if card_type == 2:  # POWER — always exhaust
-		exhaust_pile.append(card_data)
-	elif should_exhaust:
-		_exhaust_card(card_data)
-	else:
-		discard_pile.append(card_data)
 
 	_card_gen_delay = 0.0  # Reset in case no generation effect consumed it
 	_update_pile_labels()
