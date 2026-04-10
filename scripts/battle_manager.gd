@@ -3567,24 +3567,68 @@ func _process_enemy_actions(index: int) -> void:
 	# Reset enemy block
 	enemy.reset_block()
 
-	# Execute action
+	# Execute action (may be multi-hit with delays)
+	var hit_count: int = 0
+	if action.get("type", "attack") == "attack":
+		hit_count = action.get("times", 1)
+	if hit_count > 1:
+		# Multi-hit: stagger each hit, then continue after all hits finish
+		_execute_enemy_multi_hit(enemy, action, 0, hit_count, func():
+			_finish_enemy_action(enemy, ai, index)
+		)
+		return
 	_execute_enemy_action(enemy, action)
+	_finish_enemy_action(enemy, ai, index)
 
+func _finish_enemy_action(enemy: Node2D, ai, index: int) -> void:
 	# Tick enemy status
 	enemy.tick_status_effects()
-
 	# Generate next intent
 	enemy.intent = ai.get_next_action(enemy)
 	enemy.update_intent_display()
-
 	# Check if all heroes are dead
 	_on_player_died()
 	if not battle_active:
 		return
-
 	# Next enemy after delay
 	var timer = get_tree().create_timer(0.6)
 	timer.timeout.connect(_process_enemy_actions.bind(index + 1))
+
+func _execute_enemy_multi_hit(enemy: Node2D, action: Dictionary, hit_idx: int, total: int, on_done: Callable) -> void:
+	if hit_idx >= total or not battle_active:
+		on_done.call()
+		return
+	var front = get_front_player()
+	if front == null:
+		on_done.call()
+		return
+	var value: int = action.get("value", 5)
+	var actual_dmg: int = enemy.get_attack_damage(value)
+	_enemy_lunge(enemy)
+	var attack_target = front
+	var remaining_dmg: int = actual_dmg
+	if _greatsword_hp > 0:
+		remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
+		_screen_shake()
+	if remaining_dmg > 0 and attack_target.alive:
+		attack_target.take_damage(remaining_dmg)
+		_screen_shake()
+		_check_reactive_powers(attack_target, enemy)
+	elif remaining_dmg > 0 and dual_hero_mode:
+		attack_target = get_front_player()
+		if attack_target and attack_target.alive:
+			attack_target.take_damage(remaining_dmg)
+			_screen_shake()
+			_check_reactive_powers(attack_target, enemy)
+	elif remaining_dmg <= 0:
+		_check_reactive_powers(attack_target, enemy)
+	# Check if hero died
+	_on_player_died()
+	if not battle_active:
+		return
+	# Next hit after delay
+	var delay_timer = get_tree().create_timer(0.5)
+	delay_timer.timeout.connect(_execute_enemy_multi_hit.bind(enemy, action, hit_idx + 1, total, on_done))
 
 func _enemy_lunge(enemy: Node2D) -> void:
 	## Enemy lunge animation toward player (STS-style) + bite effect + sprite swap
@@ -3694,32 +3738,27 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 	var action_type: String = action.get("type", "attack")
 	match action_type:
 		"attack":
+			# Multi-hit is handled by _execute_enemy_multi_hit; this handles single-hit only
 			var value: int = action.get("value", 5)
-			var times: int = action.get("times", 1)
 			var actual_dmg: int = enemy.get_attack_damage(value)
 			_enemy_lunge(enemy)
-			# In dual hero mode, attack front-row hero
 			var attack_target = front
-			for _i in range(times):
-				# Greatsword absorbs damage first
-				var remaining_dmg: int = actual_dmg
-				if _greatsword_hp > 0:
-					remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
-					_screen_shake()
-				if remaining_dmg > 0 and attack_target.alive:
+			var remaining_dmg: int = actual_dmg
+			if _greatsword_hp > 0:
+				remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
+				_screen_shake()
+			if remaining_dmg > 0 and attack_target.alive:
+				attack_target.take_damage(remaining_dmg)
+				_screen_shake()
+				_check_reactive_powers(attack_target, enemy)
+			elif remaining_dmg > 0 and dual_hero_mode:
+				attack_target = get_front_player()
+				if attack_target and attack_target.alive:
 					attack_target.take_damage(remaining_dmg)
 					_screen_shake()
 					_check_reactive_powers(attack_target, enemy)
-				elif remaining_dmg > 0 and dual_hero_mode:
-					# Front row dead, switch to back row
-					attack_target = get_front_player()
-					if attack_target and attack_target.alive:
-						attack_target.take_damage(remaining_dmg)
-						_screen_shake()
-						_check_reactive_powers(attack_target, enemy)
-				elif remaining_dmg <= 0:
-					# Greatsword fully absorbed — still check reactive powers
-					_check_reactive_powers(attack_target, enemy)
+			elif remaining_dmg <= 0:
+				_check_reactive_powers(attack_target, enemy)
 		"buff":
 			var status_name: String = action.get("status", "strength")
 			var value: int = action.get("value", 1)
