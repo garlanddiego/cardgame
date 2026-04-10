@@ -10,8 +10,8 @@ static func get_cards() -> Dictionary:
 	# =========================================================================
 	# BASIC CARDS (2)
 	# =========================================================================
-	db["fg_strike"] = {"id": "fg_strike", "name": "锻击", "cost": 1, "type": CardType.ATTACK, "character": "forger", "damage": 6, "block": 0, "description": "造成6点伤害。", "art": "res://assets/img/card_art/fg_strike.png", "target": "enemy", "version": "new", "actions": [{"type": "damage"}]}
-	db["fg_defend"] = {"id": "fg_defend", "name": "防御", "cost": 1, "type": CardType.SKILL, "character": "forger", "damage": 0, "block": 5, "description": "获得5点格挡。", "art": "res://assets/img/card_art/fg_defend.png", "target": "self", "version": "new", "hero_target": "target_hero", "actions": [{"type": "block"}]}
+	db["fg_strike"] = {"id": "fg_strike", "name": "锻击", "cost": 1, "type": CardType.ATTACK, "character": "forger", "damage": 6, "block": 0, "description": "造成6点伤害。", "art": "res://assets/img/card_art/fg_strike.png", "target": "enemy", "version": "new", "rarity": "basic", "actions": [{"type": "damage"}]}
+	db["fg_defend"] = {"id": "fg_defend", "name": "防御", "cost": 1, "type": CardType.SKILL, "character": "forger", "damage": 0, "block": 5, "description": "获得5点格挡。", "art": "res://assets/img/card_art/fg_defend.png", "target": "self", "version": "new", "hero_target": "target_hero", "rarity": "basic", "actions": [{"type": "block"}]}
 
 	# =========================================================================
 	# ATTACKS (13 cards)

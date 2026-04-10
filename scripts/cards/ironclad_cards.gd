@@ -10,7 +10,7 @@ static func get_cards() -> Dictionary:
 	# =========================================================================
 	# ATTACKS (27 cards)
 	# =========================================================================
-	db["ic_strike"] = {"id": "ic_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy", "actions": [{"type": "damage"}]}
+	db["ic_strike"] = {"id": "ic_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy", "rarity": "basic", "actions": [{"type": "damage"}]}
 	db["ic_bash"] = {"id": "ic_bash", "name": "Bash", "cost": 2, "type": CardType.ATTACK, "character": "ironclad", "damage": 8, "block": 0, "description": "Deal 8 damage.\nApply 2 Vulnerable.", "art": "", "target": "enemy", "apply_status": {"type": "vulnerable", "stacks": 2}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	db["ic_iron_wave"] = {"id": "ic_iron_wave", "name": "Iron Wave", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 5, "block": 5, "description": "Deal 5 damage.\nGain 5 Block.", "art": "", "target": "enemy", "actions": [{"type": "damage"}, {"type": "block"}]}
 	db["ic_body_slam"] = {"id": "ic_body_slam", "name": "Body Slam", "cost": 1, "type": CardType.ATTACK, "character": "ironclad", "damage": 0, "block": 0, "description": "Deal damage equal\nto your Block.", "art": "", "target": "enemy", "damage_from_block": true, "actions": [{"type": "call", "fn": "body_slam"}]}
@@ -46,7 +46,7 @@ static func get_cards() -> Dictionary:
 	# =========================================================================
 	# SKILLS (27 cards)
 	# =========================================================================
-	db["ic_defend"] = {"id": "ic_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "hero_target": "target_hero", "actions": [{"type": "block"}]}
+	db["ic_defend"] = {"id": "ic_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "hero_target": "target_hero", "rarity": "basic", "actions": [{"type": "block"}]}
 	db["ic_shrug_it_off"] = {"id": "ic_shrug_it_off", "name": "Shrug It Off", "cost": 1, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDraw 1 card.", "art": "", "target": "self", "draw": 1, "actions": [{"type": "block"}, {"type": "draw"}]}
 	db["ic_flame_barrier"] = {"id": "ic_flame_barrier", "name": "Flame Barrier", "cost": 2, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 12, "description": "Gain 12 Block.\nWhen attacked this turn,\ndeal 4 damage back.", "art": "", "target": "self", "hero_target": "target_hero", "power_effect": "flame_barrier", "actions": [{"type": "block"}, {"type": "power_effect", "power": "flame_barrier"}]}
 	db["ic_battle_trance"] = {"id": "ic_battle_trance", "name": "Battle Trance", "cost": 0, "type": CardType.SKILL, "character": "ironclad", "damage": 0, "block": 0, "description": "Draw 3 cards.", "art": "", "target": "self", "draw": 3, "actions": [{"type": "draw"}]}

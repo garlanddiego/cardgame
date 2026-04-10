@@ -10,8 +10,8 @@ static func get_cards() -> Dictionary:
 	# =========================================================================
 	# BASIC CARDS (4 cards)
 	# =========================================================================
-	db["si_strike"] = {"id": "si_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy", "actions": [{"type": "damage"}]}
-	db["si_defend"] = {"id": "si_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "hero_target": "target_hero", "actions": [{"type": "block"}]}
+	db["si_strike"] = {"id": "si_strike", "name": "Strike", "cost": 1, "type": CardType.ATTACK, "character": "silent", "damage": 6, "block": 0, "description": "Deal 6 damage.", "art": "", "target": "enemy", "rarity": "basic", "actions": [{"type": "damage"}]}
+	db["si_defend"] = {"id": "si_defend", "name": "Defend", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 5, "description": "Gain 5 Block.", "art": "", "target": "self", "hero_target": "target_hero", "rarity": "basic", "actions": [{"type": "block"}]}
 	db["si_neutralize"] = {"id": "si_neutralize", "name": "Neutralize", "cost": 0, "type": CardType.ATTACK, "character": "silent", "damage": 3, "block": 0, "description": "Deal 3 damage.\nApply 1 Weak.", "art": "", "target": "enemy", "apply_status": {"type": "weak", "stacks": 1}, "actions": [{"type": "damage"}, {"type": "apply_status", "source": "apply_status"}]}
 	db["si_survivor"] = {"id": "si_survivor", "name": "Survivor", "cost": 1, "type": CardType.SKILL, "character": "silent", "damage": 0, "block": 8, "description": "Gain 8 Block.\nDiscard 1 card.", "art": "", "target": "self", "hero_target": "target_hero", "discard": 1, "actions": [{"type": "block"}]}
 
