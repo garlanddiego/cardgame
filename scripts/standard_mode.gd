@@ -28,6 +28,9 @@ var _draft_picked_cards: Array = []  # card data dicts picked so far
 var _draft_status_bar: HBoxContainer = null  # top status bar
 var _draft_card_count_label: Button = null
 
+# Solo/Dual hero mode
+var _solo_mode: bool = false
+
 var _hero_select_container: Control = null
 
 func _ready() -> void:
@@ -259,9 +262,28 @@ func _show_hero_select() -> void:
 	var state := {"h1": "", "h2": "", "pick_count": 0}
 	var hero_containers: Array = []  # [{container, id, name_lbl, sprite_rect}]
 
+	# --- Mode toggle (单英雄 / 双英雄) ---
+	var mode_btn := Button.new()
+	mode_btn.text = "双英雄模式" if not _solo_mode else "单英雄模式"
+	mode_btn.custom_minimum_size = Vector2(180, 40)
+	mode_btn.add_theme_font_size_override("font_size", 22)
+	var mode_style := StyleBoxFlat.new()
+	mode_style.bg_color = Color(0.2, 0.2, 0.3, 0.7)
+	mode_style.border_color = Color(0.5, 0.5, 0.6)
+	mode_style.set_border_width_all(1)
+	mode_style.set_corner_radius_all(8)
+	mode_btn.add_theme_stylebox_override("normal", mode_style)
+	mode_btn.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
+	mode_btn.position = Vector2(vw - 210, 25)
+	mode_btn.pressed.connect(func():
+		_solo_mode = not _solo_mode
+		_show_hero_select()  # Rebuild UI with new mode
+	)
+	_overlay.add_child(mode_btn)
+
 	# --- Title ---
 	var title := Label.new()
-	title.text = "选择两位英雄"
+	title.text = "选择一位英雄" if _solo_mode else "选择两位英雄"
 	title.add_theme_font_size_override("font_size", 40)
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.5))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -386,10 +408,11 @@ func _show_hero_select() -> void:
 	slot1_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot1.add_child(slot1_sprite)
 
-	# Slot 2 frame
+	# Slot 2 frame (hidden in solo mode)
 	var slot2 := Control.new()
 	slot2.size = Vector2(slot_size, slot_size)
 	slot2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot2.visible = not _solo_mode
 	_overlay.add_child(slot2)
 
 	var slot2_bg := ColorRect.new()
@@ -441,7 +464,9 @@ func _show_hero_select() -> void:
 	start_btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 	start_btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5))
 	start_btn.pressed.connect(func():
-		if state["h1"] == "" or state["h2"] == "":
+		if state["h1"] == "":
+			return
+		if not _solo_mode and state["h2"] == "":
 			return
 		_begin_run_after_select(state["h1"], state["h2"])
 	)
@@ -463,13 +488,21 @@ func _show_hero_select() -> void:
 	_overlay.add_child(back_btn)
 
 	# Layout bottom bar centered
-	var bar_items_w: float = slot_size + bar_gap + slot_size + bar_gap + 240 + bar_gap + 100
-	var bar_x: float = (vw - bar_items_w) / 2.0
+	var bar_items_w: float
 	var slot_y_offset: float = (btn_h - slot_size) / 2.0
+	if _solo_mode:
+		bar_items_w = slot_size + bar_gap + 240 + bar_gap + 100
+	else:
+		bar_items_w = slot_size + bar_gap + slot_size + bar_gap + 240 + bar_gap + 100
+	var bar_x: float = (vw - bar_items_w) / 2.0
 	slot1.position = Vector2(bar_x, bar_y + slot_y_offset)
-	slot2.position = Vector2(bar_x + slot_size + bar_gap, bar_y + slot_y_offset)
-	start_btn.position = Vector2(bar_x + 2 * (slot_size + bar_gap), bar_y)
-	back_btn.position = Vector2(bar_x + 2 * (slot_size + bar_gap) + 240 + bar_gap, bar_y)
+	if _solo_mode:
+		start_btn.position = Vector2(bar_x + slot_size + bar_gap, bar_y)
+		back_btn.position = Vector2(bar_x + slot_size + bar_gap + 240 + bar_gap, bar_y)
+	else:
+		slot2.position = Vector2(bar_x + slot_size + bar_gap, bar_y + slot_y_offset)
+		start_btn.position = Vector2(bar_x + 2 * (slot_size + bar_gap), bar_y)
+		back_btn.position = Vector2(bar_x + 2 * (slot_size + bar_gap) + 240 + bar_gap, bar_y)
 
 	# --- Wire up hero clicks ---
 	for entry in hero_containers:
@@ -482,7 +515,8 @@ func _show_hero_select() -> void:
 				return
 			if container.modulate.r < 0.4:
 				return  # already grayed out
-			if state["pick_count"] >= 2:
+			var max_picks: int = 1 if _solo_mode else 2
+			if state["pick_count"] >= max_picks:
 				return
 			state["pick_count"] += 1
 			if state["pick_count"] == 1:
@@ -503,7 +537,8 @@ func _show_hero_select() -> void:
 				slot2_label.visible = false
 				slot2_border.border_color = color
 				slot2_bg.color = Color(color.r, color.g, color.b, 0.2)
-				# Enable start button green
+			# Enable start button when enough heroes are picked
+			if state["pick_count"] >= max_picks:
 				start_btn.disabled = false
 				var green_style := StyleBoxFlat.new()
 				green_style.bg_color = Color(0.1, 0.5, 0.15, 0.7)
@@ -520,13 +555,22 @@ func _show_hero_select() -> void:
 		)
 
 func _begin_run_after_select(h1: String, h2: String) -> void:
+	if _solo_mode:
+		h2 = ""
 	if run:
+		run.solo_mode = _solo_mode
 		run.start_run(h1, h2)
 	if gm:
 		gm.select_character(h1)
 	var h1id: String = run.hero1_id if run else h1
-	var h2id: String = run.hero2_id if run else h2
-	_draft_hero_order = [h1id, h2id, h1id, h2id, h1id, h2id]
+	if _solo_mode:
+		_draft_total_rounds = 4
+		_draft_hero_order = [h1id, h1id, h1id, h1id]
+	else:
+		var h2id: String = run.hero2_id if run else h2
+		_draft_total_rounds = 6
+		_draft_hero_order = [h1id, h2id, h1id, h2id, h1id, h2id]
+	_draft_round = 0
 	# Update HUD with actual hero names/HP
 	_update_hud_labels()
 	# Transition to draft
@@ -758,7 +802,11 @@ func _update_hud_labels() -> void:
 	if _hud_hp1_label:
 		_hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp]
 	if _hud_hp2_label:
-		_hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
+		if _solo_mode:
+			_hud_hp2_label.visible = false
+		else:
+			_hud_hp2_label.visible = true
+			_hud_hp2_label.text = "♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
 	_update_backpack_btn_text()
 
 func _draw_map() -> void:
@@ -979,8 +1027,8 @@ func _start_battle(nd: Dictionary) -> void:
 
 	# Configure battle
 	var bm: Node2D = _battle_instance
-	bm.dual_hero_mode = true
-	bm.second_character_id = run.hero2_id
+	bm.dual_hero_mode = not _solo_mode
+	bm.second_character_id = run.hero2_id if not _solo_mode else ""
 	bm.config_player_hp = run.hero1_hp
 	bm.config_player_max_hp = run.hero1_max_hp
 	bm.max_energy = 3
@@ -1021,11 +1069,10 @@ func _start_battle(nd: Dictionary) -> void:
 		gm.player_deck = battle_deck
 		gm.select_character(run.hero1_id)
 
-	# Configure second hero HP
-	# (hero1 HP is set via config_player_hp above)
-	# hero2 HP needs to be passed — battle_manager reads it from config
-	bm.set_meta("standard_hero2_hp", run.hero2_hp)
-	bm.set_meta("standard_hero2_max_hp", run.hero2_max_hp)
+	# Configure second hero HP (skip in solo mode)
+	if not _solo_mode:
+		bm.set_meta("standard_hero2_hp", run.hero2_hp)
+		bm.set_meta("standard_hero2_max_hp", run.hero2_max_hp)
 
 	# Connect signals
 	bm.battle_won.connect(_on_battle_won)
@@ -1179,10 +1226,13 @@ func _show_rewards() -> void:
 	_reward_btn_h1.pressed.connect(_on_reward_h1_clicked)
 	vbox.add_child(_reward_btn_h1)
 
-	# Hero 2 card reward row
+	# Hero 2 card reward row (hidden in solo mode)
 	_reward_btn_h2 = _reward_row("🃏", "%s 卡牌" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
 	_reward_btn_h2.pressed.connect(_on_reward_h2_clicked)
 	vbox.add_child(_reward_btn_h2)
+	if _solo_mode:
+		_reward_btn_h2.visible = false
+		_reward_h2_collected = true
 
 	# === Skip/Continue button (bottom-right, STS style) ===
 	_reward_skip_btn = Button.new()
@@ -1425,9 +1475,13 @@ func _show_rest() -> void:
 
 	# HP status
 	var hp_info := Label.new()
-	hp_info.text = "%s: %d/%d HP    %s: %d/%d HP" % [
-		_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp,
-		_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
+	if _solo_mode:
+		hp_info.text = "%s: %d/%d HP" % [
+			_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp]
+	else:
+		hp_info.text = "%s: %d/%d HP    %s: %d/%d HP" % [
+			_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp,
+			_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp]
 	hp_info.add_theme_font_size_override("font_size", 22)
 	hp_info.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	hp_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1437,14 +1491,19 @@ func _show_rest() -> void:
 
 	# Option 1: Rest (heal 30%)
 	var heal1: int = int(run.hero1_max_hp * 0.3)
-	var heal2: int = int(run.hero2_max_hp * 0.3)
-	var rest_btn := _styled_button("休息 — 恢复30%%最大生命\n(%s +%d, %s +%d)" % [
-		_hero_name(run.hero1_id), heal1, _hero_name(run.hero2_id), heal2],
-		Color(0.3, 0.8, 0.3))
+	var heal2: int = int(run.hero2_max_hp * 0.3) if not _solo_mode else 0
+	var rest_text: String
+	if _solo_mode:
+		rest_text = "休息 — 恢复30%%最大生命\n(%s +%d)" % [_hero_name(run.hero1_id), heal1]
+	else:
+		rest_text = "休息 — 恢复30%%最大生命\n(%s +%d, %s +%d)" % [
+			_hero_name(run.hero1_id), heal1, _hero_name(run.hero2_id), heal2]
+	var rest_btn := _styled_button(rest_text, Color(0.3, 0.8, 0.3))
 	rest_btn.custom_minimum_size = Vector2(500, 80)
 	rest_btn.pressed.connect(func():
 		run.heal_hero(0, heal1)
-		run.heal_hero(1, heal2)
+		if not _solo_mode:
+			run.heal_hero(1, heal2)
 		_show_map()
 	)
 	vbox.add_child(rest_btn)
@@ -1669,7 +1728,8 @@ func _show_shop() -> void:
 
 	# Generate shop cards: 10 per hero, rarity-weighted + 20% upgrade chance
 	var shop_cards: Array = []
-	for hero_id in [run.hero1_id, run.hero2_id]:
+	var shop_hero_ids: Array = [run.hero1_id] if _solo_mode else [run.hero1_id, run.hero2_id]
+	for hero_id in shop_hero_ids:
 		var hero_shop: Array = gm.get_random_cards_for_hero(hero_id, 10)
 		for card in hero_shop:
 			card["_shop_upgraded"] = card.get("upgraded", false)

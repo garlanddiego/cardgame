@@ -11,6 +11,7 @@ signal deck_changed
 signal run_ended(victory: bool)
 
 var active: bool = false
+var solo_mode: bool = false
 var floor_num: int = 0  # Current floor (0 = not started, 1-10 = floors)
 var gold: int = 100
 
@@ -43,9 +44,13 @@ func start_run(h1: String, h2: String) -> void:
 	hero2_id = h2
 	var gm = get_node_or_null("/root/GameManager")
 	hero1_max_hp = _get_hero_max_hp(h1, gm)
-	hero2_max_hp = _get_hero_max_hp(h2, gm)
+	if solo_mode or h2 == "":
+		hero2_max_hp = 0
+		hero2_hp = 0
+	else:
+		hero2_max_hp = _get_hero_max_hp(h2, gm)
+		hero2_hp = hero2_max_hp
 	hero1_hp = hero1_max_hp
-	hero2_hp = hero2_max_hp
 	deck = _build_starting_deck(h1, h2)
 	backpack = []
 	_generate_map()
@@ -140,6 +145,9 @@ func _get_hero_max_hp(hero_id: String, gm: Node) -> int:
 
 func _build_starting_deck(h1: String, h2: String) -> Array:
 	var gm = get_node_or_null("/root/GameManager")
+	if solo_mode or h2 == "":
+		# Solo mode: 3 strike + 3 defend for the single hero
+		return _build_solo_starting_deck(h1, gm)
 	if gm and gm.has_method("get_starting_deck"):
 		var result: Array = []
 		result.append_array(gm.get_starting_deck(h1))
@@ -152,6 +160,20 @@ func _build_starting_deck(h1: String, h2: String) -> Array:
 	for i in 2: d.append("ic_defend")
 	for i in 2: d.append("si_strike")
 	for i in 2: d.append("si_defend")
+	return d
+
+func _build_solo_starting_deck(hero_id: String, gm: Node) -> Array:
+	## Solo mode: 3 Strike + 3 Defend for the chosen hero
+	var prefix: String = ""
+	match hero_id:
+		"ironclad": prefix = "ic"
+		"silent": prefix = "si"
+		"bloodfiend": prefix = "bf"
+		"fire_mage": prefix = "fm"
+		_: prefix = hero_id.left(2)
+	var d: Array = []
+	for i in 3: d.append(prefix + "_strike")
+	for i in 3: d.append(prefix + "_defend")
 	return d
 
 func _generate_map() -> void:
