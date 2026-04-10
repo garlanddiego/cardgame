@@ -2208,11 +2208,13 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 						target.apply_status("poison", envenom_stacks)
 					if target.get_status_stacks("bloodlust") > 0:
 						_bf_hemophilia_heal()
-					for _hero_sa in _get_all_alive_heroes():
-						var sa_bfang: int = _hero_sa.active_powers.get("sanguine_aura", 0)
-						if sa_bfang > 0 and target.alive:
-							target.apply_status("bloodlust", sa_bfang)
-							_bf_on_apply_bloodlust_check(_hero_sa, target, sa_bfang)
+					# Sanguine Aura: only on unblocked damage
+					if hp_dmg_bfang > 0:
+						for _hero_sa in _get_all_alive_heroes():
+							var sa_bfang: int = _hero_sa.active_powers.get("sanguine_aura", 0)
+							if sa_bfang > 0 and target.alive:
+								target.apply_status("bloodlust", sa_bfang)
+								_bf_on_apply_bloodlust_check(_hero_sa, target, sa_bfang)
 		"blood_rage":
 			var br_hero2: Node2D = card_hero if card_hero else player
 			var base_dmg: int = card_data.get("damage", 6)
@@ -2671,50 +2673,37 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 				if delay > 0:
 					var aoe_tween = create_tween()
 					aoe_tween.tween_interval(delay)
-					aoe_tween.tween_callback(enemy.take_damage.bind(dmg))
+					aoe_tween.tween_callback(_hit_enemy_with_effects.bind(enemy, dmg))
 				else:
-					enemy.take_damage(dmg)
-				# Envenom: apply 1 poison on hit
-				if envenom_stacks > 0 and enemy.alive:
-					enemy.apply_status("poison", envenom_stacks)
-				# Hemophilia: heal when enemy takes bloodlust damage
-				if enemy.get_status_stacks("bloodlust") > 0:
-					_bf_hemophilia_heal()
-				# Sanguine Aura: apply bloodlust on attack hit
-				for _h in _get_all_alive_heroes():
-					var sa: int = _h.active_powers.get("sanguine_aura", 0)
-					if sa > 0 and enemy.alive:
-						enemy.apply_status("bloodlust", sa)
-						_bf_on_apply_bloodlust_check(_h, enemy, sa)
+					_hit_enemy_with_effects(enemy, dmg)
 				delay += 0.12
 	elif target_type == "random_enemy":
 		var alive = _get_alive_enemies()
 		if not alive.is_empty():
 			var rand_target = alive[randi() % alive.size()]
-			rand_target.take_damage(dmg)
-			if envenom_stacks > 0 and rand_target.alive:
-				rand_target.apply_status("poison", envenom_stacks)
-			if rand_target.get_status_stacks("bloodlust") > 0:
-				_bf_hemophilia_heal()
-			# Sanguine Aura: apply bloodlust on attack hit
-			for _h in _get_all_alive_heroes():
-				var sa: int = _h.active_powers.get("sanguine_aura", 0)
-				if sa > 0 and rand_target.alive:
-					rand_target.apply_status("bloodlust", sa)
-					_bf_on_apply_bloodlust_check(_h, rand_target, sa)
+			_hit_enemy_with_effects(rand_target, dmg)
 	elif target != null and target.alive:
-		target.take_damage(dmg)
-		if envenom_stacks > 0 and target.alive and target.is_enemy:
-			target.apply_status("poison", envenom_stacks)
-		if target.is_enemy and target.get_status_stacks("bloodlust") > 0:
-			_bf_hemophilia_heal()
-		# Sanguine Aura: apply bloodlust on attack hit
-		if target.is_enemy:
-			for _h in _get_all_alive_heroes():
-				var sa: int = _h.active_powers.get("sanguine_aura", 0)
-				if sa > 0 and target.alive:
-					target.apply_status("bloodlust", sa)
-					_bf_on_apply_bloodlust_check(_h, target, sa)
+		_hit_enemy_with_effects(target, dmg)
+
+func _hit_enemy_with_effects(enemy: Node2D, dmg: int) -> void:
+	if not enemy.alive or not enemy.is_enemy:
+		return
+	var hp_before: int = enemy.current_hp
+	enemy.take_damage(dmg)
+	var took_hp_damage: bool = enemy.current_hp < hp_before
+	# Envenom: apply poison on hit
+	if envenom_stacks > 0 and enemy.alive:
+		enemy.apply_status("poison", envenom_stacks)
+	# Hemophilia: heal when enemy takes bloodlust damage
+	if enemy.get_status_stacks("bloodlust") > 0:
+		_bf_hemophilia_heal()
+	# Sanguine Aura: apply bloodlust only on unblocked damage
+	if took_hp_damage:
+		for _h in _get_all_alive_heroes():
+			var sa: int = _h.active_powers.get("sanguine_aura", 0)
+			if sa > 0 and enemy.alive:
+				enemy.apply_status("bloodlust", sa)
+				_bf_on_apply_bloodlust_check(_h, enemy, sa)
 
 func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
 	# First hit immediately

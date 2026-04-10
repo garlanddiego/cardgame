@@ -2075,12 +2075,23 @@ func _show_deck_viewer() -> void:
 		return cd_a.get("name", "") < cd_b.get("name", "")
 	)
 
+	var bp_check: Array = run.backpack.duplicate()
 	for card_id in sorted_deck:
 		var display_cd: Dictionary = _get_card_display(card_id)
 		if not display_cd.is_empty():
 			var card_visual := CardScript.create_card_visual(display_cd, card_size, loc)
 			card_visual.custom_minimum_size = card_size
 			card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
+			# Show backpack badge if this card is in the backpack
+			var bp_idx := bp_check.find(card_id)
+			if bp_idx >= 0:
+				bp_check.remove_at(bp_idx)
+				var bp_badge := Label.new()
+				bp_badge.text = "🎒"
+				bp_badge.add_theme_font_size_override("font_size", int(card_size.x * 0.14))
+				bp_badge.position = Vector2(card_size.x - card_size.x * 0.22, 4)
+				bp_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				card_visual.add_child(bp_badge)
 			grid.add_child(card_visual)
 
 	# Close button (X) top-right
@@ -2253,15 +2264,18 @@ func _show_backpack() -> void:
 	panel.add_child(bg)
 
 	var loc = get_node_or_null("/root/Loc")
-	var divider_x: float = vw * 0.65  # 65% left for deck, 35% right for backpack
-	# Card sizes: fit 5 columns left, 2 columns right
+	# Compute uniform card size so left (5 cols) and right (2 cols) cards match
 	var left_cols: int = 5
-	var left_gap: float = 12.0
-	var left_margin: float = 40.0
-	var left_card_w: float = floorf((divider_x - left_margin - left_gap * (left_cols - 1)) / left_cols)
-	var left_card_size := Vector2(left_card_w, floorf(left_card_w * 1.4))
-	var right_card_w: float = floorf((vw - divider_x - left_margin - 12.0) / 2.0)
-	var right_card_size := Vector2(right_card_w, floorf(right_card_w * 1.4))
+	var right_cols: int = 2
+	var gap: float = 12.0
+	var margin: float = 40.0
+	# Total gaps + margins: left(margin + 4*gap) + divider(20) + right(margin + 1*gap)
+	var total_spacing: float = margin + gap * (left_cols - 1) + 20.0 + margin + gap * (right_cols - 1)
+	var card_w: float = floorf((vw - total_spacing) / (left_cols + right_cols))
+	var card_size := Vector2(card_w, floorf(card_w * 1.4))
+	var left_card_size := card_size
+	var right_card_size := card_size
+	var divider_x: float = margin + left_cols * card_w + (left_cols - 1) * gap + 10.0
 
 	# === LEFT: All deck cards (excluding ones currently in backpack) ===
 	var left_title := Label.new()
