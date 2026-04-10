@@ -69,7 +69,7 @@ var attacks_played_this_turn: int = 0
 var cards_played_this_turn: int = 0
 var cards_drawn_this_turn: int = 0
 var cards_discarded_this_turn: int = 0
-var hp_lost_this_turn: int = 0
+var hp_loss_count_this_turn: int = 0
 var cards_exhausted_this_turn: int = 0
 # Per-combat stats (reset at start of battle)
 var hp_lost_this_combat: int = 0
@@ -782,7 +782,7 @@ func start_player_turn() -> void:
 	cards_played_this_turn = 0
 	cards_drawn_this_turn = 0
 	cards_discarded_this_turn = 0
-	hp_lost_this_turn = 0
+	hp_loss_count_this_turn = 0
 	cards_exhausted_this_turn = 0
 
 	# Anticipate dex removal now happens at end of turn (with Flex)
@@ -2230,7 +2230,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				base_dmg = br_hero2.get_attack_damage(base_dmg)
 			if _double_damage_this_turn:
 				base_dmg *= 2
-			var hits_br: int = 1 + hp_lost_this_turn
+			var hits_br: int = 1 + hp_loss_count_this_turn
 			_apply_multi_hit_damage(base_dmg, hits_br, target, target_type)
 		"siphon_life":
 			var sl_hero: Node2D = card_hero if card_hero else player
@@ -2765,7 +2765,7 @@ func _on_blood_rush_done() -> void:
 func _bf_on_hp_loss(hero: Node2D, amount: int) -> void:
 	## Trigger all bloodfiend powers that react to HP loss
 	hp_lost_this_combat += amount
-	hp_lost_this_turn += amount
+	hp_loss_count_this_turn += 1
 	if hero == null:
 		return
 	# Bloodlust power: gain strength on HP loss
