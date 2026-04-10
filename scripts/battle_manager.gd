@@ -1646,6 +1646,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 						var before_hp: int = enemy.current_hp
 						var enemy_block: int = enemy.block
 						enemy.take_damage(actual_dmg)
+						_on_hero_hit_enemy(enemy, before_hp)
 						var damage_dealt: int = mini(actual_dmg, before_hp + enemy_block) - enemy_block
 						if damage_dealt > 0:
 							total_healed += damage_dealt
@@ -1725,8 +1726,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if feed_hero:
 				base_dmg = feed_hero.get_attack_damage(base_dmg)
 			if target and target.alive:
-				var before_hp: int = target.current_hp
+				var hp_before_feed: int = target.current_hp
 				target.take_damage(base_dmg)
+				_on_hero_hit_enemy(target, hp_before_feed)
 				if not target.alive and feed_hero:
 					var hp_gain: int = card_data.get("max_hp_gain", 3)
 					feed_hero.max_hp += hp_gain
@@ -1942,7 +1944,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				for _hit in range(energy_spent):
 					for enemy in enemies:
 						if enemy.alive:
+							var hp_before_ts: int = enemy.current_hp
 							enemy.take_damage(base_dmg)
+							_on_hero_hit_enemy(enemy, hp_before_ts)
 							enemy.apply_status("poison", 1)
 		"echo_slash":
 			# Deal 5 damage, +1 hit per attack played this turn
@@ -2020,9 +2024,11 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				base_dmg *= 2
 			for enemy in enemies:
 				if enemy.alive:
+					var hp_before_bw: int = enemy.current_hp
 					enemy.take_damage(base_dmg)
 					enemy.apply_status("bloodlust", 1)
 					_bf_on_apply_bloodlust_check(card_hero, enemy, 1)
+					_on_hero_hit_enemy(enemy, hp_before_bw)
 		"savage_strike":
 			var base_dmg: int = card_data.get("damage", 6)
 			base_dmg += hp_lost_this_combat
@@ -2125,6 +2131,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					var before_hp: int = enemy.current_hp
 					var enemy_block: int = enemy.block
 					enemy.take_damage(base_dmg)
+					_on_hero_hit_enemy(enemy, before_hp)
 					var dealt: int = mini(base_dmg, before_hp + enemy_block) - enemy_block
 					if dealt > 0:
 						total_healed += dealt
@@ -2141,6 +2148,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				var before_hp: int = target.current_hp
 				var t_block: int = target.block
 				target.take_damage(base_dmg)
+				_on_hero_hit_enemy(target, before_hp)
 				var dealt: int = mini(base_dmg, before_hp + t_block) - t_block
 				if dealt > 0:
 					var heal_amt: int = card_data.get("heal_on_hit", 2)
@@ -2155,7 +2163,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if _double_damage_this_turn:
 				base_dmg *= 2
 			if target and target.alive:
+				var hp_before_bf: int = target.current_hp
 				target.take_damage(base_dmg)
+				_on_hero_hit_enemy(target, hp_before_bf)
 				if not target.alive and bf_hero:
 					var hp_gain: int = card_data.get("max_hp_gain", 3)
 					bf_hero.max_hp += hp_gain
@@ -2188,7 +2198,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			var vuln_stacks_bw: int = card_data.get("apply_status", {}).get("stacks", 1)
 			for enemy in enemies:
 				if enemy.alive:
+					var hp_before_bwave: int = enemy.current_hp
 					enemy.take_damage(base_dmg)
+					_on_hero_hit_enemy(enemy, hp_before_bwave)
 					enemy.apply_status("vulnerable", vuln_stacks_bw)
 			_bf_on_apply_vulnerable_check(bw_hero, "vulnerable", vuln_stacks_bw)
 		"blood_fang":
@@ -2208,17 +2220,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					if hp_dmg_bfang > 0:
 						target.apply_status("bloodlust", bl_on_unblocked)
 						_bf_on_apply_bloodlust_check(bfang_hero, target, bl_on_unblocked)
-					if envenom_stacks > 0 and target.alive:
-						target.apply_status("poison", envenom_stacks)
-					if target.get_status_stacks("bloodlust") > 0:
-						_bf_hemophilia_heal()
-					# Sanguine Aura: only on unblocked damage
-					if hp_dmg_bfang > 0:
-						for _hero_sa in _get_all_alive_heroes():
-							var sa_bfang: int = _hero_sa.active_powers.get("sanguine_aura", 0)
-							if sa_bfang > 0 and target.alive:
-								target.apply_status("bloodlust", sa_bfang)
-								_bf_on_apply_bloodlust_check(_hero_sa, target, sa_bfang)
+					_on_hero_hit_enemy(target, before_hp_bfang)
 		"blood_rage":
 			var br_hero2: Node2D = card_hero if card_hero else player
 			var base_dmg: int = card_data.get("damage", 6)
@@ -2566,7 +2568,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			var aoe_dmg: int = card_data.get("fg_sacrifice_dmg", 10)
 			for enemy in enemies:
 				if enemy.alive:
+					var hp_before_ss: int = enemy.current_hp
 					enemy.take_damage(aoe_dmg)
+					_on_hero_hit_enemy(enemy, hp_before_ss)
 			_destroy_greatsword()
 			_greatsword_no_summon_this_turn = true
 		"thorn_forge":
@@ -2694,11 +2698,16 @@ func _hit_enemy_with_effects(enemy: Node2D, dmg: int) -> void:
 		return
 	var hp_before: int = enemy.current_hp
 	enemy.take_damage(dmg)
+	_on_hero_hit_enemy(enemy, hp_before)
+
+func _on_hero_hit_enemy(enemy: Node2D, hp_before: int) -> void:
+	## Global post-damage effects: envenom, hemophilia, sanguine aura.
+	## Call after ANY hero attack deals damage to an enemy.
 	var took_hp_damage: bool = enemy.current_hp < hp_before
 	# Envenom: apply poison on hit
 	if envenom_stacks > 0 and enemy.alive:
 		enemy.apply_status("poison", envenom_stacks)
-	# Hemophilia: heal when enemy takes bloodlust damage
+	# Hemophilia: heal when enemy has bloodlust (took bloodlust bonus damage)
 	if enemy.get_status_stacks("bloodlust") > 0:
 		_bf_hemophilia_heal()
 	# Sanguine Aura: apply bloodlust only on unblocked damage
@@ -3276,18 +3285,22 @@ func _reset_hand_state() -> void:
 		card_hand.update_card_playability(current_energy)
 	_update_pile_labels()
 
-func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, use_strength: bool = true) -> void:
+func _deal_damage_to_target(damage: int, target: Node2D, target_type: String, _use_strength: bool = true) -> void:
 	if damage <= 0:
 		return
 	var actual_dmg: int = damage
 	if target_type == "all_enemies":
 		for enemy in enemies:
 			if enemy.alive:
+				var hp_before_ddt: int = enemy.current_hp
 				enemy.take_damage(actual_dmg)
+				_on_hero_hit_enemy(enemy, hp_before_ddt)
 				_swap_enemy_hit_sprite(enemy)
 	elif target != null and target.alive:
+		var hp_before_ddt2: int = target.current_hp
 		target.take_damage(actual_dmg)
 		if target.is_enemy:
+			_on_hero_hit_enemy(target, hp_before_ddt2)
 			_swap_enemy_hit_sprite(target)
 
 func end_player_turn() -> void:
