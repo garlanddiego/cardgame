@@ -217,7 +217,8 @@ func take_damage(amount: int) -> void:
 	else:
 		hp_changed.emit(current_hp, max_hp)
 		_update_hp_bar()
-		_flash_damage(actual_damage)
+		if actual_damage > 0:
+			_flash_damage(actual_damage)
 
 func take_damage_direct(amount: int) -> void:
 	## Deal damage bypassing block (e.g. self-harm effects like Offering, Hemokinesis)
