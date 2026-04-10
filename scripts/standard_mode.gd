@@ -2014,10 +2014,11 @@ func _show_deck_viewer() -> void:
 	# Render on DeckViewerCanvas (layer 15) — below PersistentHUD (20), above overlay (10)
 	if _deck_viewer_canvas == null:
 		return
-	# Remove previous deck viewer if open
-	var old_viewer = _deck_viewer_canvas.get_node_or_null("DeckViewerPanel")
-	if old_viewer:
-		old_viewer.queue_free()
+	# Close any existing overlays first
+	for panel_name in ["DeckViewerPanel", "BackpackPanel", "MapViewerPanel", "UpgradeDetailPanel", "ShopBuyDetail"]:
+		var old = _deck_viewer_canvas.get_node_or_null(panel_name)
+		if old:
+			old.queue_free()
 
 	var vw: float = get_viewport_rect().size.x
 	var viewer := Control.new()
@@ -2238,9 +2239,11 @@ func _show_backpack() -> void:
 		return
 	if _deck_viewer_canvas == null:
 		return
-	var old_bp = _deck_viewer_canvas.get_node_or_null("BackpackPanel")
-	if old_bp:
-		old_bp.queue_free()
+	# Close any existing overlays first
+	for panel_name in ["DeckViewerPanel", "BackpackPanel", "MapViewerPanel", "UpgradeDetailPanel", "ShopBuyDetail"]:
+		var old = _deck_viewer_canvas.get_node_or_null(panel_name)
+		if old:
+			old.queue_free()
 
 	var vw: float = get_viewport_rect().size.x
 	var panel := Control.new()

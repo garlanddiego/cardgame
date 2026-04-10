@@ -11,10 +11,12 @@ var _cart_insertion_order: Array = []  # Track insertion order for cart display
 
 # Card data tracking
 var all_card_data: Dictionary = {}
-var current_filter: String = ""  # "" = all, "ironclad", "silent", "neutral"
+var current_filter: String = ""  # "" = all, "ironclad", "silent", etc.
 var current_type_filter: int = -1  # -1 = all, 0=Attack, 1=Skill, 2=Power
 var current_version_filter: String = "all"  # "all", "old", "new"
-var current_upgrade_filter: String = "all"  # "all", "base", "upgraded"
+var current_upgrade_filter: String = "base"  # "all", "base", "upgraded" — default 未升级
+var current_status_filter: String = "active"  # "all", "active", "pending", "deprecated"
+var current_rarity_filter: String = "all"  # "all", "common", "uncommon", "rare"
 
 # STS card image mapping: delegated to Card script (single source of truth)
 var _CardScript = preload("res://scripts/card.gd")
@@ -73,6 +75,9 @@ func setup(char_id: String) -> void:
 	all_card_data.clear()
 	current_filter = ""
 	current_type_filter = -1
+	current_upgrade_filter = "base"
+	current_status_filter = "active"
+	current_rarity_filter = "all"
 	if is_inside_tree() and browse_grid != null:
 		_populate_browse()
 		_update_cart_ui()
@@ -133,77 +138,113 @@ func _build_browse_area(browse_w: float) -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(title)
 
-	# Filter bar
-	var filter_bar = HBoxContainer.new()
-	filter_bar.name = "FilterBar"
-	filter_bar.position = Vector2(20, content_top)
-	filter_bar.size = Vector2(browse_w - 40, FILTER_BAR_H)
-	filter_bar.add_theme_constant_override("separation", 12)
-	add_child(filter_bar)
+	# ── Row 1: Character + Type filters ──
+	var filter_row1 = HBoxContainer.new()
+	filter_row1.name = "FilterRow1"
+	filter_row1.position = Vector2(20, content_top)
+	filter_row1.size = Vector2(browse_w - 40, FILTER_BAR_H)
+	filter_row1.add_theme_constant_override("separation", 8)
+	add_child(filter_row1)
 
 	filter_all_btn = _make_filter_button("全部", "")
-	filter_bar.add_child(filter_all_btn)
+	filter_row1.add_child(filter_all_btn)
 	filter_ironclad_btn = _make_filter_button("铁甲", "ironclad")
-	filter_bar.add_child(filter_ironclad_btn)
+	filter_row1.add_child(filter_ironclad_btn)
 	filter_silent_btn = _make_filter_button("静默", "silent")
-	filter_bar.add_child(filter_silent_btn)
+	filter_row1.add_child(filter_silent_btn)
 	filter_bloodfiend_btn = _make_filter_button("血魔", "bloodfiend")
-	filter_bar.add_child(filter_bloodfiend_btn)
+	filter_row1.add_child(filter_bloodfiend_btn)
 	filter_forger_btn = _make_filter_button("铸造", "forger")
-	filter_bar.add_child(filter_forger_btn)
+	filter_row1.add_child(filter_forger_btn)
 	filter_fire_mage_btn = _make_filter_button("火法", "fire_mage")
-	filter_bar.add_child(filter_fire_mage_btn)
+	filter_row1.add_child(filter_fire_mage_btn)
 
-	# Separator between character and type filters
-	var filter_sep = VSeparator.new()
-	filter_sep.custom_minimum_size = Vector2(2, 30)
-	filter_bar.add_child(filter_sep)
+	var sep1 = VSeparator.new()
+	sep1.custom_minimum_size = Vector2(2, 30)
+	filter_row1.add_child(sep1)
 
-	# Card type filter buttons
 	type_filter_all_btn = _make_type_filter_button("全部", -1)
-	filter_bar.add_child(type_filter_all_btn)
+	filter_row1.add_child(type_filter_all_btn)
 	type_filter_attack_btn = _make_type_filter_button("攻击", 0)
-	filter_bar.add_child(type_filter_attack_btn)
+	filter_row1.add_child(type_filter_attack_btn)
 	type_filter_skill_btn = _make_type_filter_button("技能", 1)
-	filter_bar.add_child(type_filter_skill_btn)
+	filter_row1.add_child(type_filter_skill_btn)
 	type_filter_power_btn = _make_type_filter_button("能力", 2)
-	filter_bar.add_child(type_filter_power_btn)
+	filter_row1.add_child(type_filter_power_btn)
 
-	# Version filter separator
-	var ver_sep = VSeparator.new()
-	ver_sep.custom_minimum_size = Vector2(2, 30)
-	filter_bar.add_child(ver_sep)
+	# Exit button on right side of row 1
+	var spacer1 = Control.new()
+	spacer1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	filter_row1.add_child(spacer1)
+	var exit_btn = Button.new()
+	exit_btn.text = "退出"
+	exit_btn.custom_minimum_size = Vector2(80, 40)
+	var exit_style = StyleBoxFlat.new()
+	exit_style.bg_color = Color(0.5, 0.15, 0.15, 0.85)
+	exit_style.border_color = Color(0.9, 0.3, 0.3, 0.9)
+	exit_style.corner_radius_top_left = 6; exit_style.corner_radius_top_right = 6
+	exit_style.corner_radius_bottom_left = 6; exit_style.corner_radius_bottom_right = 6
+	exit_style.border_width_left = 1; exit_style.border_width_right = 1
+	exit_style.border_width_top = 1; exit_style.border_width_bottom = 1
+	exit_btn.add_theme_stylebox_override("normal", exit_style)
+	var exit_hover = exit_style.duplicate() as StyleBoxFlat
+	exit_hover.bg_color = Color(0.65, 0.2, 0.2, 0.9)
+	exit_btn.add_theme_stylebox_override("hover", exit_hover)
+	exit_btn.add_theme_font_size_override("font_size", 20)
+	exit_btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.9))
+	exit_btn.pressed.connect(_on_exit)
+	filter_row1.add_child(exit_btn)
 
-	# Version filter buttons
-	var ver_all_btn = _make_version_filter_button("全部", "all")
-	filter_bar.add_child(ver_all_btn)
-	var ver_old_btn = _make_version_filter_button("旧版", "old")
-	filter_bar.add_child(ver_old_btn)
-	var ver_new_btn = _make_version_filter_button("新版", "new")
-	filter_bar.add_child(ver_new_btn)
+	content_top += FILTER_BAR_H + 4
 
-	# Upgrade filter separator
-	var upg_sep = VSeparator.new()
-	upg_sep.custom_minimum_size = Vector2(2, 30)
-	filter_bar.add_child(upg_sep)
+	# ── Row 2: Status + Rarity + Version + Upgrade + Language ──
+	var filter_row2 = HBoxContainer.new()
+	filter_row2.name = "FilterRow2"
+	filter_row2.position = Vector2(20, content_top)
+	filter_row2.size = Vector2(browse_w - 40, FILTER_BAR_H)
+	filter_row2.add_theme_constant_override("separation", 8)
+	add_child(filter_row2)
 
-	# Upgrade filter buttons
-	var upg_all_btn = _make_upgrade_filter_button("全部", "all")
-	filter_bar.add_child(upg_all_btn)
-	var upg_base_btn = _make_upgrade_filter_button("未升级", "base")
-	filter_bar.add_child(upg_base_btn)
-	var upg_plus_btn = _make_upgrade_filter_button("已升级", "upgraded")
-	filter_bar.add_child(upg_plus_btn)
+	# Status filter
+	for sf in [["全部", "all"], ["启用", "active"], ["待用", "pending"], ["废弃", "deprecated"]]:
+		var btn = _make_status_filter_button(sf[0], sf[1])
+		filter_row2.add_child(btn)
 
-	# Language buttons on right side of filter bar
-	var spacer = Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	filter_bar.add_child(spacer)
+	var sep2 = VSeparator.new()
+	sep2.custom_minimum_size = Vector2(2, 30)
+	filter_row2.add_child(sep2)
 
+	# Rarity filter
+	for rf in [["全部", "all"], ["普通", "common"], ["高级", "uncommon"], ["稀有", "rare"]]:
+		var btn = _make_rarity_filter_button(rf[0], rf[1])
+		filter_row2.add_child(btn)
+
+	var sep3 = VSeparator.new()
+	sep3.custom_minimum_size = Vector2(2, 30)
+	filter_row2.add_child(sep3)
+
+	# Version filter
+	for vf in [["全部", "all"], ["旧版", "old"], ["新版", "new"]]:
+		var btn = _make_version_filter_button(vf[0], vf[1])
+		filter_row2.add_child(btn)
+
+	var sep4 = VSeparator.new()
+	sep4.custom_minimum_size = Vector2(2, 30)
+	filter_row2.add_child(sep4)
+
+	# Upgrade filter
+	for uf in [["全部", "all"], ["未升级", "base"], ["已升级", "upgraded"]]:
+		var btn = _make_upgrade_filter_button(uf[0], uf[1])
+		filter_row2.add_child(btn)
+
+	# Language buttons
+	var spacer2 = Control.new()
+	spacer2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	filter_row2.add_child(spacer2)
 	var lang_zh = _make_lang_button("中文", "zh")
-	filter_bar.add_child(lang_zh)
+	filter_row2.add_child(lang_zh)
 	var lang_en = _make_lang_button("English", "en")
-	filter_bar.add_child(lang_en)
+	filter_row2.add_child(lang_en)
 
 	content_top += FILTER_BAR_H + 8
 
@@ -420,11 +461,14 @@ func _make_version_filter_button(text: String, version: String) -> Button:
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.9))
+	btn.set_meta("filter_type", "version")
+	btn.set_meta("filter_value", version)
 	btn.pressed.connect(_on_version_filter.bind(version))
 	return btn
 
 func _on_version_filter(version: String) -> void:
 	current_version_filter = version
+	_rebuild_row2_styles()
 	_populate_browse()
 
 func _make_upgrade_filter_button(text: String, upgrade: String) -> Button:
@@ -448,12 +492,98 @@ func _make_upgrade_filter_button(text: String, upgrade: String) -> Button:
 	btn.add_theme_stylebox_override("hover", hover)
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.9))
+	btn.set_meta("filter_type", "upgrade")
+	btn.set_meta("filter_value", upgrade)
 	btn.pressed.connect(_on_upgrade_filter.bind(upgrade))
 	return btn
 
 func _on_upgrade_filter(upgrade: String) -> void:
 	current_upgrade_filter = upgrade
+	_rebuild_row2_styles()
 	_populate_browse()
+
+func _make_status_filter_button(text: String, status_val: String) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(65, 40)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.25, 0.3, 0.8) if status_val != current_status_filter else Color(0.4, 0.35, 0.15, 0.9)
+	style.border_color = Color(0.4, 0.5, 0.6, 0.7) if status_val != current_status_filter else Color(0.9, 0.75, 0.3, 0.9)
+	style.border_width_left = 1; style.border_width_right = 1
+	style.border_width_top = 1; style.border_width_bottom = 1
+	style.corner_radius_top_left = 6; style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6; style.corner_radius_bottom_right = 6
+	btn.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.3, 0.35, 0.45, 0.9)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	btn.set_meta("filter_type", "status")
+	btn.set_meta("filter_value", status_val)
+	btn.pressed.connect(_on_status_filter.bind(status_val))
+	return btn
+
+func _on_status_filter(status_val: String) -> void:
+	current_status_filter = status_val
+	_rebuild_row2_styles()
+	_populate_browse()
+
+func _make_rarity_filter_button(text: String, rarity_val: String) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(65, 40)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.25, 0.2, 0.3, 0.8) if rarity_val != current_rarity_filter else Color(0.4, 0.35, 0.15, 0.9)
+	style.border_color = Color(0.5, 0.4, 0.6, 0.7) if rarity_val != current_rarity_filter else Color(0.9, 0.75, 0.3, 0.9)
+	style.border_width_left = 1; style.border_width_right = 1
+	style.border_width_top = 1; style.border_width_bottom = 1
+	style.corner_radius_top_left = 6; style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6; style.corner_radius_bottom_right = 6
+	btn.add_theme_stylebox_override("normal", style)
+	var hover = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.35, 0.3, 0.45, 0.9)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.9, 1.0))
+	btn.set_meta("filter_type", "rarity")
+	btn.set_meta("filter_value", rarity_val)
+	btn.pressed.connect(_on_rarity_filter.bind(rarity_val))
+	return btn
+
+func _on_rarity_filter(rarity_val: String) -> void:
+	current_rarity_filter = rarity_val
+	_rebuild_row2_styles()
+	_populate_browse()
+
+func _rebuild_row2_styles() -> void:
+	var row2 = get_node_or_null("FilterRow2")
+	if row2 == null:
+		return
+	for child in row2.get_children():
+		if child is Button and child.has_meta("filter_type"):
+			var ftype: String = child.get_meta("filter_type")
+			var fval: String = child.get_meta("filter_value")
+			var is_active: bool = false
+			match ftype:
+				"status": is_active = (fval == current_status_filter)
+				"rarity": is_active = (fval == current_rarity_filter)
+				"version": is_active = (fval == current_version_filter)
+				"upgrade": is_active = (fval == current_upgrade_filter)
+			var style = child.get_theme_stylebox("normal") as StyleBoxFlat
+			if style:
+				var new_style = style.duplicate() as StyleBoxFlat
+				if is_active:
+					new_style.bg_color = Color(0.4, 0.35, 0.15, 0.9)
+					new_style.border_color = Color(0.9, 0.75, 0.3, 0.9)
+				else:
+					new_style.bg_color = Color(0.25, 0.25, 0.35, 0.8)
+					new_style.border_color = Color(0.5, 0.5, 0.7, 0.7)
+				child.add_theme_stylebox_override("normal", new_style)
+
+func _on_exit() -> void:
+	# Return to main menu
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 func _update_filter_button_styles() -> void:
 	# Highlight active character filter button
@@ -545,6 +675,18 @@ func _populate_browse() -> void:
 		# Apply card type filter
 		if current_type_filter >= 0 and card["type"] != current_type_filter:
 			continue
+		# Apply status filter
+		if current_status_filter != "all":
+			var card_status: String = card.get("card_status", "active")
+			if card_status != current_status_filter:
+				continue
+		# Apply rarity filter
+		if current_rarity_filter != "all":
+			var card_rarity: String = card.get("rarity", "common")
+			if card_rarity == "basic":
+				card_rarity = "common"  # basic cards show as common
+			if card_rarity != current_rarity_filter:
+				continue
 		# Apply version filter
 		if current_version_filter != "all":
 			var card_version: String = card.get("version", "old")
