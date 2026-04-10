@@ -929,7 +929,7 @@ func start_player_turn() -> void:
 		card_hand.update_card_playability(current_energy)
 	turn_started.emit(true)
 
-func draw_cards(count: int) -> void:
+func draw_cards(count: int, instant: bool = false) -> void:
 	var drawn_count: int = 0
 	for i in range(count):
 		if hand.size() >= 10:
@@ -944,8 +944,10 @@ func draw_cards(count: int) -> void:
 		hand.append(card_data)
 		cards_drawn_this_turn += 1
 		if card_hand:
-			# Stagger draw animation: each card flies in with a slight delay
-			if drawn_count > 0:
+			if instant:
+				card_hand.add_card(card_data, false)
+			elif drawn_count > 0:
+				# Stagger draw animation: each card flies in with a slight delay
 				var delay_tween = create_tween()
 				var idx = drawn_count
 				delay_tween.tween_interval(0.15 * idx)
@@ -2324,7 +2326,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 		"bloodhound":
 			var draw_n: int = card_data.get("bf_draw_count", 3)
 			var hand_before: int = hand.size()
-			draw_cards(draw_n)
+			draw_cards(draw_n, true)  # instant=true to avoid tween race
 			# Discard non-attack cards that were just drawn
 			var to_discard_bh: Array = []
 			for i in range(hand_before, hand.size()):
@@ -2334,10 +2336,12 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				hand.erase(c)
 				discard_pile.append(c)
 				_check_sly_on_discard(c)
-			if not to_discard_bh.is_empty() and card_hand:
-				card_hand.clear_hand()
-				for c in hand:
-					card_hand.add_card(c, false)
+				# Remove visual card node
+				if card_hand:
+					for card_node in card_hand.cards.duplicate():
+						if is_instance_valid(card_node) and card_node.card_data == c:
+							card_hand.remove_card(card_node)
+							break
 		"survival_instinct":
 			var si_hero: Node2D = card_hero if card_hero else player
 			if si_hero:
@@ -2701,22 +2705,22 @@ func _hit_enemy_with_effects(enemy: Node2D, dmg: int) -> void:
 	_on_hero_hit_enemy(enemy, hp_before)
 
 func _on_hero_hit_enemy(enemy: Node2D, hp_before: int) -> void:
-	## Global post-damage effects: envenom, hemophilia, sanguine aura.
+	## Global post-damage effects: envenom, sanguine aura, then hemophilia.
 	## Call after ANY hero attack deals damage to an enemy.
 	var took_hp_damage: bool = enemy.current_hp < hp_before
 	# Envenom: apply poison on hit
 	if envenom_stacks > 0 and enemy.alive:
 		enemy.apply_status("poison", envenom_stacks)
-	# Hemophilia: heal when enemy has bloodlust (took bloodlust bonus damage)
-	if enemy.get_status_stacks("bloodlust") > 0:
-		_bf_hemophilia_heal()
-	# Sanguine Aura: apply bloodlust only on unblocked damage
+	# Sanguine Aura: apply bloodlust only on unblocked damage (before hemophilia check)
 	if took_hp_damage:
 		for _h in _get_all_alive_heroes():
 			var sa: int = _h.active_powers.get("sanguine_aura", 0)
 			if sa > 0 and enemy.alive:
 				enemy.apply_status("bloodlust", sa)
 				_bf_on_apply_bloodlust_check(_h, enemy, sa)
+	# Hemophilia: heal when enemy has bloodlust (checked AFTER sanguine aura may apply it)
+	if enemy.get_status_stacks("bloodlust") > 0:
+		_bf_hemophilia_heal()
 
 func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_type: String) -> void:
 	# First hit immediately
