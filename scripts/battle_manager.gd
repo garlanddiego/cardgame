@@ -4225,16 +4225,18 @@ func _process(_delta: float) -> void:
 			# Show damage previews for attack cards
 			if _damage_preview_labels.is_empty():
 				_show_damage_previews()
-		elif target_type == "self" and dual_hero_mode:
+		elif target_type == "self":
 			# hero_target routing: "self" = card's own hero, "all_heroes" = all, "target_hero" = user picks
 			var ht: String = card_data.get("hero_target", "self")
-			if ht == "target_hero":
+			if ht == "target_hero" and dual_hero_mode:
 				_highlight_heroes()
 			elif ht == "all_heroes":
 				_highlight_heroes()
-			elif _card_affects_hero(card_data):
-				# "self" — highlight only if card modifies hero attributes/status
+			else:
+				# Highlight the card's own hero (single or dual mode)
 				var own_hero = _get_card_hero(card_data)
+				if own_hero == null:
+					own_hero = player
 				if own_hero and own_hero.has_method("show_target_highlight"):
 					own_hero.show_target_highlight()
 		elif target_type == "all_enemies" or target_type == "random_enemy":
