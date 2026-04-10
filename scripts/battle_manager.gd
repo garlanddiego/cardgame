@@ -5185,10 +5185,10 @@ func _setup_pile_viewer() -> void:
 	bg.gui_input.connect(_on_pile_viewer_bg_clicked)
 	_pile_viewer.add_child(bg)
 
-	# Title — below persistent HUD (50px)
+	# Title — below persistent HUD bar (75px)
 	var title = Label.new()
 	title.name = "Title"
-	title.position = Vector2(0, 60)
+	title.position = Vector2(0, 85)
 	title.size = Vector2(vw, 50)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 32)
@@ -5199,8 +5199,8 @@ func _setup_pile_viewer() -> void:
 	# Scroll container for card grid (added before close button so button gets input priority)
 	var scroll = ScrollContainer.new()
 	scroll.name = "Scroll"
-	scroll.position = Vector2(60, 115)
-	scroll.size = Vector2(vw - 120, 905)
+	scroll.position = Vector2(60, 140)
+	scroll.size = Vector2(vw - 120, 880)
 	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_pile_viewer.add_child(scroll)
 
@@ -5212,11 +5212,11 @@ func _setup_pile_viewer() -> void:
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(grid)
 
-	# Close button (X) top-right — added AFTER scroll so it receives input on top
+	# Close button (X) top-right — below persistent HUD bar
 	var close_btn = Button.new()
 	close_btn.name = "CloseButton"
 	close_btn.text = "✕"
-	close_btn.position = Vector2(vw - 80, 55)
+	close_btn.position = Vector2(vw - 80, 85)
 	close_btn.custom_minimum_size = Vector2(60, 60)
 	close_btn.add_theme_font_size_override("font_size", 32)
 	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))

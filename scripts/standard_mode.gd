@@ -2080,14 +2080,14 @@ func _show_deck_viewer() -> void:
 	left_title.add_theme_font_size_override("font_size", 30)
 	left_title.add_theme_color_override("font_color", Color(1, 1, 0.8))
 	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	left_title.position = Vector2(0, 20)
+	left_title.position = Vector2(0, 85)
 	left_title.size = Vector2(left_w, 40)
 	left_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	viewer.add_child(left_title)
 
 	var left_scroll := ScrollContainer.new()
-	left_scroll.position = Vector2(10, 65)
-	left_scroll.size = Vector2(left_w - 20, 960)
+	left_scroll.position = Vector2(10, 130)
+	left_scroll.size = Vector2(left_w - 20, 895)
 	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	viewer.add_child(left_scroll)
 
@@ -2110,8 +2110,8 @@ func _show_deck_viewer() -> void:
 	# Separator line
 	var sep := ColorRect.new()
 	sep.color = Color(0.5, 0.5, 0.7, 0.5)
-	sep.position = Vector2(left_w, 20)
-	sep.size = Vector2(2, 1020)
+	sep.position = Vector2(left_w, 85)
+	sep.size = Vector2(2, 955)
 	viewer.add_child(sep)
 
 	var right_title := Label.new()
@@ -2119,14 +2119,14 @@ func _show_deck_viewer() -> void:
 	right_title.add_theme_font_size_override("font_size", 28)
 	right_title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.4))
 	right_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	right_title.position = Vector2(left_w, 20)
+	right_title.position = Vector2(left_w, 85)
 	right_title.size = Vector2(right_w, 40)
 	right_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	viewer.add_child(right_title)
 
 	var right_scroll := ScrollContainer.new()
-	right_scroll.position = Vector2(left_w + 10, 65)
-	right_scroll.size = Vector2(right_w - 20, 960)
+	right_scroll.position = Vector2(left_w + 10, 130)
+	right_scroll.size = Vector2(right_w - 20, 895)
 	right_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	viewer.add_child(right_scroll)
 
@@ -2145,10 +2145,10 @@ func _show_deck_viewer() -> void:
 			card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
 			right_grid.add_child(card_visual)
 
-	# Close button (X) top-right
+	# Close button (X) top-right — below persistent HUD bar
 	var close_btn := Button.new()
 	close_btn.text = "✕"
-	close_btn.position = Vector2(vw - 70, 15)
+	close_btn.position = Vector2(vw - 70, 85)
 	close_btn.custom_minimum_size = Vector2(55, 55)
 	close_btn.add_theme_font_size_override("font_size", 30)
 	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -2191,15 +2191,15 @@ func _show_map_viewer() -> void:
 	title.add_theme_font_size_override("font_size", 32)
 	title.add_theme_color_override("font_color", Color(1, 1, 0.8))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(0, 60)
+	title.position = Vector2(0, 85)
 	title.size = Vector2(vw, 50)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	viewer.add_child(title)
 
 	# Scroll container for map
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(60, 110)
-	scroll.size = Vector2(vw - 120, 920)
+	scroll.position = Vector2(60, 140)
+	scroll.size = Vector2(vw - 120, 890)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -2254,10 +2254,10 @@ func _show_map_viewer() -> void:
 	var scroll_y: int = maxi(0, total_height - int((run.floor_num + 2) * floor_height) - 400)
 	scroll.scroll_vertical = scroll_y
 
-	# Close button (X) top-right
+	# Close button (X) top-right — below persistent HUD bar
 	var close_btn := Button.new()
 	close_btn.text = "✕"
-	close_btn.position = Vector2(vw - 80, 55)
+	close_btn.position = Vector2(vw - 80, 85)
 	close_btn.custom_minimum_size = Vector2(60, 60)
 	close_btn.add_theme_font_size_override("font_size", 32)
 	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -2336,15 +2336,15 @@ func _show_backpack() -> void:
 	left_title.add_theme_font_size_override("font_size", 28)
 	left_title.add_theme_color_override("font_color", Color(1, 1, 0.8))
 	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	left_title.position = Vector2(0, 60)
+	left_title.position = Vector2(0, 85)
 	left_title.size = Vector2(divider_x, 40)
 	left_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(left_title)
 
 	var left_scroll := ScrollContainer.new()
 	left_scroll.name = "LeftScroll"
-	left_scroll.position = Vector2(20, 105)
-	left_scroll.size = Vector2(divider_x - 40, 880)
+	left_scroll.position = Vector2(20, 130)
+	left_scroll.size = Vector2(divider_x - 40, 855)
 	left_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	panel.add_child(left_scroll)
 
@@ -2363,14 +2363,14 @@ func _show_backpack() -> void:
 	right_title.add_theme_font_size_override("font_size", 28)
 	right_title.add_theme_color_override("font_color", Color(1, 0.8, 0.5))
 	right_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	right_title.position = Vector2(divider_x, 60)
+	right_title.position = Vector2(divider_x, 85)
 	right_title.size = Vector2(vw - divider_x, 40)
 	right_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(right_title)
 
 	var right_scroll := ScrollContainer.new()
-	right_scroll.position = Vector2(divider_x + 20, 105)
-	right_scroll.size = Vector2(vw - divider_x - 40, 880)
+	right_scroll.position = Vector2(divider_x + 20, 130)
+	right_scroll.size = Vector2(vw - divider_x - 40, 855)
 	right_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	panel.add_child(right_scroll)
 
@@ -2385,8 +2385,8 @@ func _show_backpack() -> void:
 	# Divider line
 	var divider := ColorRect.new()
 	divider.color = Color(0.4, 0.35, 0.25, 0.8)
-	divider.position = Vector2(divider_x - 1, 55)
-	divider.size = Vector2(2, 950)
+	divider.position = Vector2(divider_x - 1, 85)
+	divider.size = Vector2(2, 920)
 	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(divider)
 
