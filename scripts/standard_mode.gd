@@ -109,12 +109,12 @@ func _build_persistent_hud(canvas: CanvasLayer) -> void:
 	_hud_hp2_label = _hud_label("♥ %s %d/%d" % [_hero_name(run.hero2_id), run.hero2_hp, run.hero2_max_hp])
 	hbox.add_child(_hud_hp2_label)
 
-	_hud_gold_label = _hud_label("💰 %d" % run.gold)
+	_hud_gold_label = _hud_label("$ %d" % run.gold)
 	hbox.add_child(_hud_gold_label)
 
 	# Backpack button — shows backpack card count and battle uses
 	_hud_backpack_btn = Button.new()
-	_hud_backpack_btn.text = "🎒 %d/4" % run.backpack.size()
+	_hud_backpack_btn.text = "[包] %d/4" % run.backpack.size()
 	_hud_backpack_btn.add_theme_font_size_override("font_size", 20)
 	_hud_backpack_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
 	var bp_style := StyleBoxFlat.new()
@@ -799,7 +799,7 @@ func _show_map() -> void:
 
 func _update_hud_labels() -> void:
 	if _hud_gold_label:
-		_hud_gold_label.text = "💰 %d" % run.gold
+		_hud_gold_label.text = "$ %d" % run.gold
 	if _hud_hp1_label:
 		_hud_hp1_label.text = "♥ %s %d/%d" % [_hero_name(run.hero1_id), run.hero1_hp, run.hero1_max_hp]
 	if _hud_hp2_label:
@@ -915,25 +915,28 @@ func _create_map_node(key: String, nd: Dictionary, pos: Vector2, size: int) -> B
 	btn.offset_right = pos.x + size / 2
 	btn.offset_bottom = pos.y + size / 2
 
-	# Icon/text based on type
-	var icon_text := ""
+	# Icon based on type
+	var icon_path := ""
 	var node_color := Color.WHITE
 	match nd["type"]:
 		"M":
-			icon_text = "⚔"
+			icon_path = "res://assets/img/ui_icons/map_battle.png"
 			node_color = Color(0.85, 0.28, 0.18)
 		"R":
-			icon_text = "🔥"
+			icon_path = "res://assets/img/ui_icons/map_rest.png"
 			node_color = Color(0.25, 0.7, 0.3)
 		"S":
-			icon_text = "💰"
+			icon_path = "res://assets/img/ui_icons/map_shop.png"
 			node_color = Color(0.85, 0.75, 0.2)
 		"B":
-			icon_text = "💀"
+			icon_path = "res://assets/img/ui_icons/map_boss.png"
 			node_color = Color(0.75, 0.12, 0.12)
 
-	btn.text = icon_text
-	btn.add_theme_font_size_override("font_size", 32)
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		btn.icon = load(icon_path)
+		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		btn.expand_icon = true
+	btn.text = ""
 
 	# Style
 	var style := StyleBoxFlat.new()
@@ -1218,17 +1221,17 @@ func _show_rewards() -> void:
 	_reward_dialog.add_child(vbox)
 
 	# Gold reward row
-	_reward_btn_gold = _reward_row("💰", "%d 金币" % _reward_gold_amount, Color(0.9, 0.8, 0.3))
+	_reward_btn_gold = _reward_row("$", "%d 金币" % _reward_gold_amount, Color(0.9, 0.8, 0.3))
 	_reward_btn_gold.pressed.connect(_on_reward_gold_clicked)
 	vbox.add_child(_reward_btn_gold)
 
 	# Hero 1 card reward row
-	_reward_btn_h1 = _reward_row("🃏", "%s 卡牌" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
+	_reward_btn_h1 = _reward_row("[卡]", "%s 卡牌" % _hero_name(run.hero1_id), _hero_color(run.hero1_id))
 	_reward_btn_h1.pressed.connect(_on_reward_h1_clicked)
 	vbox.add_child(_reward_btn_h1)
 
 	# Hero 2 card reward row (hidden in solo mode)
-	_reward_btn_h2 = _reward_row("🃏", "%s 卡牌" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
+	_reward_btn_h2 = _reward_row("[卡]", "%s 卡牌" % _hero_name(run.hero2_id), _hero_color(run.hero2_id))
 	_reward_btn_h2.pressed.connect(_on_reward_h2_clicked)
 	vbox.add_child(_reward_btn_h2)
 	if _solo_mode:
@@ -1298,7 +1301,7 @@ func _on_reward_gold_clicked() -> void:
 	run.add_gold(_reward_gold_amount)
 	_reward_gold_collected = true
 	_reward_btn_gold.disabled = true
-	_reward_btn_gold.text = "  💰   已获取 %d 金币 (总计: %d)" % [_reward_gold_amount, run.gold]
+	_reward_btn_gold.text = "  $   已获取 %d 金币 (总计: %d)" % [_reward_gold_amount, run.gold]
 	_reward_btn_gold.modulate = Color(0.5, 0.5, 0.5, 0.7)
 	# Animate gold fly to top-right
 	var gold_fly := Label.new()
@@ -1709,7 +1712,7 @@ func _show_shop() -> void:
 	_overlay.add_child(bg)
 
 	var title := Label.new()
-	title.text = "💰 商店"
+	title.text = "$ 商店"
 	title.add_theme_font_size_override("font_size", 48)
 	title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.2))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1789,7 +1792,7 @@ func _show_shop() -> void:
 		# Price tag below card
 		var price_label := Label.new()
 		price_label.name = "PriceLabel"
-		price_label.text = "💰 %d" % price
+		price_label.text = "$ %d" % price
 		price_label.set_meta("price", price)
 		price_label.add_theme_font_size_override("font_size", 18)
 		price_label.add_theme_color_override("font_color", Color(1, 0.85, 0.2) if run.gold >= price else Color(0.9, 0.2, 0.2))
@@ -2088,7 +2091,7 @@ func _show_deck_viewer() -> void:
 			if bp_idx >= 0:
 				bp_check.remove_at(bp_idx)
 				var bp_badge := Label.new()
-				bp_badge.text = "🎒"
+				bp_badge.text = "[包]"
 				bp_badge.add_theme_font_size_override("font_size", int(card_size.x * 0.14))
 				bp_badge.position = Vector2(card_size.x - card_size.x * 0.22, 4)
 				bp_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2229,9 +2232,9 @@ func _update_backpack_btn_text() -> void:
 	if _hud_backpack_btn == null:
 		return
 	if phase == Phase.BATTLE:
-		_hud_backpack_btn.text = "🎒 %d/4 (%d)" % [run.backpack.size(), _backpack_uses_in_battle]
+		_hud_backpack_btn.text = "[包] %d/4 (%d)" % [run.backpack.size(), _backpack_uses_in_battle]
 	else:
-		_hud_backpack_btn.text = "🎒 %d/4" % run.backpack.size()
+		_hud_backpack_btn.text = "[包] %d/4" % run.backpack.size()
 
 func _show_backpack() -> void:
 	# In battle, check uses
