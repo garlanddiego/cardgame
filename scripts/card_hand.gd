@@ -19,6 +19,7 @@ var dead_hero_chars: Array = []  # Character IDs of dead heroes — their cards 
 # Discard selection mode — cards are tapped to toggle discard selection
 var discard_mode: bool = false
 var _discard_max: int = 0  # Max cards to select for discard
+var _discard_type_filter: int = -1  # -1 = no filter, 0 = attack only
 var _discard_selected_indices: Array = []  # Indices into cards array
 
 var card_script: GDScript = null
@@ -329,6 +330,9 @@ func _toggle_discard_card(card_node: Area2D) -> void:
 	var idx: int = cards.find(card_node)
 	if idx < 0:
 		return
+	# Type filter: only allow selecting cards of the required type
+	if _discard_type_filter >= 0 and card_node.card_data.get("type", -1) != _discard_type_filter:
+		return
 	if idx in _discard_selected_indices:
 		# Already selected → deselect, return card to hand
 		_discard_selected_indices.erase(idx)
@@ -606,6 +610,7 @@ func exit_discard_mode() -> void:
 	## Exit discard selection mode, reset card highlights
 	discard_mode = false
 	_discard_max = 0
+	_discard_type_filter = -1
 	for i in range(cards.size()):
 		var card = cards[i]
 		if is_instance_valid(card) and card.card_visual:

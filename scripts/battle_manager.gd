@@ -95,6 +95,7 @@ var _blood_pact_draw: int = 2
 var _bf_flex_heroes: Array = []  # Track temp strength from bloodrage
 var _bf_predator_instinct_block: int = 0  # Block per attack this turn
 var _bf_blood_shell_active: bool = false  # Apply bloodlust when hit this turn
+var _bf_blood_shell_stacks: int = 1  # Bloodlust stacks to apply when hit
 
 # Standard Mode: custom monster configuration
 var standard_mode_monsters: Array = []  # [{id: "mushroom", hp: 40}, ...]
@@ -129,6 +130,7 @@ var _discard_selected_cards: Array = []  # indices into hand array
 var _discard_required_count: int = 0
 var _discard_callback: Callable
 var _discard_as_exhaust: bool = false  # Burning Pact: exhaust instead of discard
+var _blood_rush_mode: bool = false  # Blood Rush: reduce cost instead of removing card
 var _discard_confirm_btn: Button = null
 var _discard_title_label: Label = null
 
@@ -832,6 +834,7 @@ func start_player_turn() -> void:
 	# Reset Blood Fiend temporary effects
 	_bf_predator_instinct_block = 0
 	_bf_blood_shell_active = false
+	_bf_blood_shell_stacks = 1
 
 	# Process queued next-turn effects
 	_process_next_turn_effects()
@@ -2271,26 +2274,19 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				vg_hero.add_block(total_block)
 				_trigger_juggernaut()
 		"blood_rush":
-			# Reduce cost of a random attack in hand for this combat
-			var attack_indices: Array = []
-			for i in range(hand.size()):
-				if hand[i].get("type", -1) == 0:  # ATTACK type
-					attack_indices.append(i)
-			if not attack_indices.is_empty():
-				var pick: int = attack_indices[randi() % attack_indices.size()]
-				var chosen: Dictionary = hand[pick]
-				var old_cost: int = chosen.get("cost", 1)
-				if old_cost > 0:
-					chosen["cost"] = old_cost - 1
-					# Also reduce in deck for permanent effect
-					for dc in draw_pile + discard_pile + hand:
-						if dc.get("id", "") == chosen.get("id", "") and dc.get("cost", 1) == old_cost:
-							dc["cost"] = old_cost - 1
-							break
+			# Let the player choose an attack card to reduce its cost by 1
+			var has_attacks: bool = false
+			for c in hand:
+				if c.get("type", -1) == 0:
+					has_attacks = true
+					break
+			if has_attacks:
+				_blood_rush_mode = true
 				if card_hand:
-					card_hand.clear_hand()
-					for c in hand:
-						card_hand.add_card(c, false)
+					card_hand._discard_type_filter = 0  # Attack cards only
+				_show_discard_selection(1, _on_blood_rush_done)
+				return
+			# No attacks in hand — do nothing
 		"bloodhound":
 			var draw_n: int = card_data.get("bf_draw_count", 3)
 			var hand_before: int = hand.size()
@@ -2406,6 +2402,10 @@ func _on_bloodbath_exhaust_done() -> void:
 
 func _on_blood_pact_exhaust_done() -> void:
 	draw_cards(_blood_pact_draw)
+	_update_pile_labels()
+
+func _on_blood_rush_done() -> void:
+	# Card was cost-reduced in place by _on_discard_confirm (blood_rush_mode)
 	_update_pile_labels()
 
 func _bf_on_hp_loss(hero: Node2D, amount: int) -> void:
@@ -2565,9 +2565,9 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 		"pain_threshold", "pain_threshold_plus":
 			power_stacks = 6 if is_plus else 3
 		"blood_bond", "blood_bond_plus":
-			power_stacks = 1
+			power_stacks = 2 if is_plus else 1
 		"undying_will":
-			power_stacks = 2  # 2 triggers
+			power_stacks = 3 if is_plus else 2
 		"scarlet_chains":
 			power_stacks = 1
 		"hemophilia":
@@ -2577,6 +2577,7 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 			show_icon = false  # Temporary skill effect
 		"blood_shell":
 			_bf_blood_shell_active = true
+			_bf_blood_shell_stacks = 2 if is_plus else 1
 			show_icon = false  # Temporary skill effect
 
 	# Accumulate per_turn effects on hero metadata for simulator snapshot
@@ -3095,8 +3096,8 @@ func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 		enemy.take_damage(caltrops_dmg)
 	# Blood Shell: apply bloodlust to attacker when hit (temporary)
 	if _bf_blood_shell_active and enemy.alive:
-		enemy.apply_status("bloodlust", 1)
-		_bf_on_apply_bloodlust_check(attacked_hero, enemy, 1)
+		enemy.apply_status("bloodlust", _bf_blood_shell_stacks)
+		_bf_on_apply_bloodlust_check(attacked_hero, enemy, _bf_blood_shell_stacks)
 
 func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 	var front = get_front_player()
@@ -4745,7 +4746,10 @@ func _show_discard_selection(count: int, callback: Callable) -> void:
 
 	# Update title
 	if _discard_title_label:
-		_discard_title_label.text = "选择 %d 张牌弃掉 (点击手牌选择)" % count
+		if _blood_rush_mode:
+			_discard_title_label.text = "选择1张攻击牌降低费用 (点击手牌选择)"
+		else:
+			_discard_title_label.text = "选择 %d 张牌弃掉 (点击手牌选择)" % count
 
 	_update_discard_confirm_style()
 
@@ -4819,17 +4823,30 @@ func _on_discard_confirm() -> void:
 	for idx in sorted_indices:
 		if idx < hand.size():
 			var card_data = hand[idx]
-			if _discard_as_exhaust:
+			if _blood_rush_mode:
+				# Blood Rush: reduce card cost by 1, keep in hand
+				var old_cost: int = card_data.get("cost", 1)
+				if old_cost > 0:
+					card_data["cost"] = old_cost - 1
+					# Also reduce matching copies in draw/discard pile
+					for dc in draw_pile + discard_pile:
+						if dc.get("id", "") == card_data.get("id", "") and dc.get("cost", 1) == old_cost:
+							dc["cost"] = old_cost - 1
+							break
+			elif _discard_as_exhaust:
 				_exhaust_card(card_data)
+				hand.remove_at(idx)
 			elif _setup_mode:
 				# Setup: put on top of draw pile instead of discard
 				draw_pile.append(card_data)
+				hand.remove_at(idx)
 			else:
 				discard_pile.append(card_data)
 				_check_sly_on_discard(card_data)
-			hand.remove_at(idx)
+				hand.remove_at(idx)
 	_setup_mode = false
 	_discard_as_exhaust = false
+	_blood_rush_mode = false
 	# Rebuild hand display — snap to position without any animation
 	if card_hand:
 		card_hand.clear_hand()
