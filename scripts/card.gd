@@ -193,7 +193,14 @@ static func create_card_visual(card: Dictionary, size: Vector2, loc: Node = null
 	banner_bg.position = Vector2(banner_margin, banner_y)
 	banner_bg.size = Vector2(size.x - banner_margin * 2.0, banner_h)
 	var banner_style = StyleBoxFlat.new()
-	banner_style.bg_color = Color(0.55, 0.55, 0.58, 0.9)  # Silver/grey
+	# Rarity-based banner color: common=grey, uncommon=blue, rare=gold
+	var rarity_raw: String = card.get("rarity", "")
+	var banner_color: Color
+	match rarity_raw:
+		"uncommon": banner_color = Color(0.2, 0.38, 0.72, 0.95)   # Blue
+		"rare": banner_color = Color(0.75, 0.6, 0.12, 0.95)        # Gold
+		_: banner_color = Color(0.48, 0.48, 0.5, 0.9)              # Grey (common/basic)
+	banner_style.bg_color = banner_color
 	var banner_cr: int = int(4.0 * sx)
 	banner_style.corner_radius_top_left = banner_cr
 	banner_style.corner_radius_top_right = banner_cr
