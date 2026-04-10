@@ -94,6 +94,7 @@ var _bloodbath_hero: Node2D = null
 var _blood_pact_draw: int = 2
 var _bf_flex_heroes: Array = []  # Track temp strength from bloodrage
 var _bf_predator_instinct_block: int = 0  # Block per attack this turn
+var _bf_predator_instinct_draw: int = 0  # Draw per attack this turn
 var _bf_blood_shell_active: bool = false  # Apply bloodlust when hit this turn
 var _bf_blood_shell_stacks: int = 1  # Bloodlust stacks to apply when hit
 
@@ -850,6 +851,7 @@ func start_player_turn() -> void:
 
 	# Reset Blood Fiend temporary effects
 	_bf_predator_instinct_block = 0
+	_bf_predator_instinct_draw = 0
 	_bf_blood_shell_active = false
 	_bf_blood_shell_stacks = 1
 
@@ -1118,11 +1120,13 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			if rage_stacks > 0:
 				hero.add_block(rage_stacks)
 				_trigger_juggernaut()
-		# Predator Instinct: gain block per attack played (temporary)
+		# Predator Instinct: gain block + draw per attack played (temporary)
 		if _bf_predator_instinct_block > 0:
 			for hero in _get_all_alive_heroes():
 				hero.add_block(_bf_predator_instinct_block)
 				_trigger_juggernaut()
+		if _bf_predator_instinct_draw > 0:
+			draw_cards(_bf_predator_instinct_draw)
 		# Sword Mastery: forge on attack play
 		for hero in _get_all_alive_heroes():
 			var sm: int = hero.active_powers.get("fg_sword_mastery", 0)
@@ -3097,6 +3101,7 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 			power_stacks = 1
 		"predator_instinct":
 			_bf_predator_instinct_block = 4 if is_plus else 2
+			_bf_predator_instinct_draw = 1
 			show_icon = false  # Temporary skill effect
 		"blood_shell":
 			_bf_blood_shell_active = true

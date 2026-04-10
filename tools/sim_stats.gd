@@ -9,12 +9,16 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var input_csv := "sim_silent_4combo.csv"
 	var output_csv := ""
+	var max_hp_loss := -1  # -1 = no filter
+	var hero_max_hp := 200
 
 	var i := 0
 	while i < args.size():
 		match args[i]:
 			"--input": i += 1; input_csv = args[i] if i < args.size() else input_csv
 			"--csv": i += 1; output_csv = args[i] if i < args.size() else ""
+			"--max-hp-loss": i += 1; max_hp_loss = int(args[i]) if i < args.size() else -1
+			"--hero-hp": i += 1; hero_max_hp = int(args[i]) if i < args.size() else 200
 		i += 1
 
 	# Access GameManager for card names
@@ -47,6 +51,8 @@ func _init() -> void:
 	var card_data: Dictionary = {}  # card_id -> {appearances, total_hp, ...}
 	var total_rows := 0
 
+	var filtered_rows := 0
+
 	while not file.eof_reached():
 		var line := file.get_csv_line()
 		if line.size() < 7:
@@ -55,6 +61,13 @@ func _init() -> void:
 
 		var ids_str: String = line[1]  # 卡牌ID column
 		var hp: int = int(line[3])     # 剩余HP
+
+		# Filter by max HP loss
+		if max_hp_loss >= 0:
+			var hp_loss := hero_max_hp - hp
+			if hp_loss >= max_hp_loss:
+				continue
+		filtered_rows += 1
 		var turns: int = int(line[4])  # 回合数
 		var cards_played: int = int(line[5])  # 出牌数
 		var max_dmg: int = int(line[6])  # 最大单轮伤害
@@ -83,7 +96,10 @@ func _init() -> void:
 				s["rows"].append(total_rows)
 
 	file.close()
-	print("Processed %d rows" % total_rows)
+	if max_hp_loss >= 0:
+		print("Processed %d rows, filtered %d (HP loss < %d)" % [total_rows, filtered_rows, max_hp_loss])
+	else:
+		print("Processed %d rows" % total_rows)
 
 	# Build results with card names from game database
 	var results: Array = []
@@ -118,8 +134,12 @@ func _init() -> void:
 	results.sort_custom(func(a, b): return a["avg_hp"] > b["avg_hp"])
 
 	# Print table
+	var display_count := filtered_rows if max_hp_loss >= 0 else total_rows
 	print("\n%s" % ("=" .repeat(95)))
-	print("Card Statistics from %d simulations" % total_rows)
+	if max_hp_loss >= 0:
+		print("Card Statistics from %d/%d simulations (HP loss < %d)" % [filtered_rows, total_rows, max_hp_loss])
+	else:
+		print("Card Statistics from %d simulations" % total_rows)
 	print("%s" % ("=" .repeat(95)))
 	print("%4s %-25s %-18s %6s %7s %8s %8s %8s %6s" % ["排名", "卡牌ID", "名称", "出现", "平均HP", "平均回合", "平均出牌", "平均伤害", "胜率"])
 	print("%s" % ("-" .repeat(95)))
