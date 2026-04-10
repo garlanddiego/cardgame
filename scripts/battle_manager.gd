@@ -1992,28 +1992,6 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					card_hand.current_battle_energy = current_energy
 				draw_cards(energy_to_consume * 2)
 		# ---- BLOOD FIEND CARDS ----
-		"frenzy_claw":
-			var base_dmg: int = card_data.get("damage", 4)
-			if card_hero:
-				base_dmg = card_hero.get_attack_damage(base_dmg)
-			if _double_damage_this_turn:
-				base_dmg *= 2
-			var hits: int = card_data.get("times", 3)
-			var alive_fc = _get_alive_enemies()
-			for _h in range(hits):
-				alive_fc = _get_alive_enemies()
-				if not alive_fc.is_empty():
-					var rand_t = alive_fc[randi() % alive_fc.size()]
-					rand_t.take_damage(base_dmg)
-					if envenom_stacks > 0 and rand_t.alive:
-						rand_t.apply_status("poison", envenom_stacks)
-					if rand_t.get_status_stacks("bloodlust") > 0:
-						_bf_hemophilia_heal()
-					for _hero in _get_all_alive_heroes():
-						var sa: int = _hero.active_powers.get("sanguine_aura", 0)
-						if sa > 0 and rand_t.alive:
-							rand_t.apply_status("bloodlust", sa)
-							_bf_on_apply_bloodlust_check(_hero, rand_t, sa)
 		"execution":
 			var base_dmg: int = card_data.get("damage", 8)
 			if card_hero:
