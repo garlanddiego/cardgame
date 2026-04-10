@@ -744,10 +744,9 @@ func _get_cards_by_rarity(hero_id: String, rarity: String, exclude_ids: Array) -
 			continue
 		if cd.get("type", 0) == 3:  # Skip status cards
 			continue
-		# Cards without explicit rarity are basic (starter) — never in reward pools
-		if not cd.has("rarity") or cd["rarity"] == "":
-			continue
-		var card_rarity: String = cd["rarity"]
+		var card_rarity: String = cd.get("rarity", "common")
+		if card_rarity == "":
+			card_rarity = "common"
 		if card_rarity != rarity:
 			continue
 		pool.append(cd)
