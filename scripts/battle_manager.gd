@@ -3989,21 +3989,11 @@ func _on_entity_died(entity: Node2D) -> void:
 	_check_battle_end()
 
 func _on_player_died() -> void:
-	# In dual hero mode, only end battle if both heroes are dead
+	# Check if any hero is still alive — if so, don't end the battle
+	if player and player.alive:
+		return
 	if dual_hero_mode:
-		var any_alive: bool = false
-		var any_dead: bool = false
-		if player and player.alive:
-			any_alive = true
-		else:
-			any_dead = true
 		if second_player and second_player.alive:
-			any_alive = true
-		else:
-			any_dead = true
-		if any_alive and not any_dead:
-			return  # Both heroes alive, nothing to do
-		if any_alive and any_dead:
 			# One hero died — remove swap button
 			if _swap_button and is_instance_valid(_swap_button):
 				_swap_button.queue_free()
@@ -4035,6 +4025,7 @@ func _on_player_died() -> void:
 			if card_hand:
 				card_hand.update_card_playability(current_energy)
 			return  # One hero still alive, continue battle
+	# All heroes dead
 	battle_active = false
 	player_died.emit()
 	if turn_label:
