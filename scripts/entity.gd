@@ -258,9 +258,13 @@ func get_status_stacks(status_type: String) -> int:
 func heal(amount: int) -> void:
 	if not alive:
 		return
+	var old_hp: int = current_hp
 	current_hp = mini(current_hp + amount, max_hp)
+	var actual_heal: int = current_hp - old_hp
 	hp_changed.emit(current_hp, max_hp)
 	_update_hp_bar()
+	if actual_heal > 0:
+		_flash_heal(actual_heal)
 
 func add_block(amount: int) -> void:
 	if not alive:
@@ -629,6 +633,33 @@ func _flash_damage(damage_amount: int = 0) -> void:
 	float_tween.tween_property(dmg_label, "modulate:a", 0.0, 1.2).set_delay(0.6)
 	float_tween.set_parallel(false)
 	float_tween.tween_callback(dmg_label.queue_free)
+
+func _flash_heal(heal_amount: int) -> void:
+	# Brief green flash on sprite
+	if sprite_node:
+		var tween = create_tween()
+		tween.tween_property(sprite_node, "modulate", Color(0.5, 1.5, 0.5), 0.1)
+		tween.tween_property(sprite_node, "modulate", Color.WHITE, 0.3).set_ease(Tween.EASE_IN_OUT)
+	# Floating green "+N" number rising up
+	var heal_label = Label.new()
+	heal_label.text = "+" + str(heal_amount)
+	heal_label.add_theme_font_size_override("font_size", damage_number_font_size)
+	heal_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3))
+	heal_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	heal_label.add_theme_constant_override("shadow_offset_x", 2)
+	heal_label.add_theme_constant_override("shadow_offset_y", 3)
+	heal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heal_label.position = Vector2(-40, -120)
+	heal_label.scale = Vector2(1.5, 1.5)
+	heal_label.pivot_offset = Vector2(40, 20)
+	add_child(heal_label)
+	var float_tween = create_tween()
+	float_tween.tween_property(heal_label, "scale", Vector2(1.0, 1.0), 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	float_tween.set_parallel(true)
+	float_tween.tween_property(heal_label, "position:y", heal_label.position.y - 90, 1.8).set_ease(Tween.EASE_OUT)
+	float_tween.tween_property(heal_label, "modulate:a", 0.0, 1.2).set_delay(0.6)
+	float_tween.set_parallel(false)
+	float_tween.tween_callback(heal_label.queue_free)
 
 func _flash_poison_damage(damage_amount: int) -> void:
 	if sprite_node == null:
