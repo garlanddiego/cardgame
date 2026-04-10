@@ -736,9 +736,13 @@ func _get_cards_by_rarity(hero_id: String, rarity: String, exclude_ids: Array) -
 	var pool: Array = []
 	for cid in card_database:
 		var cd: Dictionary = card_database[cid]
+		if cd.get("status", "active") != "active":
+			continue
 		if cd.get("character", "") != hero_id:
 			continue
 		if cid in exclude_ids:
+			continue
+		if cd.get("type", 0) == 3:  # Skip status cards
 			continue
 		# No rarity field defaults to "common"
 		var card_rarity: String = cd.get("rarity", "common")
