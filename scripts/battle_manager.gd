@@ -4396,7 +4396,7 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 			card_hand.play_selected_on(alive[randi() % alive.size()])
 
 func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
-	# Handle drag release — check target based on card type
+	# Handle drag release — card only plays if released ON a highlighted target
 	if not battle_active or not is_player_turn:
 		return
 	_clear_damage_previews()
@@ -4410,36 +4410,51 @@ func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> voi
 	var target_type: String = card_data.get("target", "enemy")
 	if target_type == "self":
 		var ht: String = card_data.get("hero_target", "self")
-		var hero_target: Node2D = null
 		if ht == "target_hero" and dual_hero_mode:
-			# Player selects hero by drag position
-			hero_target = _get_closest_hero(release_position)
+			# Must release on a hero
+			var hero_target: Node2D = _get_hero_at(release_position)
+			if hero_target:
+				card_hand.play_card_on(card_node, hero_target)
+			else:
+				_snap_card_back(card_node)
 		elif ht == "all_heroes":
-			# Auto-target player; execution applies to all
-			hero_target = player
+			# Must release on any hero
+			var hero_target: Node2D = _get_hero_at(release_position)
+			if hero_target:
+				card_hand.play_card_on(card_node, player)
+			else:
+				_snap_card_back(card_node)
 		else:
-			# "self" — card's own hero
-			hero_target = _get_card_hero(card_data)
-			if hero_target == null:
-				hero_target = player
-		if hero_target:
-			card_hand.play_card_on(card_node, hero_target)
-		else:
-			_snap_card_back(card_node)
+			# "self" — must release on own hero
+			var own_hero = _get_card_hero(card_data)
+			if own_hero == null:
+				own_hero = player
+			var hit_hero: Node2D = _get_hero_at(release_position)
+			if hit_hero:
+				card_hand.play_card_on(card_node, own_hero)
+			else:
+				_snap_card_back(card_node)
 	elif target_type == "random_enemy":
-		# Random enemy: auto-play on any alive enemy (random selection happens in execute)
-		var alive = _get_alive_enemies()
-		if not alive.is_empty():
-			card_hand.play_card_on(card_node, alive[randi() % alive.size()])
+		# Must release on any enemy area
+		if _is_over_any_enemy(release_position):
+			var alive = _get_alive_enemies()
+			if not alive.is_empty():
+				card_hand.play_card_on(card_node, alive[randi() % alive.size()])
+			else:
+				_snap_card_back(card_node)
 		else:
 			_snap_card_back(card_node)
 	elif target_type == "all_enemies":
-		# All enemies: auto-play on first enemy
-		if not enemies.is_empty():
-			card_hand.play_card_on(card_node, enemies[0])
+		# Must release on any enemy
+		if _is_over_any_enemy(release_position):
+			if not enemies.is_empty():
+				card_hand.play_card_on(card_node, enemies[0])
+			else:
+				_snap_card_back(card_node)
 		else:
 			_snap_card_back(card_node)
 	else:
+		# Single enemy target — must release on that specific enemy
 		var target_enemy = _get_enemy_at(release_position)
 		if target_enemy and target_enemy.alive:
 			card_hand.play_card_on(card_node, target_enemy)
@@ -4485,6 +4500,30 @@ func _get_enemy_at(screen_pos: Vector2) -> Node2D:
 		if rect.has_point(screen_pos):
 			return enemy
 	return null
+
+func _get_hero_at(screen_pos: Vector2) -> Node2D:
+	## Returns the hero under screen_pos, or null if none.
+	if player_area == null:
+		return null
+	for hero in _get_all_alive_heroes():
+		var hero_global_pos: Vector2 = player_area.position + hero.position
+		var rect = Rect2(hero_global_pos - Vector2(120, 200), Vector2(240, 400))
+		if rect.has_point(screen_pos):
+			return hero
+	return null
+
+func _is_over_any_enemy(screen_pos: Vector2) -> bool:
+	## Returns true if screen_pos is over any alive enemy (for all_enemies / random_enemy).
+	if enemy_area == null:
+		return false
+	for enemy in enemies:
+		if not enemy.alive:
+			continue
+		var enemy_global_pos: Vector2 = enemy_area.position + enemy.position
+		var rect = Rect2(enemy_global_pos - Vector2(120, 200), Vector2(240, 400))
+		if rect.has_point(screen_pos):
+			return true
+	return false
 
 # ---- Enemy click handling for tap-to-select targeting ----
 
