@@ -27,6 +27,9 @@ var confirm_btn: Button = null
 var filter_all_btn: Button = null
 var filter_ironclad_btn: Button = null
 var filter_silent_btn: Button = null
+var filter_bloodfiend_btn: Button = null
+var filter_forger_btn: Button = null
+var filter_fire_mage_btn: Button = null
 var type_filter_all_btn: Button = null
 var type_filter_attack_btn: Button = null
 var type_filter_skill_btn: Button = null
@@ -140,10 +143,16 @@ func _build_browse_area(browse_w: float) -> void:
 
 	filter_all_btn = _make_filter_button("全部", "")
 	filter_bar.add_child(filter_all_btn)
-	filter_ironclad_btn = _make_filter_button("铁甲战士", "ironclad")
+	filter_ironclad_btn = _make_filter_button("铁甲", "ironclad")
 	filter_bar.add_child(filter_ironclad_btn)
-	filter_silent_btn = _make_filter_button("静默猎手", "silent")
+	filter_silent_btn = _make_filter_button("静默", "silent")
 	filter_bar.add_child(filter_silent_btn)
+	filter_bloodfiend_btn = _make_filter_button("血魔", "bloodfiend")
+	filter_bar.add_child(filter_bloodfiend_btn)
+	filter_forger_btn = _make_filter_button("铸造", "forger")
+	filter_bar.add_child(filter_forger_btn)
+	filter_fire_mage_btn = _make_filter_button("火法", "fire_mage")
+	filter_bar.add_child(filter_fire_mage_btn)
 
 	# Separator between character and type filters
 	var filter_sep = VSeparator.new()
@@ -451,7 +460,10 @@ func _update_filter_button_styles() -> void:
 	var buttons := {
 		"": filter_all_btn,
 		"ironclad": filter_ironclad_btn,
-		"silent": filter_silent_btn
+		"silent": filter_silent_btn,
+		"bloodfiend": filter_bloodfiend_btn,
+		"forger": filter_forger_btn,
+		"fire_mage": filter_fire_mage_btn
 	}
 	for key in buttons:
 		var btn: Button = buttons[key]
@@ -596,6 +608,15 @@ func _create_lightweight_card(card: Dictionary, size: Vector2, loc: Node) -> Con
 		"silent":
 			bg_color = Color(0.1, 0.22, 0.12, 1.0)
 			border_color = Color(0.2, 0.75, 0.25, 1.0)
+		"bloodfiend":
+			bg_color = Color(0.25, 0.05, 0.15, 1.0)
+			border_color = Color(0.8, 0.1, 0.3, 1.0)
+		"forger":
+			bg_color = Color(0.2, 0.15, 0.05, 1.0)
+			border_color = Color(0.85, 0.6, 0.15, 1.0)
+		"fire_mage":
+			bg_color = Color(0.3, 0.1, 0.0, 1.0)
+			border_color = Color(1.0, 0.45, 0.1, 1.0)
 		"neutral", "colorless":
 			bg_color = Color(0.18, 0.18, 0.2, 1.0)
 			border_color = Color(0.5, 0.5, 0.55, 1.0)
