@@ -4247,6 +4247,9 @@ func _unhandled_input(event: InputEvent) -> void:
 					_targeting_arrow.visible = false
 				card_hand.update_layout()
 				return
+			# If clicking on another hand card, let card_hand handle selection switch
+			if card_hand.has_card_at(click_pos_check):
+				return
 			var card_data: Dictionary = card_hand.get_selected_card_data()
 			var target_type: String = card_data.get("target", "enemy")
 			if target_type == "self":

@@ -629,6 +629,17 @@ func get_selected_card_data() -> Dictionary:
 func is_targeting() -> bool:
 	return targeting_mode
 
+func has_card_at(global_pos: Vector2) -> bool:
+	## Returns true if the position is over any non-selected hand card
+	for i in range(cards.size() - 1, -1, -1):
+		var card = cards[i]
+		if not is_instance_valid(card) or card == selected_card:
+			continue
+		var card_rect = Rect2(card.global_position, Vector2(CARD_WIDTH, CARD_HEIGHT) * card.scale)
+		if card_rect.has_point(global_pos):
+			return true
+	return false
+
 # ---- Drag-to-play handlers ----
 
 func _on_card_drag_started(card_node: Area2D) -> void:
