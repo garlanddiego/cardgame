@@ -1748,15 +1748,21 @@ func _show_shop() -> void:
 	scroll.offset_bottom = 1020
 	_overlay.add_child(scroll)
 
-	var grid := GridContainer.new()
-	grid.columns = 4
-	grid.add_theme_constant_override("h_separation", 20)
-	grid.add_theme_constant_override("v_separation", 20)
-	scroll.add_child(grid)
-
 	var loc = get_node_or_null("/root/Loc")
-	var card_w: float = 280.0
-	var card_h: float = 400.0
+	var card_w: float = 364.0  # 280 * 1.3
+	var card_h: float = 520.0  # 400 * 1.3
+	var cols: int = 5
+	var h_sep: float = 16.0
+	var grid_total_w: float = cols * card_w + (cols - 1) * h_sep
+	var grid_margin: float = maxf((vw - grid_total_w) / 2.0, 10.0)
+
+	var grid := GridContainer.new()
+	grid.columns = cols
+	grid.add_theme_constant_override("h_separation", int(h_sep))
+	grid.add_theme_constant_override("v_separation", 20)
+	grid.offset_left = grid_margin
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	scroll.add_child(grid)
 
 	for card in shop_cards:
 		var card_id: String = card["id"]
@@ -2030,80 +2036,121 @@ func _show_deck_viewer() -> void:
 	viewer.mouse_filter = Control.MOUSE_FILTER_STOP
 	_deck_viewer_canvas.add_child(viewer)
 
-	# Dark background — click to close
+	# Dark background
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.85)
+	bg.color = Color(0, 0, 0, 0.9)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
-	bg.gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.pressed:
-			viewer.queue_free()
-	)
+	bg.gui_input.connect(func(_event: InputEvent): pass)
 	viewer.add_child(bg)
 
-	# Title
-	var title := Label.new()
-	title.text = "卡组 (%d张)" % run.deck.size()
-	title.add_theme_font_size_override("font_size", 32)
-	title.add_theme_color_override("font_color", Color(1, 1, 0.8))
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(0, 60)
-	title.size = Vector2(vw, 50)
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	viewer.add_child(title)
-
-	# Scroll container for card grid
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(60, 110)
-	scroll.size = Vector2(vw - 120, 920)
-	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
-	viewer.add_child(scroll)
-
-	var grid := GridContainer.new()
-	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 16)
-	grid.add_theme_constant_override("v_separation", 16)
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(grid)
-
 	var loc = get_node_or_null("/root/Loc")
-	var card_size := Vector2(296, 422)
+	var card_size := Vector2(220, 314)
 
-	# Sort cards by type then name
-	var sorted_deck: Array = run.deck.duplicate()
-	sorted_deck.sort_custom(func(a, b):
+	# Split: left 75% = deck cards (excluding backpack), right 25% = backpack cards
+	var left_w: float = vw * 0.75
+	var right_w: float = vw * 0.25
+
+	# Separate deck into non-backpack and backpack cards
+	var bp_ids: Array = run.backpack.duplicate()
+	var deck_cards: Array = []
+	var bp_cards: Array = []
+	var bp_remaining: Array = bp_ids.duplicate()
+	for card_id in run.deck:
+		var idx := bp_remaining.find(card_id)
+		if idx >= 0:
+			bp_remaining.remove_at(idx)
+			bp_cards.append(card_id)
+		else:
+			deck_cards.append(card_id)
+
+	# Sort both lists
+	var sort_fn = func(a, b):
 		var cd_a: Dictionary = _get_card_display(a)
 		var cd_b: Dictionary = _get_card_display(b)
 		if cd_a.get("type", 0) != cd_b.get("type", 0):
 			return cd_a.get("type", 0) < cd_b.get("type", 0)
 		return cd_a.get("name", "") < cd_b.get("name", "")
-	)
+	deck_cards.sort_custom(sort_fn)
+	bp_cards.sort_custom(sort_fn)
 
-	var bp_check: Array = run.backpack.duplicate()
-	for card_id in sorted_deck:
+	# === LEFT: Deck cards ===
+	var left_title := Label.new()
+	left_title.text = "卡组 (%d张)" % deck_cards.size()
+	left_title.add_theme_font_size_override("font_size", 30)
+	left_title.add_theme_color_override("font_color", Color(1, 1, 0.8))
+	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left_title.position = Vector2(0, 20)
+	left_title.size = Vector2(left_w, 40)
+	left_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	viewer.add_child(left_title)
+
+	var left_scroll := ScrollContainer.new()
+	left_scroll.position = Vector2(10, 65)
+	left_scroll.size = Vector2(left_w - 20, 960)
+	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	viewer.add_child(left_scroll)
+
+	var left_grid := GridContainer.new()
+	left_grid.columns = 5
+	left_grid.add_theme_constant_override("h_separation", 12)
+	left_grid.add_theme_constant_override("v_separation", 12)
+	left_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_scroll.add_child(left_grid)
+
+	for card_id in deck_cards:
 		var display_cd: Dictionary = _get_card_display(card_id)
 		if not display_cd.is_empty():
 			var card_visual := CardScript.create_card_visual(display_cd, card_size, loc)
 			card_visual.custom_minimum_size = card_size
 			card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
-			# Show backpack badge if this card is in the backpack
-			var bp_idx := bp_check.find(card_id)
-			if bp_idx >= 0:
-				bp_check.remove_at(bp_idx)
-				var bp_badge := Label.new()
-				bp_badge.text = "[包]"
-				bp_badge.add_theme_font_size_override("font_size", int(card_size.x * 0.14))
-				bp_badge.position = Vector2(card_size.x - card_size.x * 0.22, 4)
-				bp_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				card_visual.add_child(bp_badge)
-			grid.add_child(card_visual)
+			left_grid.add_child(card_visual)
+
+	# === RIGHT: Backpack cards ===
+	# Separator line
+	var sep := ColorRect.new()
+	sep.color = Color(0.5, 0.5, 0.7, 0.5)
+	sep.position = Vector2(left_w, 20)
+	sep.size = Vector2(2, 1020)
+	viewer.add_child(sep)
+
+	var right_title := Label.new()
+	right_title.text = "背包 (%d/4)" % bp_cards.size()
+	right_title.add_theme_font_size_override("font_size", 28)
+	right_title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.4))
+	right_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	right_title.position = Vector2(left_w, 20)
+	right_title.size = Vector2(right_w, 40)
+	right_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	viewer.add_child(right_title)
+
+	var right_scroll := ScrollContainer.new()
+	right_scroll.position = Vector2(left_w + 10, 65)
+	right_scroll.size = Vector2(right_w - 20, 960)
+	right_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	viewer.add_child(right_scroll)
+
+	var right_grid := GridContainer.new()
+	right_grid.columns = 2
+	right_grid.add_theme_constant_override("h_separation", 10)
+	right_grid.add_theme_constant_override("v_separation", 10)
+	right_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_scroll.add_child(right_grid)
+
+	for card_id in bp_cards:
+		var display_cd: Dictionary = _get_card_display(card_id)
+		if not display_cd.is_empty():
+			var card_visual := CardScript.create_card_visual(display_cd, card_size, loc)
+			card_visual.custom_minimum_size = card_size
+			card_visual.mouse_filter = Control.MOUSE_FILTER_STOP
+			right_grid.add_child(card_visual)
 
 	# Close button (X) top-right
 	var close_btn := Button.new()
 	close_btn.text = "✕"
-	close_btn.position = Vector2(vw - 80, 55)
-	close_btn.custom_minimum_size = Vector2(60, 60)
-	close_btn.add_theme_font_size_override("font_size", 32)
+	close_btn.position = Vector2(vw - 70, 15)
+	close_btn.custom_minimum_size = Vector2(55, 55)
+	close_btn.add_theme_font_size_override("font_size", 30)
 	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
 	var close_sb := StyleBoxFlat.new()
 	close_sb.bg_color = Color(0.5, 0.1, 0.1, 0.9)
