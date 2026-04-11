@@ -4987,6 +4987,8 @@ func _swap_hero_attack_sprite(hero_node: Node2D, char_id: String) -> void:
 		attack_path = "res://assets/img/anim/silent_attack_1.png"
 	elif char_id == "bloodfiend":
 		attack_path = "res://assets/img/anim/bloodfiend_attack_1.png"
+	elif char_id == "forger":
+		attack_path = "res://assets/img/anim/forger_attack_1.png"
 	if attack_path == "":
 		return
 	if not ResourceLoader.exists(attack_path):
@@ -5046,6 +5048,8 @@ func _swap_hero_skill_sprite(hero_node: Node2D, char_id: String) -> void:
 		skill_path = "res://assets/img/anim/silent_skill.png"
 	elif char_id == "bloodfiend":
 		skill_path = "res://assets/img/anim/bloodfiend_skill.png"
+	elif char_id == "forger":
+		skill_path = "res://assets/img/anim/forger_skill.png"
 	if skill_path == "" or not ResourceLoader.exists(skill_path):
 		return
 	sprite.texture = load(skill_path)
