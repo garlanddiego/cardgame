@@ -405,6 +405,7 @@ func _setup_player(character_id: String, gm: Node) -> void:
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
 				var sf: float = player_sprite_scale_height / tex_height
+				sf *= char_data.get("sprite_scale", 1.0)
 				if dual_hero_mode:
 					sf *= 0.85  # Slightly smaller in dual mode
 				sprite.scale = Vector2(sf, sf)
@@ -436,6 +437,7 @@ func _setup_second_player(character_id: String, gm: Node) -> void:
 			var tex_height: float = tex.get_height()
 			if tex_height > 0:
 				var sf: float = (player_sprite_scale_height * 0.85) / tex_height
+				sf *= char_data.get("sprite_scale", 1.0)
 				sprite.scale = Vector2(sf, sf)
 	var nlabel = second_player.get_node_or_null("NameLabel") as Label
 	if nlabel:
@@ -3975,6 +3977,10 @@ func _check_reactive_powers(attacked_hero: Node2D, enemy: Node2D) -> void:
 	var caltrops_dmg: int = attacked_hero.active_powers.get("caltrops", 0)
 	if caltrops_dmg > 0:
 		enemy.take_damage(caltrops_dmg)
+	# Hero thorns (荆棘光环): deal thorns damage back to attacker
+	var hero_thorns_dmg: int = attacked_hero.get_status_stacks("thorns")
+	if hero_thorns_dmg > 0 and enemy.alive:
+		enemy.take_damage(hero_thorns_dmg)
 	# Blood Shell: apply bloodlust to attacker when hit (temporary)
 	if _bf_blood_shell_active and enemy.alive:
 		enemy.apply_status("bloodlust", _bf_blood_shell_stacks)
