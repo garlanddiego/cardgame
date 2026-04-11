@@ -168,7 +168,7 @@ func _init_character_data() -> void:
 			"color": Color(0.7, 0.5, 0.2),
 			"sprite": "res://assets/img/forger.png",
 			"fallen_sprite": "res://assets/img/forger_fallen.png",
-			"description": "An armored blacksmith who summons a Greatsword to shield allies and crush foes."
+			"description": "A scarred blacksmith who hurls his hammer like a boomerang and summons a Greatsword to shield allies and crush foes."
 		}
 	}
 
