@@ -2965,7 +2965,7 @@ func _create_greatsword_visual() -> void:
 		sword_path = "res://assets/img/greatsword.png"
 	if ResourceLoader.exists(sword_path):
 		sprite.texture = load(sword_path)
-	var target_h: float = player_sprite_scale_height * 0.8  # 80% of hero height
+	var target_h: float = player_sprite_scale_height * 1.6  # 160% of hero height (doubled from 80%)
 	var tex_h: float = 512.0
 	if sprite.texture:
 		tex_h = sprite.texture.get_height()

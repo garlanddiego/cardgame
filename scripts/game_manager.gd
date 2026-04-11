@@ -152,6 +152,7 @@ func _init_character_data() -> void:
 			"color": Color(0.7, 0.1, 0.2),
 			"sprite": "res://assets/img/bloodfiend.png",
 			"fallen_sprite": "res://assets/img/bloodfiend_fallen.png",
+			"sprite_scale": 0.8,
 			"description": "A blood-crazed berserker who sacrifices HP for devastating power."
 		},
 		"fire_mage": {
