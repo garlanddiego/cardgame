@@ -2132,12 +2132,12 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			for enemy in enemies:
 				if enemy.alive:
 					var before_hp: int = enemy.current_hp
-					var enemy_block: int = enemy.block
 					enemy.take_damage(base_dmg)
 					_on_hero_hit_enemy(enemy, before_hp)
-					var dealt: int = mini(base_dmg, before_hp + enemy_block) - enemy_block
-					if dealt > 0:
-						total_healed += dealt
+					# Heal = actual HP lost (before_hp - current_hp accounts for vuln, bloodlust, block)
+					var hp_lost: int = before_hp - maxi(enemy.current_hp, 0)
+					if hp_lost > 0:
+						total_healed += hp_lost
 			var heal_hero: Node2D = card_hero if card_hero else player
 			if total_healed > 0 and heal_hero:
 				heal_hero.heal(total_healed)
@@ -2149,11 +2149,10 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				base_dmg *= 2
 			if target and target.alive:
 				var before_hp: int = target.current_hp
-				var t_block: int = target.block
 				target.take_damage(base_dmg)
 				_on_hero_hit_enemy(target, before_hp)
-				var dealt: int = mini(base_dmg, before_hp + t_block) - t_block
-				if dealt > 0:
+				# Heal if attack actually reduced HP (accounts for vuln, bloodlust, block)
+				if target.current_hp < before_hp:
 					var heal_amt: int = card_data.get("heal_on_hit", 2)
 					var lh: Node2D = card_hero if card_hero else player
 					if lh:
