@@ -19,6 +19,7 @@ var intent: Dictionary = {}
 var alive: bool = true
 var power_effects: Array = []
 var active_powers: Dictionary = {}  # power_id -> stack count
+var upgraded_powers: Dictionary = {}  # power_id -> bool (true if activated from upgraded card)
 var _previous_block: int = 0  # Track previous block value for break detection
 var _hp_drain_bar: ColorRect = null  # Trailing yellow bar for damage animation
 var _hp_drain_tween: Tween = null
@@ -169,6 +170,7 @@ func init_entity(hp: int, enemy: bool, etype: String = "", p_max_hp: int = 0) ->
 	status_effects = {}
 	power_effects = []
 	active_powers = {}
+	upgraded_powers = {}
 
 func take_damage(amount: int) -> void:
 	if not alive:
@@ -881,11 +883,14 @@ func show_speech(text: String, duration: float = 1.5) -> void:
 	tween.tween_property(panel, "modulate:a", 0.0, 0.4)
 	tween.tween_callback(panel.queue_free)
 
-func add_power(power_id: String, stacks: int = 1) -> void:
+func add_power(power_id: String, stacks: int = 1, is_upgraded: bool = false) -> void:
 	if active_powers.has(power_id):
 		active_powers[power_id] += stacks
 	else:
 		active_powers[power_id] = stacks
+	# Track upgrade status — once upgraded, stays upgraded (upgraded version supersedes base)
+	if is_upgraded:
+		upgraded_powers[power_id] = true
 	_update_status_display()  # This rebuilds everything: status effects then power icons
 
 func _update_power_display() -> void:
@@ -901,18 +906,24 @@ func _on_icon_hover_enter(icon_container: Control, power_name: String, power_id:
 	if _tooltip_hide_tween and _tooltip_hide_tween.is_valid():
 		_tooltip_hide_tween.kill()
 		_tooltip_hide_tween = null
-	# Look up localized description
+	# Look up localized description (use upgraded version if power was activated from upgraded card)
 	var desc_text: String = ""
 	var gm = Engine.get_main_loop().root.get_node_or_null("GameManager")
 	var loc = Engine.get_main_loop().root.get_node_or_null("Loc")
 	if gm and gm.card_database:
+		var is_upgraded: bool = upgraded_powers.get(power_id, false)
 		for card_id in gm.card_database:
 			var card = gm.card_database[card_id]
 			if card.get("power_effect", "") == power_id and card.get("type", 0) == 2:
+				var card_for_desc: Dictionary = card
+				if is_upgraded and gm.has_method("get_upgraded_card"):
+					var upgraded_card: Dictionary = gm.get_upgraded_card(card_id)
+					if not upgraded_card.is_empty():
+						card_for_desc = upgraded_card
 				if loc and loc.has_method("card_desc"):
-					desc_text = loc.card_desc(card)
+					desc_text = loc.card_desc(card_for_desc)
 				else:
-					desc_text = card.get("description", "")
+					desc_text = card_for_desc.get("description", "")
 				break
 	_show_icon_tooltip(icon_container, power_name, stacks, desc_text)
 
@@ -936,18 +947,24 @@ func _on_icon_hover_exit() -> void:
 func _on_power_icon_clicked(event: InputEvent, icon_container: Control, power_name: String, power_id: String, stacks: int) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
-	# Look up localized description from game manager
+	# Look up localized description from game manager (use upgraded version if applicable)
 	var desc_text: String = ""
 	var gm = Engine.get_main_loop().root.get_node_or_null("GameManager")
 	var loc = Engine.get_main_loop().root.get_node_or_null("Loc")
 	if gm and gm.card_database:
+		var is_upgraded: bool = upgraded_powers.get(power_id, false)
 		for card_id in gm.card_database:
 			var card = gm.card_database[card_id]
 			if card.get("power_effect", "") == power_id and card.get("type", 0) == 2:
+				var card_for_desc: Dictionary = card
+				if is_upgraded and gm.has_method("get_upgraded_card"):
+					var upgraded_card: Dictionary = gm.get_upgraded_card(card_id)
+					if not upgraded_card.is_empty():
+						card_for_desc = upgraded_card
 				if loc and loc.has_method("card_desc"):
-					desc_text = loc.card_desc(card)
+					desc_text = loc.card_desc(card_for_desc)
 				else:
-					desc_text = card.get("description", "")
+					desc_text = card_for_desc.get("description", "")
 				break
 	_show_icon_tooltip(icon_container, power_name, stacks, desc_text)
 

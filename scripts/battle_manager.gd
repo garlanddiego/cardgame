@@ -2689,7 +2689,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			var hero_ta: Node2D = card_hero if card_hero else player
 			if hero_ta:
 				hero_ta.apply_status("thorns", hero_thorns)
-				hero_ta.add_power("fg_thorn_aura", hero_thorns)
+				hero_ta.add_power("fg_thorn_aura", hero_thorns, card_data.get("upgraded", false))
 			var sword_thorns: int = card_data.get("fg_sword_thorns", 3)
 			_greatsword_thorns += sword_thorns
 			_update_greatsword_display()
@@ -3403,7 +3403,7 @@ func _activate_power(power_name: String, power_target: Node2D = null, per_turn: 
 
 	# Add power icon with correct stack value
 	if show_icon and hero:
-		hero.add_power(base_name, power_stacks if power_stacks > 0 else 1)
+		hero.add_power(base_name, power_stacks if power_stacks > 0 else 1, is_plus)
 
 func _process_next_turn_effects() -> void:
 	for effect in _next_turn_effects:
