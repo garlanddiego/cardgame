@@ -80,16 +80,30 @@ func _apply_card_style() -> void:
 		return
 	var style = StyleBoxFlat.new()
 	var card_type: int = card_data.get("type", 0)
-	match card_type:
-		0:  # Attack
-			style.bg_color = Color(0.25, 0.08, 0.08, 0.92)
-			style.border_color = Color(0.8, 0.2, 0.2)
-		1:  # Skill
-			style.bg_color = Color(0.08, 0.2, 0.08, 0.92)
-			style.border_color = Color(0.2, 0.7, 0.3)
-		2:  # Power
-			style.bg_color = Color(0.12, 0.1, 0.22, 0.92)
-			style.border_color = Color(0.4, 0.4, 0.8)
+	var card_char: String = card_data.get("character", "")
+	if card_char == "bloodfiend":
+		# Bloodfiend: red-black theme for all card types
+		match card_type:
+			0:  # Attack
+				style.bg_color = Color(0.18, 0.04, 0.04, 0.94)
+				style.border_color = Color(0.7, 0.1, 0.1)
+			1:  # Skill
+				style.bg_color = Color(0.12, 0.04, 0.06, 0.94)
+				style.border_color = Color(0.6, 0.1, 0.15)
+			2:  # Power
+				style.bg_color = Color(0.15, 0.03, 0.08, 0.94)
+				style.border_color = Color(0.65, 0.08, 0.2)
+	else:
+		match card_type:
+			0:  # Attack
+				style.bg_color = Color(0.25, 0.08, 0.08, 0.92)
+				style.border_color = Color(0.8, 0.2, 0.2)
+			1:  # Skill
+				style.bg_color = Color(0.08, 0.2, 0.08, 0.92)
+				style.border_color = Color(0.2, 0.7, 0.3)
+			2:  # Power
+				style.bg_color = Color(0.12, 0.1, 0.22, 0.92)
+				style.border_color = Color(0.4, 0.4, 0.8)
 	style.border_width_left = 2
 	style.border_width_right = 2
 	style.border_width_top = 2
