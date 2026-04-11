@@ -4308,49 +4308,45 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 			var card_data: Dictionary = card_hand.get_selected_card_data()
 			var target_type: String = card_data.get("target", "enemy")
+			var click_pos: Vector2 = event.global_position
 			if target_type == "self":
-				_clear_damage_previews()
 				var ht: String = card_data.get("hero_target", "self")
-				if ht == "target_hero" and dual_hero_mode:
-					# Player must click on a specific hero
-					var click_pos: Vector2 = event.global_position
-					var clicked_hero = _get_closest_hero(click_pos)
-					if clicked_hero:
-						_unhighlight_heroes()
+				# Must click on a hero to play
+				var clicked_hero: Node2D = _get_hero_at(click_pos)
+				if clicked_hero:
+					_clear_damage_previews()
+					_unhighlight_heroes()
+					if ht == "target_hero" and dual_hero_mode:
 						card_hand.play_selected_on(clicked_hero)
-				elif ht == "all_heroes":
-					# Auto-play on player; execution will apply to all heroes
-					_unhighlight_heroes()
-					if player:
+					elif ht == "all_heroes":
 						card_hand.play_selected_on(player)
-				else:
-					# "self" — auto-play on card's own hero
-					_unhighlight_heroes()
-					var own_hero = _get_card_hero(card_data)
-					if own_hero:
+					else:
+						var own_hero = _get_card_hero(card_data)
+						if own_hero == null:
+							own_hero = player
 						card_hand.play_selected_on(own_hero)
-					elif player:
-						card_hand.play_selected_on(player)
-			elif target_type == "all_enemies" and not enemies.is_empty():
-				_clear_damage_previews()
-				_clear_all_enemy_highlights()
-				_hovered_enemy = null
-				card_hand.play_selected_on(enemies[0])
-			elif target_type == "random_enemy":
-				var alive = _get_alive_enemies()
-				if not alive.is_empty():
+			elif target_type == "all_enemies" or target_type == "random_enemy":
+				# Must click on an enemy to play
+				if _is_over_any_enemy(click_pos):
 					_clear_damage_previews()
 					_clear_all_enemy_highlights()
 					_hovered_enemy = null
-					card_hand.play_selected_on(alive[randi() % alive.size()])
+					if target_type == "all_enemies" and not enemies.is_empty():
+						card_hand.play_selected_on(enemies[0])
+					elif target_type == "random_enemy":
+						var alive = _get_alive_enemies()
+						if not alive.is_empty():
+							card_hand.play_selected_on(alive[randi() % alive.size()])
 			elif target_type == "all_heroes":
-				_clear_damage_previews()
-				_unhighlight_heroes()
-				if player:
-					card_hand.play_selected_on(player)
+				# Must click on a hero to play
+				var clicked_hero: Node2D = _get_hero_at(click_pos)
+				if clicked_hero:
+					_clear_damage_previews()
+					_unhighlight_heroes()
+					if player:
+						card_hand.play_selected_on(player)
 			elif target_type == "enemy":
-				# Click-to-target: check if click is on an enemy
-				var click_pos: Vector2 = event.global_position
+				# Must click on a specific enemy
 				var target_enemy = _get_enemy_at(click_pos)
 				if target_enemy and target_enemy.alive:
 					_clear_damage_previews()
@@ -4364,36 +4360,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		_on_end_turn()
 
 func _on_card_tap_play(card_node: Area2D) -> void:
-	# Handle quick-tap for non-targeted cards (all_enemies only; self cards use targeting)
+	# Tap always enters targeting mode — player must then click/tap a valid target
 	if not battle_active or not is_player_turn:
 		return
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
-	if target_type == "self":
-		var ht: String = card_data.get("hero_target", "self")
-		if ht == "target_hero" and dual_hero_mode:
-			# Enter targeting mode — player must select a hero
-			card_hand.selected_card = card_node
-			card_node.set_selected(true)
-			card_hand.targeting_mode = true
-			_highlight_heroes()
-		elif ht == "all_heroes":
-			# Auto-play on player; execution applies to all heroes
-			if player:
-				card_hand.play_selected_on(player)
-		else:
-			# "self" — auto-play on card's own hero
-			var own_hero = _get_card_hero(card_data)
-			if own_hero:
-				card_hand.play_selected_on(own_hero)
-			elif player:
-				card_hand.play_selected_on(player)
-	elif target_type == "all_enemies" and not enemies.is_empty():
-		card_hand.play_selected_on(enemies[0])
-	elif target_type == "random_enemy":
-		var alive = _get_alive_enemies()
-		if not alive.is_empty():
-			card_hand.play_selected_on(alive[randi() % alive.size()])
+	card_hand.selected_card = card_node
+	card_node.set_selected(true)
+	card_hand.targeting_mode = true
+	if target_type == "self" or target_type == "all_heroes":
+		_highlight_heroes()
+	elif target_type == "all_enemies" or target_type == "random_enemy":
+		_highlight_all_enemies()
+	# "enemy" type already enters targeting mode via card_hand
 
 func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> void:
 	# Handle drag release — card only plays if released ON a highlighted target
@@ -4473,6 +4452,11 @@ func _highlight_enemy(enemy: Node2D) -> void:
 		enemy.show_target_highlight()
 	else:
 		enemy.modulate = Color(1.2, 1.2, 1.0)
+
+func _highlight_all_enemies() -> void:
+	for enemy in enemies:
+		if is_instance_valid(enemy) and enemy.alive:
+			_highlight_enemy(enemy)
 
 func _clear_enemy_highlight() -> void:
 	if _hovered_enemy and is_instance_valid(_hovered_enemy):

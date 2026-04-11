@@ -668,12 +668,5 @@ func _on_card_drag_started(card_node: Area2D) -> void:
 
 func _on_card_drag_ended(card_node: Area2D, release_position: Vector2) -> void:
 	_any_card_dragging = false
-	# Emit signal for battle_manager to resolve the target at release position
-	var card_data: Dictionary = card_node.card_data
-	var target_type: String = card_data.get("target", "enemy")
-	# All_enemies / random_enemy: auto-play on drag release anywhere
-	if target_type in ["all_enemies", "random_enemy"]:
-		card_played_tap.emit(card_node)
-		return
-	# Self and enemy-targeted: let battle_manager resolve at release position
+	# All card types: let battle_manager resolve at release position
 	card_drag_released.emit(card_node, release_position)
