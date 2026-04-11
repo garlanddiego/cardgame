@@ -5375,7 +5375,6 @@ func _hammer_throw_effect(hero_node: Node2D, target_node: Node2D) -> void:
 	hammer.color = Color(0.7, 0.55, 0.35, 0.95)
 	hammer.position = start
 	hammer.z_index = 300
-	hammer.pivot_offset = Vector2(0, 0)
 	add_child(hammer)
 	# Phase 1: fly to enemy with spinning
 	var tw = create_tween()
