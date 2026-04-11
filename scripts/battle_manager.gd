@@ -106,7 +106,7 @@ var _greatsword_temp_thorns: int = 0  # Per-turn thorns (reset each turn)
 var _greatsword_double_damage: bool = false  # Overcharge: sword damage x2 this turn
 var _forged_this_turn: bool = false    # Whether forge was called this turn
 var _greatsword_no_summon_this_turn: bool = false  # After Sword Sacrifice
-var _greatsword_node: Control = null   # Visual node for greatsword
+var _greatsword_node: Node2D = null   # Visual node for greatsword
 var _fg_energy_reserve_active: bool = false  # Save unspent energy
 var _fg_energy_reserve_bonus: int = 0  # Extra energy on reserve (+upgrade)
 var _fg_melt_down_draw: int = 1       # Next-turn draw from melt_down
@@ -2362,6 +2362,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				dmg = card_hero.get_attack_damage(dmg) - card_hero.get_status_stacks("strength")
 				dmg += card_hero.get_status_stacks("strength")
 			if dmg > 0:
+				_play_greatsword_attack_effect(target)
 				_apply_single_hit_damage(dmg, target, target_type)
 		"riposte_strike":
 			var base_dmg: int = card_data.get("damage", 6)
@@ -2390,6 +2391,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			var mult: float = card_data.get("fg_sword_mult", 1.0)
 			var dmg: int = int(_get_greatsword_attack_damage() * mult)
 			if dmg > 0:
+				_play_greatsword_attack_effect(target)
 				_apply_single_hit_damage(dmg, target, "all_enemies")
 		"magnetic_edge":
 			var forge_amt: int = card_data.get("fg_forge", 4)
@@ -2441,6 +2443,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			var dmg: int = int(_get_greatsword_attack_damage() * pct / 100.0)
 			var hits: int = card_data.get("fg_hits", 3)
 			if dmg > 0:
+				_play_greatsword_attack_effect(target)
 				_apply_multi_hit_damage(dmg, hits, target, "all_enemies")
 
 		# ── Forger Skills ──
@@ -2824,6 +2827,7 @@ func _forge_sword(amount: int) -> void:
 	_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
 	_forged_this_turn = true
 	_update_greatsword_display()
+	_play_forge_effect()
 	# Resonance check is handled by block gain, not forge
 
 func _summon_greatsword(hp: int) -> void:
@@ -2836,6 +2840,7 @@ func _summon_greatsword(hp: int) -> void:
 		_greatsword_hp += hp
 	_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
 	_update_greatsword_display()
+	_play_forge_effect()
 
 func _destroy_greatsword() -> void:
 	_greatsword_hp = 0
@@ -2889,6 +2894,12 @@ func _update_greatsword_display() -> void:
 	var hp_label: Label = _greatsword_node.get_node_or_null("HPLabel")
 	if hp_label:
 		hp_label.text = "%d" % _greatsword_hp
+	# Update HP bar fill
+	var hp_bar_fill: ColorRect = _greatsword_node.get_node_or_null("HPBarFill")
+	if hp_bar_fill:
+		var max_hp: int = maxi(_greatsword_max_hp, 1)
+		var ratio: float = clampf(float(_greatsword_hp) / float(max_hp), 0.0, 1.0)
+		hp_bar_fill.size.x = 100.0 * ratio
 	# Update thorns label
 	var thorns_label: Label = _greatsword_node.get_node_or_null("ThornsLabel")
 	if thorns_label:
@@ -2897,56 +2908,78 @@ func _update_greatsword_display() -> void:
 		thorns_label.text = "荆棘 %d" % total_thorns
 
 func _create_greatsword_visual() -> void:
-	## Create the greatsword visual node positioned between heroes and enemies
-	var hud_layer = get_node_or_null("HUDLayer/HUD")
-	if hud_layer == null:
+	## Create the greatsword as a Node2D positioned next to the hero, HP bar aligned with hero's
+	if player_area == null:
 		return
-	_greatsword_node = Control.new()
+	_greatsword_node = Node2D.new()
 	_greatsword_node.name = "Greatsword"
 	_greatsword_node.visible = false
-	var vw: float = get_viewport_rect().size.x
-	_greatsword_node.position = Vector2(vw * 0.42, 280)
-	_greatsword_node.size = Vector2(80, 160)
-	hud_layer.add_child(_greatsword_node)
+	# Position to the right of the hero (between hero and enemies)
+	_greatsword_node.position = Vector2(160, 0)
+	_greatsword_node.z_index = 5
+	player_area.add_child(_greatsword_node)
 
-	# Sword sprite
-	var sprite := TextureRect.new()
+	# Sword sprite — large, half-buried in ground
+	var sprite := Sprite2D.new()
 	sprite.name = "Sprite"
-	var sword_path := "res://assets/img/greatsword.png"
+	var sword_path := "res://assets/img/greatsword_v2.png"
+	if not ResourceLoader.exists(sword_path):
+		sword_path = "res://assets/img/greatsword.png"
 	if ResourceLoader.exists(sword_path):
 		sprite.texture = load(sword_path)
-	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	sprite.custom_minimum_size = Vector2(60, 120)
-	sprite.size = Vector2(60, 120)
-	sprite.position = Vector2(10, 0)
+	# Scale to roughly half hero width, vertically prominent
+	sprite.scale = Vector2(0.25, 0.25)
+	sprite.position = Vector2(0, 30)  # Shift down so bottom half looks buried
 	_greatsword_node.add_child(sprite)
 
-	# HP label
-	var hp_bg := ColorRect.new()
-	hp_bg.color = Color(0.15, 0.12, 0.1, 0.85)
-	hp_bg.size = Vector2(60, 28)
-	hp_bg.position = Vector2(10, 122)
-	_greatsword_node.add_child(hp_bg)
+	# Ground cover — dark bar to simulate "buried in ground"
+	var ground := ColorRect.new()
+	ground.name = "Ground"
+	ground.color = Color(0.15, 0.12, 0.08, 0.9)
+	ground.size = Vector2(80, 20)
+	ground.position = Vector2(-40, 80)
+	_greatsword_node.add_child(ground)
 
+	# HP bar background — aligned with hero HP bar (y=150 in entity_template)
+	var hp_bar_bg := ColorRect.new()
+	hp_bar_bg.name = "HPBarBG"
+	hp_bar_bg.color = Color(0.2, 0.06, 0.06, 1.0)
+	hp_bar_bg.size = Vector2(100, 10)
+	hp_bar_bg.position = Vector2(-50, 150)
+	_greatsword_node.add_child(hp_bar_bg)
+
+	# HP bar fill
+	var hp_bar_fill := ColorRect.new()
+	hp_bar_fill.name = "HPBarFill"
+	hp_bar_fill.color = Color(0.9, 0.5, 0.1, 1.0)
+	hp_bar_fill.size = Vector2(100, 10)
+	hp_bar_fill.position = Vector2(-50, 150)
+	_greatsword_node.add_child(hp_bar_fill)
+
+	# HP label — matches hero HP label position (y=140)
 	var hp_label := Label.new()
 	hp_label.name = "HPLabel"
 	hp_label.text = "0"
-	hp_label.add_theme_font_size_override("font_size", 20)
-	hp_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2))
+	hp_label.add_theme_font_size_override("font_size", 22)
+	hp_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	hp_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	hp_label.add_theme_constant_override("shadow_offset_x", 1)
+	hp_label.add_theme_constant_override("shadow_offset_y", 1)
 	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp_label.size = Vector2(60, 28)
-	hp_label.position = Vector2(10, 122)
+	hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hp_label.size = Vector2(100, 30)
+	hp_label.position = Vector2(-50, 135)
 	_greatsword_node.add_child(hp_label)
 
-	# Title
+	# Title label below HP bar
 	var title := Label.new()
+	title.name = "Title"
 	title.text = "巨剑"
-	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_font_size_override("font_size", 14)
 	title.add_theme_color_override("font_color", Color(0.8, 0.65, 0.3))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.size = Vector2(80, 20)
-	title.position = Vector2(0, 152)
+	title.size = Vector2(100, 18)
+	title.position = Vector2(-50, 162)
 	_greatsword_node.add_child(title)
 
 	# Thorns label (hidden by default)
@@ -2954,12 +2987,85 @@ func _create_greatsword_visual() -> void:
 	thorns_label.name = "ThornsLabel"
 	thorns_label.text = ""
 	thorns_label.visible = false
-	thorns_label.add_theme_font_size_override("font_size", 14)
+	thorns_label.add_theme_font_size_override("font_size", 12)
 	thorns_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.3))
 	thorns_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	thorns_label.size = Vector2(80, 18)
-	thorns_label.position = Vector2(0, 172)
+	thorns_label.size = Vector2(100, 16)
+	thorns_label.position = Vector2(-50, 178)
 	_greatsword_node.add_child(thorns_label)
+
+func _play_forge_effect() -> void:
+	## Play forge animation: orange glow + sparks on the greatsword
+	if _greatsword_node == null or not _greatsword_node.visible:
+		return
+	var sword_pos: Vector2 = _greatsword_node.global_position + Vector2(0, 20)
+	# Orange glow flash on sword
+	var glow := ColorRect.new()
+	glow.color = Color(1.0, 0.6, 0.1, 0.7)
+	glow.size = Vector2(60, 80)
+	glow.position = sword_pos + Vector2(-30, -50)
+	glow.z_index = 200
+	add_child(glow)
+	var tw := create_tween()
+	tw.tween_property(glow, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(glow.queue_free)
+	# Sparks particles
+	for i in range(6):
+		var spark := Polygon2D.new()
+		spark.polygon = PackedVector2Array([
+			Vector2(-2, -2), Vector2(2, -2), Vector2(2, 2), Vector2(-2, 2)
+		])
+		spark.color = Color(1.0, 0.7 + randf() * 0.3, 0.1, 1.0)
+		spark.position = sword_pos + Vector2(randf_range(-20, 20), randf_range(-40, 10))
+		spark.z_index = 210
+		add_child(spark)
+		var stw := create_tween()
+		stw.set_parallel(true)
+		var end_pos: Vector2 = spark.position + Vector2(randf_range(-30, 30), randf_range(-60, -20))
+		stw.tween_property(spark, "position", end_pos, 0.4 + randf() * 0.3)
+		stw.tween_property(spark, "modulate:a", 0.0, 0.5)
+		stw.set_parallel(false)
+		stw.tween_callback(spark.queue_free)
+	# Sword pulse scale
+	var sprite: Node = _greatsword_node.get_node_or_null("Sprite")
+	if sprite:
+		var orig_scale: Vector2 = sprite.scale
+		var ptw := create_tween()
+		ptw.tween_property(sprite, "scale", orig_scale * 1.15, 0.1).set_ease(Tween.EASE_OUT)
+		ptw.tween_property(sprite, "scale", orig_scale, 0.2).set_ease(Tween.EASE_IN)
+
+func _play_greatsword_attack_effect(target: Node2D) -> void:
+	## Play greatsword attack animation: sword swings toward target then returns
+	if _greatsword_node == null or not _greatsword_node.visible:
+		return
+	var sprite: Node = _greatsword_node.get_node_or_null("Sprite")
+	if sprite == null:
+		return
+	# Swing animation: tilt toward enemy, then spring back
+	var tw := create_tween()
+	# Wind up — tilt back
+	tw.tween_property(sprite, "rotation", -0.3, 0.1).set_ease(Tween.EASE_IN)
+	# Swing forward — tilt toward enemy
+	tw.tween_property(sprite, "rotation", 0.5, 0.12).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	# Hit effect at target
+	tw.tween_callback(func():
+		if target and is_instance_valid(target):
+			_generic_hit_effect(target)
+		# Slash arc from sword to target
+		var slash := Polygon2D.new()
+		slash.polygon = PackedVector2Array([
+			Vector2(0, -8), Vector2(80, -3), Vector2(80, 3), Vector2(0, 8)
+		])
+		slash.color = Color(1.0, 0.6, 0.1, 0.8)
+		slash.position = _greatsword_node.global_position + Vector2(20, 0)
+		slash.z_index = 200
+		add_child(slash)
+		var stw := create_tween()
+		stw.tween_property(slash, "modulate:a", 0.0, 0.3)
+		stw.tween_callback(slash.queue_free)
+	)
+	# Return to neutral
+	tw.tween_property(sprite, "rotation", 0.0, 0.2).set_ease(Tween.EASE_IN_OUT)
 
 func _reset_greatsword_for_battle() -> void:
 	_greatsword_hp = 0
@@ -3365,6 +3471,7 @@ func end_player_turn() -> void:
 				var dmg: int = int(_greatsword_hp * ls_pct / 100.0)
 				if dmg > 0:
 					var rand_enemy = alive_enemies[randi() % alive_enemies.size()]
+					_play_greatsword_attack_effect(rand_enemy)
 					rand_enemy.take_damage(dmg)
 
 	# Energy Reserve: save unspent energy for next turn
