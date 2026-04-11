@@ -2946,14 +2946,12 @@ func _create_greatsword_visual() -> void:
 	_greatsword_node = Node2D.new()
 	_greatsword_node.name = "Greatsword"
 	_greatsword_node.visible = false
-	# Position: 70% of the distance between hero and enemy area
+	# Position: right of front hero, same gap as between two heroes (390px)
 	var hero_x: float = 0.0
 	if player:
 		hero_x = player.position.x
-	var gap: float = 720.0  # default PlayerArea-EnemyArea distance
-	if enemy_area and player_area:
-		gap = enemy_area.position.x - player_area.position.x
-	_greatsword_node.position = Vector2(hero_x + gap * 0.7, 0)
+	var hero_gap: float = 390.0  # distance between front hero (160) and back hero (-230)
+	_greatsword_node.position = Vector2(hero_x + hero_gap, 0)
 	_greatsword_node.z_index = 5
 	player_area.add_child(_greatsword_node)
 
