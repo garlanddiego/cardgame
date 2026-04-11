@@ -2007,11 +2007,14 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if _double_damage_this_turn:
 				base_dmg *= 2
 			if target and target.alive:
+				var hp_before_exec: int = target.current_hp
 				_apply_single_hit_damage(base_dmg, target, target_type)
-				var bl: int = target.get_status_stacks("bloodlust")
-				if bl > 0:
-					target.apply_status("bloodlust", bl)
-					_bf_on_apply_bloodlust_check(card_hero, target, bl)
+				# Only double bloodlust if damage actually reduced HP
+				if target.current_hp < hp_before_exec:
+					var bl: int = target.get_status_stacks("bloodlust")
+					if bl > 0:
+						target.apply_status("bloodlust", bl)
+						_bf_on_apply_bloodlust_check(card_hero, target, bl)
 		"blood_whirl":
 			var self_dmg_hero: Node2D = card_hero if card_hero else player
 			if self_dmg_hero:
