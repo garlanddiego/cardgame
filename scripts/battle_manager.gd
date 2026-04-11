@@ -2926,12 +2926,18 @@ func _create_greatsword_visual() -> void:
 	_greatsword_node = Node2D.new()
 	_greatsword_node.name = "Greatsword"
 	_greatsword_node.visible = false
-	# Position to the right of the hero (between hero and enemies)
-	_greatsword_node.position = Vector2(160, 0)
+	# Position: 70% of the distance between hero and enemy area
+	var hero_x: float = 0.0
+	if player:
+		hero_x = player.position.x
+	var gap: float = 720.0  # default PlayerArea-EnemyArea distance
+	if enemy_area and player_area:
+		gap = enemy_area.position.x - player_area.position.x
+	_greatsword_node.position = Vector2(hero_x + gap * 0.7, 0)
 	_greatsword_node.z_index = 5
 	player_area.add_child(_greatsword_node)
 
-	# Sword sprite — large, half-buried in ground
+	# Sword sprite — 80% of hero height
 	var sprite := Sprite2D.new()
 	sprite.name = "Sprite"
 	var sword_path := "res://assets/img/greatsword_v2.png"
@@ -2939,8 +2945,12 @@ func _create_greatsword_visual() -> void:
 		sword_path = "res://assets/img/greatsword.png"
 	if ResourceLoader.exists(sword_path):
 		sprite.texture = load(sword_path)
-	# Scale to roughly half hero width, vertically prominent
-	sprite.scale = Vector2(0.25, 0.25)
+	var target_h: float = player_sprite_scale_height * 0.8  # 80% of hero height
+	var tex_h: float = 512.0
+	if sprite.texture:
+		tex_h = sprite.texture.get_height()
+	var sword_sf: float = target_h / tex_h
+	sprite.scale = Vector2(sword_sf, sword_sf)
 	sprite.position = Vector2(0, 30)  # Shift down so bottom half looks buried
 	_greatsword_node.add_child(sprite)
 
