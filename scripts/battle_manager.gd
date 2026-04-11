@@ -4949,6 +4949,8 @@ func _play_attack_effect(card_data: Dictionary, hero_node: Node2D, target_node: 
 		_dagger_throw_effect(hero_node, target_node)
 	elif card_char == "bloodfiend":
 		_blood_claw_effect(hero_node, target_node)
+	elif card_char == "forger":
+		_hammer_throw_effect(hero_node, target_node)
 	else:
 		_generic_hit_effect(target_node)
 
@@ -5134,6 +5136,52 @@ func _dagger_throw_effect(hero_node: Node2D, target_node: Node2D) -> void:
 		_generic_hit_effect(target_node)
 		dagger.queue_free()
 	)
+
+func _hammer_throw_effect(hero_node: Node2D, target_node: Node2D) -> void:
+	## Forger: hammer flies out to enemy, hits, then boomerangs back
+	if hero_node == null or target_node == null:
+		return
+	if not is_instance_valid(hero_node) or not is_instance_valid(target_node):
+		return
+	var start: Vector2 = hero_node.global_position + Vector2(30, -40)
+	var end_p: Vector2 = target_node.global_position + Vector2(0, -20)
+	# Hammer shape — rectangular head + short handle
+	var hammer = Polygon2D.new()
+	hammer.polygon = PackedVector2Array([
+		# Head (wide block)
+		Vector2(-6, -10), Vector2(10, -10), Vector2(10, 10), Vector2(-6, 10),
+		# Handle (narrow)
+		Vector2(-6, -3), Vector2(-18, -3), Vector2(-18, 3), Vector2(-6, 3),
+	])
+	hammer.color = Color(0.7, 0.55, 0.35, 0.95)
+	hammer.position = start
+	hammer.z_index = 300
+	hammer.pivot_offset = Vector2(0, 0)
+	add_child(hammer)
+	# Phase 1: fly to enemy with spinning
+	var tw = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(hammer, "position", end_p, 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(hammer, "rotation", TAU * 2, 0.2)  # Spin 2 full rotations
+	tw.set_parallel(false)
+	# Phase 2: hit flash
+	tw.tween_callback(func():
+		_generic_hit_effect(target_node)
+	)
+	tw.tween_interval(0.1)
+	# Phase 3: arc back to hero (boomerang return) — curve upward
+	var mid_y: float = min(start.y, end_p.y) - 80  # Arc above both points
+	var mid_point: Vector2 = Vector2((start.x + end_p.x) * 0.5, mid_y)
+	# Simulate arc with 3 waypoints
+	var arc_p1: Vector2 = end_p.lerp(mid_point, 0.5)
+	var arc_p2: Vector2 = mid_point.lerp(start, 0.5)
+	tw.set_parallel(true)
+	tw.tween_property(hammer, "position", arc_p1, 0.1).set_ease(Tween.EASE_OUT)
+	tw.tween_property(hammer, "rotation", TAU * 3, 0.3)  # Keep spinning
+	tw.set_parallel(false)
+	tw.tween_property(hammer, "position", arc_p2, 0.1)
+	tw.tween_property(hammer, "position", start, 0.1).set_ease(Tween.EASE_IN)
+	tw.tween_callback(hammer.queue_free)
 
 func _generic_hit_effect(target_node: Node2D) -> void:
 	## Flash hit effect at target position
