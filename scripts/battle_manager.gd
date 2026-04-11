@@ -2815,6 +2815,7 @@ func _forge_sword(amount: int) -> void:
 	## Add HP to greatsword. Auto-summons if not alive. Triggers Forge Master.
 	if _greatsword_no_summon_this_turn and _greatsword_hp <= 0:
 		return  # Cannot summon this turn (Sword Sacrifice)
+	var was_dead: bool = _greatsword_hp <= 0
 	# Forge Master bonus
 	var bonus: int = 0
 	for hero in _get_all_alive_heroes():
@@ -2827,25 +2828,35 @@ func _forge_sword(amount: int) -> void:
 	_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
 	_forged_this_turn = true
 	_update_greatsword_display()
-	_play_forge_effect()
+	if was_dead:
+		_play_summon_effect()
+	else:
+		_play_forge_effect()
 	# Resonance check is handled by block gain, not forge
 
 func _summon_greatsword(hp: int) -> void:
 	## Summon or add HP to greatsword
 	if _greatsword_no_summon_this_turn and _greatsword_hp <= 0:
 		return
+	var was_dead: bool = _greatsword_hp <= 0
 	if _greatsword_hp <= 0:
 		_greatsword_hp = hp
 	else:
 		_greatsword_hp += hp
 	_greatsword_max_hp = maxi(_greatsword_max_hp, _greatsword_hp)
 	_update_greatsword_display()
-	_play_forge_effect()
+	if was_dead:
+		_play_summon_effect()
+	else:
+		_play_forge_effect()
 
 func _destroy_greatsword() -> void:
+	var was_alive: bool = _greatsword_hp > 0
 	_greatsword_hp = 0
 	_greatsword_thorns = 0
 	_greatsword_temp_thorns = 0
+	if was_alive:
+		_play_shatter_effect()
 	_update_greatsword_display()
 
 func _greatsword_take_damage(dmg: int, attacker: Node2D) -> int:
@@ -2873,6 +2884,7 @@ func _greatsword_take_damage(dmg: int, attacker: Node2D) -> int:
 		_greatsword_hp = 0
 		_greatsword_thorns = 0
 		_greatsword_temp_thorns = 0
+		_play_shatter_effect()
 	_update_greatsword_display()
 	return dmg - absorbed
 
@@ -3066,6 +3078,106 @@ func _play_greatsword_attack_effect(target: Node2D) -> void:
 	)
 	# Return to neutral
 	tw.tween_property(sprite, "rotation", 0.0, 0.2).set_ease(Tween.EASE_IN_OUT)
+
+func _play_summon_effect() -> void:
+	## Play summon animation: sword rises from ground with energy burst
+	if _greatsword_node == null:
+		return
+	var sprite: Node = _greatsword_node.get_node_or_null("Sprite")
+	if sprite == null:
+		return
+	# Sword rises up from below
+	var orig_pos: Vector2 = sprite.position
+	sprite.position = orig_pos + Vector2(0, 80)
+	sprite.modulate.a = 0.0
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(sprite, "position", orig_pos, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(sprite, "modulate:a", 1.0, 0.3)
+	tw.set_parallel(false)
+	# Energy burst at sword position
+	tw.tween_callback(func():
+		var sword_pos: Vector2 = _greatsword_node.global_position + Vector2(0, 20)
+		# Expanding ring
+		var ring := Polygon2D.new()
+		var pts: PackedVector2Array = PackedVector2Array()
+		for a in range(0, 360, 15):
+			pts.append(Vector2(cos(deg_to_rad(a)) * 5, sin(deg_to_rad(a)) * 5))
+		ring.polygon = pts
+		ring.color = Color(1.0, 0.7, 0.2, 0.8)
+		ring.position = sword_pos
+		ring.z_index = 200
+		add_child(ring)
+		var rtw := create_tween()
+		rtw.set_parallel(true)
+		rtw.tween_property(ring, "scale", Vector2(8, 8), 0.4).set_ease(Tween.EASE_OUT)
+		rtw.tween_property(ring, "modulate:a", 0.0, 0.4)
+		rtw.set_parallel(false)
+		rtw.tween_callback(ring.queue_free)
+		# Ground dust particles
+		for i in range(8):
+			var dust := Polygon2D.new()
+			dust.polygon = PackedVector2Array([
+				Vector2(-3, -2), Vector2(3, -2), Vector2(3, 2), Vector2(-3, 2)
+			])
+			dust.color = Color(0.6, 0.5, 0.3, 0.8)
+			dust.position = sword_pos + Vector2(randf_range(-30, 30), 50)
+			dust.z_index = 190
+			add_child(dust)
+			var dtw := create_tween()
+			dtw.set_parallel(true)
+			var end_p: Vector2 = dust.position + Vector2(randf_range(-20, 20), randf_range(-40, -15))
+			dtw.tween_property(dust, "position", end_p, 0.5)
+			dtw.tween_property(dust, "modulate:a", 0.0, 0.5)
+			dtw.set_parallel(false)
+			dtw.tween_callback(dust.queue_free)
+	)
+
+func _play_shatter_effect() -> void:
+	## Play shatter animation: sword breaks into fragments that fly outward
+	if _greatsword_node == null:
+		return
+	var sword_pos: Vector2 = _greatsword_node.global_position + Vector2(0, 20)
+	# Screen shake (small)
+	var orig_cam_pos: Vector2 = Vector2.ZERO
+	var cam := get_viewport().get_camera_2d()
+	if cam:
+		orig_cam_pos = cam.offset
+		var stw := create_tween()
+		stw.tween_property(cam, "offset", orig_cam_pos + Vector2(4, -3), 0.05)
+		stw.tween_property(cam, "offset", orig_cam_pos + Vector2(-4, 3), 0.05)
+		stw.tween_property(cam, "offset", orig_cam_pos, 0.05)
+	# Shatter fragments flying outward
+	for i in range(12):
+		var frag := Polygon2D.new()
+		var fw: float = randf_range(4, 10)
+		var fh: float = randf_range(6, 14)
+		frag.polygon = PackedVector2Array([
+			Vector2(-fw, -fh), Vector2(fw * 0.5, -fh * 0.7),
+			Vector2(fw, fh * 0.3), Vector2(-fw * 0.3, fh)
+		])
+		frag.color = Color(0.4 + randf() * 0.2, 0.35 + randf() * 0.15, 0.25, 1.0)
+		frag.position = sword_pos + Vector2(randf_range(-15, 15), randf_range(-40, 20))
+		frag.z_index = 210
+		add_child(frag)
+		var ftw := create_tween()
+		ftw.set_parallel(true)
+		var end_pos: Vector2 = frag.position + Vector2(randf_range(-80, 80), randf_range(-60, 40))
+		ftw.tween_property(frag, "position", end_pos, 0.5 + randf() * 0.3).set_ease(Tween.EASE_OUT)
+		ftw.tween_property(frag, "rotation", randf_range(-TAU, TAU), 0.6)
+		ftw.tween_property(frag, "modulate:a", 0.0, 0.6)
+		ftw.set_parallel(false)
+		ftw.tween_callback(frag.queue_free)
+	# Red flash at sword position
+	var flash := ColorRect.new()
+	flash.color = Color(0.8, 0.2, 0.1, 0.6)
+	flash.size = Vector2(80, 100)
+	flash.position = sword_pos + Vector2(-40, -60)
+	flash.z_index = 200
+	add_child(flash)
+	var flash_tw := create_tween()
+	flash_tw.tween_property(flash, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_OUT)
+	flash_tw.tween_callback(flash.queue_free)
 
 func _reset_greatsword_for_battle() -> void:
 	_greatsword_hp = 0
