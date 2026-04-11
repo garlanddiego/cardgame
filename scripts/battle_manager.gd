@@ -1134,11 +1134,13 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 			var rage_stacks: int = hero.active_powers.get("rage", 0)
 			if rage_stacks > 0:
 				hero.add_block(rage_stacks)
+				_fg_on_hero_gain_block(hero, rage_stacks)
 				_trigger_juggernaut()
 		# Predator Instinct: gain block + draw per attack played (temporary)
 		if _bf_predator_instinct_block > 0:
 			for hero in _get_all_alive_heroes():
 				hero.add_block(_bf_predator_instinct_block)
+				_fg_on_hero_gain_block(hero, _bf_predator_instinct_block)
 				_trigger_juggernaut()
 		if _bf_predator_instinct_draw > 0:
 			draw_cards(_bf_predator_instinct_draw)
@@ -1161,6 +1163,7 @@ func play_card(card_data: Dictionary, target: Node2D) -> void:
 		var ai_stacks: int = hero.active_powers.get("after_image", 0)
 		if ai_stacks > 0:
 			hero.add_block(ai_stacks)
+			_fg_on_hero_gain_block(hero, ai_stacks)
 			_trigger_juggernaut()
 
 	_card_gen_delay = 0.0  # Reset in case no generation effect consumed it
@@ -1194,6 +1197,7 @@ func _exhaust_card(card_data: Dictionary) -> void:
 	for hero in _get_all_alive_heroes():
 		if hero.active_powers.get("feel_no_pain", 0) > 0:
 			hero.add_block(feel_no_pain_block)
+			_fg_on_hero_gain_block(hero, feel_no_pain_block)
 			_trigger_juggernaut()
 	# Dark Embrace: draw 1 on exhaust
 	for hero in _get_all_alive_heroes():
@@ -1294,12 +1298,14 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 					if target_type == "all_heroes" or buff_target_override == "all_heroes" or hero_tgt == "all_heroes":
 						for hero in _get_all_alive_heroes():
 							hero.add_block(blk)
+							_fg_on_hero_gain_block(hero, blk)
 							_trigger_juggernaut()
 					elif target_type == "enemy" and card_data.get("type", 0) == 0:
 						# Attack cards: block goes to the card's own hero
 						var block_target = card_hero if card_hero else player
 						if block_target:
 							block_target.add_block(blk)
+							_fg_on_hero_gain_block(block_target, blk)
 							_trigger_juggernaut()
 					else:
 						# "self" or "target_hero": block goes to the target hero
@@ -1308,6 +1314,7 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 							block_target = player
 						if block_target:
 							block_target.add_block(blk)
+							_fg_on_hero_gain_block(block_target, blk)
 							_trigger_juggernaut()
 
 			# ---- Draw cards ----
@@ -1584,6 +1591,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 			if self_hero:
 				var current_block: int = self_hero.block
 				self_hero.add_block(current_block)
+				_fg_on_hero_gain_block(self_hero, current_block)
 				_trigger_juggernaut()
 		"second_wind":
 			var self_hero = target if (target != null and not target.is_enemy) else player
@@ -1597,6 +1605,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					hand.erase(c)
 					_exhaust_card(c)
 					self_hero.add_block(blk_per)
+					_fg_on_hero_gain_block(self_hero, blk_per)
 					_trigger_juggernaut()
 				if card_hand:
 					card_hand.clear_hand()
@@ -1797,7 +1806,9 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if card_hand:
 					_delayed_add_card(drawn)
 				if drawn.get("type", 0) == 1 and player:
-					player.add_block(card_data.get("escape_block", 3))
+					var esc_blk: int = card_data.get("escape_block", 3)
+					player.add_block(esc_blk)
+					_fg_on_hero_gain_block(player, esc_blk)
 					_trigger_juggernaut()
 				_update_pile_labels()
 		"concentrate":
@@ -1989,6 +2000,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 					total_poison += enemy.get_status_stacks("poison")
 			if total_poison > 0 and player:
 				player.add_block(total_poison)
+				_fg_on_hero_gain_block(player, total_poison)
 				_trigger_juggernaut()
 		"all_in":
 			# Consume all energy, draw 2 per energy consumed
@@ -2308,6 +2320,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				if vg_hero.max_hp > 0 and float(vg_hero.current_hp) / float(vg_hero.max_hp) < threshold:
 					total_block += bonus
 				vg_hero.add_block(total_block)
+				_fg_on_hero_gain_block(vg_hero, total_block)
 				_trigger_juggernaut()
 		"blood_rush":
 			# Let the player choose an attack card to reduce its cost by 1
@@ -2349,6 +2362,7 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				var is_low: bool = si_hero.max_hp > 0 and float(si_hero.current_hp) / float(si_hero.max_hp) < threshold_pct
 				var block_val: int = card_data.get("bf_low_hp_block", 6) if is_low else card_data.get("block", 3)
 				si_hero.add_block(block_val)
+				_fg_on_hero_gain_block(si_hero, block_val)
 				_trigger_juggernaut()
 
 		# ══════════════════════════════════════════════════════════════════════
@@ -2738,6 +2752,7 @@ func _apply_multi_hit_damage(dmg: int, hit_count: int, target: Node2D, target_ty
 func _apply_block_and_draw(block_val: int, draw_count: int, card_data: Dictionary) -> void:
 	if block_val > 0 and player:
 		player.add_block(block_val)
+		_fg_on_hero_gain_block(player, block_val)
 		_trigger_juggernaut()
 	if draw_count > 0:
 		draw_cards(draw_count)
@@ -2780,6 +2795,7 @@ func _bf_on_hp_loss(hero: Node2D, amount: int) -> void:
 	if pt > 0:
 		draw_cards(1)
 		hero.add_block(pt)
+		_fg_on_hero_gain_block(hero, pt)
 		_trigger_juggernaut()
 
 func _bf_on_apply_vulnerable_check(hero: Node2D, _status_type: String, _stacks: int) -> void:
@@ -2871,7 +2887,9 @@ func _greatsword_take_damage(dmg: int, attacker: Node2D) -> int:
 	for hero in _get_all_alive_heroes():
 		var iron_skin: int = hero.active_powers.get("fg_iron_skin", 0)
 		if iron_skin > 0:
-			hero.add_block(dmg + iron_skin - 1)  # +bonus from upgrade
+			var is_blk: int = dmg + iron_skin - 1
+			hero.add_block(is_blk)
+			_fg_on_hero_gain_block(hero, is_blk)
 			_trigger_juggernaut()
 	# Counter Forge: forge on sword hit
 	for hero in _get_all_alive_heroes():
@@ -3393,6 +3411,7 @@ func _process_next_turn_effects() -> void:
 			"block":
 				if value > 0 and player and player.alive:
 					player.add_block(value)
+					_fg_on_hero_gain_block(player, value)
 					_trigger_juggernaut()
 			"gain_energy":
 				if value > 0:
@@ -3566,6 +3585,7 @@ func end_player_turn() -> void:
 	for hero in _get_all_alive_heroes():
 		if hero.active_powers.get("metallicize", 0) > 0:
 			hero.add_block(metallicize_block)
+			_fg_on_hero_gain_block(hero, metallicize_block)
 			_trigger_juggernaut()
 
 	# Noxious Fumes: apply poison to all enemies at end of turn
