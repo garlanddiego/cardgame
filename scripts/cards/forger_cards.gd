@@ -114,7 +114,7 @@ static func get_upgrade_overrides() -> Dictionary:
 		"fg_thorn_forge": {"fg_hero_thorns": 0, "fg_sword_thorns": 6, "fg_forge": 3, "description": "铸造3。巨剑获得\n6层荆棘(本回合)。"},
 		"fg_salvage": {"block": 9, "description": "获得9点格挡。\n从弃牌堆选择\n1张牌置于\n抽牌堆顶。"},
 		"fg_thorn_wall": {"fg_sword_thorns": 3, "description": "巨剑获得3层荆棘。"},
-		"fg_sacrifice_fuel": {"fg_sacrifice_cost": 6, "fg_energy_gain": 3, "description": "消耗巨剑6点生命\n或英雄6点格挡，\n获得3点能量。\n不足6则无法打出。"},
+		"fg_sacrifice_fuel": {"fg_sacrifice_cost": 8, "fg_energy_gain": 2, "description": "消耗巨剑8点生命\n或英雄8点格挡，\n获得2点能量。\n不足8则无法打出。"},
 		"fg_quick_temper": {"fg_forge": 5, "draw": 1, "description": "铸造+5。\n抽1张牌。\n消耗。"},
 		"fg_chain_forge": {"fg_forge_base": 5, "fg_forge_chain": 12, "description": "铸造+5。\n若本回合已铸造，\n改为+12。\n抽1张牌。"},
 		"fg_repurpose": {"fg_block_mult": 5, "fg_forge_mult": 4, "description": "消耗1张手牌。\n获得其费用×5格挡。\n铸造+其费用×4。"},
