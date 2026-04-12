@@ -2622,16 +2622,22 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				_trigger_juggernaut()
 				_fg_on_hero_gain_block(hero_blk, blk)
 			# Pick 1 card from discard pile → top of draw pile
-			if not discard_pile.is_empty():
+			if discard_pile.is_empty():
+				pass  # No cards in discard, skip
+			elif discard_pile.size() == 1:
+				# Only 1 card — auto move it to draw pile top
+				var card = discard_pile[0]
+				discard_pile.remove_at(0)
+				draw_pile.append(card)
+				_update_pile_labels()
+			else:
+				# Multiple cards — show discard pile for user to pick 1
 				_fg_salvage_mode = true
-				_show_discard_selection(1, func():
-					# Move selected card from discard to draw pile top
-					if not _discard_selected_cards.is_empty():
-						var idx: int = _discard_selected_cards[0]
-						if idx >= 0 and idx < discard_pile.size():
-							var card = discard_pile[idx]
-							discard_pile.remove_at(idx)
-							draw_pile.append(card)
+				_show_pile_selection(discard_pile, "选择1张牌放回抽牌堆顶部", 1, func(selected_cards: Array):
+					if not selected_cards.is_empty():
+						var card = selected_cards[0]
+						discard_pile.erase(card)
+						draw_pile.append(card)
 					_fg_salvage_mode = false
 					_update_pile_labels()
 				)
