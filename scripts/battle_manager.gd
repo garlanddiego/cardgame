@@ -20,6 +20,7 @@ var second_player: Node2D = null  # Back-row hero (dual hero mode)
 var _player_character_id: String = ""  # Character ID of front-row hero
 var _second_character_id: String = ""  # Character ID of back-row hero
 var _dead_hero_char: String = ""  # Character ID of dead hero (cards become unplayable)
+var _last_played_card_char: String = ""  # Character ID of last played card (for SFX)
 @export var player_sprite_scale_height: float = 431.0  ## Target height in pixels for player sprite (+20%)
 @export var enemy_sprite_scale_height: float = 336.0  ## Target height in pixels for enemy sprite (+20%)
 @export var damage_number_font_size: int = 36  ## Font size for floating damage numbers
@@ -1238,6 +1239,13 @@ func _get_alive_enemies() -> Array:
 # ==========================================================================
 # Data-driven action executor — cards with "actions" array use this path
 # ==========================================================================
+func _get_hero_char_id(hero_node: Node2D) -> String:
+	if hero_node == player:
+		return _player_character_id
+	elif hero_node == second_player:
+		return _second_character_id
+	return _player_character_id
+
 func _get_card_hero(card_data: Dictionary) -> Node2D:
 	## Returns the hero that should execute this card (based on character match)
 	if dual_hero_mode:
@@ -1255,6 +1263,7 @@ func _get_card_hero(card_data: Dictionary) -> Node2D:
 func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, energy_spent: int) -> void:
 	var target_type: String = card_data.get("target", "enemy")
 	var card_hero: Node2D = _get_card_hero(card_data)  # The hero playing this card
+	_last_played_card_char = card_data.get("character", "")
 
 	for action in actions:
 		var atype: String = action.get("type", "")
@@ -1295,6 +1304,7 @@ func _execute_actions(actions: Array, card_data: Dictionary, target: Node2D, ene
 			"block":
 				var blk: int = action.get("value", card_data.get("block", 0))
 				if blk > 0:
+					SfxManager.play_hero_block(get_tree(), _last_played_card_char)
 					var buff_target_override: String = action.get("buff_target", "")
 					var hero_tgt: String = card_data.get("hero_target", "self")
 					if target_type == "all_heroes" or buff_target_override == "all_heroes" or hero_tgt == "all_heroes":
@@ -2716,9 +2726,13 @@ func _apply_single_hit_damage(dmg: int, target: Node2D, target_type: String) -> 
 	elif target != null and target.alive:
 		_hit_enemy_with_effects(target, dmg)
 
-func _hit_enemy_with_effects(enemy: Node2D, dmg: int) -> void:
+func _hit_enemy_with_effects(enemy: Node2D, dmg: int, attacker_char: String = "") -> void:
 	if not enemy.alive or not enemy.is_enemy:
 		return
+	if attacker_char == "" and _last_played_card_char != "":
+		attacker_char = _last_played_card_char
+	if dmg > 0 and attacker_char != "":
+		SfxManager.play_hero_attack(get_tree(), attacker_char)
 	var hp_before: int = enemy.current_hp
 	enemy.take_damage(dmg)
 	_on_hero_hit_enemy(enemy, hp_before)
@@ -3994,6 +4008,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			# Multi-hit is handled by _execute_enemy_multi_hit; this handles single-hit only
 			var value: int = action.get("value", 5)
 			var actual_dmg: int = enemy.get_attack_damage(value)
+			SfxManager.play_enemy_attack(get_tree())
 			_enemy_lunge(enemy)
 			var attack_target = front
 			var remaining_dmg: int = actual_dmg
@@ -4001,13 +4016,21 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 				remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
 				_screen_shake()
 			if remaining_dmg > 0 and attack_target.alive:
+				var _had_block: bool = attack_target.block > 0
 				attack_target.take_damage(remaining_dmg)
+				if _had_block:
+					var _hero_char: String = _get_hero_char_id(attack_target)
+					SfxManager.play_block_absorb(get_tree(), _hero_char)
 				_screen_shake()
 				_check_reactive_powers(attack_target, enemy)
 			elif remaining_dmg > 0 and dual_hero_mode:
 				attack_target = get_front_player()
 				if attack_target and attack_target.alive:
+					var _had_block2: bool = attack_target.block > 0
 					attack_target.take_damage(remaining_dmg)
+					if _had_block2:
+						var _hero_char2: String = _get_hero_char_id(attack_target)
+						SfxManager.play_block_absorb(get_tree(), _hero_char2)
 					_screen_shake()
 					_check_reactive_powers(attack_target, enemy)
 			elif remaining_dmg <= 0:
