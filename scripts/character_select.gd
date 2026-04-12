@@ -1,6 +1,6 @@
 extends Control
-## res://scripts/character_select.gd — Hero selection screen (redesigned)
-## 5 hero portrait cards stacked vertically, single/dual mode toggle, slot-based selection
+## res://scripts/character_select.gd — Hero selection screen
+## 5 hero portrait cards side by side horizontally, bottom bar with slots + start + mode toggle
 
 signal character_chosen(character_id: String)
 signal dual_battle_chosen(hero1_id: String, hero2_id: String)
@@ -36,7 +36,6 @@ var _slot2_container: Control = null
 var _mode_btn: Button = null
 var _start_btn: Button = null
 var _hero_panels: Dictionary = {}  # hero_id -> PanelContainer
-var _scroll: ScrollContainer = null
 
 func _ready() -> void:
   _build_ui()
@@ -52,83 +51,32 @@ func _build_ui() -> void:
   bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
   add_child(bg)
 
-  # Try dungeon bg
-  var bg_path := "res://assets/img/dungeon_bg.png"
-  if ResourceLoader.exists(bg_path):
-    var bg_tex = TextureRect.new()
-    bg_tex.texture = load(bg_path)
-    bg_tex.set_anchors_preset(Control.PRESET_FULL_RECT)
-    bg_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    bg_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-    bg_tex.modulate = Color(0.3, 0.3, 0.3, 1.0)
-    bg_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(bg_tex)
-
-  # Dark overlay
-  var overlay = ColorRect.new()
-  overlay.color = Color(0, 0, 0, 0.5)
-  overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-  overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  add_child(overlay)
-
   # Main vertical layout
   var main_vbox = VBoxContainer.new()
   main_vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
-  main_vbox.offset_left = 30
-  main_vbox.offset_right = -30
-  main_vbox.offset_top = 15
-  main_vbox.offset_bottom = -15
-  main_vbox.add_theme_constant_override("separation", 8)
+  main_vbox.offset_left = 10
+  main_vbox.offset_right = -10
+  main_vbox.offset_top = 8
+  main_vbox.offset_bottom = -8
+  main_vbox.add_theme_constant_override("separation", 6)
   add_child(main_vbox)
 
-  # === TOP BAR: back button + title ===
-  var top_bar = HBoxContainer.new()
-  top_bar.add_theme_constant_override("separation", 15)
-  top_bar.custom_minimum_size = Vector2(0, 45)
-  main_vbox.add_child(top_bar)
-
-  var back_btn = Button.new()
-  back_btn.text = "← 返回"
-  back_btn.custom_minimum_size = Vector2(100, 42)
-  back_btn.add_theme_font_size_override("font_size", 20)
-  _style_button(back_btn, Color(0.4, 0.35, 0.3))
-  back_btn.pressed.connect(func(): back_pressed.emit())
-  top_bar.add_child(back_btn)
-
-  var title = Label.new()
-  title.text = "选择英雄"
-  title.add_theme_font_size_override("font_size", 32)
-  title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.5))
-  title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  top_bar.add_child(title)
-
-  # Spacer to balance back button
-  var spacer_top = Control.new()
-  spacer_top.custom_minimum_size = Vector2(100, 0)
-  top_bar.add_child(spacer_top)
-
-  # === HERO CARD LIST (scrollable) ===
-  _scroll = ScrollContainer.new()
-  _scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-  _scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-  main_vbox.add_child(_scroll)
-
-  var card_list = VBoxContainer.new()
-  card_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  card_list.add_theme_constant_override("separation", 6)
-  _scroll.add_child(card_list)
+  # === HERO CARD ROW (5 cards side by side, fills most of the screen) ===
+  var card_row = HBoxContainer.new()
+  card_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+  card_row.add_theme_constant_override("separation", 4)
+  main_vbox.add_child(card_row)
 
   for hero_id in HEROES:
-    var panel = _create_hero_row(hero_id)
-    card_list.add_child(panel)
+    var panel = _create_hero_card(hero_id)
+    card_row.add_child(panel)
     _hero_panels[hero_id] = panel
 
-  # === BOTTOM BAR: slots + start button + mode toggle ===
+  # === BOTTOM BAR: slots + start button + mode toggle + exit ===
   var bottom_bar = HBoxContainer.new()
-  bottom_bar.add_theme_constant_override("separation", 12)
+  bottom_bar.add_theme_constant_override("separation", 15)
   bottom_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-  bottom_bar.custom_minimum_size = Vector2(0, 75)
+  bottom_bar.custom_minimum_size = Vector2(0, 72)
   main_vbox.add_child(bottom_bar)
 
   # Slot 1
@@ -148,55 +96,64 @@ func _build_ui() -> void:
   # Start button
   _start_btn = Button.new()
   _start_btn.text = "开始战斗"
-  _start_btn.custom_minimum_size = Vector2(150, 55)
-  _start_btn.add_theme_font_size_override("font_size", 24)
+  _start_btn.custom_minimum_size = Vector2(140, 50)
+  _start_btn.add_theme_font_size_override("font_size", 22)
   _style_button(_start_btn, Color(0.8, 0.2, 0.2))
   _start_btn.pressed.connect(_on_start)
   _start_btn.disabled = true
   bottom_bar.add_child(_start_btn)
 
   # Spacer
-  var bottom_spacer = Control.new()
-  bottom_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  bottom_bar.add_child(bottom_spacer)
+  var spacer = Control.new()
+  spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  bottom_bar.add_child(spacer)
 
   # Mode toggle
   _mode_btn = Button.new()
-  _mode_btn.custom_minimum_size = Vector2(140, 42)
+  _mode_btn.custom_minimum_size = Vector2(140, 40)
   _mode_btn.add_theme_font_size_override("font_size", 18)
   _update_mode_button()
   _mode_btn.pressed.connect(_toggle_mode)
   bottom_bar.add_child(_mode_btn)
 
+  # Exit button
+  var exit_btn = Button.new()
+  exit_btn.text = "退出"
+  exit_btn.custom_minimum_size = Vector2(80, 40)
+  exit_btn.add_theme_font_size_override("font_size", 18)
+  _style_button(exit_btn, Color(0.4, 0.35, 0.3))
+  exit_btn.pressed.connect(func(): back_pressed.emit())
+  bottom_bar.add_child(exit_btn)
+
   _update_slots_display()
 
-func _create_hero_row(hero_id: String) -> PanelContainer:
+func _create_hero_card(hero_id: String) -> PanelContainer:
   var panel = PanelContainer.new()
   panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  panel.custom_minimum_size = Vector2(0, 120)
+  panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
   var color: Color = HERO_COLORS.get(hero_id, Color.WHITE)
   var style = StyleBoxFlat.new()
-  style.bg_color = Color(color.r * 0.12, color.g * 0.12, color.b * 0.12, 0.85)
+  style.bg_color = Color(color.r * 0.1, color.g * 0.1, color.b * 0.1, 0.9)
   style.border_color = Color(color.r * 0.4, color.g * 0.4, color.b * 0.4, 0.5)
   style.border_width_left = 2
   style.border_width_right = 2
   style.border_width_top = 2
   style.border_width_bottom = 2
-  style.corner_radius_top_left = 8
-  style.corner_radius_top_right = 8
-  style.corner_radius_bottom_left = 8
-  style.corner_radius_bottom_right = 8
+  style.corner_radius_top_left = 6
+  style.corner_radius_top_right = 6
+  style.corner_radius_bottom_left = 6
+  style.corner_radius_bottom_right = 6
   panel.add_theme_stylebox_override("panel", style)
 
-  var hbox = HBoxContainer.new()
-  hbox.add_theme_constant_override("separation", 12)
-  panel.add_child(hbox)
+  var vbox = VBoxContainer.new()
+  vbox.add_theme_constant_override("separation", 4)
+  panel.add_child(vbox)
 
-  # Portrait (left side, square)
+  # Portrait (fills card)
   var portrait = TextureRect.new()
   portrait.name = "Portrait"
-  portrait.custom_minimum_size = Vector2(110, 110)
+  portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
   portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
   portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
   var portrait_path: String = HERO_PORTRAITS.get(hero_id, "")
@@ -206,18 +163,17 @@ func _create_hero_row(hero_id: String) -> PanelContainer:
     var sprite_path: String = "res://assets/img/" + hero_id + ".png"
     if ResourceLoader.exists(sprite_path):
       portrait.texture = load(sprite_path)
-  hbox.add_child(portrait)
+  vbox.add_child(portrait)
 
-  # Name label (right side, large)
+  # Name label at bottom
   var name_label = Label.new()
   name_label.text = HERO_NAMES.get(hero_id, hero_id)
-  name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-  name_label.add_theme_font_size_override("font_size", 28)
+  name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  name_label.add_theme_font_size_override("font_size", 20)
   name_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.75))
-  hbox.add_child(name_label)
+  vbox.add_child(name_label)
 
-  # Make entire panel clickable
+  # Clickable overlay
   var btn_overlay = Button.new()
   btn_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
   btn_overlay.flat = true
@@ -288,10 +244,6 @@ func _on_hero_clicked(hero_id: String) -> void:
   _update_hero_highlights()
 
 func _on_hero_clicked_single(hero_id: String) -> void:
-  ## Single mode:
-  ## - Click hero → select as hero1
-  ## - Click different hero → replace hero1
-  ## - Click already selected hero → deselect
   if hero_id == _selected_hero1:
     _selected_hero1 = ""
   else:
@@ -299,27 +251,18 @@ func _on_hero_clicked_single(hero_id: String) -> void:
   _selected_hero2 = ""
 
 func _on_hero_clicked_dual(hero_id: String) -> void:
-  ## Dual mode:
-  ## - Click hero → fill slot1
-  ## - Click another → fill slot2
-  ## - Click again → replace slot1, then slot2, alternating
-  ## - Click already selected hero → deselect it; if slot1 removed, move slot2 to slot1
   if hero_id == _selected_hero1:
-    # Deselect hero1, move hero2 to slot1
     _selected_hero1 = _selected_hero2
     _selected_hero2 = ""
     return
   if hero_id == _selected_hero2:
-    # Deselect hero2
     _selected_hero2 = ""
     return
-  # Not currently selected — fill empty slot or replace
   if _selected_hero1 == "":
     _selected_hero1 = hero_id
   elif _selected_hero2 == "":
     _selected_hero2 = hero_id
   else:
-    # Both slots full — replace slot1, shift: old slot2 becomes slot1
     _selected_hero1 = _selected_hero2
     _selected_hero2 = hero_id
 
@@ -341,7 +284,6 @@ func _update_mode_button() -> void:
     _style_button(_mode_btn, Color(0.5, 0.4, 0.2))
 
 func _update_slots_display() -> void:
-  # Slot 1
   if _selected_hero1 != "":
     var path: String = HERO_PORTRAITS.get(_selected_hero1, "")
     if not ResourceLoader.exists(path):
@@ -353,7 +295,6 @@ func _update_slots_display() -> void:
     _slot1_tex.texture = null
     _slot1_label.text = ""
 
-  # Slot 2
   if _selected_hero2 != "":
     var path: String = HERO_PORTRAITS.get(_selected_hero2, "")
     if not ResourceLoader.exists(path):
@@ -365,7 +306,6 @@ func _update_slots_display() -> void:
     _slot2_tex.texture = null
     _slot2_label.text = ""
 
-  # Start button state
   if _dual_mode:
     _start_btn.disabled = _selected_hero1 == "" or _selected_hero2 == ""
   else:
@@ -379,22 +319,22 @@ func _update_hero_highlights() -> void:
     var is_selected: bool = hero_id == _selected_hero1 or hero_id == _selected_hero2
     if is_selected:
       style.bg_color = Color(color.r * 0.25, color.g * 0.25, color.b * 0.25, 0.95)
-      style.border_color = Color(0.95, 0.85, 0.4, 1.0)  # Gold highlight
+      style.border_color = Color(0.95, 0.85, 0.4, 1.0)
       style.border_width_left = 3
       style.border_width_right = 3
       style.border_width_top = 3
       style.border_width_bottom = 3
     else:
-      style.bg_color = Color(color.r * 0.12, color.g * 0.12, color.b * 0.12, 0.85)
+      style.bg_color = Color(color.r * 0.1, color.g * 0.1, color.b * 0.1, 0.9)
       style.border_color = Color(color.r * 0.4, color.g * 0.4, color.b * 0.4, 0.5)
       style.border_width_left = 2
       style.border_width_right = 2
       style.border_width_top = 2
       style.border_width_bottom = 2
-    style.corner_radius_top_left = 8
-    style.corner_radius_top_right = 8
-    style.corner_radius_bottom_left = 8
-    style.corner_radius_bottom_right = 8
+    style.corner_radius_top_left = 6
+    style.corner_radius_top_right = 6
+    style.corner_radius_bottom_left = 6
+    style.corner_radius_bottom_right = 6
     panel.add_theme_stylebox_override("panel", style)
 
 func _on_start() -> void:

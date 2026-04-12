@@ -4,10 +4,10 @@
 [ext_resource type="PackedScene" path="res://scenes/character_select.tscn" id="2_jyhfs"]
 [ext_resource type="Script" path="res://scripts/character_select.gd" id="3_tbgi4"]
 
-[node name="Main" type="Node2D" unique_id=1402970160]
+[node name="Main" type="Node2D" unique_id=1552787418]
 script = ExtResource("1_sugp2")
 
-[node name="CharacterSelect" type="Control" parent="." unique_id=581144921 instance=ExtResource("2_jyhfs")]
+[node name="CharacterSelect" type="Control" parent="." unique_id=276889927 instance=ExtResource("2_jyhfs")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
