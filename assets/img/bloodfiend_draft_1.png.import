@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://depo2pkruqo3v"
+path="res://.godot/imported/bloodfiend_draft_1.png-45c5f15cd3aba7f849e68b1eab04406f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/bloodfiend_draft_1.png"
+dest_files=["res://.godot/imported/bloodfiend_draft_1.png-45c5f15cd3aba7f849e68b1eab04406f.ctex"]
 
 [params]
 

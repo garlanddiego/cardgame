@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://wk0tppbb856u"
+path="res://.godot/imported/fire_mage.png-d278c0373b27c33f5af9b43bf188b62f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/fire_mage.png"
+dest_files=["res://.godot/imported/fire_mage.png-d278c0373b27c33f5af9b43bf188b62f.ctex"]
 
 [params]
 

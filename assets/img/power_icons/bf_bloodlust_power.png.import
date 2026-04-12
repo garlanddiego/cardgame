@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://c0ttkeb7h3ua1"
+path="res://.godot/imported/bf_bloodlust_power.png-ffe2c2402b65c8c3bdb44dcbb063c8eb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/power_icons/bf_bloodlust_power.png"
+dest_files=["res://.godot/imported/bf_bloodlust_power.png-ffe2c2402b65c8c3bdb44dcbb063c8eb.ctex"]
 
 [params]
 

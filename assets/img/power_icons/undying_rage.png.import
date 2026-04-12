@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://difneqes5xsp8"
+path="res://.godot/imported/undying_rage.png-8c2b215f67cc86be118832287f19d3e0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/power_icons/undying_rage.png"
+dest_files=["res://.godot/imported/undying_rage.png-8c2b215f67cc86be118832287f19d3e0.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://bor3mg4b6qe6d"
+path="res://.godot/imported/forger_shield.png-b251b6aa19c49105acca5a8fd590e16b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/forger_shield.png"
+dest_files=["res://.godot/imported/forger_shield.png-b251b6aa19c49105acca5a8fd590e16b.ctex"]
 
 [params]
 

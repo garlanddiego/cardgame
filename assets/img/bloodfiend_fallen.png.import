@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://cvtssfufvt5m7"
+path="res://.godot/imported/bloodfiend_fallen.png-8bbc51a71672c14893f906717355b405.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/bloodfiend_fallen.png"
+dest_files=["res://.godot/imported/bloodfiend_fallen.png-8bbc51a71672c14893f906717355b405.ctex"]
 
 [params]
 

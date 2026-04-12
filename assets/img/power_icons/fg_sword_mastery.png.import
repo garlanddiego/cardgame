@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://d0k0eu8t00wwa"
+path="res://.godot/imported/fg_sword_mastery.png-b36f6c21ea9693aa555d1cd478060b31.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/power_icons/fg_sword_mastery.png"
+dest_files=["res://.godot/imported/fg_sword_mastery.png-b36f6c21ea9693aa555d1cd478060b31.ctex"]
 
 [params]
 

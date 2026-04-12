@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnbbu1qtwm83n"
-path="res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"
+uid="uid://c38uxvyagfu83"
+path="res://.godot/imported/predators_mark.png-e24162794c5166ff608cd955cd597b8d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/dungeon_bg_sts.png"
-dest_files=["res://.godot/imported/dungeon_bg_sts.png-3ae53e9839f61d789905654557d741a3.ctex"]
+source_file="res://assets/img/power_icons/predators_mark.png"
+dest_files=["res://.godot/imported/predators_mark.png-e24162794c5166ff608cd955cd597b8d.ctex"]
 
 [params]
 

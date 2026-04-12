@@ -1,5 +1,2343 @@
 {
 	"cards": {
+		"bf_berserker_resolve": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "vulnerable"
+			},
+			"art": "res://assets/img/card_art/bf_berserker_resolve.png",
+			"block": 6,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得6点格挡。\n施加1层易伤。",
+			"hero_target": "self",
+			"id": "bf_berserker_resolve",
+			"name": "狂战决心",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_blood_bond": {
+			"actions": [
+				{
+					"power": "blood_bond",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_bond.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 0,
+			"description": "每回合开始时，\n若HP低于25%，\n获得1点能量\n和1点力量。",
+			"hero_target": "target_hero",
+			"id": "bf_blood_bond",
+			"name": "血之纽带",
+			"per_turn": {
+				"conditional": true
+			},
+			"power_effect": "blood_bond",
+			"power_stacks": 1,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_blood_fang": {
+			"actions": [
+				{
+					"fn": "blood_fang",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_fang.png",
+			"bf_bloodlust_on_unblocked": 1,
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害2次。\n每次未格挡的伤害\n施加1层嗜血。",
+			"hero_target": "self",
+			"id": "bf_blood_fang",
+			"name": "血牙",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"times": 2,
+			"type": 0,
+			"version": "new"
+		},
+		"bf_blood_feast": {
+			"actions": [
+				{
+					"fn": "blood_feast",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_feast.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 7,
+			"description": "造成7点伤害。\n若击杀目标，\n获得3点最大HP。\n消耗。",
+			"exhaust": true,
+			"hero_target": "self",
+			"id": "bf_blood_feast",
+			"max_hp_gain": 3,
+			"name": "血宴",
+			"rarity": "rare",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_blood_frenzy": {
+			"actions": [
+				{
+					"power": "blood_frenzy",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_frenzy.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 3,
+			"damage": 0,
+			"description": "每回合开始时，\n获得2点力量，\n失去2点HP。",
+			"hero_target": "target_hero",
+			"id": "bf_blood_frenzy",
+			"name": "血之狂热",
+			"per_turn": {
+				"self_damage": 2,
+				"strength": 2
+			},
+			"power_effect": "blood_frenzy",
+			"power_stacks": 2,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_blood_mirror": {
+			"actions": [
+				{
+					"fn": "blood_mirror",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_mirror.png",
+			"bf_bloodlust_all": 2,
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "失去3点HP。\n对所有敌人\n施加2层嗜血。",
+			"hero_target": "self",
+			"id": "bf_blood_mirror",
+			"name": "血之镜像",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_blood_offering": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 5
+				},
+				{
+					"type": "gain_energy",
+					"value": 2
+				},
+				{
+					"type": "draw",
+					"value": 2
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_offering.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 0,
+			"damage": 0,
+			"description": "失去5点HP。\n获得2点能量。\n抽2张牌。\n消耗。",
+			"exhaust": true,
+			"hero_target": "self",
+			"id": "bf_blood_offering",
+			"name": "血祭",
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_blood_rage": {
+			"actions": [
+				{
+					"fn": "blood_rage",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_rage.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n本回合每失去1次HP\n额外攻击1次。",
+			"hero_target": "self",
+			"id": "bf_blood_rage",
+			"name": "血怒",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_blood_rush": {
+			"actions": [
+				{
+					"fn": "blood_rush",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_rush.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "选择手中1张攻击牌\n本场战斗降低1费。\n消耗。",
+			"exhaust": true,
+			"hero_target": "self",
+			"id": "bf_blood_rush",
+			"name": "血涌",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_blood_scent": {
+			"actions": [
+				{
+					"power": "blood_scent",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_scent.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "每当你施加\n易伤，抽\n1张牌。",
+			"hero_target": "self",
+			"id": "bf_blood_scent",
+			"name": "血之气息",
+			"power_effect": "blood_scent",
+			"power_stacks": 1,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_blood_shell": {
+			"actions": [
+				{
+					"type": "block"
+				},
+				{
+					"power": "blood_shell",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_shell.png",
+			"block": 10,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 0,
+			"description": "获得10点格挡。\n本回合受击时，\n对攻击者施加\n1层嗜血。",
+			"hero_target": "target_hero",
+			"id": "bf_blood_shell",
+			"name": "血壳",
+			"power_effect": "blood_shell",
+			"power_stacks": 1,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_blood_wave": {
+			"actions": [
+				{
+					"fn": "blood_wave",
+					"type": "call"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "vulnerable"
+			},
+			"art": "res://assets/img/card_art/bf_blood_wave.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 5,
+			"description": "对所有敌人\n造成5点伤害。\n施加1层易伤。",
+			"hero_target": "self",
+			"id": "bf_blood_wave",
+			"name": "血浪",
+			"rarity": "common",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_blood_whirl": {
+			"actions": [
+				{
+					"fn": "blood_whirl",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_blood_whirl.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "失去2点HP。\n对所有敌人\n造成6点伤害。\n施加1层嗜血。",
+			"hero_target": "self",
+			"id": "bf_blood_whirl",
+			"name": "血旋",
+			"rarity": "common",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_bloodhound": {
+			"actions": [
+				{
+					"fn": "bloodhound",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_bloodhound.png",
+			"bf_draw_count": 3,
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 0,
+			"damage": 0,
+			"description": "抽3张牌。\n弃置抽到的\n非攻击牌。",
+			"hero_target": "self",
+			"id": "bf_bloodhound",
+			"name": "猎血犬",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_bloodlust": {
+			"actions": [
+				{
+					"power": "bf_bloodlust_power",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_bloodlust.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "每当你失去HP，\n获得1点力量。",
+			"hero_target": "target_hero",
+			"id": "bf_bloodlust",
+			"name": "嗜血",
+			"power_effect": "bf_bloodlust_power",
+			"power_stacks": 1,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_bloodrage": {
+			"actions": [
+				{
+					"fn": "bloodrage",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_bloodrage.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "所有英雄失去2点HP。\n对所有敌人施加\n1层易伤。\n获得2点临时力量。",
+			"flex_stacks": 2,
+			"hero_target": "self",
+			"id": "bf_bloodrage",
+			"name": "嗜血狂怒",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_crimson_slash": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 2
+				},
+				{
+					"type": "damage"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_crimson_slash.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 10,
+			"description": "失去2点HP。\n造成10点伤害。",
+			"hero_target": "self",
+			"id": "bf_crimson_slash",
+			"name": "绯红斩",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_crushing_blow": {
+			"actions": [
+				{
+					"fn": "crushing_blow",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_crushing_blow.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 10,
+			"description": "造成10点伤害。\n消耗目标所有易伤；\n每层+4伤害。",
+			"hero_target": "self",
+			"id": "bf_crushing_blow",
+			"name": "碾压",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new",
+			"vuln_bonus": 4
+		},
+		"bf_defend": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_defend.png",
+			"block": 5,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得5点格挡。",
+			"hero_target": "target_hero",
+			"id": "bf_defend",
+			"name": "防御",
+			"rarity": "basic",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_desperate_duel": {
+			"actions": [
+				{
+					"fn": "desperate_duel",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_desperate_duel.png",
+			"bf_enemy_str": 1,
+			"bf_self_str": 2,
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "获得2点力量。\n敌人获得1点力量。\n造成6点伤害。",
+			"hero_target": "self",
+			"id": "bf_desperate_duel",
+			"name": "拼死决斗",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_execution": {
+			"actions": [
+				{
+					"fn": "execution",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_execution.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 8,
+			"description": "造成8点伤害。\n若造成伤害，\n使目标嗜血翻倍。",
+			"hero_target": "self",
+			"id": "bf_execution",
+			"name": "处决",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_exploit": {
+			"actions": [
+				{
+					"fn": "exploit",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_exploit.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 0,
+			"damage": 3,
+			"description": "造成3点伤害。\n若目标有易伤，\n抽1张牌。",
+			"hero_target": "self",
+			"id": "bf_exploit",
+			"name": "痛击",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_frenzy_claw": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_frenzy_claw.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 4,
+			"description": "随机对敌人\n造成4点伤害3次。",
+			"hero_target": "self",
+			"id": "bf_frenzy_claw",
+			"name": "狂乱之爪",
+			"rarity": "common",
+			"status": "active",
+			"target": "random_enemy",
+			"times": 3,
+			"type": 0,
+			"version": "new"
+		},
+		"bf_gore": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"source": "apply_status",
+					"type": "apply_status"
+				}
+			],
+			"apply_status": {
+				"stacks": 2,
+				"type": "vulnerable"
+			},
+			"art": "res://assets/img/card_art/bf_gore.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 10,
+			"description": "造成10点伤害。\n施加2层易伤。",
+			"hero_target": "self",
+			"id": "bf_gore",
+			"name": "穿刺",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_hemophilia": {
+			"actions": [
+				{
+					"power": "hemophilia",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_hemophilia.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "每当敌人受到\n嗜血伤害，\n治疗1点HP。",
+			"hero_target": "self",
+			"id": "bf_hemophilia",
+			"name": "血友病",
+			"power_effect": "hemophilia",
+			"power_stacks": 1,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_leech": {
+			"actions": [
+				{
+					"fn": "leech",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_leech.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n若造成伤害，\n治疗2点HP。",
+			"heal_on_hit": 2,
+			"hero_target": "self",
+			"id": "bf_leech",
+			"name": "吸血",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_pain_threshold": {
+			"actions": [
+				{
+					"power": "pain_threshold",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_pain_threshold.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "每当你失去HP，\n抽1张牌并\n获得3点格挡。",
+			"hero_target": "target_hero",
+			"id": "bf_pain_threshold",
+			"name": "痛觉阈值",
+			"power_effect": "pain_threshold",
+			"power_stacks": 3,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_predator_instinct": {
+			"actions": [
+				{
+					"power": "predator_instinct",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_predator_instinct.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "本回合每打出\n1张攻击牌，\n获得2点格挡。\n抽1张牌。",
+			"hero_target": "self",
+			"id": "bf_predator_instinct",
+			"name": "掠食本能",
+			"power_effect": "predator_instinct",
+			"power_stacks": 2,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_prey_on_weakness": {
+			"actions": [
+				{
+					"fn": "prey_on_weakness",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_prey_on_weakness.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n若目标有易伤，\n额外攻击1次。",
+			"hero_target": "self",
+			"id": "bf_prey_on_weakness",
+			"name": "趁虚而入",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_sacrifice": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 3
+				},
+				{
+					"type": "gain_energy",
+					"value": 2
+				}
+			],
+			"art": "res://assets/img/card_art/bf_sacrifice.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 0,
+			"damage": 0,
+			"description": "失去3点HP。\n获得2点能量。",
+			"hero_target": "self",
+			"id": "bf_sacrifice",
+			"name": "献祭",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_sanguine_aura": {
+			"actions": [
+				{
+					"power": "sanguine_aura",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_sanguine_aura.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 0,
+			"description": "每当你造成攻击\n伤害，对目标\n施加1层嗜血。",
+			"hero_target": "self",
+			"id": "bf_sanguine_aura",
+			"name": "血气光环",
+			"power_effect": "sanguine_aura",
+			"power_stacks": 1,
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_sanguine_shield": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 2
+				},
+				{
+					"type": "block"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_sanguine_shield.png",
+			"block": 11,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "失去2点HP。\n获得11点格挡。",
+			"hero_target": "target_hero",
+			"id": "bf_sanguine_shield",
+			"name": "血盾",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_savage_strike": {
+			"actions": [
+				{
+					"fn": "savage_strike",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_savage_strike.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n本场战斗每失去\n1点HP，+1伤害。",
+			"hero_target": "self",
+			"id": "bf_savage_strike",
+			"name": "蛮击",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_scarlet_chains": {
+			"actions": [
+				{
+					"power": "scarlet_chains",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_scarlet_chains.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 0,
+			"description": "每当你对敌人\n施加嗜血，该敌人\n获得1层虚弱。",
+			"hero_target": "self",
+			"id": "bf_scarlet_chains",
+			"name": "猩红锁链",
+			"power_effect": "scarlet_chains",
+			"power_stacks": 1,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_siphon_life": {
+			"actions": [
+				{
+					"fn": "siphon_life",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_siphon_life.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 0,
+			"description": "吸取敌人嗜血\n层数等量的HP。\n消耗所有嗜血。",
+			"hero_target": "self",
+			"id": "bf_siphon_life",
+			"name": "虹吸生命",
+			"rarity": "rare",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_strike.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。",
+			"hero_target": "self",
+			"id": "bf_strike",
+			"name": "血击",
+			"rarity": "basic",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_survival_instinct": {
+			"actions": [
+				{
+					"fn": "survival_instinct",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_survival_instinct.png",
+			"block": 3,
+			"character": "bloodfiend",
+			"cost": 0,
+			"damage": 0,
+			"description": "获得3点格挡。\nHP低于25%时，\n改为获得6点。",
+			"hero_target": "target_hero",
+			"id": "bf_survival_instinct",
+			"name": "求生本能",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"bf_undying_will": {
+			"actions": [
+				{
+					"power": "undying_will",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_undying_will.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 2,
+			"damage": 0,
+			"description": "HP降为0时，\n以1点HP存活。\n（触发2次）",
+			"hero_target": "target_hero",
+			"id": "bf_undying_will",
+			"name": "不死意志",
+			"power_effect": "undying_will",
+			"power_stacks": 2,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"bf_vampiric_embrace": {
+			"actions": [
+				{
+					"fn": "vampiric_embrace",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_vampiric_embrace.png",
+			"block": 0,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 4,
+			"description": "对所有敌人\n造成4点伤害。\n治疗等量HP。\n消耗。",
+			"exhaust": true,
+			"hero_target": "self",
+			"id": "bf_vampiric_embrace",
+			"name": "血族拥抱",
+			"rarity": "rare",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"bf_vital_guard": {
+			"actions": [
+				{
+					"fn": "vital_guard",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/bf_vital_guard.png",
+			"block": 6,
+			"bonus_block": 6,
+			"character": "bloodfiend",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得6点格挡。\nHP低于28%时，\n额外获得6点。",
+			"hero_target": "target_hero",
+			"hp_threshold": 0.28,
+			"id": "bf_vital_guard",
+			"name": "命脉守护",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_absorb_impact": {
+			"actions": [
+				{
+					"fn": "absorb_impact",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_absorb_impact.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "目标英雄获得\n巨剑生命值的格挡。\n巨剑失去所有生命，\n本回合不能\n再召唤巨剑。",
+			"hero_target": "target_hero",
+			"id": "fg_absorb_impact",
+			"name": "吸收冲击",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_auto_forge": {
+			"actions": [
+				{
+					"power": "fg_auto_forge",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_auto_forge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "每回合开始时，\n铸造+4。",
+			"hero_target": "self",
+			"id": "fg_auto_forge",
+			"name": "自动锻造",
+			"power_effect": "fg_auto_forge",
+			"power_stacks": 4,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_barricade": {
+			"actions": [
+				{
+					"power": "barricade",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_barricade.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 3,
+			"damage": 0,
+			"description": "格挡不再在\n回合开始时移除。",
+			"hero_target": "target_hero",
+			"id": "fg_barricade",
+			"name": "壁垒",
+			"power_effect": "barricade",
+			"power_stacks": 0,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_blade_storm": {
+			"actions": [
+				{
+					"fn": "blade_storm",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_blade_storm.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 3,
+			"damage": 0,
+			"description": "对所有敌人造成\n巨剑HP 50%的\n伤害×3。消耗。",
+			"exhaust": true,
+			"fg_hits": 3,
+			"fg_sword_pct": 50,
+			"hero_target": "self",
+			"id": "fg_blade_storm",
+			"name": "刃暴",
+			"rarity": "rare",
+			"status": "pending",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_block_transfer": {
+			"actions": [
+				{
+					"fn": "block_transfer",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_block_transfer.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "将所有英雄格挡\n转化为巨剑HP。",
+			"hero_target": "self",
+			"id": "fg_block_transfer",
+			"name": "格挡转移",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_bulwark_slam": {
+			"actions": [
+				{
+					"fn": "bulwark_slam",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_bulwark_slam.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "对所有敌人造成\n等同于铸造者\n格挡值的伤害。\n消耗所有格挡。",
+			"fg_consume_block": true,
+			"hero_target": "self",
+			"id": "fg_bulwark_slam",
+			"name": "壁垒猛击",
+			"rarity": "common",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_chain_forge": {
+			"actions": [
+				{
+					"fn": "chain_forge",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_chain_forge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "铸造+4。\n若本回合已铸造，\n改为+8。\n抽1张牌。",
+			"fg_forge_base": 4,
+			"fg_forge_chain": 8,
+			"hero_target": "self",
+			"id": "fg_chain_forge",
+			"name": "连锻",
+			"rarity": "common",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_counter_forge": {
+			"actions": [
+				{
+					"power": "fg_counter_forge",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_counter_forge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "当巨剑被攻击时，\n铸造+3。",
+			"hero_target": "self",
+			"id": "fg_counter_forge",
+			"name": "反击锻造",
+			"power_effect": "fg_counter_forge",
+			"power_stacks": 3,
+			"rarity": "uncommon",
+			"status": "pending",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_defend": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_defend.png",
+			"block": 5,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "目标英雄获得\n5点格挡。",
+			"hero_target": "target_hero",
+			"id": "fg_defend",
+			"name": "防御",
+			"rarity": "basic",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_delay_charge": {
+			"actions": [
+				{
+					"fn": "delay_charge",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_delay_charge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "铸造10。\n下回合+1能量。",
+			"fg_forge": 10,
+			"fg_next_energy": 1,
+			"hero_target": "self",
+			"id": "fg_delay_charge",
+			"name": "蓄力",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_energy_reserve": {
+			"actions": [
+				{
+					"power": "fg_energy_reserve",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_energy_reserve.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "回合结束时，\n未使用的能量\n保留至下回合。",
+			"hero_target": "self",
+			"id": "fg_energy_reserve",
+			"name": "能量储备",
+			"power_effect": "fg_energy_reserve",
+			"power_stacks": 0,
+			"rarity": "uncommon",
+			"status": "pending",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_eruption_strike": {
+			"actions": [
+				{
+					"fn": "eruption_strike",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_eruption_strike.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 15,
+			"description": "造成15点伤害。\n下回合+1能量。\n铸造+4。",
+			"fg_forge": 4,
+			"hero_target": "self",
+			"id": "fg_eruption_strike",
+			"name": "爆裂打击",
+			"rarity": "rare",
+			"status": "pending",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_forge_armor": {
+			"actions": [
+				{
+					"fn": "forge_armor",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_forge_armor.png",
+			"block": 10,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "获得10点格挡。\n铸造+5。",
+			"fg_forge": 5,
+			"hero_target": "target_hero",
+			"id": "fg_forge_armor",
+			"name": "锻甲",
+			"rarity": "common",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_forge_barrier": {
+			"actions": [
+				{
+					"fn": "forge_barrier",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_forge_barrier.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "获得等同于巨剑\nHP的格挡。",
+			"hero_target": "target_hero",
+			"id": "fg_forge_barrier",
+			"name": "锻造屏障",
+			"rarity": "rare",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_forge_master": {
+			"actions": [
+				{
+					"power": "fg_forge_master",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_forge_master.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "每次铸造时，\n额外+2 HP。",
+			"hero_target": "self",
+			"id": "fg_forge_master",
+			"name": "锻造大师",
+			"power_effect": "fg_forge_master",
+			"power_stacks": 2,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_forge_shield": {
+			"actions": [
+				{
+					"fn": "forge_shield",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_forge_shield.png",
+			"block": 10,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "目标英雄获得\n10点格挡。\n下回合+2抽牌。",
+			"fg_next_draw": 2,
+			"hero_target": "target_hero",
+			"id": "fg_forge_shield",
+			"name": "锻盾",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_forge_slam": {
+			"actions": [
+				{
+					"fn": "forge_slam",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_forge_slam.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 6,
+			"description": "巨剑对所有敌人\n造成6点伤害。\n巨剑获得未被\n格挡的生命值。",
+			"hero_target": "self",
+			"id": "fg_forge_slam",
+			"name": "锻击猛击",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_greatsword_cleave": {
+			"actions": [
+				{
+					"fn": "greatsword_cleave",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_greatsword_cleave.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "对所有敌人造成\n等同于巨剑\n生命值的伤害。",
+			"hero_target": "self",
+			"id": "fg_greatsword_cleave",
+			"name": "巨剑横扫",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_hardened_blade": {
+			"actions": [
+				{
+					"fn": "hardened_blade",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_hardened_blade.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 8,
+			"description": "造成8点伤害。\n若巨剑存在，\n获得4点格挡。",
+			"fg_sword_block": 4,
+			"hero_target": "self",
+			"id": "fg_hardened_blade",
+			"name": "硬化之刃",
+			"rarity": "common",
+			"status": "pending",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_heat_treat": {
+			"actions": [
+				{
+					"fn": "heat_treat",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_heat_treat.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "铸造+6。\n获得1层荆棘。",
+			"fg_forge": 6,
+			"fg_thorns": 1,
+			"hero_target": "self",
+			"id": "fg_heat_treat",
+			"name": "热处理",
+			"rarity": "common",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_impervious_wall": {
+			"actions": [
+				{
+					"fn": "impervious_wall",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_impervious_wall.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "巨剑获得20点\n生命。消耗。",
+			"exhaust": true,
+			"fg_forge": 20,
+			"hero_target": "self",
+			"id": "fg_impervious_wall",
+			"name": "不破之墙",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_iron_skin": {
+			"actions": [
+				{
+					"power": "fg_iron_skin",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_iron_skin.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "每当巨剑受到伤害，\n目标英雄获得\n等量格挡。",
+			"hero_target": "target_hero",
+			"id": "fg_iron_skin",
+			"name": "铁甲之肤",
+			"power_effect": "fg_iron_skin",
+			"power_stacks": 1,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_iron_will": {
+			"actions": [
+				{
+					"power": "fg_iron_will",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_iron_will.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "每回合开始时，\n获得4点格挡。",
+			"hero_target": "target_hero",
+			"id": "fg_iron_will",
+			"name": "钢铁意志",
+			"power_effect": "fg_iron_will",
+			"power_stacks": 4,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_living_sword": {
+			"actions": [
+				{
+					"power": "fg_living_sword",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_living_sword.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 3,
+			"damage": 0,
+			"description": "回合结束时，\n巨剑对随机敌人\n造成自身HP 50%\n的伤害。",
+			"hero_target": "self",
+			"id": "fg_living_sword",
+			"name": "活剑",
+			"power_effect": "fg_living_sword",
+			"power_stacks": 50,
+			"rarity": "rare",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_magnetic_edge": {
+			"actions": [
+				{
+					"fn": "magnetic_edge",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_magnetic_edge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 5,
+			"description": "造成5点伤害。\n铸造+4。\n若巨剑HP≥20，\n改为12点伤害。",
+			"fg_forge": 4,
+			"fg_threshold": 20,
+			"fg_threshold_damage": 12,
+			"hero_target": "self",
+			"id": "fg_magnetic_edge",
+			"name": "磁刃",
+			"rarity": "uncommon",
+			"status": "pending",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_melt_down": {
+			"actions": [
+				{
+					"fn": "melt_down",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_melt_down.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "消耗1张手牌。\n巨剑获得其费用×6\n的生命。\n下回合+2抽牌。",
+			"fg_cost_mult": 6,
+			"fg_next_draw": 2,
+			"hero_target": "self",
+			"id": "fg_melt_down",
+			"name": "熔炼",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_molten_core": {
+			"actions": [
+				{
+					"fn": "molten_core",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_molten_core.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 8,
+			"description": "造成8点伤害2次。\n铸造+6。",
+			"fg_forge": 6,
+			"hero_target": "self",
+			"id": "fg_molten_core",
+			"name": "熔核",
+			"rarity": "uncommon",
+			"status": "pending",
+			"target": "enemy",
+			"times": 2,
+			"type": 0,
+			"version": "new"
+		},
+		"fg_overcharge": {
+			"actions": [
+				{
+					"fn": "overcharge",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_overcharge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "本回合巨剑\n造成双倍伤害。",
+			"hero_target": "self",
+			"id": "fg_overcharge",
+			"name": "超载",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_quick_temper": {
+			"actions": [
+				{
+					"fn": "quick_temper",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_quick_temper.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 0,
+			"damage": 0,
+			"description": "铸造+3。\n消耗。",
+			"exhaust": true,
+			"fg_forge": 3,
+			"hero_target": "self",
+			"id": "fg_quick_temper",
+			"name": "急火",
+			"rarity": "common",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_reforged_edge": {
+			"actions": [
+				{
+					"fn": "reforged_edge",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_reforged_edge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 7,
+			"description": "造成7点伤害。\n若本回合已铸造，\n额外造成7点。",
+			"fg_forged_bonus": 7,
+			"hero_target": "self",
+			"id": "fg_reforged_edge",
+			"name": "重铸之锋",
+			"rarity": "common",
+			"status": "pending",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_reinforce": {
+			"actions": [
+				{
+					"fn": "reinforce",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_reinforce.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "巨剑获得等同于\n其当前生命100%\n的额外生命。\n消耗。",
+			"exhaust": true,
+			"fg_reinforce_pct": 100,
+			"hero_target": "self",
+			"id": "fg_reinforce",
+			"name": "加固",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_repurpose": {
+			"actions": [
+				{
+					"fn": "repurpose",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_repurpose.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "消耗1张手牌。\n获得其费用×4格挡。\n铸造+其费用×3。",
+			"fg_block_mult": 4,
+			"fg_forge_mult": 3,
+			"hero_target": "self",
+			"id": "fg_repurpose",
+			"name": "改造",
+			"rarity": "uncommon",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_resonance": {
+			"actions": [
+				{
+					"power": "fg_resonance",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_resonance.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "每当目标英雄\n获得格挡，\n铸造：巨剑+2。",
+			"hero_target": "self",
+			"id": "fg_resonance",
+			"name": "共鸣",
+			"power_effect": "fg_resonance",
+			"power_stacks": 2,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_riposte_strike": {
+			"actions": [
+				{
+					"fn": "riposte_strike",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_riposte_strike.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n额外造成所有英雄\n+巨剑荆棘×2\n的伤害。",
+			"fg_thorns_mult": 2,
+			"hero_target": "self",
+			"id": "fg_riposte_strike",
+			"name": "反击斩",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_sacrifice_fuel": {
+			"actions": [
+				{
+					"fn": "sacrifice_fuel",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_sacrifice_fuel.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 0,
+			"damage": 0,
+			"description": "消耗巨剑8点生命\n或英雄8点格挡，\n获得1点能量。\n不足8则无法打出。",
+			"fg_energy_gain": 1,
+			"fg_sacrifice_cost": 8,
+			"hero_target": "target_hero",
+			"id": "fg_sacrifice_fuel",
+			"name": "献燃",
+			"rarity": "common",
+			"status": "active",
+			"target": "hero_or_sword",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_salvage": {
+			"actions": [
+				{
+					"fn": "salvage",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_salvage.png",
+			"block": 6,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得6点格挡。\n从弃牌堆选择\n1张牌置于\n抽牌堆顶。",
+			"hero_target": "target_hero",
+			"id": "fg_salvage",
+			"name": "打捞",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_sharpen": {
+			"actions": [
+				{
+					"fn": "sharpen",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_sharpen.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "铸造+8。\n抽1张牌。",
+			"draw": 1,
+			"fg_forge": 8,
+			"hero_target": "self",
+			"id": "fg_sharpen",
+			"name": "磨砺",
+			"rarity": "common",
+			"status": "pending",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_shield_bash": {
+			"actions": [
+				{
+					"fn": "fg_shield_bash",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_shield_bash.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "造成等同于铸造者\n当前格挡值的伤害。",
+			"hero_target": "self",
+			"id": "fg_shield_bash",
+			"name": "盾击",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_strike.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。",
+			"hero_target": "self",
+			"id": "fg_strike",
+			"name": "锻击",
+			"rarity": "basic",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_summon_sword": {
+			"actions": [
+				{
+					"fn": "summon_sword",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_summon_sword.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "巨剑+6生命。",
+			"fg_summon_hp": 6,
+			"hero_target": "self",
+			"id": "fg_summon_sword",
+			"name": "召唤巨剑",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_sword_crash": {
+			"actions": [
+				{
+					"fn": "sword_crash",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_sword_crash.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "造成等同于巨剑\n当前生命值的伤害。",
+			"hero_target": "self",
+			"id": "fg_sword_crash",
+			"name": "剑崩",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_sword_mastery": {
+			"actions": [
+				{
+					"power": "fg_sword_mastery",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_sword_mastery.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 2,
+			"damage": 0,
+			"description": "每打出攻击牌，\n铸造+2。",
+			"hero_target": "self",
+			"id": "fg_sword_mastery",
+			"name": "剑术精通",
+			"power_effect": "fg_sword_mastery",
+			"power_stacks": 2,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_sword_sacrifice": {
+			"actions": [
+				{
+					"fn": "sword_sacrifice",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_sword_sacrifice.png",
+			"block": 10,
+			"character": "forger",
+			"cost": 1,
+			"damage": 10,
+			"description": "对所有敌人造成\n10点伤害。\n获得10点格挡。\n消耗巨剑。\n本回合不能召唤巨剑。",
+			"fg_sacrifice_block": 10,
+			"fg_sacrifice_dmg": 10,
+			"hero_target": "target_hero",
+			"id": "fg_sword_sacrifice",
+			"name": "剑之牺牲",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_sword_ward": {
+			"actions": [
+				{
+					"power": "fg_sword_ward",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_sword_ward.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "若巨剑存在，\n每回合开始时\n获得3点格挡。",
+			"hero_target": "target_hero",
+			"id": "fg_sword_ward",
+			"name": "剑之守护",
+			"power_effect": "fg_sword_ward",
+			"power_stacks": 3,
+			"rarity": "common",
+			"status": "pending",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_temper": {
+			"actions": [
+				{
+					"fn": "temper",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_temper.png",
+			"block": 6,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得6点格挡。\n下回合获得6点\n格挡。",
+			"fg_next_block": 6,
+			"hero_target": "target_hero",
+			"id": "fg_temper",
+			"name": "回火",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_tempered_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				},
+				{
+					"type": "block"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_tempered_strike.png",
+			"block": 6,
+			"character": "forger",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n获得6点格挡。",
+			"hero_target": "self",
+			"id": "fg_tempered_strike",
+			"name": "淬炼打击",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_thorn_aura": {
+			"actions": [
+				{
+					"fn": "thorn_aura",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_thorn_aura.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得3层荆棘。\n巨剑获得3层荆棘。",
+			"fg_hero_thorns": 3,
+			"fg_sword_thorns": 3,
+			"hero_target": "target_hero",
+			"id": "fg_thorn_aura",
+			"name": "荆棘光环",
+			"power_effect": "fg_thorn_aura",
+			"power_stacks": 3,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fg_thorn_burst": {
+			"actions": [
+				{
+					"fn": "thorn_burst",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_thorn_burst.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 6,
+			"description": "对所有敌人造成\n6点伤害，额外造成\n所有英雄和巨剑\n荆棘总和×2伤害。\n移除所有荆棘。",
+			"fg_remove_thorns": true,
+			"fg_thorns_mult": 2,
+			"hero_target": "self",
+			"id": "fg_thorn_burst",
+			"name": "荆棘爆发",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "all_enemies",
+			"type": 0,
+			"version": "new"
+		},
+		"fg_thorn_forge": {
+			"actions": [
+				{
+					"fn": "thorn_forge",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_thorn_forge.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "铸造2。巨剑获得\n4层荆棘(本回合)。",
+			"fg_forge": 2,
+			"fg_hero_thorns": 0,
+			"fg_sword_thorns": 4,
+			"hero_target": "target_hero",
+			"id": "fg_thorn_forge",
+			"name": "荆棘锻造",
+			"rarity": "common",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fg_thorn_wall": {
+			"actions": [
+				{
+					"fn": "thorn_wall",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fg_thorn_wall.png",
+			"block": 0,
+			"character": "forger",
+			"cost": 1,
+			"damage": 0,
+			"description": "巨剑获得2层荆棘。",
+			"fg_thorns": 2,
+			"hero_target": "target_hero",
+			"id": "fg_thorn_wall",
+			"name": "荆棘之墙",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fm_blood_pact": {
+			"actions": [
+				{
+					"fn": "blood_pact",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_blood_pact.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 1,
+			"damage": 0,
+			"description": "消耗1张手牌。\n抽2张牌。",
+			"draw": 2,
+			"hero_target": "self",
+			"id": "fm_blood_pact",
+			"name": "血契",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fm_bloodbath": {
+			"actions": [
+				{
+					"fn": "bloodbath",
+					"type": "call"
+				}
+			],
+			"apply_status": {
+				"stacks": 1,
+				"type": "vulnerable"
+			},
+			"art": "res://assets/img/card_art/fm_bloodbath.png",
+			"bf_bloodlust_apply": 2,
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 1,
+			"damage": 0,
+			"description": "消耗1张手牌。\n施加2层嗜血\n和1层易伤。",
+			"hero_target": "self",
+			"id": "fm_bloodbath",
+			"name": "血浴",
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "enemy",
+			"type": 1,
+			"version": "new"
+		},
+		"fm_crimson_pact": {
+			"actions": [
+				{
+					"power": "crimson_pact",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_crimson_pact.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 1,
+			"damage": 0,
+			"description": "每当一张牌被\n消耗，对随机\n敌人造成5点伤害。",
+			"hero_target": "self",
+			"id": "fm_crimson_pact",
+			"name": "绯红契约",
+			"power_effect": "crimson_pact",
+			"power_stacks": 5,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
+		"fm_defend": {
+			"actions": [
+				{
+					"type": "block"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_defend.png",
+			"block": 5,
+			"character": "fire_mage",
+			"cost": 1,
+			"damage": 0,
+			"description": "获得5点格挡。",
+			"hero_target": "target_hero",
+			"id": "fm_defend",
+			"name": "防御",
+			"status": "active",
+			"target": "self",
+			"type": 1,
+			"version": "new"
+		},
+		"fm_flesh_rend": {
+			"actions": [
+				{
+					"fn": "flesh_rend",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_flesh_rend.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 1,
+			"cost_mult": 8,
+			"damage": 0,
+			"description": "消耗1张手牌。\n造成其费用×8\n点伤害。",
+			"hero_target": "self",
+			"id": "fm_flesh_rend",
+			"name": "撕裂血肉",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fm_relentless": {
+			"actions": [
+				{
+					"fn": "relentless",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_relentless.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。\n本回合每消耗1张牌\n额外攻击1次。",
+			"hero_target": "self",
+			"id": "fm_relentless",
+			"name": "不屈",
+			"rarity": "common",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fm_soul_harvest": {
+			"actions": [
+				{
+					"fn": "soul_harvest",
+					"type": "call"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_soul_harvest.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 2,
+			"damage": 7,
+			"description": "消耗手中所有\n其他手牌。\n每消耗1张，\n造成7点伤害。",
+			"hero_target": "self",
+			"id": "fm_soul_harvest",
+			"name": "灵魂收割",
+			"rarity": "rare",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fm_strike": {
+			"actions": [
+				{
+					"type": "damage"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_strike.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 1,
+			"damage": 6,
+			"description": "造成6点伤害。",
+			"hero_target": "self",
+			"id": "fm_strike",
+			"name": "火击",
+			"status": "active",
+			"target": "enemy",
+			"type": 0,
+			"version": "new"
+		},
+		"fm_undying_rage": {
+			"actions": [
+				{
+					"power": "undying_rage",
+					"type": "power_effect"
+				}
+			],
+			"art": "res://assets/img/card_art/fm_undying_rage.png",
+			"block": 0,
+			"character": "fire_mage",
+			"cost": 2,
+			"damage": 0,
+			"description": "每当一张牌被\n消耗，获得\n1点力量。",
+			"hero_target": "target_hero",
+			"id": "fm_undying_rage",
+			"name": "不灭之怒",
+			"power_effect": "undying_rage",
+			"power_stacks": 1,
+			"rarity": "uncommon",
+			"status": "active",
+			"target": "self",
+			"type": 2,
+			"version": "new"
+		},
 		"ic_anger": {
 			"actions": [
 				{
@@ -464,6 +2802,7 @@
 			"hero_target": "target_hero",
 			"id": "ic_defend",
 			"name": "Defend",
+			"rarity": "basic",
 			"status": "active",
 			"target": "self",
 			"type": 1,
@@ -1560,6 +3899,7 @@
 			"hero_target": "self",
 			"id": "ic_strike",
 			"name": "Strike",
+			"rarity": "basic",
 			"status": "active",
 			"target": "enemy",
 			"type": 0,
@@ -2596,6 +4936,7 @@
 			"hero_target": "target_hero",
 			"id": "si_defend",
 			"name": "Defend",
+			"rarity": "basic",
 			"status": "active",
 			"target": "self",
 			"type": 1,
@@ -3508,6 +5849,7 @@
 			"hero_target": "self",
 			"id": "si_strike",
 			"name": "Strike",
+			"rarity": "basic",
 			"status": "active",
 			"target": "enemy",
 			"type": 0,
@@ -3753,6 +6095,477 @@
 		}
 	},
 	"upgrades": {
+		"bf_berserker_resolve": {
+			"apply_status": {
+				"stacks": 2,
+				"type": "vulnerable"
+			},
+			"block": 9,
+			"description": "获得9点格挡。\n施加2层易伤。"
+		},
+		"bf_blood_bond": {
+			"description": "每回合开始时，\n若HP低于25%，\n获得1点能量\n和2点力量。",
+			"power_effect": "blood_bond_plus"
+		},
+		"bf_blood_fang": {
+			"damage": 9,
+			"description": "造成9点伤害2次。\n每次未格挡的伤害\n施加1层嗜血。"
+		},
+		"bf_blood_feast": {
+			"damage": 10,
+			"description": "造成10点伤害。\n若击杀目标，\n获得4点最大HP。\n消耗。",
+			"max_hp_gain": 4
+		},
+		"bf_blood_frenzy": {
+			"description": "每回合开始时，\n获得3点力量，\n失去2点HP。",
+			"per_turn": {
+				"self_damage": 2,
+				"strength": 3
+			},
+			"power_effect": "blood_frenzy_plus",
+			"power_stacks": 3
+		},
+		"bf_blood_mirror": {
+			"bf_bloodlust_all": 3,
+			"description": "失去3点HP。\n对所有敌人\n施加3层嗜血。"
+		},
+		"bf_blood_offering": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 5
+				},
+				{
+					"type": "gain_energy",
+					"value": 3
+				},
+				{
+					"type": "draw",
+					"value": 3
+				}
+			],
+			"description": "失去5点HP。\n获得3点能量。\n抽3张牌。\n消耗。"
+		},
+		"bf_blood_rage": {
+			"damage": 9,
+			"description": "造成9点伤害。\n本回合每失去1次HP\n额外攻击1次。"
+		},
+		"bf_blood_rush": {
+			"cost": 0,
+			"description": "选择手中1张攻击牌\n本场战斗降低1费。\n消耗。"
+		},
+		"bf_blood_scent": {
+			"description": "每当你施加\n易伤，抽\n2张牌。",
+			"power_effect": "blood_scent_plus"
+		},
+		"bf_blood_shell": {
+			"block": 14,
+			"description": "获得14点格挡。\n本回合受击时，\n对攻击者施加\n2层嗜血。",
+			"power_stacks": 2
+		},
+		"bf_blood_wave": {
+			"damage": 7,
+			"description": "对所有敌人\n造成7点伤害。\n施加1层易伤。"
+		},
+		"bf_blood_whirl": {
+			"damage": 9,
+			"description": "失去2点HP。\n对所有敌人\n造成9点伤害。\n施加1层嗜血。"
+		},
+		"bf_bloodhound": {
+			"bf_draw_count": 4,
+			"description": "抽4张牌。\n弃置抽到的\n非攻击牌。"
+		},
+		"bf_bloodlust": {
+			"description": "每当你失去HP，\n获得2点力量。",
+			"power_effect": "bf_bloodlust_power_plus",
+			"power_stacks": 2
+		},
+		"bf_bloodrage": {
+			"description": "所有英雄失去2点HP。\n对所有敌人施加\n1层易伤。\n获得4点临时力量。",
+			"flex_stacks": 4
+		},
+		"bf_crimson_slash": {
+			"damage": 14,
+			"description": "失去2点HP。\n造成14点伤害。"
+		},
+		"bf_crushing_blow": {
+			"damage": 14,
+			"description": "造成14点伤害。\n消耗目标所有易伤；\n每层+5伤害。",
+			"vuln_bonus": 5
+		},
+		"bf_defend": {
+			"block": 8,
+			"description": "获得8点格挡。"
+		},
+		"bf_desperate_duel": {
+			"bf_self_str": 3,
+			"damage": 9,
+			"description": "获得3点力量。\n敌人获得1点力量。\n造成9点伤害。"
+		},
+		"bf_execution": {
+			"damage": 12,
+			"description": "造成12点伤害。\n若造成伤害，\n使目标嗜血翻倍。"
+		},
+		"bf_exploit": {
+			"bf_exploit_draw": 2,
+			"damage": 5,
+			"description": "造成5点伤害。\n若目标有易伤，\n抽2张牌。"
+		},
+		"bf_frenzy_claw": {
+			"description": "随机对敌人\n造成4点伤害4次。",
+			"times": 4
+		},
+		"bf_gore": {
+			"apply_status": {
+				"stacks": 3,
+				"type": "vulnerable"
+			},
+			"damage": 14,
+			"description": "造成14点伤害。\n施加3层易伤。"
+		},
+		"bf_hemophilia": {
+			"description": "固有。\n每当敌人受到\n嗜血伤害，\n治疗1点HP。",
+			"innate": true
+		},
+		"bf_leech": {
+			"damage": 9,
+			"description": "造成9点伤害。\n若造成伤害，\n治疗2点HP。"
+		},
+		"bf_pain_threshold": {
+			"description": "每当你失去HP，\n抽1张牌并\n获得6点格挡。",
+			"power_effect": "pain_threshold_plus",
+			"power_stacks": 6
+		},
+		"bf_predator_instinct": {
+			"description": "本回合每打出\n1张攻击牌，\n获得4点格挡。\n抽1张牌。",
+			"power_stacks": 4
+		},
+		"bf_prey_on_weakness": {
+			"damage": 9,
+			"description": "造成9点伤害。\n若目标有易伤，\n额外攻击1次。"
+		},
+		"bf_sacrifice": {
+			"actions": [
+				{
+					"type": "self_damage",
+					"value": 3
+				},
+				{
+					"type": "gain_energy",
+					"value": 3
+				}
+			],
+			"description": "失去3点HP。\n获得3点能量。"
+		},
+		"bf_sanguine_aura": {
+			"cost": 1,
+			"description": "每当你造成攻击\n伤害，对目标\n施加1层嗜血。"
+		},
+		"bf_sanguine_shield": {
+			"block": 15,
+			"description": "失去2点HP。\n获得15点格挡。"
+		},
+		"bf_savage_strike": {
+			"damage": 9,
+			"description": "造成9点伤害。\n本场战斗每失去\n1点HP，+1伤害。"
+		},
+		"bf_scarlet_chains": {
+			"cost": 1,
+			"description": "每当你对敌人\n施加嗜血，该敌人\n获得1层虚弱。"
+		},
+		"bf_siphon_life": {
+			"bf_siphon_mult": 2,
+			"description": "吸取敌人嗜血\n层数×2的HP。\n消耗所有嗜血。"
+		},
+		"bf_strike": {
+			"damage": 9,
+			"description": "造成9点伤害。"
+		},
+		"bf_survival_instinct": {
+			"bf_low_hp_block": 8,
+			"block": 5,
+			"description": "获得5点格挡。\nHP低于25%时，\n改为获得8点。"
+		},
+		"bf_undying_will": {
+			"description": "HP降为0时，\n以1点HP存活。\n（触发3次）",
+			"power_stacks": 3
+		},
+		"bf_vampiric_embrace": {
+			"damage": 6,
+			"description": "对所有敌人\n造成6点伤害。\n治疗等量HP。\n消耗。"
+		},
+		"bf_vital_guard": {
+			"block": 9,
+			"bonus_block": 9,
+			"description": "获得9点格挡。\nHP低于25%时，\n额外获得9点。",
+			"hp_threshold": 0.25
+		},
+		"fg_absorb_impact": {
+			"cost": 0,
+			"description": "目标英雄获得\n巨剑生命值的格挡。\n巨剑失去所有生命，\n本回合不能\n再召唤巨剑。"
+		},
+		"fg_auto_forge": {
+			"description": "每回合开始时，\n铸造+6。",
+			"power_stacks": 6
+		},
+		"fg_barricade": {
+			"cost": 2,
+			"description": "格挡不再在\n回合开始时移除。"
+		},
+		"fg_blade_storm": {
+			"description": "对所有敌人造成\n巨剑HP 50%的\n伤害×4。消耗。",
+			"fg_hits": 4
+		},
+		"fg_block_transfer": {
+			"cost": 0,
+			"description": "将所有英雄格挡\n转化为巨剑HP。"
+		},
+		"fg_bulwark_slam": {
+			"cost": 0,
+			"description": "对所有敌人造成\n等同于铸造者\n格挡值的伤害。\n消耗所有格挡。"
+		},
+		"fg_chain_forge": {
+			"description": "铸造+5。\n若本回合已铸造，\n改为+12。\n抽1张牌。",
+			"fg_forge_base": 5,
+			"fg_forge_chain": 12
+		},
+		"fg_counter_forge": {
+			"description": "当巨剑被攻击时，\n铸造+5。",
+			"power_stacks": 5
+		},
+		"fg_defend": {
+			"block": 8,
+			"description": "目标英雄获得\n8点格挡。"
+		},
+		"fg_delay_charge": {
+			"description": "铸造14。\n下回合+2能量。",
+			"fg_forge": 14,
+			"fg_next_energy": 2
+		},
+		"fg_energy_reserve": {
+			"description": "回合结束时，\n未使用的能量\n保留至下回合。\n额外+1能量。",
+			"fg_energy_bonus": 1
+		},
+		"fg_eruption_strike": {
+			"damage": 20,
+			"description": "造成20点伤害。\n下回合+1能量。\n铸造+6。",
+			"fg_forge": 6
+		},
+		"fg_forge_armor": {
+			"block": 14,
+			"description": "获得14点格挡。\n铸造+8。",
+			"fg_forge": 8
+		},
+		"fg_forge_barrier": {
+			"description": "获得巨剑HP×1.5\n的格挡。",
+			"fg_barrier_mult": 1.5
+		},
+		"fg_forge_master": {
+			"description": "每次铸造时，\n额外+3 HP。",
+			"power_stacks": 3
+		},
+		"fg_forge_shield": {
+			"block": 15,
+			"description": "目标英雄获得\n15点格挡。\n下回合+3抽牌。",
+			"fg_next_draw": 3
+		},
+		"fg_forge_slam": {
+			"damage": 9,
+			"description": "巨剑对所有敌人\n造成9点伤害。\n巨剑获得未被\n格挡的生命值。"
+		},
+		"fg_greatsword_cleave": {
+			"description": "对所有敌人造成\n巨剑生命值1.5倍\n伤害。",
+			"fg_sword_mult": 1.5
+		},
+		"fg_hardened_blade": {
+			"damage": 11,
+			"description": "造成11点伤害。\n若巨剑存在，\n获得6点格挡。",
+			"fg_sword_block": 6
+		},
+		"fg_heat_treat": {
+			"description": "铸造+9。\n获得2层荆棘。",
+			"fg_forge": 9,
+			"fg_thorns": 2
+		},
+		"fg_impervious_wall": {
+			"description": "巨剑获得30点\n生命。消耗。",
+			"fg_forge": 30
+		},
+		"fg_iron_skin": {
+			"description": "固有。每当巨剑\n受到伤害，\n目标英雄获得\n等量格挡。",
+			"innate": true
+		},
+		"fg_iron_will": {
+			"description": "每回合开始时，\n获得6点格挡。",
+			"power_stacks": 6
+		},
+		"fg_living_sword": {
+			"description": "回合结束时，\n巨剑对随机敌人\n造成自身HP 100%\n的伤害。",
+			"power_stacks": 100
+		},
+		"fg_magnetic_edge": {
+			"description": "造成5点伤害。\n铸造+6。\n若巨剑HP≥20，\n改为16点伤害。",
+			"fg_forge": 6,
+			"fg_threshold_damage": 16
+		},
+		"fg_melt_down": {
+			"description": "消耗1张手牌。\n巨剑获得其费用×8\n的生命。\n下回合+3抽牌。",
+			"fg_cost_mult": 8,
+			"fg_next_draw": 3
+		},
+		"fg_molten_core": {
+			"damage": 10,
+			"description": "造成10点伤害2次。\n铸造+8。",
+			"fg_forge": 8
+		},
+		"fg_overcharge": {
+			"cost": 0,
+			"description": "本回合巨剑\n造成双倍伤害。"
+		},
+		"fg_quick_temper": {
+			"description": "铸造+5。\n抽1张牌。\n消耗。",
+			"draw": 1,
+			"fg_forge": 5
+		},
+		"fg_reforged_edge": {
+			"damage": 10,
+			"description": "造成10点伤害。\n若本回合已铸造，\n额外造成10点。",
+			"fg_forged_bonus": 10
+		},
+		"fg_reinforce": {
+			"description": "巨剑获得等同于\n其当前生命150%\n的额外生命。\n消耗。",
+			"fg_reinforce_pct": 150
+		},
+		"fg_repurpose": {
+			"description": "消耗1张手牌。\n获得其费用×5格挡。\n铸造+其费用×4。",
+			"fg_block_mult": 5,
+			"fg_forge_mult": 4
+		},
+		"fg_resonance": {
+			"description": "每当目标英雄\n获得格挡，\n铸造：巨剑+3。",
+			"power_stacks": 3
+		},
+		"fg_riposte_strike": {
+			"damage": 9,
+			"description": "造成9点伤害。\n额外造成所有英雄\n+巨剑荆棘×3\n的伤害。",
+			"fg_thorns_mult": 3
+		},
+		"fg_sacrifice_fuel": {
+			"description": "消耗巨剑8点生命\n或英雄8点格挡，\n获得2点能量。\n不足8则无法打出。",
+			"fg_energy_gain": 2,
+			"fg_sacrifice_cost": 8
+		},
+		"fg_salvage": {
+			"block": 9,
+			"description": "获得9点格挡。\n从弃牌堆选择\n1张牌置于\n抽牌堆顶。"
+		},
+		"fg_sharpen": {
+			"description": "铸造+12。\n抽1张牌。",
+			"fg_forge": 12
+		},
+		"fg_shield_bash": {
+			"cost": 0,
+			"description": "造成等同于铸造者\n当前格挡值的伤害。"
+		},
+		"fg_strike": {
+			"damage": 9,
+			"description": "造成9点伤害。"
+		},
+		"fg_summon_sword": {
+			"description": "巨剑+10生命。",
+			"fg_summon_hp": 10
+		},
+		"fg_sword_crash": {
+			"description": "造成巨剑当前\n生命值1.5倍\n的伤害。",
+			"fg_sword_mult": 1.5
+		},
+		"fg_sword_mastery": {
+			"description": "每打出攻击牌，\n铸造+3。",
+			"power_stacks": 3
+		},
+		"fg_sword_sacrifice": {
+			"block": 14,
+			"damage": 14,
+			"description": "对所有敌人造成\n14点伤害。\n获得14点格挡。\n消耗巨剑。\n本回合不能召唤巨剑。",
+			"fg_sacrifice_block": 14,
+			"fg_sacrifice_dmg": 14
+		},
+		"fg_sword_ward": {
+			"description": "若巨剑存在，\n每回合开始时\n获得5点格挡。",
+			"power_stacks": 5
+		},
+		"fg_temper": {
+			"block": 9,
+			"description": "获得9点格挡。\n下回合获得9点\n格挡。",
+			"fg_next_block": 9
+		},
+		"fg_tempered_strike": {
+			"block": 9,
+			"damage": 9,
+			"description": "造成9点伤害。\n获得9点格挡。"
+		},
+		"fg_thorn_aura": {
+			"description": "获得5层荆棘。\n巨剑获得5层荆棘。",
+			"fg_hero_thorns": 5,
+			"fg_sword_thorns": 5,
+			"power_stacks": 5
+		},
+		"fg_thorn_burst": {
+			"damage": 9,
+			"description": "对所有敌人造成\n9点伤害，额外造成\n所有英雄和巨剑\n荆棘总和×3伤害。\n移除所有荆棘。",
+			"fg_thorns_mult": 3
+		},
+		"fg_thorn_forge": {
+			"description": "铸造3。巨剑获得\n6层荆棘(本回合)。",
+			"fg_forge": 3,
+			"fg_hero_thorns": 0,
+			"fg_sword_thorns": 6
+		},
+		"fg_thorn_wall": {
+			"description": "巨剑获得3层荆棘。",
+			"fg_sword_thorns": 3
+		},
+		"fm_blood_pact": {
+			"description": "消耗1张手牌。\n抽3张牌。",
+			"draw": 3
+		},
+		"fm_bloodbath": {
+			"apply_status": {
+				"stacks": 2,
+				"type": "vulnerable"
+			},
+			"bf_bloodlust_apply": 3,
+			"description": "消耗1张手牌。\n施加3层嗜血\n和2层易伤。"
+		},
+		"fm_crimson_pact": {
+			"description": "每当一张牌被\n消耗，对随机\n敌人造成8点伤害。",
+			"power_effect": "crimson_pact_plus",
+			"power_stacks": 8
+		},
+		"fm_defend": {
+			"block": 8,
+			"description": "获得8点格挡。"
+		},
+		"fm_flesh_rend": {
+			"cost_mult": 12,
+			"description": "消耗1张手牌。\n造成其费用×12\n点伤害。"
+		},
+		"fm_relentless": {
+			"damage": 9,
+			"description": "造成9点伤害。\n本回合每消耗1张牌\n额外攻击1次。"
+		},
+		"fm_soul_harvest": {
+			"damage": 10,
+			"description": "消耗手中所有\n其他手牌。\n每消耗1张，\n造成10点伤害。"
+		},
+		"fm_strike": {
+			"damage": 9,
+			"description": "造成9点伤害。"
+		},
+		"fm_undying_rage": {
+			"cost": 1,
+			"description": "每当一张牌被\n消耗，获得\n1点力量。"
+		},
 		"ic_anger": {
 			"damage": 8,
 			"description": "Deal 8 damage.\nAdd a copy to\nyour discard pile."
