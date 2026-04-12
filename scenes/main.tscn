@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_xtcpy"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_sugp2"]
+[ext_resource type="PackedScene" path="res://scenes/character_select.tscn" id="2_jyhfs"]
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="3_tbgi4"]
 
-[node name="Main" type="Node2D"]
-script = ExtResource("1_xtcpy")
+[node name="Main" type="Node2D" unique_id=1183875622]
+script = ExtResource("1_sugp2")
+
+[node name="CharacterSelect" type="Control" parent="." unique_id=2131751082 instance=ExtResource("2_jyhfs")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("3_tbgi4")

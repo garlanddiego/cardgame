@@ -271,10 +271,6 @@ func _start_standard_run(h1: String, h2: String) -> void:
 	get_tree().change_scene_to_file("res://scenes/standard_mode.tscn")
 
 func _on_battle_pressed() -> void:
-	# Skip character selection — go directly to deck builder with Silent
-	var gm = get_node_or_null("/root/GameManager")
-	if gm:
-		gm.select_character("silent")
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 func _on_draft_battle_pressed() -> void:

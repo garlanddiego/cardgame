@@ -30,17 +30,53 @@ const BORDER_COLOR := Color(0.4, 0.32, 0.2, 0.8)
 func _ready() -> void:
 	battle_scene = load("res://scenes/battle.tscn")
 	deck_builder_scene = load("res://scenes/deck_builder.tscn")
-	# Use character from GameManager if already selected (from main menu)
+	# Start with hero selection screen
+	call_deferred("_show_character_select")
+
+func _show_character_select() -> void:
+	# Remove existing children
+	for child in get_children():
+		child.queue_free()
+	await get_tree().process_frame
+
+	# Load and show character select
+	var cs_scene = load("res://scenes/character_select.tscn")
+	var char_select = cs_scene.instantiate()
+	char_select.name = "CharacterSelect"
+	add_child(char_select)
+
+	char_select.character_chosen.connect(_on_character_chosen)
+	char_select.dual_battle_chosen.connect(_on_dual_battle_chosen)
+	char_select.back_pressed.connect(_on_back_to_menu)
+
+func _on_character_chosen(character_id: String) -> void:
+	current_character = character_id
+	_config_dual_hero = false
 	var gm = _get_gm()
-	if gm and gm.current_character != "":
-		current_character = gm.current_character
-	elif gm:
-		gm.select_character(current_character)
-	# Clear previous deck — returning to main always starts fresh
 	if gm:
+		gm.select_character(current_character)
 		gm.player_deck.clear()
-	# Go directly to deck builder (no character select)
+	_remove_character_select()
 	call_deferred("_load_deck_builder")
+
+func _on_dual_battle_chosen(hero1_id: String, hero2_id: String) -> void:
+	current_character = hero1_id
+	second_character = hero2_id
+	_config_dual_hero = true
+	var gm = _get_gm()
+	if gm:
+		gm.select_character(current_character)
+		gm.player_deck.clear()
+	_remove_character_select()
+	call_deferred("_load_deck_builder")
+
+func _on_back_to_menu() -> void:
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+func _remove_character_select() -> void:
+	var cs = get_node_or_null("CharacterSelect")
+	if cs:
+		cs.queue_free()
 
 func _load_deck_builder() -> void:
 	var builder = deck_builder_scene.instantiate()
@@ -120,97 +156,17 @@ func _show_battle_config_popup() -> void:
 	sep.add_theme_stylebox_override("separator", sep_style)
 	vbox.add_child(sep)
 
-	# --- Character selection ---
-	var char_label = Label.new()
-	char_label.text = "选择角色"
-	char_label.add_theme_font_size_override("font_size", 24)
-	char_label.add_theme_color_override("font_color", TEXT_COLOR)
-	vbox.add_child(char_label)
-
-	var char_row = HBoxContainer.new()
-	char_row.add_theme_constant_override("separation", 20)
-	char_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(char_row)
-
-	var ironclad_btn = _create_char_button("铁甲战士", ACCENT_RED, current_character == "ironclad")
-	var silent_btn = _create_char_button("静默猎手", ACCENT_GREEN, current_character == "silent")
-
-	ironclad_btn.pressed.connect(func():
-		current_character = "ironclad"
-		_style_toggle(ironclad_btn, true)
-		_style_toggle(silent_btn, false)
-		_reload_deck_builder()
-	)
-	char_row.add_child(ironclad_btn)
-
-	silent_btn.pressed.connect(func():
-		current_character = "silent"
-		_style_toggle(ironclad_btn, false)
-		_style_toggle(silent_btn, true)
-		_reload_deck_builder()
-	)
-	char_row.add_child(silent_btn)
-
-	# --- Dual hero toggle ---
-	var dual_container = VBoxContainer.new()
-	dual_container.add_theme_constant_override("separation", 8)
-	vbox.add_child(dual_container)
-
-	var dual_row = HBoxContainer.new()
-	dual_row.add_theme_constant_override("separation", 12)
-	dual_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	dual_container.add_child(dual_row)
-
-	var dual_label = Label.new()
-	dual_label.text = "双英雄模式"
-	dual_label.add_theme_font_size_override("font_size", 22)
-	dual_label.add_theme_color_override("font_color", TEXT_COLOR)
-	dual_row.add_child(dual_label)
-
-	var dual_toggle = CheckBox.new()
-	dual_toggle.button_pressed = _config_dual_hero
-	dual_toggle.add_theme_font_size_override("font_size", 20)
-	dual_toggle.add_theme_color_override("font_color", ACCENT_GOLD)
-	dual_row.add_child(dual_toggle)
-
-	# Second character selector (shown only when dual mode is on)
-	var second_char_row = HBoxContainer.new()
-	second_char_row.name = "SecondCharRow"
-	second_char_row.add_theme_constant_override("separation", 12)
-	second_char_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	second_char_row.visible = _config_dual_hero
-	dual_container.add_child(second_char_row)
-
-	var second_label = Label.new()
-	second_label.text = "后排英雄："
-	second_label.add_theme_font_size_override("font_size", 20)
-	second_label.add_theme_color_override("font_color", DIM_TEXT)
-	second_char_row.add_child(second_label)
-
-	var second_ic_btn = _create_char_button("铁甲", ACCENT_RED, second_character == "ironclad")
-	var second_si_btn = _create_char_button("静默", ACCENT_GREEN, second_character == "silent")
-
-	second_ic_btn.custom_minimum_size = Vector2(120, 45)
-	second_si_btn.custom_minimum_size = Vector2(120, 45)
-
-	second_ic_btn.pressed.connect(func():
-		second_character = "ironclad"
-		_style_toggle(second_ic_btn, true)
-		_style_toggle(second_si_btn, false)
-	)
-	second_char_row.add_child(second_ic_btn)
-
-	second_si_btn.pressed.connect(func():
-		second_character = "silent"
-		_style_toggle(second_ic_btn, false)
-		_style_toggle(second_si_btn, true)
-	)
-	second_char_row.add_child(second_si_btn)
-
-	dual_toggle.toggled.connect(func(pressed: bool):
-		_config_dual_hero = pressed
-		second_char_row.visible = pressed
-	)
+	# Show selected hero info
+	var hero_names := {"ironclad": "铁甲战士", "silent": "静默猎手", "bloodfiend": "嗜血狂魔", "fire_mage": "火法师", "forger": "铸造者"}
+	var hero_info = Label.new()
+	if _config_dual_hero:
+		hero_info.text = "英雄: %s + %s (双英雄)" % [hero_names.get(current_character, current_character), hero_names.get(second_character, second_character)]
+	else:
+		hero_info.text = "英雄: %s" % hero_names.get(current_character, current_character)
+	hero_info.add_theme_font_size_override("font_size", 22)
+	hero_info.add_theme_color_override("font_color", ACCENT_GOLD)
+	hero_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hero_info)
 
 	# --- Draw per turn ---
 	var draw_row = _create_config_row("每回合抽牌", _config_draw, 1, 20, func(val: int):
@@ -268,6 +224,13 @@ func _show_battle_config_popup() -> void:
 	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(btn_row)
 
+	var back_hero_btn = _create_action_button("重选英雄", Color(0.5, 0.4, 0.2))
+	back_hero_btn.pressed.connect(func():
+		canvas_layer.queue_free()
+		_show_character_select()
+	)
+	btn_row.add_child(back_hero_btn)
+
 	var cancel_btn = _create_action_button("返回选牌", DIM_TEXT)
 	cancel_btn.pressed.connect(func():
 		canvas_layer.queue_free()
@@ -277,28 +240,9 @@ func _show_battle_config_popup() -> void:
 	var start_btn = _create_action_button("开始战斗", ACCENT_RED)
 	start_btn.pressed.connect(func():
 		canvas_layer.queue_free()
-		var gm = _get_gm()
-		if gm:
-			gm.select_character(current_character)
 		_start_battle_with_config()
 	)
 	btn_row.add_child(start_btn)
-
-func _reload_deck_builder() -> void:
-	var old = get_node_or_null("DeckBuilder")
-	if old:
-		old.queue_free()
-	var gm = _get_gm()
-	if gm:
-		gm.select_character(current_character)
-	call_deferred("_deferred_reload_deck_builder")
-
-func _deferred_reload_deck_builder() -> void:
-	var builder = deck_builder_scene.instantiate()
-	builder.name = "DeckBuilder"
-	add_child(builder)
-	builder.deck_confirmed.connect(_on_deck_confirmed)
-	builder.setup(current_character)
 
 func _start_battle_with_config() -> void:
 	# Remove ALL children except battle-related ones
@@ -322,32 +266,6 @@ func _load_battle(character_id: String) -> void:
 	battle.dual_hero_mode = _config_dual_hero
 	battle.second_character_id = second_character if _config_dual_hero else ""
 	battle.start_battle(character_id)
-
-func _create_char_button(text: String, color: Color, selected: bool) -> Button:
-	var btn = Button.new()
-	btn.text = text
-	btn.custom_minimum_size = Vector2(200, 60)
-	btn.add_theme_font_size_override("font_size", 24)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	_style_toggle(btn, selected)
-	return btn
-
-func _style_toggle(btn: Button, selected: bool) -> void:
-	var style = StyleBoxFlat.new()
-	style.bg_color = BUTTON_SELECTED if selected else BUTTON_NORMAL
-	style.border_color = ACCENT_GOLD if selected else BORDER_COLOR
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	btn.add_theme_stylebox_override("normal", style)
-	var hover = style.duplicate() as StyleBoxFlat
-	hover.bg_color = BUTTON_HOVER if not selected else BUTTON_SELECTED
-	btn.add_theme_stylebox_override("hover", hover)
 
 func _create_config_row(label_text: String, default_val: int, min_val: int, max_val: int, on_change: Callable) -> HBoxContainer:
 	var row = HBoxContainer.new()
