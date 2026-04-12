@@ -594,6 +594,47 @@ func _unhighlight_heroes() -> void:
 		if hero.has_method("hide_target_highlight"):
 			hero.hide_target_highlight()
 
+var _greatsword_highlight_rect: ColorRect = null
+
+func _highlight_greatsword() -> void:
+	if _greatsword_node == null or not _greatsword_node.visible:
+		return
+	if _greatsword_highlight_rect != null:
+		return
+	var sprite: Sprite2D = _greatsword_node.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var tex = sprite.texture
+	if tex == null:
+		return
+	var w: float = tex.get_width() * sprite.scale.x
+	var h: float = tex.get_height() * sprite.scale.y
+	_greatsword_highlight_rect = ColorRect.new()
+	_greatsword_highlight_rect.name = "HighlightFrame"
+	_greatsword_highlight_rect.color = Color(1.0, 0.85, 0.2, 0.35)
+	_greatsword_highlight_rect.size = Vector2(w + 16, h + 16)
+	_greatsword_highlight_rect.position = sprite.position - Vector2(w / 2 + 8, h / 2 + 8)
+	_greatsword_highlight_rect.z_index = -1
+	_greatsword_node.add_child(_greatsword_highlight_rect)
+	sprite.modulate = Color(1.1, 1.05, 0.9, 1.0)
+
+func _unhighlight_greatsword() -> void:
+	if _greatsword_highlight_rect != null:
+		_greatsword_highlight_rect.queue_free()
+		_greatsword_highlight_rect = null
+	if _greatsword_node != null:
+		var sprite: Sprite2D = _greatsword_node.get_node_or_null("Sprite") as Sprite2D
+		if sprite:
+			sprite.modulate = Color.WHITE
+
+func _get_greatsword_at(screen_pos: Vector2) -> bool:
+	## Returns true if screen_pos is over the greatsword
+	if _greatsword_node == null or not _greatsword_node.visible or player_area == null:
+		return false
+	var gs_global_pos: Vector2 = player_area.position + _greatsword_node.position
+	var rect = Rect2(gs_global_pos - Vector2(80, 200), Vector2(160, 400))
+	return rect.has_point(screen_pos)
+
 func _get_closest_hero(click_pos: Vector2) -> Node2D:
 	## Returns the hero closest to the click position (for self-targeting in dual mode)
 	var heroes = _get_all_alive_heroes()
@@ -1046,6 +1087,19 @@ func _can_play_card(card_data: Dictionary) -> bool:
 	# Grand Finale: only playable if draw pile is empty
 	if special == "grand_finale":
 		if not draw_pile.is_empty():
+			return false
+	# Sacrifice Fuel: need greatsword HP or hero block >= cost
+	if card_data.get("target", "") == "hero_or_sword":
+		var sac_cost: int = card_data.get("fg_sacrifice_cost", 8)
+		var has_source: bool = false
+		if _greatsword_hp >= sac_cost:
+			has_source = true
+		if not has_source:
+			for hero in _get_all_alive_heroes():
+				if hero.block >= sac_cost:
+					has_source = true
+					break
+		if not has_source:
 			return false
 	return true
 
@@ -2590,6 +2644,33 @@ func _call_action(fn_name: String, card_data: Dictionary, target: Node2D, energy
 				hero_blk.add_block(blk)
 				_trigger_juggernaut()
 				_fg_on_hero_gain_block(hero_blk, blk)
+		"sacrifice_fuel":
+			var sac_cost: int = card_data.get("fg_sacrifice_cost", 8)
+			var eg: int = card_data.get("fg_energy_gain", 1)
+			if target == _greatsword_node:
+				# Consume greatsword HP
+				if _greatsword_hp >= sac_cost:
+					_greatsword_hp -= sac_cost
+					_update_greatsword_display()
+					if _greatsword_hp <= 0:
+						_destroy_greatsword()
+					current_energy += eg
+					_update_energy_label()
+					if card_hand:
+						card_hand.current_battle_energy = current_energy
+						card_hand.update_card_playability(current_energy)
+			else:
+				# Consume hero block
+				var sac_hero: Node2D = target if (target != null and target.has_method("add_block")) else (card_hero if card_hero else player)
+				if sac_hero and sac_hero.block >= sac_cost:
+					sac_hero.block -= sac_cost
+					sac_hero.block_changed.emit(sac_hero.block)
+					sac_hero._update_block_display()
+					current_energy += eg
+					_update_energy_label()
+					if card_hand:
+						card_hand.current_battle_energy = current_energy
+						card_hand.update_card_playability(current_energy)
 		"sword_sacrifice":
 			var hero_blk: Node2D = card_hero if card_hero else player
 			var bonus: int = card_data.get("fg_sacrifice_block_bonus", 10)
@@ -4501,7 +4582,7 @@ func _process(_delta: float) -> void:
 			var mouse_pos_arrow: Vector2 = get_viewport().get_mouse_position()
 			# Green arrow for self/hero targets, red for enemy targets
 			var arrow_mode: String = "red"
-			if target_type == "self" or target_type == "all_heroes":
+			if target_type == "self" or target_type == "all_heroes" or target_type == "hero_or_sword":
 				arrow_mode = "green"
 			_targeting_arrow.update_arrow(card_pos, mouse_pos_arrow, arrow_mode)
 			_targeting_arrow.visible = true
@@ -4544,6 +4625,10 @@ func _process(_delta: float) -> void:
 		elif target_type == "all_heroes":
 			# Highlight all heroes for all-heroes targeting
 			_highlight_heroes()
+		elif target_type == "hero_or_sword":
+			# Highlight heroes + greatsword for sacrifice_fuel
+			_highlight_heroes()
+			_highlight_greatsword()
 	else:
 		if _hovered_enemy != null:
 			_clear_all_enemy_highlights()
@@ -4568,6 +4653,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			card_hand.targeting_mode = false
 			_clear_all_enemy_highlights()
 			_unhighlight_heroes()
+			_unhighlight_greatsword()
 			_clear_damage_previews()
 			_hovered_enemy = null
 			card_hand.update_layout()
@@ -4587,6 +4673,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				card_hand.focused_card = null
 				_clear_all_enemy_highlights()
 				_unhighlight_heroes()
+				_unhighlight_greatsword()
 				_clear_damage_previews()
 				_hovered_enemy = null
 				if _targeting_arrow:
@@ -4636,6 +4723,19 @@ func _unhandled_input(event: InputEvent) -> void:
 					_unhighlight_heroes()
 					if player:
 						card_hand.play_selected_on(player)
+			elif target_type == "hero_or_sword":
+				# Click on greatsword or hero
+				if _get_greatsword_at(click_pos):
+					_unhighlight_heroes()
+					_unhighlight_greatsword()
+					# Use _greatsword_node as target marker — sacrifice_fuel checks this
+					card_hand.play_selected_on(_greatsword_node)
+				else:
+					var clicked_hero: Node2D = _get_hero_at(click_pos)
+					if clicked_hero:
+						_unhighlight_heroes()
+						_unhighlight_greatsword()
+						card_hand.play_selected_on(clicked_hero)
 			elif target_type == "enemy":
 				# Must click on a specific enemy
 				var target_enemy = _get_enemy_at(click_pos)
@@ -4661,6 +4761,9 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 	card_hand.targeting_mode = true
 	if target_type == "self" or target_type == "all_heroes":
 		_highlight_heroes()
+	elif target_type == "hero_or_sword":
+		_highlight_heroes()
+		_highlight_greatsword()
 	elif target_type == "all_enemies" or target_type == "random_enemy":
 		_highlight_all_enemies()
 	# "enemy" type already enters targeting mode via card_hand
@@ -4672,12 +4775,24 @@ func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> voi
 	_clear_damage_previews()
 	_clear_all_enemy_highlights()
 	_unhighlight_heroes()
+	_unhighlight_greatsword()
 	_hovered_enemy = null
 	if _targeting_arrow:
 		_targeting_arrow.hide_arrow()
 		_targeting_arrow.visible = false
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
+	if target_type == "hero_or_sword":
+		# Drag release on greatsword or hero
+		if _get_greatsword_at(release_position):
+			card_hand.play_card_on(card_node, _greatsword_node)
+		else:
+			var hero_target: Node2D = _get_hero_at(release_position)
+			if hero_target:
+				card_hand.play_card_on(card_node, hero_target)
+			else:
+				_snap_card_back(card_node)
+		return
 	if target_type == "self":
 		var ht: String = card_data.get("hero_target", "self")
 		if ht == "target_hero" and dual_hero_mode:
