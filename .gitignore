@@ -6,6 +6,7 @@ assets/img/sts_cards
 screenshots
 .godot
 *.uid
+*.import
 *.mp4
 reference.png
 visual-qa
