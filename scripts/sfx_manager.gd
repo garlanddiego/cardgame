@@ -107,19 +107,19 @@ static func _make_layered(layers: Array, duration: float, vol: float = 0.3) -> A
 static func play_hero_attack(tree: SceneTree, character: String) -> void:
 	var stream: AudioStreamWAV
 	match character:
+		"ironclad":
+			# Heavy sword slash — weighty metallic swing + impact
+			stream = _make_layered([
+				{"freq": 150, "wave": "saw", "decay": 2.5, "vol": 0.8, "sweep": -80},
+				{"freq": 500, "wave": "noise", "decay": 3.5, "vol": 0.5, "sweep": -300},
+				{"freq": 100, "wave": "sine", "decay": 1.5, "vol": 0.6},
+			], 0.22, 0.35)
 		"silent":
 			# Quick sharp swoosh — dagger slice
 			stream = _make_layered([
 				{"freq": 2000, "wave": "noise", "decay": 4.0, "vol": 0.8, "sweep": -1500},
 				{"freq": 800, "wave": "saw", "decay": 5.0, "vol": 0.4, "sweep": -600},
 			], 0.15, 0.35)
-		"forger":
-			# Heavy hammer impact — low thud + metallic ring
-			stream = _make_layered([
-				{"freq": 80, "wave": "sine", "decay": 2.0, "vol": 1.0},
-				{"freq": 600, "wave": "square", "decay": 4.0, "vol": 0.5, "noise": 0.3},
-				{"freq": 1200, "wave": "sine", "decay": 6.0, "vol": 0.3, "delay": 0.02},
-			], 0.25, 0.35)
 		"bloodfiend":
 			# Savage claw slash — aggressive ripping
 			stream = _make_layered([
@@ -127,6 +127,20 @@ static func play_hero_attack(tree: SceneTree, character: String) -> void:
 				{"freq": 1500, "wave": "noise", "decay": 3.5, "vol": 0.6, "sweep": -800},
 				{"freq": 150, "wave": "square", "decay": 2.0, "vol": 0.4},
 			], 0.2, 0.35)
+		"fire_mage":
+			# Fireball whoosh — rising flame burst
+			stream = _make_layered([
+				{"freq": 200, "wave": "noise", "decay": 2.0, "vol": 0.7, "sweep": 600},
+				{"freq": 400, "wave": "sine", "decay": 3.0, "vol": 0.5, "sweep": 300},
+				{"freq": 800, "wave": "saw", "decay": 5.0, "vol": 0.3, "delay": 0.03},
+			], 0.2, 0.35)
+		"forger":
+			# Heavy hammer impact — low thud + metallic ring
+			stream = _make_layered([
+				{"freq": 80, "wave": "sine", "decay": 2.0, "vol": 1.0},
+				{"freq": 600, "wave": "square", "decay": 4.0, "vol": 0.5, "noise": 0.3},
+				{"freq": 1200, "wave": "sine", "decay": 6.0, "vol": 0.3, "delay": 0.02},
+			], 0.25, 0.35)
 		_:
 			stream = _make_wav(400, 0.15, "square", 3.0, 0.2, -200, 0.3)
 	var p := _ensure_player(tree)
@@ -136,12 +150,31 @@ static func play_hero_attack(tree: SceneTree, character: String) -> void:
 static func play_hero_block(tree: SceneTree, character: String) -> void:
 	var stream: AudioStreamWAV
 	match character:
+		"ironclad":
+			# Armor clang — heavy plate resonance
+			stream = _make_layered([
+				{"freq": 300, "wave": "square", "decay": 3.0, "vol": 0.7, "noise": 0.1},
+				{"freq": 700, "wave": "triangle", "decay": 4.5, "vol": 0.5},
+				{"freq": 150, "wave": "sine", "decay": 2.0, "vol": 0.5},
+			], 0.18, 0.3)
 		"silent":
 			# Light parry — quick high ting
 			stream = _make_layered([
 				{"freq": 1800, "wave": "triangle", "decay": 5.0, "vol": 0.6},
 				{"freq": 2400, "wave": "sine", "decay": 6.0, "vol": 0.3, "delay": 0.01},
 			], 0.12, 0.25)
+		"bloodfiend":
+			# Dark energy barrier — low rumble shimmer
+			stream = _make_layered([
+				{"freq": 120, "wave": "saw", "decay": 2.5, "vol": 0.6},
+				{"freq": 500, "wave": "sine", "decay": 4.0, "vol": 0.4, "sweep": 200},
+			], 0.15, 0.25)
+		"fire_mage":
+			# Flame shield — crackling fire wall
+			stream = _make_layered([
+				{"freq": 300, "wave": "noise", "decay": 3.0, "vol": 0.6},
+				{"freq": 600, "wave": "sine", "decay": 4.0, "vol": 0.4, "sweep": 150},
+			], 0.15, 0.25)
 		"forger":
 			# Shield raise — solid metallic clank
 			stream = _make_layered([
@@ -149,12 +182,6 @@ static func play_hero_block(tree: SceneTree, character: String) -> void:
 				{"freq": 900, "wave": "triangle", "decay": 4.0, "vol": 0.5},
 				{"freq": 200, "wave": "sine", "decay": 2.0, "vol": 0.4},
 			], 0.18, 0.3)
-		"bloodfiend":
-			# Dark energy barrier — low rumble shimmer
-			stream = _make_layered([
-				{"freq": 120, "wave": "saw", "decay": 2.5, "vol": 0.6},
-				{"freq": 500, "wave": "sine", "decay": 4.0, "vol": 0.4, "sweep": 200},
-			], 0.15, 0.25)
 		_:
 			stream = _make_wav(800, 0.12, "triangle", 4.0, 0.0, 0.0, 0.25)
 	var p := _ensure_player(tree)
@@ -164,12 +191,31 @@ static func play_hero_block(tree: SceneTree, character: String) -> void:
 static func play_block_absorb(tree: SceneTree, character: String) -> void:
 	var stream: AudioStreamWAV
 	match character:
+		"ironclad":
+			# Plate armor deflect — deep metallic clank
+			stream = _make_layered([
+				{"freq": 200, "wave": "square", "decay": 2.0, "vol": 0.7, "noise": 0.15},
+				{"freq": 500, "wave": "triangle", "decay": 3.5, "vol": 0.5},
+				{"freq": 1000, "wave": "sine", "decay": 5.0, "vol": 0.3, "delay": 0.01},
+			], 0.18, 0.35)
 		"silent":
 			# Deflect — sharp ping + fade
 			stream = _make_layered([
 				{"freq": 2200, "wave": "sine", "decay": 5.0, "vol": 0.5},
 				{"freq": 1000, "wave": "noise", "decay": 6.0, "vol": 0.3},
 			], 0.1, 0.3)
+		"bloodfiend":
+			# Flesh/armor absorb — wet thud
+			stream = _make_layered([
+				{"freq": 100, "wave": "sine", "decay": 2.0, "vol": 0.7},
+				{"freq": 350, "wave": "saw", "decay": 3.0, "vol": 0.4, "noise": 0.2},
+			], 0.15, 0.3)
+		"fire_mage":
+			# Flame barrier absorb — sizzle + hiss
+			stream = _make_layered([
+				{"freq": 1500, "wave": "noise", "decay": 4.0, "vol": 0.5},
+				{"freq": 250, "wave": "sine", "decay": 2.0, "vol": 0.4, "sweep": -100},
+			], 0.15, 0.3)
 		"forger":
 			# Shield block — heavy metallic impact
 			stream = _make_layered([
@@ -177,12 +223,6 @@ static func play_block_absorb(tree: SceneTree, character: String) -> void:
 				{"freq": 700, "wave": "square", "decay": 3.0, "vol": 0.6, "noise": 0.25},
 				{"freq": 1400, "wave": "triangle", "decay": 5.0, "vol": 0.3, "delay": 0.015},
 			], 0.22, 0.35)
-		"bloodfiend":
-			# Flesh/armor absorb — wet thud
-			stream = _make_layered([
-				{"freq": 100, "wave": "sine", "decay": 2.0, "vol": 0.7},
-				{"freq": 350, "wave": "saw", "decay": 3.0, "vol": 0.4, "noise": 0.2},
-			], 0.15, 0.3)
 		_:
 			stream = _make_wav(600, 0.15, "square", 3.0, 0.15, 0.0, 0.3)
 	var p := _ensure_player(tree)
