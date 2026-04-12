@@ -3881,7 +3881,7 @@ func _execute_enemy_multi_hit(enemy: Node2D, action: Dictionary, hit_idx: int, t
 		remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
 		_screen_shake()
 	if remaining_dmg > 0 and attack_target.alive:
-		var _had_block_mh: bool = attack_target.current_block > 0
+		var _had_block_mh: bool = attack_target.block > 0
 		attack_target.take_damage(remaining_dmg)
 		if _had_block_mh:
 			SfxManager.play_block_absorb(get_tree(), _get_hero_char_id(attack_target))
@@ -3890,7 +3890,7 @@ func _execute_enemy_multi_hit(enemy: Node2D, action: Dictionary, hit_idx: int, t
 	elif remaining_dmg > 0 and dual_hero_mode:
 		attack_target = get_front_player()
 		if attack_target and attack_target.alive:
-			var _had_block_mh2: bool = attack_target.current_block > 0
+			var _had_block_mh2: bool = attack_target.block > 0
 			attack_target.take_damage(remaining_dmg)
 			if _had_block_mh2:
 				SfxManager.play_block_absorb(get_tree(), _get_hero_char_id(attack_target))
