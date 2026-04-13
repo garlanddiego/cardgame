@@ -2978,6 +2978,42 @@ func _destroy_greatsword() -> void:
 		_play_shatter_effect()
 	_update_greatsword_display()
 
+func _apply_damage_with_greatsword(hero: Node2D, dmg: int, attacker: Node2D) -> int:
+	## Damage flow: hero block → greatsword HP → hero HP.
+	## Returns remaining damage (> 0 if hero died with overflow).
+	if not hero or not hero.alive:
+		return dmg
+	var remaining: int = dmg
+	# Step 1: hero block absorbs first
+	if hero.block > 0:
+		if hero.block >= remaining:
+			hero.block -= remaining
+			remaining = 0
+		else:
+			remaining -= hero.block
+			hero.block = 0
+		hero.block_changed.emit(hero.block)
+		hero._update_block_display()
+		if remaining < dmg:
+			SfxManager.play_block_absorb(get_tree(), _get_hero_char_id(hero))
+	if remaining <= 0:
+		_screen_shake()
+		_check_reactive_powers(hero, attacker)
+		return 0
+	# Step 2: greatsword HP absorbs remaining damage
+	if _greatsword_hp > 0:
+		remaining = _greatsword_take_damage(remaining, attacker)
+	if remaining <= 0:
+		_screen_shake()
+		_check_reactive_powers(hero, attacker)
+		return 0
+	# Step 3: remaining damage hits hero HP directly (bypass block, already consumed)
+	if hero.alive:
+		hero.take_damage_direct(remaining)
+		_screen_shake()
+		_check_reactive_powers(hero, attacker)
+	return 0
+
 func _greatsword_take_damage(dmg: int, attacker: Node2D) -> int:
 	## Greatsword absorbs damage. Returns remaining damage to pass through.
 	if _greatsword_hp <= 0:
@@ -3957,24 +3993,11 @@ func _execute_enemy_multi_hit(enemy: Node2D, action: Dictionary, hit_idx: int, t
 	SfxManager.play_enemy_attack(get_tree())
 	_enemy_lunge(enemy)
 	var attack_target = front
-	var remaining_dmg: int = actual_dmg
-	if _greatsword_hp > 0:
-		remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
-		_screen_shake()
-	if remaining_dmg > 0 and attack_target.alive:
-		var _had_block_mh: bool = attack_target.block > 0
-		attack_target.take_damage(remaining_dmg)
-		if _had_block_mh:
-			SfxManager.play_block_absorb(get_tree(), _get_hero_char_id(attack_target))
-		_screen_shake()
-		_check_reactive_powers(attack_target, enemy)
-	elif remaining_dmg > 0 and dual_hero_mode:
+	var remaining_dmg: int = _apply_damage_with_greatsword(attack_target, actual_dmg, enemy)
+	if remaining_dmg > 0 and not attack_target.alive and dual_hero_mode:
 		attack_target = get_front_player()
 		if attack_target and attack_target.alive:
-			var _had_block_mh2: bool = attack_target.block > 0
-			attack_target.take_damage(remaining_dmg)
-			if _had_block_mh2:
-				SfxManager.play_block_absorb(get_tree(), _get_hero_char_id(attack_target))
+			_apply_damage_with_greatsword(attack_target, remaining_dmg, enemy)
 			_screen_shake()
 			_check_reactive_powers(attack_target, enemy)
 	elif remaining_dmg <= 0:
@@ -4105,26 +4128,11 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			SfxManager.play_enemy_attack(get_tree())
 			_enemy_lunge(enemy)
 			var attack_target = front
-			var remaining_dmg: int = actual_dmg
-			if _greatsword_hp > 0:
-				remaining_dmg = _greatsword_take_damage(actual_dmg, enemy)
-				_screen_shake()
-			if remaining_dmg > 0 and attack_target.alive:
-				var _had_block: bool = attack_target.block > 0
-				attack_target.take_damage(remaining_dmg)
-				if _had_block:
-					var _hero_char: String = _get_hero_char_id(attack_target)
-					SfxManager.play_block_absorb(get_tree(), _hero_char)
-				_screen_shake()
-				_check_reactive_powers(attack_target, enemy)
-			elif remaining_dmg > 0 and dual_hero_mode:
+			var remaining_dmg: int = _apply_damage_with_greatsword(attack_target, actual_dmg, enemy)
+			if remaining_dmg > 0 and not attack_target.alive and dual_hero_mode:
 				attack_target = get_front_player()
 				if attack_target and attack_target.alive:
-					var _had_block2: bool = attack_target.block > 0
-					attack_target.take_damage(remaining_dmg)
-					if _had_block2:
-						var _hero_char2: String = _get_hero_char_id(attack_target)
-						SfxManager.play_block_absorb(get_tree(), _hero_char2)
+					_apply_damage_with_greatsword(attack_target, remaining_dmg, enemy)
 					_screen_shake()
 					_check_reactive_powers(attack_target, enemy)
 			elif remaining_dmg <= 0:
@@ -4141,13 +4149,7 @@ func _execute_enemy_action(enemy: Node2D, action: Dictionary) -> void:
 			var blk: int = action.get("block_val", 5)
 			var actual_dmg: int = enemy.get_attack_damage(dmg)
 			_enemy_lunge(enemy)
-			var remaining_ab: int = actual_dmg
-			if _greatsword_hp > 0:
-				remaining_ab = _greatsword_take_damage(actual_dmg, enemy)
-				_screen_shake()
-			if remaining_ab > 0 and front.alive:
-				front.take_damage(remaining_ab)
-				_screen_shake()
+			_apply_damage_with_greatsword(front, actual_dmg, enemy)
 			enemy.add_block(blk)
 			_check_reactive_powers(front, enemy)
 		"mode_shift":
