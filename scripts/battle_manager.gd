@@ -4600,19 +4600,13 @@ func _process(_delta: float) -> void:
 			if _damage_preview_labels.is_empty():
 				_show_damage_previews()
 		elif target_type == "self":
-			# hero_target routing: "self" = card's own hero, "all_heroes" = all, "target_hero" = user picks
+			# hero_target routing: "target_hero" = user picks, "all_heroes" = all, "self" = no highlight needed
 			var ht: String = card_data.get("hero_target", "self")
 			if ht == "target_hero" and dual_hero_mode:
 				_highlight_heroes()
 			elif ht == "all_heroes":
 				_highlight_heroes()
-			else:
-				# Highlight the card's own hero (single or dual mode)
-				var own_hero = _get_card_hero(card_data)
-				if own_hero == null:
-					own_hero = player
-				if own_hero and own_hero.has_method("show_target_highlight"):
-					own_hero.show_target_highlight()
+			# "self" — no highlight, card plays immediately via tap or drag-up
 		elif target_type == "all_enemies" or target_type == "random_enemy":
 			# Highlight all enemies (random_enemy uses same UI as all_enemies)
 			if _hovered_enemy == null:
@@ -4691,20 +4685,26 @@ func _unhandled_input(event: InputEvent) -> void:
 			var click_pos: Vector2 = event.global_position
 			if target_type == "self":
 				var ht: String = card_data.get("hero_target", "self")
-				# Must click on a hero to play
-				var clicked_hero: Node2D = _get_hero_at(click_pos)
-				if clicked_hero:
-					_clear_damage_previews()
-					_unhighlight_heroes()
-					if ht == "target_hero" and dual_hero_mode:
-						card_hand.play_selected_on(clicked_hero)
-					elif ht == "all_heroes":
-						card_hand.play_selected_on(player)
-					else:
+				if ht == "self":
+					# Self-targeting: play immediately (click anywhere above hand)
+					var vh: float = get_viewport().get_visible_rect().size.y
+					var hand_top: float = vh - 200.0
+					if click_pos.y < hand_top:
+						_clear_damage_previews()
 						var own_hero = _get_card_hero(card_data)
 						if own_hero == null:
 							own_hero = player
 						card_hand.play_selected_on(own_hero)
+				else:
+					# target_hero / all_heroes — must click on a hero
+					var clicked_hero: Node2D = _get_hero_at(click_pos)
+					if clicked_hero:
+						_clear_damage_previews()
+						_unhighlight_heroes()
+						if ht == "target_hero" and dual_hero_mode:
+							card_hand.play_selected_on(clicked_hero)
+						elif ht == "all_heroes":
+							card_hand.play_selected_on(player)
 			elif target_type == "all_enemies" or target_type == "random_enemy":
 				# Must click on an enemy to play
 				if _is_over_any_enemy(click_pos):
@@ -4758,10 +4758,26 @@ func _on_card_tap_play(card_node: Area2D) -> void:
 		return
 	var card_data: Dictionary = card_node.card_data
 	var target_type: String = card_data.get("target", "enemy")
+	# Self-targeting cards with hero_target "self" play immediately — no targeting needed
+	if target_type == "self":
+		var ht: String = card_data.get("hero_target", "self")
+		if ht == "self":
+			var own_hero = _get_card_hero(card_data)
+			if own_hero == null:
+				own_hero = player
+			card_hand.play_card_on(card_node, own_hero)
+			return
 	card_hand.selected_card = card_node
 	card_node.set_selected(true)
 	card_hand.targeting_mode = true
-	if target_type == "self" or target_type == "all_heroes":
+	if target_type == "self":
+		# Only target_hero / all_heroes reach here
+		var ht: String = card_data.get("hero_target", "self")
+		if ht == "target_hero" and dual_hero_mode:
+			_highlight_heroes()
+		elif ht == "all_heroes":
+			_highlight_heroes()
+	elif target_type == "all_heroes":
 		_highlight_heroes()
 	elif target_type == "hero_or_sword":
 		_highlight_heroes()
@@ -4812,12 +4828,13 @@ func _on_card_drag_released(card_node: Area2D, release_position: Vector2) -> voi
 			else:
 				_snap_card_back(card_node)
 		else:
-			# "self" — must release on own hero
+			# "self" — play if dragged 200px above hand area
 			var own_hero = _get_card_hero(card_data)
 			if own_hero == null:
 				own_hero = player
-			var hit_hero: Node2D = _get_hero_at(release_position)
-			if hit_hero:
+			var vh: float = get_viewport().get_visible_rect().size.y
+			var hand_top: float = vh - 200.0
+			if release_position.y < hand_top:
 				card_hand.play_card_on(card_node, own_hero)
 			else:
 				_snap_card_back(card_node)
