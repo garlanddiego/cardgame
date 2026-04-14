@@ -23,7 +23,7 @@ var _main_bg: ColorRect = null
 # Draft state
 var _draft_round: int = 0
 var _draft_total_rounds: int = 6
-var _draft_hero_order: Array = ["ironclad", "silent", "ironclad", "silent", "ironclad", "silent"]
+var _draft_hero_order: Array = ["ironclad", "ironclad", "ironclad", "silent", "silent", "silent"]
 var _draft_picked_cards: Array = []  # card data dicts picked so far
 var _draft_status_bar: HBoxContainer = null  # top status bar
 var _draft_card_count_label: Button = null
@@ -258,32 +258,15 @@ func _show_hero_select() -> void:
 		"forger": "res://assets/img/hero_portraits/forger.png",
 	}
 
-	# Dark background
-	var bg := ColorRect.new()
-	bg.color = Color(0.05, 0.04, 0.03)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_overlay.add_child(bg)
-
 	# State for selection
 	var state := {"h1": "", "h2": ""}
 	var hero_panels: Dictionary = {}  # hero_id -> PanelContainer
 
-	# Main vertical layout
-	var main_vbox := VBoxContainer.new()
-	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main_vbox.offset_left = 4
-	main_vbox.offset_right = -4
-	main_vbox.offset_top = 4
-	main_vbox.offset_bottom = -4
-	main_vbox.add_theme_constant_override("separation", 4)
-	_overlay.add_child(main_vbox)
-
-	# === HERO CARD ROW (5 cards side by side, fills most of the screen) ===
+	# === HERO CARD ROW (5 cards, full screen) ===
 	var card_row := HBoxContainer.new()
-	card_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	card_row.add_theme_constant_override("separation", 3)
-	main_vbox.add_child(card_row)
+	card_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	card_row.add_theme_constant_override("separation", 2)
+	_overlay.add_child(card_row)
 
 	for i in range(heroes.size()):
 		var hero: Dictionary = heroes[i]
@@ -297,39 +280,29 @@ func _show_hero_select() -> void:
 		style.bg_color = Color(color.r * 0.1, color.g * 0.1, color.b * 0.1, 0.9)
 		style.border_color = Color(color.r * 0.4, color.g * 0.4, color.b * 0.4, 0.5)
 		style.set_border_width_all(2)
-		style.set_corner_radius_all(6)
+		style.set_corner_radius_all(0)
+		style.content_margin_left = 0
+		style.content_margin_right = 0
+		style.content_margin_top = 0
+		style.content_margin_bottom = 0
 		panel.add_theme_stylebox_override("panel", style)
 		card_row.add_child(panel)
 		hero_panels[hero_id] = panel
 
-		var vbox := VBoxContainer.new()
-		vbox.add_theme_constant_override("separation", 2)
-		panel.add_child(vbox)
-
-		# Portrait (fills card)
+		# Portrait (fills entire card, no name label)
 		var portrait := TextureRect.new()
-		portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		portrait.set_anchors_preset(Control.PRESET_FULL_RECT)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		var portrait_path: String = hero_portraits.get(hero_id, "")
 		if ResourceLoader.exists(portrait_path):
 			portrait.texture = load(portrait_path)
 		else:
-			# Fallback to battle sprite
 			var sprite_path: String = "res://assets/img/" + hero_id + ".png"
 			if ResourceLoader.exists(sprite_path):
 				portrait.texture = load(sprite_path)
 		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		vbox.add_child(portrait)
-
-		# Name label at bottom
-		var name_lbl := Label.new()
-		name_lbl.text = hero["name"]
-		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.add_theme_font_size_override("font_size", 20)
-		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.75))
-		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		vbox.add_child(name_lbl)
+		panel.add_child(portrait)
 
 		# Clickable overlay button
 		var btn_overlay := Button.new()
@@ -343,32 +316,47 @@ func _show_hero_select() -> void:
 		btn_overlay.add_theme_stylebox_override("focus", empty_style)
 		panel.add_child(btn_overlay)
 
-	# === BOTTOM BAR ===
-	var bottom_bar := HBoxContainer.new()
-	bottom_bar.add_theme_constant_override("separation", 15)
-	bottom_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	bottom_bar.custom_minimum_size = Vector2(0, 72)
-	main_vbox.add_child(bottom_bar)
+	# === FLOATING BOTTOM-CENTER HUD (slots + start button) ===
+	var bottom_hud := Control.new()
+	bottom_hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bottom_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.add_child(bottom_hud)
 
-	# Slot 1
-	var s1 := _sm_create_slot("英雄1")
+	var center_row := HBoxContainer.new()
+	center_row.add_theme_constant_override("separation", 20)
+	center_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	center_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Anchor horizontally centered, vertically at bottom
+	center_row.anchor_left = 0.5
+	center_row.anchor_right = 0.5
+	center_row.anchor_top = 1.0
+	center_row.anchor_bottom = 1.0
+	center_row.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center_row.offset_left = -250
+	center_row.offset_right = 250
+	center_row.offset_top = -140
+	center_row.offset_bottom = -20
+	bottom_hud.add_child(center_row)
+
+	# Slot 1 (2x size = 100x100)
+	var s1 := _sm_create_slot("英雄1", 100)
 	var slot1_refs := {"tex": s1[0], "label": s1[1]}
-	bottom_bar.add_child(s1[2])
+	center_row.add_child(s1[2])
 
 	# Slot 2 (hidden in solo mode)
-	var s2 := _sm_create_slot("英雄2")
+	var s2 := _sm_create_slot("英雄2", 100)
 	var slot2_refs := {"tex": s2[0], "label": s2[1], "container": s2[2]}
 	slot2_refs["container"].visible = not _solo_mode
-	bottom_bar.add_child(s2[2])
+	center_row.add_child(s2[2])
 
 	# Start button
 	var start_btn := Button.new()
 	start_btn.text = "开始爬塔"
-	start_btn.custom_minimum_size = Vector2(140, 50)
-	start_btn.add_theme_font_size_override("font_size", 22)
+	start_btn.custom_minimum_size = Vector2(160, 60)
+	start_btn.add_theme_font_size_override("font_size", 24)
 	start_btn.disabled = true
 	var dis_style := StyleBoxFlat.new()
-	dis_style.bg_color = Color(0.25, 0.25, 0.25, 0.6)
+	dis_style.bg_color = Color(0.15, 0.15, 0.15, 0.7)
 	dis_style.border_color = Color(0.4, 0.4, 0.4)
 	dis_style.set_border_width_all(2)
 	dis_style.set_corner_radius_all(8)
@@ -384,12 +372,18 @@ func _show_hero_select() -> void:
 			return
 		_begin_run_after_select(state["h1"], state["h2"])
 	)
-	bottom_bar.add_child(start_btn)
+	center_row.add_child(start_btn)
 
-	# Spacer
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_bar.add_child(spacer)
+	# === FLOATING TOP-RIGHT: mode toggle + exit ===
+	var top_right := HBoxContainer.new()
+	top_right.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	top_right.offset_left = -300
+	top_right.offset_right = -10
+	top_right.offset_top = 10
+	top_right.offset_bottom = 60
+	top_right.add_theme_constant_override("separation", 10)
+	top_right.alignment = BoxContainer.ALIGNMENT_END
+	_overlay.add_child(top_right)
 
 	# Mode toggle
 	var mode_btn := Button.new()
@@ -402,7 +396,7 @@ func _show_hero_select() -> void:
 		_solo_mode = not _solo_mode
 		_show_hero_select()
 	)
-	bottom_bar.add_child(mode_btn)
+	top_right.add_child(mode_btn)
 
 	# Exit button
 	var exit_btn := Button.new()
@@ -411,7 +405,7 @@ func _show_hero_select() -> void:
 	exit_btn.add_theme_font_size_override("font_size", 18)
 	_sm_style_button(exit_btn, Color(0.4, 0.35, 0.3))
 	exit_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/main_menu.tscn"))
-	bottom_bar.add_child(exit_btn)
+	top_right.add_child(exit_btn)
 
 	# Connect hero click handlers now that all refs are ready
 	for i in range(heroes.size()):
@@ -421,35 +415,35 @@ func _show_hero_select() -> void:
 			if c is Button:
 				c.pressed.connect(func(): _sm_on_hero_clicked(hero_id, state, hero_panels, heroes, hero_portraits, slot1_refs, slot2_refs, start_btn_ref))
 
-func _sm_create_slot(label_text: String) -> Array:
+func _sm_create_slot(label_text: String, slot_size: int = 50) -> Array:
 	var container := VBoxContainer.new()
 	container.add_theme_constant_override("separation", 2)
 	container.alignment = BoxContainer.ALIGNMENT_CENTER
 	var label := Label.new()
 	label.text = label_text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", Color(0.5, 0.48, 0.42))
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.5))
 	container.add_child(label)
 	var slot_bg := PanelContainer.new()
 	var slot_style := StyleBoxFlat.new()
-	slot_style.bg_color = Color(0.1, 0.08, 0.06)
-	slot_style.border_color = Color(0.35, 0.3, 0.2)
+	slot_style.bg_color = Color(0.05, 0.04, 0.03, 0.8)
+	slot_style.border_color = Color(0.5, 0.4, 0.25)
 	slot_style.set_border_width_all(2)
-	slot_style.set_corner_radius_all(5)
+	slot_style.set_corner_radius_all(6)
 	slot_bg.add_theme_stylebox_override("panel", slot_style)
-	slot_bg.custom_minimum_size = Vector2(50, 50)
+	slot_bg.custom_minimum_size = Vector2(slot_size, slot_size)
 	container.add_child(slot_bg)
 	var tex := TextureRect.new()
-	tex.custom_minimum_size = Vector2(46, 46)
+	tex.custom_minimum_size = Vector2(slot_size - 4, slot_size - 4)
 	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	slot_bg.add_child(tex)
 	var name_lbl := Label.new()
 	name_lbl.text = ""
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 11)
-	name_lbl.add_theme_color_override("font_color", Color(0.8, 0.7, 0.55))
+	name_lbl.add_theme_font_size_override("font_size", 13)
+	name_lbl.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6))
 	container.add_child(name_lbl)
 	return [tex, name_lbl, container]
 
@@ -569,7 +563,7 @@ func _begin_run_after_select(h1: String, h2: String) -> void:
 	else:
 		var h2id: String = run.hero2_id if run else h2
 		_draft_total_rounds = 6
-		_draft_hero_order = [h1id, h2id, h1id, h2id, h1id, h2id]
+		_draft_hero_order = [h1id, h1id, h1id, h2id, h2id, h2id]
 	_draft_round = 0
 	# Update HUD with actual hero names/HP
 	_update_hud_labels()
