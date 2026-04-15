@@ -682,9 +682,9 @@ func get_upgraded_card(card_id: String) -> Dictionary:
 func get_random_card_by_rarity(hero_id: String, exclude_ids: Array = []) -> Dictionary:
 	var roll: float = randf()
 	var rarity: String
-	if roll < 0.60:
+	if roll < 0.7:
 		rarity = "common"
-	elif roll < 0.97:
+	elif roll < 0.9:
 		rarity = "uncommon"
 	else:
 		rarity = "rare"
